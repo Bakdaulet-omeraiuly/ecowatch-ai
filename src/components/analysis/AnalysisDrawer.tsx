@@ -138,9 +138,10 @@ export function AnalysisDrawer({
 
           {/* Citizen photo first (it's the subject of a report), satellite below */}
           {site.photoThumb && (
-            <button
+            <div
+              role="button"
               onClick={() => setLightbox({ url: site.photoThumb!, label: "📸 Азамат фотосы" })}
-              className="group relative mx-4 block aspect-video overflow-hidden rounded-lg border border-white/10"
+              className="group relative mx-4 aspect-video cursor-pointer overflow-hidden rounded-lg border border-white/10"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={site.photoThumb} alt="Азамат фотосы" className="h-full w-full object-cover" />
@@ -150,17 +151,18 @@ export function AnalysisDrawer({
               <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-3 w-3" /> Үлкейту
               </span>
-            </button>
+            </div>
           )}
           {site.imageUrl && (
-            <button
+            <div
+              role="button"
               onClick={() =>
                 setLightbox({
                   url: site.imageUrl!,
                   label: site.imageryYear ? `🛰 Sentinel-2, ${site.imageryYear} жыл` : "🛰 Спутник көрінісі",
                 })
               }
-              className={`group relative mx-4 ${site.photoThumb ? "mt-2" : ""} block aspect-video overflow-hidden rounded-lg border border-white/10`}
+              className={`group relative mx-4 ${site.photoThumb ? "mt-2" : ""} aspect-video cursor-pointer overflow-hidden rounded-lg border border-white/10`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={site.imageUrl} alt="Спутник суреті" className="h-full w-full object-cover" />
@@ -170,7 +172,7 @@ export function AnalysisDrawer({
               <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-3 w-3" /> Үлкейту
               </span>
-            </button>
+            </div>
           )}
 
           <div className="flex items-center gap-5 p-4">
