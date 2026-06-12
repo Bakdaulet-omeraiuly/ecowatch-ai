@@ -42,6 +42,15 @@ interface AirGridPoint {
   pm10: number | null;
 }
 
+interface MosquitoGridPoint {
+  lat: number;
+  lng: number;
+  index: number;
+  temperature: number;
+  humidity: number;
+  weekRainMm: number;
+}
+
 // Per-layer weight for a site (0..1)
 function layerWeight(s: Site, layer: LayerKey): number {
   const a = s.analysis;
@@ -93,6 +102,28 @@ export function MapView() {
       .catch(() => setAirError(true));
   }, [activeLayer, airGrid, airError]);
 
+  // Mosquito layer uses LIVE climate-suitability grid (real weather + published methodology)
+  const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
+  const [mosError, setMosError] = useState(false);
+  useEffect(() => {
+    if (activeLayer !== "mosquito" || mosGrid || mosError) return;
+    fetch("/api/mosquitogrid")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setMosGrid(d.grid))
+      .catch(() => setMosError(true));
+  }, [activeLayer, mosGrid, mosError]);
+
+  const mosStats = useMemo(() => {
+    const vals = (mosGrid ?? []).map((p) => p.index);
+    if (!vals.length) return null;
+    return {
+      min: Math.min(...vals),
+      max: Math.max(...vals),
+      avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
+      hottest: mosGrid!.reduce((a, b) => (b.index > a.index ? b : a)),
+    };
+  }, [mosGrid]);
+
   const airStats = useMemo(() => {
     const vals = (airGrid ?? []).map((p) => p.aqi).filter((v): v is number => v != null);
     if (!vals.length) return null;
@@ -119,6 +150,17 @@ export function MapView() {
           })),
       };
     }
+    if (activeLayer === "mosquito") {
+      if (!mosGrid) return null;
+      return {
+        type: "FeatureCollection" as const,
+        features: mosGrid.map((p) => ({
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+          properties: { weight: Math.min(1, p.index / 100) },
+        })),
+      };
+    }
     return {
       type: "FeatureCollection" as const,
       features: allSites.map((s) => ({
@@ -127,7 +169,10 @@ export function MapView() {
         properties: { weight: layerWeight(s, activeLayer) },
       })),
     };
-  }, [allSites, activeLayer, airGrid]);
+  }, [allSites, activeLayer, airGrid, mosGrid]);
+
+  // Grid layers (air, mosquito) need a wide radius — sparse regional points
+  const isGridLayer = activeLayer === "air" || activeLayer === "mosquito";
 
   const analyzeAt = useCallback(
     async (lat: number, lng: number) => {
@@ -243,12 +288,11 @@ export function MapView() {
               type="heatmap"
               paint={{
                 "heatmap-weight": ["get", "weight"],
-                // air layer is a sparse regional grid — needs a much wider radius
-                "heatmap-radius":
-                  activeLayer === "air"
-                    ? ["interpolate", ["linear"], ["zoom"], 5, 90, 8, 220, 10, 400]
-                    : ["interpolate", ["linear"], ["zoom"], 6, 40, 10, 90],
-                "heatmap-intensity": activeLayer === "air" ? 1 : 2,
+                // grid layers are sparse regional points — need a much wider radius
+                "heatmap-radius": isGridLayer
+                  ? ["interpolate", ["linear"], ["zoom"], 5, 90, 8, 220, 10, 400]
+                  : ["interpolate", ["linear"], ["zoom"], 6, 40, 10, 90],
+                "heatmap-intensity": isGridLayer ? 1 : 2,
                 "heatmap-opacity": 0.7,
                 "heatmap-color": [
                   "interpolate", ["linear"], ["heatmap-density"],
@@ -313,7 +357,7 @@ export function MapView() {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" /> {l.label}
-                  {l.key === "air" && (
+                  {(l.key === "air" || l.key === "mosquito") && (
                     <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
                     </span>
@@ -323,6 +367,53 @@ export function MapView() {
             })}
           </div>
         </div>
+
+        {/* Live mosquito-suitability panel */}
+        {activeLayer === "mosquito" && (
+          <div className="w-56 rounded-lg border border-purple-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-purple-300">
+              <Radio className="h-3 w-3 animate-pulse" /> Маса қолайлылығы — тірі
+            </div>
+            {mosError ? (
+              <p className="text-[11px] text-neutral-400">
+                Тірі ауа райы деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.
+              </p>
+            ) : !mosGrid ? (
+              <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
+            ) : (
+              <>
+                {mosStats && (
+                  <>
+                    <div className="grid grid-cols-3 gap-1 text-center">
+                      <div className="rounded bg-white/5 p-1.5">
+                        <div className="text-sm font-bold text-emerald-300">{mosStats.min}</div>
+                        <div className="text-[9px] text-neutral-500">мин</div>
+                      </div>
+                      <div className="rounded bg-white/5 p-1.5">
+                        <div className="text-sm font-bold text-white">{mosStats.avg}</div>
+                        <div className="text-[9px] text-neutral-500">орташа</div>
+                      </div>
+                      <div className="rounded bg-white/5 p-1.5">
+                        <div className={`text-sm font-bold ${mosStats.max > 60 ? "text-red-300" : "text-yellow-300"}`}>
+                          {mosStats.max}
+                        </div>
+                        <div className="text-[9px] text-neutral-500">макс</div>
+                      </div>
+                    </div>
+                    <div className="mt-1.5 rounded bg-purple-500/10 p-1.5 text-[10px] text-purple-200">
+                      Ең қауіпті аймақ: {mosStats.hottest.temperature.toFixed(0)}°C ·
+                      апталық жаңбыр {mosStats.hottest.weekRainMm}мм
+                    </div>
+                  </>
+                )}
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
+                  Климаттық-қолайлылық индексі: температура + жаңбыр + ылғал + топырақ ылғалы.
+                  Әдістеме: Mordecai 2017 (WHO/ECDC тәсілі). Дереккөз: Open-Meteo — сағат сайын.
+                </p>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Live air quality panel — shown while the air layer is active */}
         {activeLayer === "air" && (
