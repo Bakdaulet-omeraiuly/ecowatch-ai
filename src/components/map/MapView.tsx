@@ -12,7 +12,7 @@ import { LAYERS, type LayerKey } from "@/data/historyFactors";
 
 // Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
 // Each year is an actual cloud-free mosaic captured that year — no simulation.
-const HISTORY_YEARS: number[] = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
+const HISTORY_YEARS: number[] = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
 function s2TileUrl(year: number): string {
   const layer = year === 2016 ? "s2cloudless_3857" : `s2cloudless-${year}_3857`;
   return `https://tiles.maps.eox.at/wmts/1.0.0/${layer}/default/g/{z}/{y}/{x}.jpg`;
