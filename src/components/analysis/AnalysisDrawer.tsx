@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { X, Flag, CheckCircle2, AlertTriangle, XCircle, Bug, RefreshCw, Trash2, Maximize2 } from "lucide-react";
+import { X, Flag, CheckCircle2, AlertTriangle, XCircle, Bug, RefreshCw, Trash2, Maximize2, Sparkles } from "lucide-react";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { Site } from "@/types/site";
 import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
@@ -224,6 +224,23 @@ export function AnalysisDrawer({
             </div>
 
             <div className="rounded-lg bg-white/5 p-3 text-xs text-neutral-300">{site.analysis.summary}</div>
+
+            {site.analysis.isAgent && site.analysis.agentSources && (
+              <div className="space-y-2 rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
+                <h3 className="flex items-center gap-1.5 text-xs font-semibold text-violet-300">
+                  <Sparkles className="h-3.5 w-3.5" /> AI агент — көп дереккөзді талдау
+                </h3>
+                <p className="text-[11px] text-neutral-400">
+                  Тек спутникке емес, тірі ресми деректерге де сүйенді:
+                </p>
+                {site.analysis.agentSources.map((s, i) => (
+                  <div key={i} className="rounded-md bg-neutral-900/60 p-2 text-[11px]">
+                    <b className="text-violet-200">{s.source}</b>
+                    <div className="text-neutral-300">{s.finding}</div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {site.analysis.science && (
               <div className="space-y-3 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">

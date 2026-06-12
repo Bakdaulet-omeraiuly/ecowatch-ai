@@ -31,8 +31,15 @@ export interface ScientificAnalysis {
   evidence: EvidenceItem[];
 }
 
+export interface AgentSource {
+  source: string; // "Copernicus CAMS (ауа сапасы)"
+  finding: string; // нақты дерек пен оның мағынасы
+}
+
 export interface AnalysisResult {
   science?: ScientificAnalysis;
+  agentSources?: AgentSource[]; // multi-source AI agent findings
+  isAgent?: boolean;
   riskScore: number; // 0-100
   confidence: number; // 0-100
   riskLevel: RiskLevel;

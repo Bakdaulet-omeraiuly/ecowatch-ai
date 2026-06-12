@@ -6,7 +6,7 @@ import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
-  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera,
+  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -103,6 +103,7 @@ export function MapView() {
   const [activeLayer, setActiveLayer] = useState<LayerKey | null>(null);
   const [historyMode, setHistoryMode] = useState(false);
   const [showReports, setShowReports] = useState(true);
+  const [agentMode, setAgentMode] = useState(false);
   // last index = "Қазір" (current Mapbox imagery)
   const [yearIdx, setYearIdx] = useState(HISTORY_YEARS.length);
 
@@ -230,39 +231,71 @@ export function MapView() {
     async (lat: number, lng: number) => {
       if (analyzing) return;
       setAnalyzing(true);
-      toast.info(
-        viewYear
-          ? `AI ${viewYear} жылғы Sentinel-2 суретін талдап жатыр…`
-          : "AI спутник суретін талдап жатыр…"
-      );
       try {
-        const res = await fetch("/api/analyze", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear }),
-        });
-        if (!res.ok) throw new Error("API қатесі");
-        const data = await res.json();
-        const site: Site = {
-          id: `user-${Date.now()}`,
-          lat,
-          lng,
-          district: "Атырау облысы",
-          mode: "satellite",
-          imageryYear: viewYear,
-          analysis: data.analysis,
-          mosquitoRiskIndex: mosquitoRiskIndex(lat, lng, data.analysis.standingWater),
-          imageUrl: data.imageUrl,
-          createdAt: new Date().toISOString(),
-          flagged: false,
-        };
-        addSite(site);
-        setSelected(site);
-        toast.success(data.mock ? "Талдау дайын (демо режимі — API кілті жоқ)" : "AI талдауы дайын!");
-        if (data.analysis.riskScore >= 55) {
-          toast.warning("⚠️ Жоғары тәуекел! Жауапты органға хабарлама автоматты жіберілді", {
-            description: "Толығырақ: «Ескертулер» бөлімінде",
+        if (agentMode) {
+          // AI agent: zoom the map to the point itself, then synthesise
+          // satellite imagery + live official data (CAMS, weather)
+          mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 1400 });
+          toast.info("🤖 AI агент картаны жақындатып, спутник + тірі ресми деректерді талдап жатыр…");
+          const res = await fetch("/api/agent", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ lat, lng }),
           });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          const site: Site = {
+            id: `agent-${Date.now()}`,
+            lat,
+            lng,
+            name: "AI агент бағалауы",
+            district: "Атырау облысы",
+            mode: "satellite",
+            analysis: data.analysis,
+            mosquitoRiskIndex: data.mri,
+            imageUrl: data.imageUrl,
+            createdAt: new Date().toISOString(),
+            flagged: data.analysis.riskScore >= 80,
+          };
+          addSite(site);
+          setSelected(site);
+          toast.success(
+            data.mock ? "AI агент бағалауы дайын (демо режимі)" : "🤖 AI агент көп дереккөзді бағалауы дайын!"
+          );
+        } else {
+          toast.info(
+            viewYear
+              ? `AI ${viewYear} жылғы Sentinel-2 суретін талдап жатыр…`
+              : "AI спутник суретін талдап жатыр…"
+          );
+          const res = await fetch("/api/analyze", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear }),
+          });
+          if (!res.ok) throw new Error("API қатесі");
+          const data = await res.json();
+          const site: Site = {
+            id: `user-${Date.now()}`,
+            lat,
+            lng,
+            district: "Атырау облысы",
+            mode: "satellite",
+            imageryYear: viewYear,
+            analysis: data.analysis,
+            mosquitoRiskIndex: mosquitoRiskIndex(lat, lng, data.analysis.standingWater),
+            imageUrl: data.imageUrl,
+            createdAt: new Date().toISOString(),
+            flagged: false,
+          };
+          addSite(site);
+          setSelected(site);
+          toast.success(data.mock ? "Талдау дайын (демо режимі — API кілті жоқ)" : "AI талдауы дайын!");
+          if (data.analysis.riskScore >= 55) {
+            toast.warning("⚠️ Жоғары тәуекел! Жауапты органға хабарлама автоматты жіберілді", {
+              description: "Толығырақ: «Ескертулер» бөлімінде",
+            });
+          }
         }
       } catch {
         toast.error("Талдау сәтсіз аяқталды. Қайталап көріңіз.");
@@ -270,7 +303,7 @@ export function MapView() {
         setAnalyzing(false);
       }
     },
-    [analyzing, addSite, viewYear]
+    [analyzing, addSite, viewYear, agentMode]
   );
 
   const handleClick = useCallback(
@@ -450,6 +483,19 @@ export function MapView() {
               );
             })}
             <div className="my-0.5 h-px bg-white/10" />
+            <button
+              onClick={() => setAgentMode((v) => !v)}
+              className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                agentMode
+                  ? "border-violet-500/50 bg-violet-500/15 text-violet-200"
+                  : "border-transparent text-neutral-300 hover:bg-white/5"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" /> AI агент
+              <span className="ml-auto rounded bg-violet-500/15 px-1 py-px text-[8px] uppercase text-violet-300">
+                көп дереккөз
+              </span>
+            </button>
             <button
               onClick={() => setShowReports((v) => !v)}
               className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
@@ -689,6 +735,10 @@ export function MapView() {
         {analyzing ? (
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-neutral-900/90 px-4 py-2 text-sm text-emerald-300 backdrop-blur">
             <Loader2 className="h-4 w-4 animate-spin" /> AI талдап жатыр…
+          </div>
+        ) : agentMode ? (
+          <div className="flex items-center gap-2 rounded-full border border-violet-500/40 bg-neutral-900/90 px-4 py-2 text-xs text-violet-200 backdrop-blur">
+            <Sparkles className="h-3.5 w-3.5" /> AI агент режимі: нүктені басыңыз — карта жақындап, спутник + тірі ресми деректер біріктіріледі
           </div>
         ) : (
           <div className="rounded-full border border-white/10 bg-neutral-900/80 px-4 py-2 text-xs text-neutral-300 backdrop-blur">
