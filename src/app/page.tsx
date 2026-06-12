@@ -35,16 +35,16 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* Hero background — Earth from space */}
+      {/* Hero background — aerial view of Atyrau city at sunset (Ural river visible) */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
-              "url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80')",
+              "url('https://upload.wikimedia.org/wikipedia/commons/4/48/Atyrau_City_2025.jpg')",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/60 via-neutral-950/75 to-neutral-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/55 via-neutral-950/75 to-neutral-950" />
       </div>
 
       <div className="relative mx-auto max-w-5xl px-4 py-16 sm:py-24">
