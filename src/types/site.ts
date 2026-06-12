@@ -58,6 +58,7 @@ export interface Site {
   analysis: AnalysisResult;
   mosquitoRiskIndex: number; // 0-100
   imageUrl?: string; // satellite static image
+  imageryYear?: number | null; // Sentinel-2 mosaic year; null/undefined = current imagery
   photoThumb?: string; // citizen photo (base64 thumbnail)
   createdAt: string; // ISO
   flagged: boolean;

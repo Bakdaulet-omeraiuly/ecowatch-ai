@@ -54,7 +54,12 @@ export function AnalysisDrawer({
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "satellite", lat: site.lat, lng: site.lng }),
+        body: JSON.stringify({
+          mode: "satellite",
+          lat: site.lat,
+          lng: site.lng,
+          imageryYear: site.imageryYear ?? null,
+        }),
       });
       if (!res.ok) throw new Error();
       const data = await res.json();
@@ -89,7 +94,14 @@ export function AnalysisDrawer({
         >
           <div className="flex items-start justify-between p-4">
             <div>
-              <h2 className="font-semibold text-white">{site.name ?? "Талданған нүкте"}</h2>
+              <h2 className="flex items-center gap-2 font-semibold text-white">
+                {site.name ?? "Талданған нүкте"}
+                {site.imageryYear && (
+                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-normal text-amber-300">
+                    {site.imageryYear} жыл
+                  </span>
+                )}
+              </h2>
               <p className="text-xs text-neutral-400">
                 {site.district} · {site.lat.toFixed(4)}, {site.lng.toFixed(4)}
               </p>
@@ -128,7 +140,7 @@ export function AnalysisDrawer({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={site.imageUrl} alt="Спутник суреті" className="h-full w-full object-cover" />
               <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
-                🛰 Спутник көрінісі
+                🛰 {site.imageryYear ? `Sentinel-2, ${site.imageryYear} жыл` : "Спутник көрінісі (қазіргі)"}
               </span>
             </div>
           )}

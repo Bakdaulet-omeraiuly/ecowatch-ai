@@ -8,7 +8,15 @@ import { Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
-import { LAYERS, YEARS, factorFor, type LayerKey } from "@/data/historyFactors";
+import { LAYERS, type LayerKey } from "@/data/historyFactors";
+
+// Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
+// Each year is an actual cloud-free mosaic captured that year — no simulation.
+const HISTORY_YEARS: number[] = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024];
+function s2TileUrl(year: number): string {
+  const layer = year === 2016 ? "s2cloudless_3857" : `s2cloudless-${year}_3857`;
+  return `https://tiles.maps.eox.at/wmts/1.0.0/${layer}/default/g/{z}/{y}/{x}.jpg`;
+}
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import type { Site } from "@/types/site";
 
@@ -40,35 +48,46 @@ export function MapView() {
   const [mapStyle, setMapStyle] = useState<"satellite" | "streets">("satellite");
   const [activeLayer, setActiveLayer] = useState<LayerKey | null>(null);
   const [historyMode, setHistoryMode] = useState(false);
-  const [yearIdx, setYearIdx] = useState(YEARS.length - 1);
+  // last index = "Қазір" (current Mapbox imagery)
+  const [yearIdx, setYearIdx] = useState(HISTORY_YEARS.length);
 
-  const year = YEARS[yearIdx];
-  const allSites = userSites;
+  const isHistoricYear = yearIdx < HISTORY_YEARS.length;
+  const year = isHistoricYear ? HISTORY_YEARS[yearIdx] : null;
+  // The imagery year currently on screen: null = current Mapbox imagery
+  const viewYear = historyMode ? year : null;
+  // Each imagery year keeps its own set of analysis points
+  const allSites = useMemo(
+    () => userSites.filter((s) => (s.imageryYear ?? null) === viewYear),
+    [userSites, viewYear]
+  );
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
 
   const heatmapData = useMemo(() => {
     if (!activeLayer) return null;
-    const factor = historyMode ? factorFor(activeLayer, year) : 1;
     return {
       type: "FeatureCollection" as const,
       features: allSites.map((s) => ({
         type: "Feature" as const,
         geometry: { type: "Point" as const, coordinates: [s.lng, s.lat] },
-        properties: { weight: layerWeight(s, activeLayer) * factor },
+        properties: { weight: layerWeight(s, activeLayer) },
       })),
     };
-  }, [allSites, activeLayer, historyMode, year]);
+  }, [allSites, activeLayer]);
 
   const analyzeAt = useCallback(
     async (lat: number, lng: number) => {
       if (analyzing) return;
       setAnalyzing(true);
-      toast.info("AI спутник суретін талдап жатыр…");
+      toast.info(
+        viewYear
+          ? `AI ${viewYear} жылғы Sentinel-2 суретін талдап жатыр…`
+          : "AI спутник суретін талдап жатыр…"
+      );
       try {
         const res = await fetch("/api/analyze", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ mode: "satellite", lat, lng }),
+          body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear }),
         });
         if (!res.ok) throw new Error("API қатесі");
         const data = await res.json();
@@ -78,6 +97,7 @@ export function MapView() {
           lng,
           district: "Атырау облысы",
           mode: "satellite",
+          imageryYear: viewYear,
           analysis: data.analysis,
           mosquitoRiskIndex: mosquitoRiskIndex(lat, lng, data.analysis.standingWater),
           imageUrl: data.imageUrl,
@@ -98,7 +118,7 @@ export function MapView() {
         setAnalyzing(false);
       }
     },
-    [analyzing, addSite]
+    [analyzing, addSite, viewYear]
   );
 
   const handleClick = useCallback(
@@ -148,6 +168,19 @@ export function MapView() {
         onClick={handleClick}
         cursor={analyzing ? "wait" : "crosshair"}
       >
+        {/* Real historical Sentinel-2 mosaic for the selected year */}
+        {historyMode && year && (
+          <Source
+            key={`s2-${year}`}
+            id="s2-history"
+            type="raster"
+            tiles={[s2TileUrl(year)]}
+            tileSize={256}
+            attribution="Sentinel-2 cloudless by EOX — ESA Copernicus data"
+          >
+            <Layer id="s2-history-layer" type="raster" paint={{ "raster-opacity": 1 }} />
+          </Source>
+        )}
         {heatmapData && layerDef && (
           <Source id="eco-layer" type="geojson" data={heatmapData}>
             <Layer
@@ -267,7 +300,7 @@ export function MapView() {
         <button
           onClick={() => {
             setHistoryMode((v) => !v);
-            if (!historyMode && !activeLayer) setActiveLayer("oil");
+            if (!historyMode) setYearIdx(0); // start from 2016 to show the contrast
           }}
           className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-xs backdrop-blur transition-colors ${
             historyMode
@@ -280,13 +313,13 @@ export function MapView() {
         </button>
       </div>
 
-      {/* History timeline */}
+      {/* History timeline — real Sentinel-2 yearly mosaics */}
       {historyMode && (
-        <div className="absolute bottom-20 left-1/2 w-[min(560px,90%)] -translate-x-1/2 rounded-xl border border-amber-500/30 bg-neutral-900/95 p-4 backdrop-blur">
+        <div className="absolute bottom-20 left-1/2 w-[min(620px,90%)] -translate-x-1/2 rounded-xl border border-amber-500/30 bg-neutral-900/95 p-4 backdrop-blur">
           <div className="mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <History className="h-3.5 w-3.5" />
-              Экология тарихы{layerDef ? ` — ${layerDef.emoji} ${layerDef.label}` : ""}
+              Атыраудың нақты спутник тарихы — Sentinel-2 (ESA Copernicus)
             </span>
             <button onClick={() => setHistoryMode(false)} className="text-neutral-500 hover:text-white">
               <X className="h-4 w-4" />
@@ -296,25 +329,30 @@ export function MapView() {
             <input
               type="range"
               min={0}
-              max={YEARS.length - 1}
+              max={HISTORY_YEARS.length}
               step={1}
               value={yearIdx}
               onChange={(e) => setYearIdx(Number(e.target.value))}
               className="flex-1 accent-amber-400"
             />
-            <span className="w-12 text-right text-lg font-bold text-amber-300">{year}</span>
+            <span className="w-16 text-right text-lg font-bold text-amber-300">
+              {year ?? "Қазір"}
+            </span>
           </div>
           <div className="mt-1 flex justify-between text-[10px] text-neutral-500">
-            {YEARS.map((y) => (
-              <span key={y}>{y}</span>
+            {HISTORY_YEARS.map((y) => (
+              <span key={y}>{String(y).slice(2)}</span>
             ))}
+            <span>Қазір</span>
           </div>
-          {layerDef && (
-            <p className="mt-2 text-[11px] text-neutral-400">
-              {year} жылғы қарқындылық: 2026 деңгейінің{" "}
-              <b className="text-amber-300">{Math.round(factorFor(layerDef.key, year) * 100)}%</b>-ы
-            </p>
-          )}
+          <p className="mt-2 text-[11px] text-neutral-400">
+            {year
+              ? `${year} жылы түсірілген бұлтсыз Sentinel-2 мозаикасы — дәл сол жылғы Атыраудың шынайы көрінісі. Картаны бассаңыз, AI ${year} жылғы суретті талдайды.`
+              : "Қазіргі Mapbox спутник суреті. Слайдерді жылжытып, өткен жылдармен салыстырыңыз."}
+            <span className="ml-1 text-amber-300/80">
+              Бұл жылдың нүктелері: {allSites.length}
+            </span>
+          </p>
         </div>
       )}
 
