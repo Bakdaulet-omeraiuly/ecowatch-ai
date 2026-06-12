@@ -21,6 +21,7 @@ function s2TileUrl(year: number): string {
   return `https://tiles.maps.eox.at/wmts/1.0.0/${layer}/default/g/{z}/{y}/{x}.jpg`;
 }
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
+import { MosquitoIcon } from "./MosquitoIcon";
 import type { Site } from "@/types/site";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
@@ -179,16 +180,16 @@ export function MapView() {
     if (activeLayer !== "mosquito" || !mosGrid) return [];
     const swarm: { id: string; lat: number; lng: number; size: number }[] = [];
     for (const p of mosGrid) {
-      const count = Math.round(p.index / 12); // 0 (cold) … ~8 icons (peak)
+      const count = Math.round(p.index / 10); // 0 (cold) … ~10 icons (peak)
       for (let i = 0; i < count; i++) {
         // deterministic pseudo-random spread so icons don't jump each render
         const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
         const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
         swarm.push({
           id: `${p.lat},${p.lng},${i}`,
-          lat: p.lat + a * 0.16,
-          lng: p.lng + b * 0.22,
-          size: 11 + (Math.abs(a) > 0.6 ? 5 : 0),
+          lat: p.lat + a * 0.13,
+          lng: p.lng + b * 0.18,
+          size: 14 + (Math.abs(a) > 0.6 ? 6 : 0),
         });
       }
     }
@@ -331,10 +332,7 @@ export function MapView() {
         {/* Live mosquito swarm — icon density follows the real suitability index */}
         {mosquitoSwarm.map((m) => (
           <Marker key={m.id} latitude={m.lat} longitude={m.lng}>
-            <Bug
-              className="text-purple-300/80 drop-shadow"
-              style={{ width: m.size, height: m.size }}
-            />
+            <MosquitoIcon size={m.size} className="text-purple-200/85 drop-shadow" />
           </Marker>
         ))}
 

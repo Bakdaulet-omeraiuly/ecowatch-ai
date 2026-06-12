@@ -10,11 +10,43 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 3600;
 
-const LATS = [46.2, 46.8, 47.4, 48.0, 48.6];
-const LNGS = [49.6, 50.6, 51.6, 52.6, 53.6, 54.6];
-
+// 10×10 = 100-point grid covering the Atyrau region
+const LAT_MIN = 46.0, LAT_MAX = 48.8;
+const LNG_MIN = 49.2, LNG_MAX = 54.8;
+const N = 10;
 const points: { lat: number; lng: number }[] = [];
-for (const lat of LATS) for (const lng of LNGS) points.push({ lat, lng });
+for (let i = 0; i < N; i++)
+  for (let j = 0; j < N; j++)
+    points.push({
+      lat: +(LAT_MIN + ((LAT_MAX - LAT_MIN) * i) / (N - 1)).toFixed(4),
+      lng: +(LNG_MIN + ((LNG_MAX - LNG_MIN) * j) / (N - 1)).toFixed(4),
+    });
+
+// Settlements: cities concentrate breeding habitat (containers, tires, drains,
+// irrigation) independent of rainfall — a documented urban amplification of
+// mosquito density. Stored with a weight (bigger town = stronger boost).
+const SETTLEMENTS: { lat: number; lng: number; w: number }[] = [
+  { lat: 47.1167, lng: 51.8833, w: 1.0 }, // Atyrau city (largest)
+  { lat: 46.98, lng: 54.02, w: 0.6 }, // Kulsary
+  { lat: 47.65, lng: 53.31, w: 0.4 }, // Makat
+  { lat: 47.53, lng: 52.98, w: 0.35 }, // Dossor
+  { lat: 48.55, lng: 51.78, w: 0.4 }, // Inderbor
+  { lat: 47.67, lng: 51.58, w: 0.35 }, // Makhambet
+  { lat: 46.6, lng: 49.27, w: 0.3 }, // Ganyushkino
+  { lat: 47.0, lng: 51.18, w: 0.3 }, // Akkystau
+];
+
+// 0..1 urban factor: peaks at a settlement centre, fades out ~25 km
+function urbanFactor(lat: number, lng: number): number {
+  let max = 0;
+  for (const s of SETTLEMENTS) {
+    const dLat = (lat - s.lat) * 111;
+    const dLng = (lng - s.lng) * 111 * Math.cos((lat * Math.PI) / 180);
+    const distKm = Math.sqrt(dLat * dLat + dLng * dLng);
+    max = Math.max(max, s.w * Math.max(0, 1 - distKm / 35));
+  }
+  return max;
+}
 
 const URL =
   `https://api.open-meteo.com/v1/forecast` +
@@ -73,9 +105,13 @@ export async function GET() {
         const weekRain = (d.daily?.precipitation_sum ?? []).reduce<number>((a, b) => a + (b ?? 0), 0);
 
         const tSuit = tempSuitability(t);
-        // breeding/survival drivers (weighted): rain 0.45, humidity 0.30, soil 0.25
-        const drivers = 0.45 * rainFactor(weekRain) + 0.3 * humidityFactor(rh) + 0.25 * soilFactor(soil);
-        const index = Math.round(100 * tSuit * (0.35 + 0.65 * drivers)); // temp gates everything
+        // breeding/survival drivers (weighted): rain 0.40, humidity 0.25, soil 0.20, urban 0.15
+        const urban = urbanFactor(d.latitude, d.longitude);
+        const drivers =
+          0.4 * rainFactor(weekRain) + 0.25 * humidityFactor(rh) + 0.2 * soilFactor(soil) + 0.15 * urban;
+        // base climate suitability, then an extra urban amplification on top
+        const base = 100 * tSuit * (0.35 + 0.65 * drivers);
+        const index = Math.round(Math.min(100, base * (1 + 0.8 * urban)));
 
         return {
           lat: d.latitude,
@@ -84,13 +120,14 @@ export async function GET() {
           temperature: t,
           humidity: rh,
           weekRainMm: +weekRain.toFixed(1),
+          urban: +urban.toFixed(2),
         };
       }
     );
 
     const data = {
       fetchedAt: new Date().toISOString(),
-      source: "Open-Meteo (live weather) · Mordecai et al. 2017 thermal-suitability methodology",
+      source: "Open-Meteo (live weather) · Mordecai 2017 thermal suitability + urban amplification",
       grid,
     };
     cache = { at: Date.now(), data };

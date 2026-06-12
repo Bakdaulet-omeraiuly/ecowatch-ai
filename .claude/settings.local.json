@@ -29,7 +29,8 @@
       "Bash(curl -s -o /tmp/s2_2025.jpg \"https://tiles.maps.eox.at/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=s2cloudless-2025&SRS=EPSG:4326&BBOX=51.89,47.11,51.92,47.13&WIDTH=512&HEIGHT=512&FORMAT=image/jpeg\")",
       "Bash(awk '{print $5\" байт\"}')",
       "Bash(curl -s http://localhost:3000/api/airgrid)",
-      "Bash(curl -s http://localhost:3000/api/mosquitogrid)"
+      "Bash(curl -s http://localhost:3000/api/mosquitogrid)",
+      "Bash(curl -s \"http://localhost:3000/api/mosquitogrid\")"
     ]
   }
 }
