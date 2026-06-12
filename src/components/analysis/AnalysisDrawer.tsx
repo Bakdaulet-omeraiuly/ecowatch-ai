@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { X, Flag, CheckCircle2, AlertTriangle, XCircle, Bug, RefreshCw, Trash2 } from "lucide-react";
+import { X, Flag, CheckCircle2, AlertTriangle, XCircle, Bug, RefreshCw, Trash2, Maximize2 } from "lucide-react";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { Site } from "@/types/site";
 import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
@@ -33,6 +33,7 @@ export function AnalysisDrawer({
   const removeSite = useSitesStore((s) => s.removeSite);
   const [refreshing, setRefreshing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
 
   const remove = () => {
     if (!site) return;
@@ -135,23 +136,41 @@ export function AnalysisDrawer({
             </div>
           </div>
 
-          {site.imageUrl && (
-            <div className="relative mx-4 aspect-video overflow-hidden rounded-lg border border-white/10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={site.imageUrl} alt="Спутник суреті" className="h-full w-full object-cover" />
-              <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
-                🛰 {site.imageryYear ? `Sentinel-2, ${site.imageryYear} жыл` : "Спутник көрінісі (қазіргі)"}
-              </span>
-            </div>
-          )}
+          {/* Citizen photo first (it's the subject of a report), satellite below */}
           {site.photoThumb && (
-            <div className="relative mx-4 mt-2 aspect-video overflow-hidden rounded-lg border border-white/10">
+            <button
+              onClick={() => setLightbox({ url: site.photoThumb!, label: "📸 Азамат фотосы" })}
+              className="group relative mx-4 block aspect-video overflow-hidden rounded-lg border border-white/10"
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={site.photoThumb} alt="Азамат фотосы" className="h-full w-full object-cover" />
               <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
                 📸 Азамат фотосы
               </span>
-            </div>
+              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                <Maximize2 className="h-3 w-3" /> Үлкейту
+              </span>
+            </button>
+          )}
+          {site.imageUrl && (
+            <button
+              onClick={() =>
+                setLightbox({
+                  url: site.imageUrl!,
+                  label: site.imageryYear ? `🛰 Sentinel-2, ${site.imageryYear} жыл` : "🛰 Спутник көрінісі",
+                })
+              }
+              className={`group relative mx-4 ${site.photoThumb ? "mt-2" : ""} block aspect-video overflow-hidden rounded-lg border border-white/10`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={site.imageUrl} alt="Спутник суреті" className="h-full w-full object-cover" />
+              <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+                🛰 {site.imageryYear ? `Sentinel-2, ${site.imageryYear} жыл` : "Спутник көрінісі (қазіргі)"}
+              </span>
+              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+                <Maximize2 className="h-3 w-3" /> Үлкейту
+              </span>
+            </button>
           )}
 
           <div className="flex items-center gap-5 p-4">
@@ -288,6 +307,32 @@ export function AnalysisDrawer({
             </div>
           </div>
         </motion.aside>
+      )}
+
+      {/* Fullscreen image lightbox */}
+      {lightbox && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => setLightbox(null)}
+          className="fixed inset-0 z-[60] flex flex-col items-center justify-center bg-black/90 p-4 backdrop-blur"
+        >
+          <div className="mb-3 flex w-full max-w-4xl items-center justify-between text-sm text-white">
+            <span>{lightbox.label}</span>
+            <button onClick={() => setLightbox(null)} className="rounded-md p-1 hover:bg-white/10">
+              <X className="h-6 w-6" />
+            </button>
+          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox.url}
+            alt={lightbox.label}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[80vh] max-w-4xl rounded-lg object-contain shadow-2xl"
+          />
+          <p className="mt-3 text-xs text-neutral-500">Жабу үшін кез келген жерді басыңыз</p>
+        </motion.div>
       )}
     </AnimatePresence>
   );
