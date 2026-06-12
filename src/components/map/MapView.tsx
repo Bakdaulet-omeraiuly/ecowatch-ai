@@ -46,7 +46,7 @@ function yearTileConfig(year: number): { tiles: string[]; maxzoom: number; attri
 }
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import { MosquitoIcon } from "./MosquitoIcon";
-import type { Site } from "@/types/site";
+import type { Site, AnalysisResult } from "@/types/site";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
 
@@ -116,11 +116,43 @@ export function MapView() {
     () => userSites.filter((s) => (s.imageryYear ?? null) === viewYear),
     [userSites, viewYear]
   );
-  // Citizen photo reports form their own layer (always current-view, with a photo)
-  const photoReports = useMemo(
-    () => userSites.filter((s) => !!s.photoThumb && !s.imageryYear),
-    [userSites]
-  );
+  // Shared citizen reports loaded from Supabase (visible to everyone)
+  const [sharedReports, setSharedReports] = useState<Site[]>([]);
+  useEffect(() => {
+    fetch("/api/reports")
+      .then((r) => r.json())
+      .then((d) => {
+        const rows = (d.reports ?? []) as Array<{
+          id: string; lat: number; lng: number; name: string | null; district: string | null;
+          risk_score: number; mosquito_index: number; analysis: AnalysisResult;
+          image_url: string | null; photo_thumb: string | null; created_at: string;
+        }>;
+        setSharedReports(
+          rows.map((r) => ({
+            id: r.id,
+            lat: r.lat,
+            lng: r.lng,
+            name: r.name ?? "Азаматтық хабарлама",
+            district: r.district ?? "Атырау облысы",
+            mode: "combined" as const,
+            analysis: r.analysis,
+            mosquitoRiskIndex: r.mosquito_index,
+            imageUrl: r.image_url ?? undefined,
+            photoThumb: r.photo_thumb ?? undefined,
+            createdAt: r.created_at,
+            flagged: r.risk_score >= 80,
+          }))
+        );
+      })
+      .catch(() => {});
+  }, []);
+
+  // Citizen photo reports: shared (Supabase) + any local ones not yet synced
+  const photoReports = useMemo(() => {
+    const localPhotos = userSites.filter((s) => !!s.photoThumb && !s.imageryYear);
+    const sharedIds = new Set(sharedReports.map((s) => s.id));
+    return [...sharedReports, ...localPhotos.filter((s) => !sharedIds.has(s.id))];
+  }, [userSites, sharedReports]);
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
   const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
   const [airError, setAirError] = useState(false);

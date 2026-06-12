@@ -11,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import dynamic from "next/dynamic";
 import { useSitesStore } from "@/store/useSitesStore";
-import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { Site } from "@/types/site";
 
 const LocationPicker = dynamic(
@@ -78,34 +77,44 @@ export default function ReportPage() {
     if (!photo) return toast.error("Фото жүктеңіз");
     if (isNaN(la) || isNaN(ln)) return toast.error("Координаттарды енгізіңіз");
     setBusy(true);
-    toast.info("AI фото мен спутник суретін салыстырып жатыр…");
+    toast.info("AI фотоны тексеріп, спутникпен салыстырып жатыр…");
     try {
-      const res = await fetch("/api/analyze", {
+      const res = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mode: "combined", lat: la, lng: ln, photo }),
+        body: JSON.stringify({ lat: la, lng: ln, photo, description: desc || undefined }),
       });
-      if (!res.ok) throw new Error();
       const data = await res.json();
+
+      // AI moderation rejected the photo
+      if (res.status === 422) {
+        toast.error("Фото қабылданбады", { description: data.reason });
+        setBusy(false);
+        return;
+      }
+      if (!res.ok) throw new Error(data.error || "");
+
+      // Mirror to local store for instant display, then go to map
+      const r = data.report;
       const site: Site = {
-        id: `report-${Date.now()}`,
-        lat: la,
-        lng: ln,
-        name: desc ? desc.slice(0, 60) : "Азаматтық хабарлама",
-        district: "Атырау облысы",
+        id: r.id,
+        lat: r.lat,
+        lng: r.lng,
+        name: r.name,
+        district: r.district,
         mode: "combined",
-        analysis: data.analysis,
-        mosquitoRiskIndex: mosquitoRiskIndex(la, ln, data.analysis.standingWater),
-        imageUrl: data.imageUrl,
-        photoThumb: photo,
-        createdAt: new Date().toISOString(),
-        flagged: data.analysis.riskScore >= 80,
+        analysis: r.analysis,
+        mosquitoRiskIndex: r.mosquito_index,
+        imageUrl: r.image_url,
+        photoThumb: r.photo_thumb,
+        createdAt: r.created_at,
+        flagged: r.risk_score >= 80,
       };
       addSite(site);
       toast.success(
-        data.analysis.verificationStatus === "confirmed"
-          ? "✅ Хабарлама спутникпен РАСТАЛДЫ!"
-          : "Хабарлама қабылданды және талданды"
+        r.analysis?.verificationStatus === "confirmed"
+          ? "✅ Хабарлама расталды және бәріне көрінеді!"
+          : "Хабарлама қабылданды — бәріне көрінеді"
       );
       router.push("/map");
     } catch {
