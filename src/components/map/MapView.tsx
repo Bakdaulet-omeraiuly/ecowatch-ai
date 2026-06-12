@@ -174,6 +174,27 @@ export function MapView() {
   // Grid layers (air, mosquito) need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito";
 
+  // Scatter mosquito icons around each grid point — count scales with the live index
+  const mosquitoSwarm = useMemo(() => {
+    if (activeLayer !== "mosquito" || !mosGrid) return [];
+    const swarm: { id: string; lat: number; lng: number; size: number }[] = [];
+    for (const p of mosGrid) {
+      const count = Math.round(p.index / 12); // 0 (cold) … ~8 icons (peak)
+      for (let i = 0; i < count; i++) {
+        // deterministic pseudo-random spread so icons don't jump each render
+        const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
+        const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
+        swarm.push({
+          id: `${p.lat},${p.lng},${i}`,
+          lat: p.lat + a * 0.16,
+          lng: p.lng + b * 0.22,
+          size: 11 + (Math.abs(a) > 0.6 ? 5 : 0),
+        });
+      }
+    }
+    return swarm;
+  }, [activeLayer, mosGrid]);
+
   const analyzeAt = useCallback(
     async (lat: number, lng: number) => {
       if (analyzing) return;
@@ -307,6 +328,16 @@ export function MapView() {
           </Source>
         )}
 
+        {/* Live mosquito swarm — icon density follows the real suitability index */}
+        {mosquitoSwarm.map((m) => (
+          <Marker key={m.id} latitude={m.lat} longitude={m.lng}>
+            <Bug
+              className="text-purple-300/80 drop-shadow"
+              style={{ width: m.size, height: m.size }}
+            />
+          </Marker>
+        ))}
+
         {allSites.map((s) => (
           <Marker
             key={s.id}
@@ -407,8 +438,9 @@ export function MapView() {
                   </>
                 )}
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
-                  Климаттық-қолайлылық индексі: температура + жаңбыр + ылғал + топырақ ылғалы.
-                  Әдістеме: Mordecai 2017 (WHO/ECDC тәсілі). Дереккөз: Open-Meteo — сағат сайын.
+                  🦟 иконкалар тірі индекс бойынша шоғырланады: индекс жоғары жерде көп, төмен жерде
+                  аз. Климаттық-қолайлылық: температура + жаңбыр + ылғал + топырақ. Әдістеме:
+                  Mordecai 2017 (WHO/ECDC). Дереккөз: Open-Meteo — сағат сайын.
                 </p>
               </>
             )}
