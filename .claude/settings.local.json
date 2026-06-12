@@ -33,7 +33,11 @@
       "Bash(curl -s \"http://localhost:3000/api/mosquitogrid\")",
       "Bash(curl -s \"https://commons.wikimedia.org/w/api.php?action=query&generator=categorymembers&gcmtitle=Category:Atyrau&gcmtype=file&gcmlimit=20&prop=imageinfo&iiprop=url|size|mime&format=json\" -H \"User-Agent: EcoWatchAI/1.0\")",
       "Bash(curl -s -H 'User-Agent: Mozilla/5.0' \"https://upload.wikimedia.org/wikipedia/commons/4/48/Atyrau_City_2025.jpg\" -o aty_city.jpg)",
-      "Bash(curl -s -H 'User-Agent: Mozilla/5.0' \"https://upload.wikimedia.org/wikipedia/commons/7/79/Atyrau_footbridge_across_Ural_River.jpg\" -o aty_bridge.jpg)"
+      "Bash(curl -s -H 'User-Agent: Mozilla/5.0' \"https://upload.wikimedia.org/wikipedia/commons/7/79/Atyrau_footbridge_across_Ural_River.jpg\" -o aty_bridge.jpg)",
+      "Bash(curl -s \"https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=Atyrau%20bridge%20Ural&gsrlimit=25&gsrnamespace=6&prop=imageinfo&iiprop=url|size|mime&format=json\" -H \"User-Agent: EcoWatchAI/1.0\")",
+      "Bash(curl -s -H 'User-Agent: Mozilla/5.0' \"https://upload.wikimedia.org/wikipedia/commons/d/df/Atyrau_bridge.JPG\" -o b1.jpg)",
+      "Bash(curl -s -H 'User-Agent: Mozilla/5.0' \"https://upload.wikimedia.org/wikipedia/commons/6/63/Atyrau_-_Oural.JPG\" -o b2.jpg)",
+      "Bash(curl -s -H 'User-Agent: Mozilla/5.0' \"https://upload.wikimedia.org/wikipedia/commons/7/79/Atyrau_footbridge_across_Ural_River.jpg\" -o b3.jpg)"
     ]
   }
 }

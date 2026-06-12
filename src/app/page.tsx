@@ -35,13 +35,14 @@ export default function Home() {
 
   return (
     <div className="relative">
-      {/* Hero background — aerial view of Atyrau city at sunset (Ural river visible) */}
+      {/* Hero background — local /atyrau-hero.jpg if present, else the Wikimedia
+          aerial of Atyrau as a fallback layer underneath */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[640px] overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
           style={{
             backgroundImage:
-              "url('https://upload.wikimedia.org/wikipedia/commons/4/48/Atyrau_City_2025.jpg')",
+              "url('/atyrau-hero.jpg'), url('https://upload.wikimedia.org/wikipedia/commons/4/48/Atyrau_City_2025.jpg')",
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-neutral-950/55 via-neutral-950/75 to-neutral-950" />
