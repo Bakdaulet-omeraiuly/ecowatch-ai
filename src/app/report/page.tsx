@@ -9,9 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import dynamic from "next/dynamic";
 import { useSitesStore } from "@/store/useSitesStore";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { Site } from "@/types/site";
+
+const LocationPicker = dynamic(
+  () => import("@/components/report/LocationPicker").then((m) => m.LocationPicker),
+  { ssr: false, loading: () => <div className="h-64 rounded-lg bg-white/5" /> }
+);
 
 // Resize photo client-side so the base64 payload stays small
 function resizeImage(file: File, maxDim = 1024): Promise<string> {
@@ -149,18 +155,26 @@ export default function ReportPage() {
       </Card>
 
       <Card className="border-white/10 bg-white/[0.03]">
-        <CardHeader><CardTitle className="text-sm text-white">📍 Орналасу</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-white">📍 Орналасу — картадан белгілеңіз</CardTitle></CardHeader>
         <CardContent className="space-y-3">
-          <Button variant="outline" size="sm" onClick={locate} disabled={locating}>
-            {locating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <MapPin className="mr-1 h-4 w-4" />}
-            GPS арқылы анықтау
-          </Button>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1">
+          <LocationPicker
+            lat={parseFloat(lat) || null}
+            lng={parseFloat(lng) || null}
+            onPick={(la, ln) => {
+              setLat(la.toFixed(5));
+              setLng(ln.toFixed(5));
+            }}
+          />
+          <div className="flex flex-wrap items-end gap-3">
+            <Button variant="outline" size="sm" onClick={locate} disabled={locating}>
+              {locating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <MapPin className="mr-1 h-4 w-4" />}
+              GPS арқылы анықтау
+            </Button>
+            <div className="flex-1 space-y-1">
               <Label htmlFor="lat" className="text-xs text-neutral-400">Ендік (lat)</Label>
               <Input id="lat" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="47.1167" />
             </div>
-            <div className="space-y-1">
+            <div className="flex-1 space-y-1">
               <Label htmlFor="lng" className="text-xs text-neutral-400">Бойлық (lng)</Label>
               <Input id="lng" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="51.9014" />
             </div>

@@ -6,7 +6,7 @@ import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
-  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio,
+  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -102,6 +102,7 @@ export function MapView() {
   const [mapStyle, setMapStyle] = useState<"satellite" | "streets">("satellite");
   const [activeLayer, setActiveLayer] = useState<LayerKey | null>(null);
   const [historyMode, setHistoryMode] = useState(false);
+  const [showReports, setShowReports] = useState(true);
   // last index = "Қазір" (current Mapbox imagery)
   const [yearIdx, setYearIdx] = useState(HISTORY_YEARS.length);
 
@@ -113,6 +114,11 @@ export function MapView() {
   const allSites = useMemo(
     () => userSites.filter((s) => (s.imageryYear ?? null) === viewYear),
     [userSites, viewYear]
+  );
+  // Citizen photo reports form their own layer (always current-view, with a photo)
+  const photoReports = useMemo(
+    () => userSites.filter((s) => !!s.photoThumb && !s.imageryYear),
+    [userSites]
   );
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
   const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
@@ -361,26 +367,61 @@ export function MapView() {
           </Marker>
         ))}
 
-        {allSites.map((s) => (
-          <Marker
-            key={s.id}
-            latitude={s.lat}
-            longitude={s.lng}
-            onClick={(e) => {
-              e.originalEvent.stopPropagation();
-              setSelected(s);
-            }}
-          >
-            <div
-              className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-white/80 text-[10px] shadow-lg transition-transform hover:scale-125"
-              style={{ backgroundColor: RISK_COLORS[s.analysis.riskLevel] }}
-              title={s.name}
+        {/* Analysis points (non-photo) for the current imagery year */}
+        {allSites
+          .filter((s) => !s.photoThumb)
+          .map((s) => (
+            <Marker
+              key={s.id}
+              latitude={s.lat}
+              longitude={s.lng}
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                setSelected(s);
+              }}
             >
-              {s.mode === "photo" || s.mode === "combined" ? "📸" : ""}
-              {s.analysis.verificationStatus === "confirmed" ? "✓" : ""}
-            </div>
-          </Marker>
-        ))}
+              <div
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-white/80 text-[10px] shadow-lg transition-transform hover:scale-125"
+                style={{ backgroundColor: RISK_COLORS[s.analysis.riskLevel] }}
+                title={s.name}
+              >
+                {s.analysis.verificationStatus === "confirmed" ? "✓" : ""}
+              </div>
+            </Marker>
+          ))}
+
+        {/* Citizen photo-report layer — real photo thumbnails as map points */}
+        {showReports &&
+          photoReports.map((s) => (
+            <Marker
+              key={s.id}
+              latitude={s.lat}
+              longitude={s.lng}
+              anchor="bottom"
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                setSelected(s);
+              }}
+            >
+              <div className="cursor-pointer transition-transform hover:scale-110" title={s.name}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={s.photoThumb}
+                  alt="Хабарлама"
+                  className="h-11 w-11 rounded-lg border-2 object-cover shadow-lg"
+                  style={{ borderColor: RISK_COLORS[s.analysis.riskLevel] }}
+                />
+                <div
+                  className="mx-auto -mt-0.5 h-0 w-0"
+                  style={{
+                    borderLeft: "5px solid transparent",
+                    borderRight: "5px solid transparent",
+                    borderTop: `6px solid ${RISK_COLORS[s.analysis.riskLevel]}`,
+                  }}
+                />
+              </div>
+            </Marker>
+          ))}
       </Map>
 
       {/* Layer panel */}
@@ -419,6 +460,20 @@ export function MapView() {
                 </button>
               );
             })}
+            <div className="my-0.5 h-px bg-white/10" />
+            <button
+              onClick={() => setShowReports((v) => !v)}
+              className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                showReports
+                  ? "border-pink-500/50 bg-pink-500/15 text-pink-200"
+                  : "border-transparent text-neutral-300 hover:bg-white/5"
+              }`}
+            >
+              <Camera className="h-3.5 w-3.5" /> Хабарламалар
+              <span className="ml-auto rounded bg-white/10 px-1 py-px text-[9px] text-neutral-300">
+                {photoReports.length}
+              </span>
+            </button>
           </div>
         </div>
 
