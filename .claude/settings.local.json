@@ -5,7 +5,15 @@
       "mcp__visualize__show_widget",
       "Bash(brew --version)",
       "Bash(curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh)",
-      "Bash(bash)"
+      "Bash(bash)",
+      "Bash(grep -m2 \"error\\\\|Error\" /tmp/ecowatch-dev.log | head -4)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/map)",
+      "Bash(curl -s http://localhost:3000/api/articles)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \" | image: %{http_code}\" \"https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1920&q=80\")",
+      "Bash(curl -s http://localhost:3000/api/environment)",
+      "Bash(curl -s -o /dev/null -w \"dashboard: %{http_code}\\\\n\" http://localhost:3000/dashboard)"
     ]
   }
 }
