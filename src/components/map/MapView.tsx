@@ -14,11 +14,35 @@ import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 
 // Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
-// Each year is an actual cloud-free mosaic captured that year — no simulation.
-const HISTORY_YEARS: number[] = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025];
-function s2TileUrl(year: number): string {
+// All imagery is real, no simulation:
+//  • 2000–2015 → NASA MODIS Terra True Color (250 m) — only real source pre-Sentinel-2
+//  • 2016–2025 → Sentinel-2 Cloudless yearly mosaic by EOX (10 m, ESA Copernicus)
+const HISTORY_YEARS: number[] = [
+  2000, 2003, 2006, 2009, 2012, 2015,
+  2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
+];
+
+function isModisYear(year: number): boolean {
+  return year < 2016;
+}
+
+// Raster tile config for the selected year's map layer
+function yearTileConfig(year: number): { tiles: string[]; maxzoom: number; attribution: string } {
+  if (isModisYear(year)) {
+    return {
+      tiles: [
+        `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${year}-07-15/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
+      ],
+      maxzoom: 9, // MODIS native resolution cap
+      attribution: "NASA EOSDIS GIBS — MODIS Terra",
+    };
+  }
   const layer = year === 2016 ? "s2cloudless_3857" : `s2cloudless-${year}_3857`;
-  return `https://tiles.maps.eox.at/wmts/1.0.0/${layer}/default/g/{z}/{y}/{x}.jpg`;
+  return {
+    tiles: [`https://tiles.maps.eox.at/wmts/1.0.0/${layer}/default/g/{z}/{y}/{x}.jpg`],
+    maxzoom: 16,
+    attribution: "Sentinel-2 cloudless by EOX — ESA Copernicus",
+  };
 }
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import { MosquitoIcon } from "./MosquitoIcon";
@@ -293,14 +317,15 @@ export function MapView() {
         {/* Real historical Sentinel-2 mosaic for the selected year */}
         {historyMode && year && (
           <Source
-            key={`s2-${year}`}
-            id="s2-history"
+            key={`hist-${year}`}
+            id="hist-imagery"
             type="raster"
-            tiles={[s2TileUrl(year)]}
+            tiles={yearTileConfig(year).tiles}
             tileSize={256}
-            attribution="Sentinel-2 cloudless by EOX — ESA Copernicus data"
+            maxzoom={yearTileConfig(year).maxzoom}
+            attribution={yearTileConfig(year).attribution}
           >
-            <Layer id="s2-history-layer" type="raster" paint={{ "raster-opacity": 1 }} />
+            <Layer id="hist-imagery-layer" type="raster" paint={{ "raster-opacity": 1 }} />
           </Source>
         )}
         {heatmapData && layerDef && (
@@ -548,7 +573,7 @@ export function MapView() {
           <div className="mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <History className="h-3.5 w-3.5" />
-              Атыраудың нақты спутник тарихы — Sentinel-2 (ESA Copernicus)
+              Атыраудың нақты спутник тарихы (2000–2025)
             </span>
             <button onClick={() => setHistoryMode(false)} className="text-neutral-500 hover:text-white">
               <X className="h-4 w-4" />
@@ -576,11 +601,11 @@ export function MapView() {
           </div>
           <p className="mt-2 text-[11px] text-neutral-400">
             {year
-              ? `${year} жылы түсірілген бұлтсыз Sentinel-2 мозаикасы — дәл сол жылғы Атыраудың шынайы көрінісі. Картаны бассаңыз, AI ${year} жылғы суретті талдайды.`
+              ? isModisYear(year)
+                ? `${year} жыл — NASA MODIS нақты суреті (250м, шолу деңгейі). Sentinel-2 спутнигі 2015 жылы ұшырылғандықтан, бұдан ескі жоғары сапалы сурет жоқ.`
+                : `${year} жыл — бұлтсыз Sentinel-2 мозаикасы (10м), дәл сол жылғы Атыраудың шынайы көрінісі. Картаны бассаңыз, AI ${year} жылғы суретті талдайды.`
               : "Қазіргі Mapbox спутник суреті. Слайдерді жылжытып, өткен жылдармен салыстырыңыз."}
-            <span className="ml-1 text-amber-300/80">
-              Бұл жылдың нүктелері: {allSites.length}
-            </span>
+            <span className="ml-1 text-amber-300/80">Бұл жылдың нүктелері: {allSites.length}</span>
           </p>
         </div>
       )}

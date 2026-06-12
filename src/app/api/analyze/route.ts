@@ -10,7 +10,7 @@ const reqSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
   photo: z.string().optional(), // base64 data URL for photo/combined modes
-  imageryYear: z.number().int().min(2016).max(2025).nullable().optional(), // Sentinel-2 year
+  imageryYear: z.number().int().min(2000).max(2025).nullable().optional(), // imagery year
 });
 
 const evidenceSchema = z.object({
