@@ -1,10 +1,13 @@
 "use client";
 
-import { useMemo, useState, useCallback, useRef } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import Map, { Marker, Layer, Source, type MapRef } from "react-map-gl/mapbox";
 import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
-import { Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate } from "lucide-react";
+import {
+  Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
+  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio,
+} from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
@@ -21,6 +24,23 @@ import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import type { Site } from "@/types/site";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
+
+const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
+  mosquito: Bug,
+  air: Wind,
+  soil: Mountain,
+  oil: Fuel,
+  waste: Trash2,
+  water: Waves,
+};
+
+interface AirGridPoint {
+  lat: number;
+  lng: number;
+  aqi: number | null;
+  pm2_5: number | null;
+  pm10: number | null;
+}
 
 // Per-layer weight for a site (0..1)
 function layerWeight(s: Site, layer: LayerKey): number {
@@ -61,9 +81,44 @@ export function MapView() {
     [userSites, viewYear]
   );
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
+  const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
+  const [airError, setAirError] = useState(false);
+
+  // Air layer uses LIVE regional data (Copernicus CAMS), fetched on first open
+  useEffect(() => {
+    if (activeLayer !== "air" || airGrid || airError) return;
+    fetch("/api/airgrid")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setAirGrid(d.grid))
+      .catch(() => setAirError(true));
+  }, [activeLayer, airGrid, airError]);
+
+  const airStats = useMemo(() => {
+    const vals = (airGrid ?? []).map((p) => p.aqi).filter((v): v is number => v != null);
+    if (!vals.length) return null;
+    return {
+      min: Math.min(...vals),
+      max: Math.max(...vals),
+      avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
+    };
+  }, [airGrid]);
 
   const heatmapData = useMemo(() => {
     if (!activeLayer) return null;
+    // Air layer: real live AQI grid; other layers: platform analyses
+    if (activeLayer === "air") {
+      if (!airGrid) return null;
+      return {
+        type: "FeatureCollection" as const,
+        features: airGrid
+          .filter((p) => p.aqi != null)
+          .map((p) => ({
+            type: "Feature" as const,
+            geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+            properties: { weight: Math.min(1, (p.aqi ?? 0) / 100) },
+          })),
+      };
+    }
     return {
       type: "FeatureCollection" as const,
       features: allSites.map((s) => ({
@@ -72,7 +127,7 @@ export function MapView() {
         properties: { weight: layerWeight(s, activeLayer) },
       })),
     };
-  }, [allSites, activeLayer]);
+  }, [allSites, activeLayer, airGrid]);
 
   const analyzeAt = useCallback(
     async (lat: number, lng: number) => {
@@ -188,8 +243,12 @@ export function MapView() {
               type="heatmap"
               paint={{
                 "heatmap-weight": ["get", "weight"],
-                "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 6, 40, 10, 90],
-                "heatmap-intensity": 2,
+                // air layer is a sparse regional grid — needs a much wider radius
+                "heatmap-radius":
+                  activeLayer === "air"
+                    ? ["interpolate", ["linear"], ["zoom"], 5, 90, 8, 220, 10, 400]
+                    : ["interpolate", ["linear"], ["zoom"], 6, 40, 10, 90],
+                "heatmap-intensity": activeLayer === "air" ? 1 : 2,
                 "heatmap-opacity": 0.7,
                 "heatmap-color": [
                   "interpolate", ["linear"], ["heatmap-density"],
@@ -241,21 +300,70 @@ export function MapView() {
             Эко қабаттар
           </div>
           <div className="flex flex-col gap-1">
-            {LAYERS.map((l) => (
-              <button
-                key={l.key}
-                onClick={() => setActiveLayer((cur) => (cur === l.key ? null : l.key))}
-                className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-                  activeLayer === l.key
-                    ? l.activeCls
-                    : "border-transparent text-neutral-300 hover:bg-white/5"
-                }`}
-              >
-                <span>{l.emoji}</span> {l.label}
-              </button>
-            ))}
+            {LAYERS.map((l) => {
+              const Icon = LAYER_ICONS[l.key];
+              return (
+                <button
+                  key={l.key}
+                  onClick={() => setActiveLayer((cur) => (cur === l.key ? null : l.key))}
+                  className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                    activeLayer === l.key
+                      ? l.activeCls
+                      : "border-transparent text-neutral-300 hover:bg-white/5"
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" /> {l.label}
+                  {l.key === "air" && (
+                    <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
+                      live
+                    </span>
+                  )}
+                </button>
+              );
+            })}
           </div>
         </div>
+
+        {/* Live air quality panel — shown while the air layer is active */}
+        {activeLayer === "air" && (
+          <div className="w-52 rounded-lg border border-sky-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-sky-300">
+              <Radio className="h-3 w-3 animate-pulse" /> Ауа сапасы — тірі
+            </div>
+            {airError ? (
+              <p className="text-[11px] text-neutral-400">
+                Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.
+              </p>
+            ) : !airGrid ? (
+              <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
+            ) : (
+              <>
+                {airStats && (
+                  <div className="grid grid-cols-3 gap-1 text-center">
+                    <div className="rounded bg-white/5 p-1.5">
+                      <div className="text-sm font-bold text-emerald-300">{airStats.min}</div>
+                      <div className="text-[9px] text-neutral-500">мин AQI</div>
+                    </div>
+                    <div className="rounded bg-white/5 p-1.5">
+                      <div className="text-sm font-bold text-white">{airStats.avg}</div>
+                      <div className="text-[9px] text-neutral-500">орташа</div>
+                    </div>
+                    <div className="rounded bg-white/5 p-1.5">
+                      <div className={`text-sm font-bold ${airStats.max > 50 ? "text-red-300" : "text-yellow-300"}`}>
+                        {airStats.max}
+                      </div>
+                      <div className="text-[9px] text-neutral-500">макс AQI</div>
+                    </div>
+                  </div>
+                )}
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
+                  EU AQI, облыс бойынша 30 нүкте. Дереккөз: Copernicus CAMS (Open-Meteo) — сағат
+                  сайын жаңарады. 0–25 жақсы · 25–50 қалыпты · 50+ нашар
+                </p>
+              </>
+            )}
+          </div>
+        )}
 
         <button
           onClick={() => setAddOpen((v) => !v)}

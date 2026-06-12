@@ -18,7 +18,7 @@ const WEATHER_URL =
 const AIR_URL =
   `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LNG}` +
   `&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,european_aqi` +
-  `&hourly=pm2_5,pm10&past_days=30&forecast_days=1&timezone=auto`;
+  `&hourly=pm2_5,pm10,european_aqi&past_days=30&forecast_days=3&timezone=auto`;
 
 interface DailyPoint {
   date: string;
@@ -78,6 +78,23 @@ export async function GET() {
         europeanAqi: air.current?.european_aqi ?? null,
       },
       daily: dailyMeans(air.hourly?.time ?? [], air.hourly?.pm2_5 ?? [], air.hourly?.pm10 ?? []),
+      // Real CAMS model forecast: next 48 hours from now
+      forecastHourly: (() => {
+        const times: string[] = air.hourly?.time ?? [];
+        const now = new Date();
+        const out: { time: string; pm2_5: number | null; pm10: number | null; aqi: number | null }[] = [];
+        for (let i = 0; i < times.length && out.length < 48; i++) {
+          if (new Date(times[i]) > now) {
+            out.push({
+              time: times[i],
+              pm2_5: air.hourly?.pm2_5?.[i] ?? null,
+              pm10: air.hourly?.pm10?.[i] ?? null,
+              aqi: air.hourly?.european_aqi?.[i] ?? null,
+            });
+          }
+        }
+        return out;
+      })(),
     };
     cache = { at: Date.now(), data };
     return NextResponse.json(data);

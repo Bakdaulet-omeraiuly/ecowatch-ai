@@ -29,6 +29,7 @@ interface LiveEnv {
     europeanAqi: number | null;
   };
   daily: { date: string; pm2_5: number; pm10: number }[];
+  forecastHourly: { time: string; pm2_5: number | null; pm10: number | null; aqi: number | null }[];
 }
 
 // WHO 2021 guideline: PM2.5 daily mean 15 µg/m³
@@ -248,6 +249,35 @@ export default function DashboardPage() {
               <Bar dataKey="avgRisk" name="Орташа тәуекел" fill="#f97316" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ChartCard>
+
+          {env && env.forecastHourly?.length > 0 && (
+            <ChartCard
+              title="Ауа сапасы болжамы — алдағы 48 сағат (Copernicus CAMS моделі)"
+              className="lg:col-span-2"
+            >
+              <LineChart
+                data={env.forecastHourly.map((h) => ({
+                  ...h,
+                  time: h.time.slice(5, 13).replace("T", " "),
+                }))}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="time" stroke="#737373" fontSize={10} interval={5} />
+                <YAxis stroke="#737373" fontSize={12} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <ReferenceLine
+                  y={WHO_PM25_DAILY}
+                  stroke="#22c55e"
+                  strokeDasharray="6 4"
+                  label={{ value: "ДДСҰ PM2.5 шегі", fill: "#22c55e", fontSize: 11 }}
+                />
+                <Line type="monotone" dataKey="aqi" name="EU AQI" stroke="#a855f7" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="pm2_5" name="PM2.5 µg/m³" stroke="#38bdf8" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="pm10" name="PM10 µg/m³" stroke="#f97316" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ChartCard>
+          )}
 
           {env && env.daily.length > 0 && (
             <ChartCard
