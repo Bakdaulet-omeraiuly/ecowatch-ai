@@ -397,28 +397,17 @@ export function MapView() {
               key={s.id}
               latitude={s.lat}
               longitude={s.lng}
-              anchor="bottom"
               onClick={(e) => {
                 e.originalEvent.stopPropagation();
                 setSelected(s);
               }}
             >
-              <div className="cursor-pointer transition-transform hover:scale-110" title={s.name}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={s.photoThumb}
-                  alt="Хабарлама"
-                  className="h-11 w-11 rounded-lg border-2 object-cover shadow-lg"
-                  style={{ borderColor: RISK_COLORS[s.analysis.riskLevel] }}
-                />
-                <div
-                  className="mx-auto -mt-0.5 h-0 w-0"
-                  style={{
-                    borderLeft: "5px solid transparent",
-                    borderRight: "5px solid transparent",
-                    borderTop: `6px solid ${RISK_COLORS[s.analysis.riskLevel]}`,
-                  }}
-                />
+              <div
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-white/90 text-white shadow-md transition-transform hover:scale-125"
+                style={{ backgroundColor: RISK_COLORS[s.analysis.riskLevel] }}
+                title={s.name}
+              >
+                <Camera className="h-3 w-3" />
               </div>
             </Marker>
           ))}
