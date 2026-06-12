@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, MapPin, Loader2, Upload } from "lucide-react";
+import { Camera, MapPin, Loader2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -39,7 +39,8 @@ function resizeImage(file: File, maxDim = 1024): Promise<string> {
 export default function ReportPage() {
   const router = useRouter();
   const addSite = useSitesStore((s) => s.addSite);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
@@ -126,8 +127,17 @@ export default function ReportPage() {
       <Card className="border-white/10 bg-white/[0.03]">
         <CardHeader><CardTitle className="text-sm text-white">📸 Фото</CardTitle></CardHeader>
         <CardContent>
+          {/* Gallery: no capture attr → opens photo library / file picker */}
           <input
-            ref={fileRef}
+            ref={galleryRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => onFile(e.target.files?.[0])}
+          />
+          {/* Camera: capture attr → opens the camera directly on mobile */}
+          <input
+            ref={cameraRef}
             type="file"
             accept="image/*"
             capture="environment"
@@ -138,18 +148,32 @@ export default function ReportPage() {
             <div className="space-y-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={photo} alt="Жүктелген фото" className="max-h-64 w-full rounded-lg object-cover" />
-              <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
-                Басқа фото таңдау
-              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => galleryRef.current?.click()}>
+                  <ImageIcon className="mr-1 h-3.5 w-3.5" /> Галереядан
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => cameraRef.current?.click()}>
+                  <Camera className="mr-1 h-3.5 w-3.5" /> Камера
+                </Button>
+              </div>
             </div>
           ) : (
-            <button
-              onClick={() => fileRef.current?.click()}
-              className="flex w-full flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/15 p-8 text-neutral-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
-            >
-              <Upload className="h-8 w-8" />
-              <span className="text-sm">Фото жүктеу немесе камерадан түсіру</span>
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => galleryRef.current?.click()}
+                className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/15 p-6 text-neutral-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+              >
+                <ImageIcon className="h-7 w-7" />
+                <span className="text-xs">Галереядан таңдау</span>
+              </button>
+              <button
+                onClick={() => cameraRef.current?.click()}
+                className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/15 p-6 text-neutral-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+              >
+                <Camera className="h-7 w-7" />
+                <span className="text-xs">Камерадан түсіру</span>
+              </button>
+            </div>
           )}
         </CardContent>
       </Card>
