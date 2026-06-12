@@ -141,10 +141,11 @@ export function AnalysisDrawer({
             <div
               role="button"
               onClick={() => setLightbox({ url: site.photoThumb!, label: "📸 Азамат фотосы" })}
-              className="group relative mx-4 aspect-video cursor-pointer overflow-hidden rounded-lg border border-white/10"
+              className="group relative mx-4 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-white/10"
+              style={{ aspectRatio: "16 / 9" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={site.photoThumb} alt="Азамат фотосы" className="h-full w-full object-cover" />
+              <img src={site.photoThumb} alt="Азамат фотосы" className="absolute inset-0 h-full w-full object-cover" />
               <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
                 📸 Азамат фотосы
               </span>
@@ -162,10 +163,11 @@ export function AnalysisDrawer({
                   label: site.imageryYear ? `🛰 Sentinel-2, ${site.imageryYear} жыл` : "🛰 Спутник көрінісі",
                 })
               }
-              className={`group relative mx-4 ${site.photoThumb ? "mt-2" : ""} aspect-video cursor-pointer overflow-hidden rounded-lg border border-white/10`}
+              className={`group relative mx-4 shrink-0 ${site.photoThumb ? "mt-2" : ""} cursor-pointer overflow-hidden rounded-lg border border-white/10`}
+              style={{ aspectRatio: "16 / 9" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={site.imageUrl} alt="Спутник суреті" className="h-full w-full object-cover" />
+              <img src={site.imageUrl} alt="Спутник суреті" className="absolute inset-0 h-full w-full object-cover" />
               <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
                 🛰 {site.imageryYear ? `Sentinel-2, ${site.imageryYear} жыл` : "Спутник көрінісі (қазіргі)"}
               </span>
