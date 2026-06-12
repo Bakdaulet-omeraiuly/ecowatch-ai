@@ -42,7 +42,22 @@
       "Bash(curl -s -X POST http://localhost:3000/api/agent -H \"Content-Type: application/json\" -d '{\"lat\":47.103,\"lng\":51.97}')",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://supfotvdhrskcztbrqdq.supabase.co/auth/v1/health\" -H \"apikey: sb_publishable_M40fS-xacgo9H_Y_EM6nPw_fEVcKLtl\")",
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://supfotvdhrskcztbrqdq.supabase.co/rest/v1/reports?select=*\" -H \"apikey: sb_publishable_M40fS-xacgo9H_Y_EM6nPw_fEVcKLtl\" -H \"Authorization: Bearer sb_publishable_M40fS-xacgo9H_Y_EM6nPw_fEVcKLtl\")",
-      "Bash(curl -s http://localhost:3000/api/reports)"
+      "Bash(curl -s http://localhost:3000/api/reports)",
+      "Bash(curl -s -o /dev/null -w \"prod /api/reports: %{http_code}\\\\n\" \"https://ecowatch-ai-galamdyq-7604s-projects.vercel.app/api/reports\")",
+      "Bash(curl -s \"https://ecowatch-ai-galamdyq-7604s-projects.vercel.app/api/reports\")",
+      "Bash(gh auth *)",
+      "Bash(curl -sL \"https://github.com/cli/cli/releases/download/v2.63.2/gh_2.63.2_macOS_arm64.zip\" -o gh.zip)",
+      "Bash(unzip -oq gh.zip)",
+      "Bash(./gh_2.63.2_macOS_arm64/bin/gh --version)",
+      "Bash(/tmp/gh_2.63.2_macOS_arm64/bin/gh auth *)",
+      "Read(//Users/bakdauletomertaev/**)",
+      "Bash(git config *)",
+      "Bash(ssh -T -o StrictHostKeyChecking=no -o ConnectTimeout=8 git@github.com)",
+      "Bash(GH_PROMPT_DISABLED=0 /tmp/gh_2.63.2_macOS_arm64/bin/gh auth login --hostname github.com --git-protocol https --web)",
+      "Bash(git check-ignore *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(/tmp/gh_2.63.2_macOS_arm64/bin/gh repo *)"
     ]
   }
 }
