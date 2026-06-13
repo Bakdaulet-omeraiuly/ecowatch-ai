@@ -99,6 +99,14 @@ interface FloodPoint {
   color: string;
   trend: string;
 }
+interface SoilPoint {
+  lat: number;
+  lng: number;
+  soilMoisture: number;
+  soilTemp: number;
+  rain30: number;
+  stress: number;
+}
 
 interface MosquitoDay {
   date: string;
@@ -224,6 +232,21 @@ export function MapView() {
   const airHourAqi = (p: AirGridPoint) => p.hourly?.[airHour]?.aqi ?? p.aqi;
   const airHours = airGrid?.[0]?.hourly;
 
+  // Soil layer: live soil moisture + land-degradation stress (Open-Meteo)
+  const [soilGrid, setSoilGrid] = useState<SoilPoint[] | null>(null);
+  const [soilMeta, setSoilMeta] = useState<{ avgStress: number; avgMoisture: number } | null>(null);
+  const [soilError, setSoilError] = useState(false);
+  useEffect(() => {
+    if (activeLayer !== "soil" || soilGrid || soilError) return;
+    fetch("/api/soilgrid")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        setSoilGrid(d.grid);
+        setSoilMeta({ avgStress: d.avgStress, avgMoisture: d.avgMoisture });
+      })
+      .catch(() => setSoilError(true));
+  }, [activeLayer, soilGrid, soilError]);
+
   // Water layer: live Zhaiyk river discharge + flood risk (GloFAS)
   const [flood, setFlood] = useState<FloodPoint[] | null>(null);
   const [floodError, setFloodError] = useState(false);
@@ -329,6 +352,17 @@ export function MapView() {
         })),
       };
     }
+    if (activeLayer === "soil") {
+      if (!soilGrid) return null;
+      return {
+        type: "FeatureCollection" as const,
+        features: soilGrid.map((p) => ({
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+          properties: { weight: Math.min(1, p.stress / 100) },
+        })),
+      };
+    }
     return {
       type: "FeatureCollection" as const,
       features: allSites.map((s) => ({
@@ -338,10 +372,10 @@ export function MapView() {
       })),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSites, activeLayer, airGrid, mosGrid, mosDay, airHour]);
+  }, [allSites, activeLayer, airGrid, mosGrid, mosDay, airHour, soilGrid]);
 
-  // Grid layers (air, mosquito) need a wide radius — sparse regional points
-  const isGridLayer = activeLayer === "air" || activeLayer === "mosquito";
+  // Grid layers need a wide radius — sparse regional points
+  const isGridLayer = activeLayer === "air" || activeLayer === "mosquito" || activeLayer === "soil";
 
   // Scatter mosquito icons around each grid point — count scales with the live index
   const mosquitoSwarm = useMemo(() => {
@@ -650,7 +684,7 @@ export function MapView() {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" /> {l.label}
-                  {(l.key === "air" || l.key === "mosquito" || l.key === "oil" || l.key === "water") && (
+                  {(l.key === "air" || l.key === "mosquito" || l.key === "oil" || l.key === "water" || l.key === "soil") && (
                     <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
                     </span>
@@ -800,6 +834,44 @@ export function MapView() {
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері
                   спутниктен жылулық аномалия ретінде көрінеді. Дереккөз: NASA FIRMS (VIIRS 375м).
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Live soil panel — soil layer */}
+        {activeLayer === "soil" && (
+          <div className="w-56 rounded-lg border border-yellow-600/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-yellow-300">
+              <Radio className="h-3 w-3 animate-pulse" /> Топырақ жағдайы — тірі
+            </div>
+            {soilError ? (
+              <p className="text-[11px] text-neutral-400">
+                Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.
+              </p>
+            ) : !soilGrid || !soilMeta ? (
+              <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div className="rounded-lg bg-white/5 p-2 text-center">
+                    <div className="text-lg font-bold text-sky-300">{soilMeta.avgMoisture}</div>
+                    <div className="text-[9px] text-neutral-400">орташа ылғал м³/м³</div>
+                  </div>
+                  <div className="rounded-lg bg-white/5 p-2 text-center">
+                    <div
+                      className={`text-lg font-bold ${soilMeta.avgStress > 60 ? "text-red-300" : soilMeta.avgStress > 40 ? "text-orange-300" : "text-emerald-300"}`}
+                    >
+                      {soilMeta.avgStress}
+                    </div>
+                    <div className="text-[9px] text-neutral-400">деградация стрессі</div>
+                  </div>
+                </div>
+                <p className="mt-2 text-[9px] leading-snug text-neutral-500">
+                  Сары/қызыл аймақ — құрғақ топырақ, жоғары деградация/тұздану стрессі. Көк — ылғалды,
+                  сау. Есеп: түбір қабатының ылғалы + температура + 30 күндік жаңбыр. Дереккөз:
+                  Open-Meteo (ECMWF).
                 </p>
               </>
             )}
