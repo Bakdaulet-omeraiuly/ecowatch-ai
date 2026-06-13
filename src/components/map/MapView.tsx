@@ -66,6 +66,19 @@ interface AirGridPoint {
   aqi: number | null;
   pm2_5: number | null;
   pm10: number | null;
+  no2?: number | null;
+  so2?: number | null;
+  ozone?: number | null;
+  dust?: number | null;
+  dense?: boolean;
+  name?: string;
+  hourly?: { time: string; aqi: number | null }[];
+}
+interface Dominant {
+  key: string;
+  label: string;
+  source: string;
+  value: number;
 }
 
 interface MosquitoDay {
@@ -165,16 +178,32 @@ export function MapView() {
   }, [userSites, sharedReports]);
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
   const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
+  const [airDominant, setAirDominant] = useState<Dominant | null>(null);
   const [airError, setAirError] = useState(false);
+  const [airHour, setAirHour] = useState(0); // 0 = now … 23 = +23h
+  const [airPlaying, setAirPlaying] = useState(false);
 
   // Air layer uses LIVE regional data (Copernicus CAMS), fetched on first open
   useEffect(() => {
     if (activeLayer !== "air" || airGrid || airError) return;
     fetch("/api/airgrid")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setAirGrid(d.grid))
+      .then((d) => {
+        setAirGrid(d.grid);
+        setAirDominant(d.dominant ?? null);
+      })
       .catch(() => setAirError(true));
   }, [activeLayer, airGrid, airError]);
+
+  // 24h forecast animation
+  useEffect(() => {
+    if (!airPlaying || activeLayer !== "air") return;
+    const t = setInterval(() => setAirHour((h) => (h + 1) % 24), 700);
+    return () => clearInterval(t);
+  }, [airPlaying, activeLayer]);
+
+  const airHourAqi = (p: AirGridPoint) => p.hourly?.[airHour]?.aqi ?? p.aqi;
+  const airHours = airGrid?.[0]?.hourly;
 
   // Mosquito layer uses LIVE climate-suitability grid (real weather + published methodology)
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
@@ -213,14 +242,21 @@ export function MapView() {
   }, [mosGrid, mosDay]);
 
   const airStats = useMemo(() => {
-    const vals = (airGrid ?? []).map((p) => p.aqi).filter((v): v is number => v != null);
+    const vals = (airGrid ?? []).map(airHourAqi).filter((v): v is number => v != null);
     if (!vals.length) return null;
+    // city districts ranked by AQI (best → worst)
+    const districts = (airGrid ?? [])
+      .filter((p) => p.dense && airHourAqi(p) != null)
+      .map((p) => ({ name: p.name ?? "?", aqi: airHourAqi(p)! }))
+      .sort((a, b) => a.aqi - b.aqi);
     return {
       min: Math.min(...vals),
       max: Math.max(...vals),
       avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
+      districts,
     };
-  }, [airGrid]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [airGrid, airHour]);
 
   const heatmapData = useMemo(() => {
     if (!activeLayer) return null;
@@ -230,11 +266,11 @@ export function MapView() {
       return {
         type: "FeatureCollection" as const,
         features: airGrid
-          .filter((p) => p.aqi != null)
+          .filter((p) => airHourAqi(p) != null)
           .map((p) => ({
             type: "Feature" as const,
             geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
-            properties: { weight: Math.min(1, (p.aqi ?? 0) / 100) },
+            properties: { weight: Math.min(1, (airHourAqi(p) ?? 0) / 100) },
           })),
       };
     }
@@ -258,7 +294,7 @@ export function MapView() {
       })),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSites, activeLayer, airGrid, mosGrid, mosDay]);
+  }, [allSites, activeLayer, airGrid, mosGrid, mosDay, airHour]);
 
   // Grid layers (air, mosquito) need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito";
@@ -722,9 +758,73 @@ export function MapView() {
                     </>
                   );
                 })()}
+
+                {/* Dominant pollutant + source */}
+                {airDominant && (
+                  <div className="mt-2 rounded-lg bg-white/5 p-2 text-[10px]">
+                    <div className="font-semibold text-sky-300">Басты ластаушы</div>
+                    <div className="text-white">
+                      {airDominant.label} · {airDominant.value.toFixed(1)} µg/m³
+                    </div>
+                    <div className="text-neutral-400">Көзі: {airDominant.source}</div>
+                  </div>
+                )}
+
+                {/* 24h forecast animation */}
+                {airHours && airHours.length > 1 && (
+                  <div className="mt-2 rounded-lg bg-sky-500/10 p-2">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold text-sky-200">
+                        {airHour === 0 ? "Қазір" : `+${airHour} сағ`} ·{" "}
+                        {airHours[airHour]?.time?.slice(11, 16) ?? ""}
+                      </span>
+                      <button
+                        onClick={() => setAirPlaying((v) => !v)}
+                        className="flex items-center gap-1 rounded bg-sky-500/25 px-1.5 py-0.5 text-[10px] text-sky-100 hover:bg-sky-500/40"
+                      >
+                        {airPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                        {airPlaying ? "Тоқтату" : "Ойнату"}
+                      </button>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={23}
+                      step={1}
+                      value={airHour}
+                      onChange={(e) => {
+                        setAirPlaying(false);
+                        setAirHour(Number(e.target.value));
+                      }}
+                      className="w-full accent-sky-400"
+                    />
+                    <p className="mt-0.5 text-[9px] text-neutral-500">Алдағы 24 сағат — нақты CAMS болжамы</p>
+                  </div>
+                )}
+
+                {/* City districts ranking */}
+                {airStats?.districts && airStats.districts.length > 0 && (
+                  <div className="mt-2 rounded-lg bg-white/5 p-2">
+                    <div className="mb-1 text-[10px] font-semibold text-sky-300">Қала аудандары</div>
+                    <div className="space-y-0.5">
+                      {airStats.districts.map((dd) => {
+                        const c = aqiCategory(dd.aqi);
+                        return (
+                          <div key={dd.name} className="flex items-center justify-between text-[10px]">
+                            <span className="text-neutral-300">{dd.name}</span>
+                            <span className="font-semibold" style={{ color: c.color }}>
+                              {dd.aqi} · {c.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
-                  EU AQI (EAQI) шкаласы, облыс бойынша 30 нүкте. Дереккөз: Copernicus CAMS — сағат
-                  сайын жаңарады.
+                  EU AQI (EAQI), Copernicus CAMS — сағат сайын. Аудандар CAMS ажыратымдылығымен (~10км)
+                  бағаланады.
                 </p>
               </>
             )}
