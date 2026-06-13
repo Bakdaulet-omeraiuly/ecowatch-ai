@@ -272,6 +272,20 @@ export function MapView() {
       .catch(() => setFlaresError("Қолжетімсіз"));
   }, [activeLayer, flares, flaresError]);
 
+  // When the oil layer opens, fit the map to the real flare locations
+  useEffect(() => {
+    if (activeLayer !== "oil" || !flares || flares.length === 0) return;
+    const lats = flares.map((f) => f.lat);
+    const lngs = flares.map((f) => f.lng);
+    mapRef.current?.fitBounds(
+      [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)],
+      ],
+      { padding: 120, duration: 1400, maxZoom: 11 }
+    );
+  }, [activeLayer, flares]);
+
   // Mosquito layer uses LIVE climate-suitability grid (real weather + published methodology)
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
   const [mosError, setMosError] = useState(false);
