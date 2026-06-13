@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
 import { monthlyMosquitoForecast } from "@/lib/mosquito";
+import { aqiCategory } from "@/lib/airQuality";
 import type { Forecast } from "@/types/site";
 import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Droplets, Gauge } from "lucide-react";
 
@@ -194,6 +195,22 @@ export default function DashboardPage() {
                 <LiveStat label="NO₂" value={env.current.no2} unit="µg/m³" />
                 <LiveStat label="SO₂" value={env.current.so2} unit="µg/m³" />
               </div>
+              {env.current.europeanAqi != null && (() => {
+                const cat = aqiCategory(env.current.europeanAqi);
+                return (
+                  <div
+                    className="mt-2 flex items-center gap-3 rounded-lg p-2.5"
+                    style={{ backgroundColor: `${cat.color}18`, border: `1px solid ${cat.color}44` }}
+                  >
+                    <span className="text-lg font-bold" style={{ color: cat.color }}>
+                      {cat.name}
+                    </span>
+                    <p className="text-[11px] text-neutral-300">
+                      🩺 {cat.advice} <span className="text-neutral-400">{cat.sensitiveAdvice}</span>
+                    </p>
+                  </div>
+                );
+              })()}
               <p className="mt-2 text-[10px] text-neutral-500">
                 Соңғы жаңару: {new Date(env.fetchedAt).toLocaleString("kk-KZ")}
               </p>

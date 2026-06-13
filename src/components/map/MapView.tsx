@@ -46,6 +46,7 @@ function yearTileConfig(year: number): { tiles: string[]; maxzoom: number; attri
 }
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import { MosquitoIcon } from "./MosquitoIcon";
+import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import type { Site, AnalysisResult } from "@/types/site";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
@@ -673,27 +674,57 @@ export function MapView() {
               <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
             ) : (
               <>
-                {airStats && (
-                  <div className="grid grid-cols-3 gap-1 text-center">
-                    <div className="rounded bg-white/5 p-1.5">
-                      <div className="text-sm font-bold text-emerald-300">{airStats.min}</div>
-                      <div className="text-[9px] text-neutral-500">мин AQI</div>
-                    </div>
-                    <div className="rounded bg-white/5 p-1.5">
-                      <div className="text-sm font-bold text-white">{airStats.avg}</div>
-                      <div className="text-[9px] text-neutral-500">орташа</div>
-                    </div>
-                    <div className="rounded bg-white/5 p-1.5">
-                      <div className={`text-sm font-bold ${airStats.max > 50 ? "text-red-300" : "text-yellow-300"}`}>
-                        {airStats.max}
+                {airStats && (() => {
+                  const cat = aqiCategory(airStats.avg);
+                  return (
+                    <>
+                      {/* Category badge (IQAir-style) */}
+                      <div
+                        className="mb-2 rounded-lg p-2 text-center"
+                        style={{ backgroundColor: `${cat.color}22`, border: `1px solid ${cat.color}55` }}
+                      >
+                        <div className="text-2xl font-bold" style={{ color: cat.color }}>
+                          {airStats.avg}
+                        </div>
+                        <div className="text-[11px] font-semibold" style={{ color: cat.color }}>
+                          {cat.name}
+                        </div>
+                        <div className="text-[9px] text-neutral-400">облыс бойынша орташа EU AQI</div>
                       </div>
-                      <div className="text-[9px] text-neutral-500">макс AQI</div>
-                    </div>
-                  </div>
-                )}
+
+                      {/* Color scale bar */}
+                      <div className="mb-2 flex h-1.5 overflow-hidden rounded-full">
+                        {AQI_CATEGORIES.slice(0, 6).map((c) => (
+                          <div
+                            key={c.name}
+                            className="flex-1"
+                            style={{ backgroundColor: c.color, opacity: c.name === cat.name ? 1 : 0.35 }}
+                            title={`${c.name} (${c.range[0]}+)`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Health advice */}
+                      <div className="rounded-lg bg-white/5 p-2 text-[10px] leading-snug text-neutral-300">
+                        <div className="mb-1 font-semibold" style={{ color: cat.color }}>
+                          🩺 Денсаулық кеңесі
+                        </div>
+                        <p>{cat.advice}</p>
+                        <p className="mt-1 text-neutral-400">
+                          <b>Сезімтал топтар:</b> {cat.sensitiveAdvice}
+                        </p>
+                      </div>
+
+                      <div className="mt-1.5 flex justify-between text-[9px] text-neutral-500">
+                        <span>мин {airStats.min}</span>
+                        <span>макс {airStats.max}</span>
+                      </div>
+                    </>
+                  );
+                })()}
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
-                  EU AQI, облыс бойынша 30 нүкте. Дереккөз: Copernicus CAMS (Open-Meteo) — сағат
-                  сайын жаңарады. 0–25 жақсы · 25–50 қалыпты · 50+ нашар
+                  EU AQI (EAQI) шкаласы, облыс бойынша 30 нүкте. Дереккөз: Copernicus CAMS — сағат
+                  сайын жаңарады.
                 </p>
               </>
             )}
