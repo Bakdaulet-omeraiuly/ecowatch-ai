@@ -65,7 +65,9 @@
       "Bash(ls /tmp/gh_2.63.2_macOS_arm64/bin/gh 2>/dev/null && echo \"бар\" || echo \"өшкен\"; mkdir -p ~/.local/bin)",
       "Bash(cp gh_2.63.2_macOS_arm64/bin/gh ~/.local/bin/gh)",
       "Bash(chmod +x ~/.local/bin/gh)",
-      "Bash(~/.local/bin/gh auth *)"
+      "Bash(~/.local/bin/gh auth *)",
+      "Bash(curl -s -m 15 \"https://firms.modaps.eosdis.nasa.gov/api/area/csv/DEMO_KEY/VIIRS_SNPP_NRT/49,46,55,49/1\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/VIIRS_SNPP_Thermal_Anomalies_375m_All/default/2026-06-12/GoogleMapsCompatible_Level9/5/19/22.png\")"
     ]
   }
 }

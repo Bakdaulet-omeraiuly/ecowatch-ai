@@ -6,7 +6,7 @@ import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
-  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause,
+  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -79,6 +79,15 @@ interface Dominant {
   label: string;
   source: string;
   value: number;
+}
+interface Flare {
+  lat: number;
+  lng: number;
+  brightness: number;
+  frp: number;
+  confidence: string;
+  acqDate: string;
+  dayNight: string;
 }
 
 interface MosquitoDay {
@@ -204,6 +213,20 @@ export function MapView() {
 
   const airHourAqi = (p: AirGridPoint) => p.hourly?.[airHour]?.aqi ?? p.aqi;
   const airHours = airGrid?.[0]?.hourly;
+
+  // Oil layer: live gas-flare detections from NASA FIRMS
+  const [flares, setFlares] = useState<Flare[] | null>(null);
+  const [flaresError, setFlaresError] = useState<string | null>(null);
+  useEffect(() => {
+    if (activeLayer !== "oil" || flares || flaresError) return;
+    fetch("/api/flares")
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (ok) setFlares(d.flares ?? []);
+        else setFlaresError(d.error ?? "Қолжетімсіз");
+      })
+      .catch(() => setFlaresError("Қолжетімсіз"));
+  }, [activeLayer, flares, flaresError]);
 
   // Mosquito layer uses LIVE climate-suitability grid (real weather + published methodology)
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
@@ -497,6 +520,23 @@ export function MapView() {
           </Marker>
         ))}
 
+        {/* Live gas flares (NASA FIRMS) — oil layer */}
+        {activeLayer === "oil" &&
+          flares?.map((f, i) => (
+            <Marker key={`flare-${i}`} latitude={f.lat} longitude={f.lng}>
+              <div
+                title={`Жану нүктесі · FRP ${f.frp}МВт · ${f.acqDate} · сенімділік ${f.confidence}`}
+                className="flex items-center justify-center"
+              >
+                <Flame
+                  className="text-orange-400 drop-shadow"
+                  style={{ width: 12 + Math.min(14, f.frp / 3), height: 12 + Math.min(14, f.frp / 3) }}
+                  fill="#fb923c"
+                />
+              </div>
+            </Marker>
+          ))}
+
         {/* Analysis points (non-photo) for the current imagery year */}
         {allSites
           .filter((s) => !s.photoThumb)
@@ -571,7 +611,7 @@ export function MapView() {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" /> {l.label}
-                  {(l.key === "air" || l.key === "mosquito") && (
+                  {(l.key === "air" || l.key === "mosquito" || l.key === "oil") && (
                     <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
                     </span>
@@ -690,6 +730,37 @@ export function MapView() {
                   Басты фактор — <b className="text-purple-300">Жайық жайылмасы мен атырауы</b> (қамыс,
                   тұрған су) + температура + жаңбыр + қала. Әдістеме: Mordecai 2017 (WHO/ECDC) +
                   гидрология. Дереккөз: Open-Meteo.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Live gas-flare panel — oil layer */}
+        {activeLayer === "oil" && (
+          <div className="w-52 rounded-lg border border-orange-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-orange-300">
+              <Flame className="h-3 w-3" /> Газ факелдері — тірі
+            </div>
+            {flaresError ? (
+              <p className="text-[11px] text-neutral-400">
+                {flaresError === "FIRMS кілті бапталмаған"
+                  ? "NASA FIRMS кілті қажет (тегін). Қосылғанша факелдер көрсетілмейді."
+                  : `Тірі деректер қолжетімсіз: ${flaresError}. Жалған дерек көрсетілмейді.`}
+              </p>
+            ) : !flares ? (
+              <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
+            ) : flares.length === 0 ? (
+              <p className="text-[11px] text-neutral-400">Соңғы 2 күнде жану нүктесі анықталмады.</p>
+            ) : (
+              <>
+                <div className="rounded-lg bg-orange-500/10 p-2 text-center">
+                  <div className="text-2xl font-bold text-orange-300">{flares.length}</div>
+                  <div className="text-[10px] text-neutral-400">анықталған жану нүктесі (2 күн)</div>
+                </div>
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
+                  🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері
+                  спутниктен жылулық аномалия ретінде көрінеді. Дереккөз: NASA FIRMS (VIIRS 375м).
                 </p>
               </>
             )}
