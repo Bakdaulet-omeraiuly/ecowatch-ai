@@ -89,6 +89,16 @@ interface Flare {
   acqDate: string;
   dayNight: string;
 }
+interface FloodPoint {
+  lat: number;
+  lng: number;
+  name: string;
+  discharge: number;
+  ratio: number;
+  level: string;
+  color: string;
+  trend: string;
+}
 
 interface MosquitoDay {
   date: string;
@@ -213,6 +223,17 @@ export function MapView() {
 
   const airHourAqi = (p: AirGridPoint) => p.hourly?.[airHour]?.aqi ?? p.aqi;
   const airHours = airGrid?.[0]?.hourly;
+
+  // Water layer: live Zhaiyk river discharge + flood risk (GloFAS)
+  const [flood, setFlood] = useState<FloodPoint[] | null>(null);
+  const [floodError, setFloodError] = useState(false);
+  useEffect(() => {
+    if (activeLayer !== "water" || flood || floodError) return;
+    fetch("/api/flood")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setFlood(d.points ?? []))
+      .catch(() => setFloodError(true));
+  }, [activeLayer, flood, floodError]);
 
   // Oil layer: live gas-flare detections from NASA FIRMS
   const [flares, setFlares] = useState<Flare[] | null>(null);
@@ -520,6 +541,24 @@ export function MapView() {
           </Marker>
         ))}
 
+        {/* Live Zhaiyk river discharge points (GloFAS) — water layer */}
+        {activeLayer === "water" &&
+          flood?.map((p) => (
+            <Marker key={`flood-${p.name}`} latitude={p.lat} longitude={p.lng}>
+              <div
+                title={`${p.name}: ${p.discharge} м³/с · ${p.level} · тренд ${p.trend}`}
+                className="flex flex-col items-center"
+              >
+                <div
+                  className="rounded-full border-2 border-white/80 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-md"
+                  style={{ backgroundColor: p.color }}
+                >
+                  {Math.round(p.discharge)}
+                </div>
+              </div>
+            </Marker>
+          ))}
+
         {/* Live gas flares (NASA FIRMS) — oil layer */}
         {activeLayer === "oil" &&
           flares?.map((f, i) => (
@@ -611,7 +650,7 @@ export function MapView() {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" /> {l.label}
-                  {(l.key === "air" || l.key === "mosquito" || l.key === "oil") && (
+                  {(l.key === "air" || l.key === "mosquito" || l.key === "oil" || l.key === "water") && (
                     <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
                     </span>
@@ -761,6 +800,60 @@ export function MapView() {
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері
                   спутниктен жылулық аномалия ретінде көрінеді. Дереккөз: NASA FIRMS (VIIRS 375м).
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Live water/flood panel — water layer */}
+        {activeLayer === "water" && (
+          <div className="w-56 rounded-lg border border-teal-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-teal-300">
+              <Radio className="h-3 w-3 animate-pulse" /> Жайық өзені — тірі ағын
+            </div>
+            {floodError ? (
+              <p className="text-[11px] text-neutral-400">
+                Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.
+              </p>
+            ) : !flood ? (
+              <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
+            ) : flood.length === 0 ? (
+              <p className="text-[11px] text-neutral-400">Өзен деректері қолжетімсіз.</p>
+            ) : (
+              <>
+                {(() => {
+                  const aty = flood.find((p) => p.name.includes("Атырау")) ?? flood[0];
+                  return (
+                    <div
+                      className="rounded-lg p-2 text-center"
+                      style={{ backgroundColor: `${aty.color}22`, border: `1px solid ${aty.color}55` }}
+                    >
+                      <div className="text-xl font-bold" style={{ color: aty.color }}>
+                        {aty.discharge} <span className="text-xs font-normal">м³/с</span>
+                      </div>
+                      <div className="text-[11px] font-semibold" style={{ color: aty.color }}>
+                        {aty.level}
+                      </div>
+                      <div className="text-[9px] text-neutral-400">
+                        Атырау тұсы · тренд: {aty.trend}
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="mt-1.5 space-y-0.5">
+                  {flood.map((p) => (
+                    <div key={p.name} className="flex items-center justify-between text-[10px]">
+                      <span className="text-neutral-300">{p.name}</span>
+                      <span className="font-semibold" style={{ color: p.color }}>
+                        {p.discharge} м³/с
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
+                  Нақты өзен ағыны мен тасқын қаупі. Жоғары ағын → жайылма су басу → маса ошақтары.
+                  Дереккөз: Copernicus GloFAS (Open-Meteo).
                 </p>
               </>
             )}
