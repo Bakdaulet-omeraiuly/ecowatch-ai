@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Loader2, ScanSearch } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -48,15 +48,20 @@ export function WasteDetector({ photo }: { photo: string }) {
     setStatus("loading");
     try {
       const detector = await getDetector();
-      const results = await detector(photo, { threshold: 0.4, percentage: false });
+      const results = await detector(photo, { threshold: 0.3, percentage: false });
       setDetections(results);
-      draw(results);
       setStatus("done");
     } catch (e) {
       console.error("YOLO error:", e);
       setStatus("error");
     }
   };
+
+  // Draw only after the canvas is mounted (status === "done")
+  useEffect(() => {
+    if (status === "done") draw(detections);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, detections]);
 
   const draw = (results: Detection[]) => {
     const canvas = canvasRef.current;
