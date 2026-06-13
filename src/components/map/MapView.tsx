@@ -203,6 +203,18 @@ export function MapView() {
     const sharedIds = new Set(sharedReports.map((s) => s.id));
     return [...sharedReports, ...localPhotos.filter((s) => !sharedIds.has(s.id))];
   }, [userSites, sharedReports]);
+
+  // Waste layer = every dumping signal (AI analyses + citizen reports), crowdsourced
+  const wasteSites = useMemo(() => {
+    const fromAnalyses = userSites.filter((s) => !s.imageryYear && s.analysis.illegalDumping);
+    const fromReports = sharedReports.filter((s) => s.analysis.illegalDumping);
+    const seen = new Set<string>();
+    return [...fromReports, ...fromAnalyses].filter((s) => {
+      if (seen.has(s.id)) return false;
+      seen.add(s.id);
+      return true;
+    });
+  }, [userSites, sharedReports]);
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
   const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
   const [airDominant, setAirDominant] = useState<Dominant | null>(null);
@@ -377,6 +389,16 @@ export function MapView() {
         })),
       };
     }
+    if (activeLayer === "waste") {
+      return {
+        type: "FeatureCollection" as const,
+        features: wasteSites.map((s) => ({
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [s.lng, s.lat] },
+          properties: { weight: Math.min(1, s.analysis.riskScore / 100) },
+        })),
+      };
+    }
     return {
       type: "FeatureCollection" as const,
       features: allSites.map((s) => ({
@@ -386,7 +408,7 @@ export function MapView() {
       })),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSites, activeLayer, airGrid, mosGrid, mosDay, airHour, soilGrid]);
+  }, [allSites, activeLayer, airGrid, mosGrid, mosDay, airHour, soilGrid, wasteSites]);
 
   // Grid layers need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito" || activeLayer === "soil";
@@ -603,6 +625,28 @@ export function MapView() {
                 >
                   {Math.round(p.discharge)}
                 </div>
+              </div>
+            </Marker>
+          ))}
+
+        {/* Waste sites (AI + citizen reports) — waste layer */}
+        {activeLayer === "waste" &&
+          wasteSites.map((s) => (
+            <Marker
+              key={`waste-${s.id}`}
+              latitude={s.lat}
+              longitude={s.lng}
+              onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                setSelected(s);
+              }}
+            >
+              <div
+                className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border-2 border-white/80 shadow-md transition-transform hover:scale-125"
+                style={{ backgroundColor: RISK_COLORS[s.analysis.riskLevel] }}
+                title={`${s.name ?? "Қоқыс нүктесі"} · тәуекел ${s.analysis.riskScore}`}
+              >
+                <Trash2 className="h-3 w-3 text-white" />
               </div>
             </Marker>
           ))}
@@ -851,6 +895,53 @@ export function MapView() {
                 </p>
               </>
             )}
+          </div>
+        )}
+
+        {/* Waste panel — crowdsourced (AI + citizen reports) */}
+        {activeLayer === "waste" && (
+          <div className="w-56 rounded-lg border border-orange-600/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-orange-300">
+              <Trash2 className="h-3 w-3" /> Қоқыс нүктелері
+            </div>
+            {(() => {
+              const confirmed = wasteSites.filter(
+                (s) => s.analysis.verificationStatus === "confirmed"
+              ).length;
+              const fromCitizens = wasteSites.filter((s) => s.photoThumb).length;
+              return wasteSites.length === 0 ? (
+                <p className="text-[11px] text-neutral-400">
+                  Әзірге қоқыс нүктесі жоқ. Картаны басып AI талдаңыз немесе фото-хабарлама жіберіңіз.
+                </p>
+              ) : (
+                <>
+                  <div className="grid grid-cols-3 gap-1 text-center">
+                    <div className="rounded bg-white/5 p-1.5">
+                      <div className="text-sm font-bold text-white">{wasteSites.length}</div>
+                      <div className="text-[9px] text-neutral-500">барлығы</div>
+                    </div>
+                    <div className="rounded bg-white/5 p-1.5">
+                      <div className="text-sm font-bold text-emerald-300">{confirmed}</div>
+                      <div className="text-[9px] text-neutral-500">расталған</div>
+                    </div>
+                    <div className="rounded bg-white/5 p-1.5">
+                      <div className="text-sm font-bold text-pink-300">{fromCitizens}</div>
+                      <div className="text-[9px] text-neutral-500">азаматтан</div>
+                    </div>
+                  </div>
+                  <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
+                    Қоқыс — жергілікті мәселе, спутник API-ы жоқ. Сондықтан ол AI спутник талдауы мен
+                    азаматтық фото-хабарламалардан жинақталады (краудсорсинг).
+                  </p>
+                </>
+              );
+            })()}
+            <a
+              href="/report"
+              className="mt-2 flex items-center justify-center gap-1 rounded-md bg-orange-600 py-1.5 text-[11px] font-medium text-white hover:bg-orange-500"
+            >
+              <Camera className="h-3.5 w-3.5" /> Қоқыс туралы хабарлау
+            </a>
           </div>
         )}
 
