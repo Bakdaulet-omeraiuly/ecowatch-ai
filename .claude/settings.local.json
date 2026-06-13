@@ -57,7 +57,8 @@
       "Bash(git check-ignore *)",
       "Bash(git add *)",
       "Bash(git commit *)",
-      "Bash(/tmp/gh_2.63.2_macOS_arm64/bin/gh repo *)"
+      "Bash(/tmp/gh_2.63.2_macOS_arm64/bin/gh repo *)",
+      "Bash(git push *)"
     ]
   }
 }

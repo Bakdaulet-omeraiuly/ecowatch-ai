@@ -6,7 +6,7 @@ import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
-  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles,
+  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -67,6 +67,12 @@ interface AirGridPoint {
   pm10: number | null;
 }
 
+interface MosquitoDay {
+  date: string;
+  index: number;
+  temp: number;
+  rainMm: number;
+}
 interface MosquitoGridPoint {
   lat: number;
   lng: number;
@@ -74,6 +80,7 @@ interface MosquitoGridPoint {
   temperature: number;
   humidity: number;
   weekRainMm: number;
+  days?: MosquitoDay[];
 }
 
 // Per-layer weight for a site (0..1)
@@ -169,6 +176,8 @@ export function MapView() {
   // Mosquito layer uses LIVE climate-suitability grid (real weather + published methodology)
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
   const [mosError, setMosError] = useState(false);
+  const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
+  const [mosPlaying, setMosPlaying] = useState(false);
   useEffect(() => {
     if (activeLayer !== "mosquito" || mosGrid || mosError) return;
     fetch("/api/mosquitogrid")
@@ -177,16 +186,28 @@ export function MapView() {
       .catch(() => setMosError(true));
   }, [activeLayer, mosGrid, mosError]);
 
+  // Animation: step through the 7 forecast days
+  useEffect(() => {
+    if (!mosPlaying || activeLayer !== "mosquito") return;
+    const t = setInterval(() => setMosDay((d) => (d + 1) % 7), 900);
+    return () => clearInterval(t);
+  }, [mosPlaying, activeLayer]);
+
+  // Index for the selected forecast day (falls back to current index)
+  const mosDayIndex = (p: MosquitoGridPoint) => p.days?.[mosDay]?.index ?? p.index;
+  const mosDays = mosGrid?.[0]?.days;
+
   const mosStats = useMemo(() => {
-    const vals = (mosGrid ?? []).map((p) => p.index);
-    if (!vals.length) return null;
+    if (!mosGrid?.length) return null;
+    const vals = mosGrid.map(mosDayIndex);
     return {
       min: Math.min(...vals),
       max: Math.max(...vals),
       avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
-      hottest: mosGrid!.reduce((a, b) => (b.index > a.index ? b : a)),
+      hottest: mosGrid.reduce((a, b) => (mosDayIndex(b) > mosDayIndex(a) ? b : a)),
     };
-  }, [mosGrid]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mosGrid, mosDay]);
 
   const airStats = useMemo(() => {
     const vals = (airGrid ?? []).map((p) => p.aqi).filter((v): v is number => v != null);
@@ -221,7 +242,7 @@ export function MapView() {
         features: mosGrid.map((p) => ({
           type: "Feature" as const,
           geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
-          properties: { weight: Math.min(1, p.index / 100) },
+          properties: { weight: Math.min(1, mosDayIndex(p) / 100) },
         })),
       };
     }
@@ -233,7 +254,8 @@ export function MapView() {
         properties: { weight: layerWeight(s, activeLayer) },
       })),
     };
-  }, [allSites, activeLayer, airGrid, mosGrid]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allSites, activeLayer, airGrid, mosGrid, mosDay]);
 
   // Grid layers (air, mosquito) need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito";
@@ -243,7 +265,7 @@ export function MapView() {
     if (activeLayer !== "mosquito" || !mosGrid) return [];
     const swarm: { id: string; lat: number; lng: number; size: number }[] = [];
     for (const p of mosGrid) {
-      const count = Math.round(p.index / 10); // 0 (cold) … ~10 icons (peak)
+      const count = Math.round(mosDayIndex(p) / 10); // 0 (cold) … ~10 icons (peak)
       for (let i = 0; i < count; i++) {
         // deterministic pseudo-random spread so icons don't jump each render
         const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
@@ -257,7 +279,8 @@ export function MapView() {
       }
     }
     return swarm;
-  }, [activeLayer, mosGrid]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeLayer, mosGrid, mosDay]);
 
   const analyzeAt = useCallback(
     async (lat: number, lng: number) => {
@@ -576,16 +599,54 @@ export function MapView() {
                         <div className="text-[9px] text-neutral-500">макс</div>
                       </div>
                     </div>
-                    <div className="mt-1.5 rounded bg-purple-500/10 p-1.5 text-[10px] text-purple-200">
-                      Ең қауіпті аймақ: {mosStats.hottest.temperature.toFixed(0)}°C ·
-                      апталық жаңбыр {mosStats.hottest.weekRainMm}мм
-                    </div>
                   </>
                 )}
+
+                {/* 7-day forecast animation */}
+                {mosDays && mosDays.length > 1 && (
+                  <div className="mt-2 rounded-lg bg-purple-500/10 p-2">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[10px] font-semibold text-purple-200">
+                        {mosDay === 0 ? "Бүгін" : `+${mosDay} күн`} ·{" "}
+                        {mosDays[mosDay]?.date?.slice(5) ?? ""}
+                      </span>
+                      <button
+                        onClick={() => setMosPlaying((v) => !v)}
+                        className="flex items-center gap-1 rounded bg-purple-500/25 px-1.5 py-0.5 text-[10px] text-purple-100 hover:bg-purple-500/40"
+                      >
+                        {mosPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                        {mosPlaying ? "Тоқтату" : "Ойнату"}
+                      </button>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={6}
+                      step={1}
+                      value={mosDay}
+                      onChange={(e) => {
+                        setMosPlaying(false);
+                        setMosDay(Number(e.target.value));
+                      }}
+                      className="w-full accent-purple-400"
+                    />
+                    <div className="mt-0.5 flex justify-between text-[8px] text-neutral-500">
+                      {mosDays.map((d, i) => (
+                        <span key={i} className={i === mosDay ? "text-purple-300" : ""}>
+                          {d.date?.slice(8) ?? i}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="mt-1 text-[9px] text-neutral-400">
+                      {mosDays[mosDay]?.temp}°C · апта жаңбыры {mosDays[mosDay]?.rainMm}мм — нақты Open-Meteo болжамы
+                    </p>
+                  </div>
+                )}
+
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
-                  🦟 иконкалар тірі индекс бойынша шоғырланады: индекс жоғары жерде көп, төмен жерде
-                  аз. Климаттық-қолайлылық: температура + жаңбыр + ылғал + топырақ. Әдістеме:
-                  Mordecai 2017 (WHO/ECDC). Дереккөз: Open-Meteo — сағат сайын.
+                  🦟 иконкалар индекс бойынша шоғырланады. Слайдермен 7 күндік болжамды көріңіз.
+                  Климаттық-қолайлылық: температура + жаңбыр + ылғал + топырақ. Әдістеме: Mordecai
+                  2017 (WHO/ECDC). Дереккөз: Open-Meteo.
                 </p>
               </>
             )}
