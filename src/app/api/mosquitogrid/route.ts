@@ -48,6 +48,41 @@ function urbanFactor(lat: number, lng: number): number {
   return max;
 }
 
+// HYDROLOGY — the dominant real driver in Atyrau. The Zhaiyk (Ural) river
+// floodplain and the marshy Caspian delta (reed beds, irrigation ditches,
+// standing flood pools) are the region's main mosquito breeding habitat.
+const ZHAIYK_PATH: [number, number][] = [
+  [47.85, 51.5], [47.6, 51.55], [47.35, 51.7], [47.1167, 51.8833], // Atyrau city
+  [46.95, 51.85], [46.75, 51.75], [46.55, 51.55], // delta toward Caspian
+];
+
+function distToPolylineKm(lat: number, lng: number, path: [number, number][]): number {
+  let min = Infinity;
+  for (let i = 0; i < path.length - 1; i++) {
+    const [aLat, aLng] = path[i];
+    const [bLat, bLng] = path[i + 1];
+    // sample the segment
+    for (let t = 0; t <= 1; t += 0.2) {
+      const pLat = aLat + (bLat - aLat) * t;
+      const pLng = aLng + (bLng - aLng) * t;
+      const dLat = (lat - pLat) * 111;
+      const dLng = (lng - pLng) * 111 * Math.cos((lat * Math.PI) / 180);
+      min = Math.min(min, Math.sqrt(dLat * dLat + dLng * dLng));
+    }
+  }
+  return min;
+}
+
+// 0..1 floodplain/wetland factor
+function floodplainFactor(lat: number, lng: number): number {
+  // proximity to the river/floodplain (within ~20 km)
+  const riverKm = distToPolylineKm(lat, lng, ZHAIYK_PATH);
+  const river = Math.max(0, 1 - riverKm / 20);
+  // the Caspian delta marshes (south, lat < 47.0) — broad wetland zone
+  const delta = lat < 47.0 && lng > 50.8 && lng < 52.4 ? Math.max(0, (47.0 - lat) / 0.8) : 0;
+  return Math.min(1, Math.max(river, 0.85 * Math.min(1, delta)));
+}
+
 // past 7 days (rolling-rain context) + next 7 days (the forecast animation)
 const URL =
   `https://api.open-meteo.com/v1/forecast` +
@@ -109,6 +144,7 @@ export async function GET() {
         const rh = d.current?.relative_humidity_2m ?? 0;
         const soil = d.current?.soil_moisture_0_to_1cm ?? null;
         const urban = urbanFactor(d.latitude, d.longitude);
+        const flood = floodplainFactor(d.latitude, d.longitude);
 
         const times = d.daily?.time ?? [];
         const tmax = d.daily?.temperature_2m_max ?? [];
@@ -122,11 +158,18 @@ export async function GET() {
           // rolling 7-day rain ending on day i (standing-water buildup)
           let rain = 0;
           for (let k = Math.max(0, i - 6); k <= i; k++) rain += precip[k] ?? 0;
+          // Floodplain/wetland is the dominant breeding driver here, then rain,
+          // humidity, soil. Temperature gates everything (no dev below ~15°C).
           const drivers =
-            0.4 * rainFactor(rain) + 0.25 * humidityFactor(rh) + 0.2 * soilFactor(soil) + 0.15 * urban;
-          const base = 100 * tempSuitability(t) * (0.35 + 0.65 * drivers);
+            0.4 * flood +
+            0.25 * rainFactor(rain) +
+            0.15 * humidityFactor(rh) +
+            0.2 * soilFactor(soil);
+          const base = 100 * tempSuitability(t) * (0.45 + 0.55 * drivers);
+          // multiplicative amplification: cities AND floodplain both intensify
+          const amplified = base * (1 + 0.55 * urban + 0.8 * flood);
           return {
-            index: Math.round(Math.min(100, base * (1 + 0.8 * urban))),
+            index: Math.round(Math.min(100, amplified)),
             temp: +t.toFixed(1),
             rainMm: +rain.toFixed(1),
           };
@@ -143,6 +186,7 @@ export async function GET() {
           lat: d.latitude,
           lng: d.longitude,
           urban: +urban.toFixed(2),
+          flood: +flood.toFixed(2),
           index: days[0].index, // today (back-compat)
           temperature: days[0].temp,
           humidity: rh,
