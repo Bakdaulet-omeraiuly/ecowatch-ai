@@ -18,6 +18,11 @@ const LocationPicker = dynamic(
   { ssr: false, loading: () => <div className="h-64 rounded-lg bg-white/5" /> }
 );
 
+const WasteDetector = dynamic(
+  () => import("@/components/report/WasteDetector").then((m) => m.WasteDetector),
+  { ssr: false }
+);
+
 // Resize photo client-side so the base64 payload stays small
 function resizeImage(file: File, maxDim = 1024): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -165,6 +170,7 @@ export default function ReportPage() {
                   <Camera className="mr-1 h-3.5 w-3.5" /> Камера
                 </Button>
               </div>
+              <WasteDetector photo={photo} />
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
