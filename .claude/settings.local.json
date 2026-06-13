@@ -72,7 +72,8 @@
       "Bash(curl -s -m 20 \"https://flood-api.open-meteo.com/v1/flood?latitude=47.1167&longitude=51.8833&daily=river_discharge,river_discharge_mean,river_discharge_max&forecast_days=92&past_days=30\")",
       "Bash(curl -s http://localhost:3000/api/flood)",
       "Bash(curl -s -m 15 \"https://api.open-meteo.com/v1/forecast?latitude=47.4,46.6&longitude=51.6,53.3&current=soil_moisture_9_to_27cm,soil_temperature_18cm,temperature_2m&daily=precipitation_sum&past_days=30&forecast_days=1\")",
-      "Bash(curl -s http://localhost:3000/api/soilgrid)"
+      "Bash(curl -s http://localhost:3000/api/soilgrid)",
+      "Bash(curl -s http://localhost:3000/api/flares)"
     ]
   }
 }

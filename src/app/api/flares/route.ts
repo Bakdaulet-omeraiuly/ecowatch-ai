@@ -7,8 +7,27 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 3600;
 
-// Atyrau region bbox: west,south,east,north
-const AREA = "49,46,55,49";
+// FIRMS query bbox (must be rectangular): west,south,east,north
+const AREA = "49.5,45.5,55,49";
+
+// Approximate Atyrau oblast boundary [lng, lat] — flares outside it are dropped
+// so neighbouring oblasts (Mangystau, West Kazakhstan, Astrakhan) are excluded.
+const ATYRAU_OBLAST: [number, number][] = [
+  [50.2, 47.3], [50.4, 48.2], [51.6, 48.9], [53.4, 48.7], [54.7, 47.9],
+  [54.6, 46.9], [53.9, 46.2], [52.2, 45.6], [50.6, 46.3], [50.1, 47.0],
+];
+
+function pointInPolygon(lng: number, lat: number, poly: [number, number][]): boolean {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i];
+    const [xj, yj] = poly[j];
+    const intersect =
+      yi > lat !== yj > lat && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
+}
 
 interface Flare {
   lat: number;
@@ -61,7 +80,9 @@ export async function GET() {
         acqDate: c[iDate] ?? "",
         dayNight: c[iDN] ?? "",
       };
-    }).filter((f) => !isNaN(f.lat) && !isNaN(f.lng));
+    }).filter(
+      (f) => !isNaN(f.lat) && !isNaN(f.lng) && pointInPolygon(f.lng, f.lat, ATYRAU_OBLAST)
+    );
 
     const data = {
       fetchedAt: new Date().toISOString(),
