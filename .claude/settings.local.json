@@ -61,7 +61,11 @@
       "Bash(git push *)",
       "Bash(curl -s \"http://localhost:3000/api/airgrid\")",
       "Bash(curl -s \"http://localhost:3000/api/airgrid\" -w \"\\\\nHTTP %{http_code}\\\\n\")",
-      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" http://localhost:3000/)"
+      "Bash(curl -s -o /dev/null -w \"home: %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(ls /tmp/gh_2.63.2_macOS_arm64/bin/gh 2>/dev/null && echo \"бар\" || echo \"өшкен\"; mkdir -p ~/.local/bin)",
+      "Bash(cp gh_2.63.2_macOS_arm64/bin/gh ~/.local/bin/gh)",
+      "Bash(chmod +x ~/.local/bin/gh)",
+      "Bash(~/.local/bin/gh auth *)"
     ]
   }
 }

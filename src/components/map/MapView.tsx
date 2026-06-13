@@ -934,9 +934,9 @@ export function MapView() {
       <div className="absolute bottom-8 right-4 flex flex-col items-center gap-3">
         <button
           onClick={() =>
-            mapRef.current?.flyTo({ center: [ATYRAU.longitude, ATYRAU.latitude], zoom: ATYRAU.zoom, duration: 1200 })
+            mapRef.current?.flyTo({ center: [51.8833, 47.1167], zoom: 12.5, duration: 1400 })
           }
-          title="Атырауға оралу"
+          title="Атырау қаласына жақындау"
           className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-neutral-900/95 text-neutral-300 shadow-xl backdrop-blur transition-colors hover:bg-neutral-800 hover:text-white"
         >
           <Locate className="h-5 w-5" />
