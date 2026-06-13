@@ -10,17 +10,38 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 3600;
 
-// 10×10 = 100-point grid covering the Atyrau region
+// Each point: dense=true → a city district (icons cluster tightly inside it);
+// dense=false → a regional grid cell (icons spread wide).
+const points: { lat: number; lng: number; dense: boolean; name?: string }[] = [];
+
+// 10×10 = 100-point grid covering the whole Atyrau region
 const LAT_MIN = 46.0, LAT_MAX = 48.8;
 const LNG_MIN = 49.2, LNG_MAX = 54.8;
 const N = 10;
-const points: { lat: number; lng: number }[] = [];
 for (let i = 0; i < N; i++)
   for (let j = 0; j < N; j++)
     points.push({
       lat: +(LAT_MIN + ((LAT_MAX - LAT_MIN) * i) / (N - 1)).toFixed(4),
       lng: +(LNG_MIN + ((LNG_MAX - LNG_MIN) * j) / (N - 1)).toFixed(4),
+      dense: false,
     });
+
+// Atyrau city districts — each gets its own hourly index, icons stay inside it
+const ATYRAU_DISTRICTS: { lat: number; lng: number; name: string }[] = [
+  { lat: 47.1167, lng: 51.8833, name: "Орталық" },
+  { lat: 47.105, lng: 51.842, name: "Балықшы" },
+  { lat: 47.16, lng: 51.918, name: "Жұмыскер" },
+  { lat: 47.131, lng: 51.918, name: "Привокзальный" },
+  { lat: 47.10, lng: 51.918, name: "Авангард" },
+  { lat: 47.078, lng: 51.862, name: "Нұрсая" },
+  { lat: 47.134, lng: 51.862, name: "Мирный" },
+  { lat: 47.092, lng: 51.90, name: "Геолог" },
+  { lat: 47.148, lng: 51.89, name: "Самал" },
+  { lat: 47.07, lng: 51.93, name: "Лесхоз" },
+  { lat: 47.15, lng: 51.95, name: "Жайық оңт." },
+  { lat: 47.09, lng: 51.84, name: "Атырау МӨЗ" },
+];
+for (const d of ATYRAU_DISTRICTS) points.push({ ...d, dense: true });
 
 // Settlements: cities concentrate breeding habitat (containers, tires, drains,
 // irrigation) independent of rainfall — a documented urban amplification of
@@ -130,7 +151,8 @@ export async function GET() {
     const list = Array.isArray(arr) ? arr : [arr];
 
     const grid = list.map(
-      (d: {
+      (
+        d: {
         latitude: number;
         longitude: number;
         current?: { relative_humidity_2m?: number; soil_moisture_0_to_1cm?: number };
@@ -140,7 +162,10 @@ export async function GET() {
           temperature_2m_min?: (number | null)[];
           precipitation_sum?: (number | null)[];
         };
-      }) => {
+      },
+        idx: number
+      ) => {
+        const meta = points[idx] ?? { dense: false };
         const rh = d.current?.relative_humidity_2m ?? 0;
         const soil = d.current?.soil_moisture_0_to_1cm ?? null;
         const urban = urbanFactor(d.latitude, d.longitude);
@@ -185,6 +210,8 @@ export async function GET() {
         return {
           lat: d.latitude,
           lng: d.longitude,
+          dense: meta.dense,
+          name: meta.name,
           urban: +urban.toFixed(2),
           flood: +flood.toFixed(2),
           index: days[0].index, // today (back-compat)

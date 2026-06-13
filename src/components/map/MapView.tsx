@@ -81,6 +81,8 @@ interface MosquitoGridPoint {
   humidity: number;
   weekRainMm: number;
   days?: MosquitoDay[];
+  dense?: boolean; // true = city district (tight icon cluster)
+  name?: string;
 }
 
 // Per-layer weight for a site (0..1)
@@ -266,14 +268,17 @@ export function MapView() {
     const swarm: { id: string; lat: number; lng: number; size: number }[] = [];
     for (const p of mosGrid) {
       const count = Math.round(mosDayIndex(p) / 10); // 0 (cold) … ~10 icons (peak)
+      // City districts cluster tightly (~1.5 km); regional cells spread wide
+      const spreadLat = p.dense ? 0.012 : 0.13;
+      const spreadLng = p.dense ? 0.016 : 0.18;
       for (let i = 0; i < count; i++) {
         // deterministic pseudo-random spread so icons don't jump each render
         const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
         const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
         swarm.push({
           id: `${p.lat},${p.lng},${i}`,
-          lat: p.lat + a * 0.13,
-          lng: p.lng + b * 0.18,
+          lat: p.lat + a * spreadLat,
+          lng: p.lng + b * spreadLng,
           size: 14 + (Math.abs(a) > 0.6 ? 6 : 0),
         });
       }
