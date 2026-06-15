@@ -58,9 +58,12 @@ export default function Home() {
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-300">
           <Leaf className="h-3.5 w-3.5" /> Атырау облысына арналған экологиялық AI платформа
         </div>
-        <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
-          EcoWatch <span className="text-emerald-400">AI</span>
+        <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl">
+          Jaiyq
         </h1>
+        <p className="mt-1 text-sm font-medium uppercase tracking-[0.25em] text-emerald-400">
+          Атырау экологиялық AI
+        </p>
         <p className="mx-auto mt-4 max-w-2xl text-base text-neutral-400 sm:text-lg">
           Спутник суреттері мен жасанды интеллект арқылы қоқыс полигондарын, мұнай ластануын,
           жер деградациясын және маса көбею ошақтарын анықтаймыз — болжам жасап, шара ұсынамыз.

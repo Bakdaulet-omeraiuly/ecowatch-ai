@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "EcoWatch AI — Атырау экологиялық мониторингі",
-    short_name: "EcoWatch AI",
+    name: "Jaiyq — Атырау экологиялық мониторингі",
+    short_name: "Jaiyq",
     description:
       "Спутник пен AI арқылы қоқыс, мұнай ластануы, жер деградациясы, ауа сапасы және маса тәуекелін бақылау",
     start_url: "/",

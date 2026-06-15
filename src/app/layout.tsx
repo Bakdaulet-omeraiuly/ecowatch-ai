@@ -17,11 +17,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "EcoWatch AI — Атырау облысының экологиялық мониторингі",
+  title: "Jaiyq — Атырау облысының экологиялық мониторингі",
   description:
     "Спутник суреттері мен AI арқылы қоқыс, мұнай ластануы, жер деградациясы және маса тәуекелін анықтайтын платформа",
   manifest: "/manifest.webmanifest",
-  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EcoWatch AI" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Jaiyq" },
   icons: { apple: "/apple-icon.png" },
 };
 

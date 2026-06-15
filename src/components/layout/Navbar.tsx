@@ -19,9 +19,9 @@ export function Navbar() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         <Link href="/" className="flex items-center gap-2 font-semibold text-white">
           <Leaf className="h-5 w-5 text-emerald-400" />
-          EcoWatch <span className="text-emerald-400">AI</span>
+          <span className="text-lg">Jaiyq</span>
           <span className="ml-2 hidden rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-normal text-emerald-300 sm:inline">
-            Атырау облысы
+            Атырау экологиясы
           </span>
         </Link>
         <nav className="flex items-center gap-1">
