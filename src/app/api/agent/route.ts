@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/lib/ratelimit";
+
 import { z } from "zod";
 import OpenAI from "openai";
 import { satelliteImageUrl } from "@/lib/mapbox";
@@ -98,6 +100,9 @@ function mockAgent(lat: number, lng: number, live: Awaited<ReturnType<typeof fet
 }
 
 export async function POST(req: Request) {
+  if (!(await allow(req))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   const parsed = reqSchema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
   const { lat, lng } = parsed.data;

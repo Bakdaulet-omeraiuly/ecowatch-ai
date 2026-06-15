@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/lib/ratelimit";
+
 import { z } from "zod";
 import OpenAI from "openai";
 import { supabase } from "@/lib/supabase";
@@ -48,6 +50,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (!(await allow(req))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   if (!supabase) {
     return NextResponse.json({ error: "Ортақ дерекқор бапталмаған" }, { status: 503 });
   }
@@ -136,6 +141,30 @@ export async function POST(req: Request) {
   }
 
   const mri = mosquitoRiskIndex(lat, lng, analysis.standingWater);
+
+  // Upload the photo to Supabase Storage; keep only the URL in the row (lighter
+  // DB). Falls back to inline base64 if the bucket/upload is unavailable.
+  let photoRef = photo;
+  try {
+    const m = photo.match(/^data:(image\/\w+);base64,(.+)$/);
+    if (m) {
+      const ext = m[1].split("/")[1];
+      const bytes = Buffer.from(m[2], "base64");
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("report-photos")
+        .upload(path, bytes, { contentType: m[1], upsert: false });
+      if (!upErr) {
+        const { data: pub } = supabase.storage.from("report-photos").getPublicUrl(path);
+        if (pub?.publicUrl) photoRef = pub.publicUrl;
+      } else {
+        console.error("Storage upload failed, keeping base64:", upErr.message);
+      }
+    }
+  } catch (e) {
+    console.error("Storage upload error:", e);
+  }
+
   const { data, error } = await supabase
     .from("reports")
     .insert({
@@ -148,7 +177,7 @@ export async function POST(req: Request) {
       mosquito_index: mri,
       analysis,
       image_url: imageUrl,
-      photo_thumb: photo,
+      photo_thumb: photoRef,
       verification_status: analysis.verificationStatus ?? null,
     })
     .select()

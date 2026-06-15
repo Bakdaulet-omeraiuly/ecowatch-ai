@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/lib/ratelimit";
+
 import { z } from "zod";
 
 // Trash detection via Roboflow hosted inference (trash-detection model).
@@ -11,6 +13,9 @@ const reqSchema = z.object({
 const MODEL = "trash-detection-3/1";
 
 export async function POST(req: Request) {
+  if (!(await allow(req))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   const key = process.env.ROBOFLOW_API_KEY;
   if (!key) {
     return NextResponse.json({ error: "Roboflow кілті бапталмаған" }, { status: 503 });

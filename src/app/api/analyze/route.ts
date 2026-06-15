@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/lib/ratelimit";
+
 import { z } from "zod";
 import OpenAI from "openai";
 import { satelliteImageUrl, historicalImageUrl } from "@/lib/mapbox";
@@ -138,6 +140,9 @@ function mockAnalysis(lat: number, lng: number, mode: string): AnalysisResult {
 }
 
 export async function POST(req: Request) {
+  if (!(await allow(req))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   const parsed = reqSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
