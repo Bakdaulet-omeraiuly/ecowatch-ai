@@ -1,9 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Toaster } from "@/components/ui/sonner";
+import { PWARegister } from "@/components/layout/PWARegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,6 +20,13 @@ export const metadata: Metadata = {
   title: "EcoWatch AI — Атырау облысының экологиялық мониторингі",
   description:
     "Спутник суреттері мен AI арқылы қоқыс, мұнай ластануы, жер деградациясы және маса тәуекелін анықтайтын платформа",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "EcoWatch AI" },
+  icons: { apple: "/apple-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#059669",
 };
 
 export default function RootLayout({
@@ -35,6 +43,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1 pt-14">{children}</main>
         <Toaster position="top-center" richColors />
+        <PWARegister />
       </body>
     </html>
   );
