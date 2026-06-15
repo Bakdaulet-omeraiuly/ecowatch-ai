@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { ARTICLES_SYSTEM } from "@/lib/prompts";
 
 export const revalidate = 86400; // refresh once a day
 
@@ -96,7 +97,7 @@ export async function GET() {
         messages: [
           {
             role: "system",
-            content: "Сен ғылыми мақалаларды қазақшаға аударып, қысқаша түйіндейтін көмекшісің. Тек JSON қайтар.",
+            content: ARTICLES_SYSTEM,
           },
           {
             role: "user",

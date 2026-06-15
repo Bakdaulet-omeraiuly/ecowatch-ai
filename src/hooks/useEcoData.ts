@@ -1,0 +1,185 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import type { Site, AnalysisResult } from "@/types/site";
+
+// Data types for the live eco-layers
+export interface AirGridPoint {
+  lat: number;
+  lng: number;
+  aqi: number | null;
+  pm2_5: number | null;
+  pm10: number | null;
+  no2?: number | null;
+  so2?: number | null;
+  ozone?: number | null;
+  dust?: number | null;
+  dense?: boolean;
+  name?: string;
+  hourly?: { time: string; aqi: number | null }[];
+}
+export interface Dominant {
+  key: string;
+  label: string;
+  source: string;
+  value: number;
+}
+export interface Flare {
+  lat: number;
+  lng: number;
+  brightness: number;
+  frp: number;
+  confidence: string;
+  acqDate: string;
+  dayNight: string;
+}
+export interface FloodPoint {
+  lat: number;
+  lng: number;
+  name: string;
+  discharge: number;
+  ratio: number;
+  level: string;
+  color: string;
+  trend: string;
+}
+export interface SoilPoint {
+  lat: number;
+  lng: number;
+  soilMoisture: number;
+  soilTemp: number;
+  rain30: number;
+  stress: number;
+}
+export interface MosquitoDay {
+  date: string;
+  index: number;
+  temp: number;
+  rainMm: number;
+}
+export interface MosquitoGridPoint {
+  lat: number;
+  lng: number;
+  index: number;
+  temperature: number;
+  humidity: number;
+  weekRainMm: number;
+  days?: MosquitoDay[];
+  dense?: boolean;
+  name?: string;
+}
+
+// Shared citizen reports from Supabase — fetched once, visible to everyone
+export function useSharedReports(): Site[] {
+  const [reports, setReports] = useState<Site[]>([]);
+  useEffect(() => {
+    fetch("/api/reports")
+      .then((r) => r.json())
+      .then((d) => {
+        const rows = (d.reports ?? []) as Array<{
+          id: string; lat: number; lng: number; name: string | null; district: string | null;
+          risk_score: number; mosquito_index: number; analysis: AnalysisResult;
+          image_url: string | null; photo_thumb: string | null; created_at: string;
+        }>;
+        setReports(
+          rows.map((r) => ({
+            id: r.id,
+            lat: r.lat,
+            lng: r.lng,
+            name: r.name ?? "Азаматтық хабарлама",
+            district: r.district ?? "Атырау облысы",
+            mode: "combined" as const,
+            analysis: r.analysis,
+            mosquitoRiskIndex: r.mosquito_index,
+            imageUrl: r.image_url ?? undefined,
+            photoThumb: r.photo_thumb ?? undefined,
+            createdAt: r.created_at,
+            flagged: r.risk_score >= 80,
+          }))
+        );
+      })
+      .catch(() => {});
+  }, []);
+  return reports;
+}
+
+// Air quality grid (Copernicus CAMS) — fetched on first activation
+export function useAirGrid(enabled: boolean) {
+  const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
+  const [airDominant, setAirDominant] = useState<Dominant | null>(null);
+  const [airError, setAirError] = useState(false);
+  useEffect(() => {
+    if (!enabled || airGrid || airError) return;
+    fetch("/api/airgrid")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        setAirGrid(d.grid);
+        setAirDominant(d.dominant ?? null);
+      })
+      .catch(() => setAirError(true));
+  }, [enabled, airGrid, airError]);
+  return { airGrid, airDominant, airError };
+}
+
+// Mosquito climate-suitability grid (Open-Meteo)
+export function useMosquitoGrid(enabled: boolean) {
+  const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
+  const [mosError, setMosError] = useState(false);
+  useEffect(() => {
+    if (!enabled || mosGrid || mosError) return;
+    fetch("/api/mosquitogrid")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setMosGrid(d.grid))
+      .catch(() => setMosError(true));
+  }, [enabled, mosGrid, mosError]);
+  return { mosGrid, mosError };
+}
+
+// Soil dryness / land-degradation grid (Open-Meteo ECMWF)
+export function useSoilGrid(enabled: boolean) {
+  const [soilGrid, setSoilGrid] = useState<SoilPoint[] | null>(null);
+  const [soilMeta, setSoilMeta] = useState<{ avgStress: number; avgMoisture: number } | null>(null);
+  const [soilError, setSoilError] = useState(false);
+  useEffect(() => {
+    if (!enabled || soilGrid || soilError) return;
+    fetch("/api/soilgrid")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        setSoilGrid(d.grid);
+        setSoilMeta({ avgStress: d.avgStress, avgMoisture: d.avgMoisture });
+      })
+      .catch(() => setSoilError(true));
+  }, [enabled, soilGrid, soilError]);
+  return { soilGrid, soilMeta, soilError };
+}
+
+// Zhaiyk river discharge / flood risk (GloFAS)
+export function useFlood(enabled: boolean) {
+  const [flood, setFlood] = useState<FloodPoint[] | null>(null);
+  const [floodError, setFloodError] = useState(false);
+  useEffect(() => {
+    if (!enabled || flood || floodError) return;
+    fetch("/api/flood")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setFlood(d.points ?? []))
+      .catch(() => setFloodError(true));
+  }, [enabled, flood, floodError]);
+  return { flood, floodError };
+}
+
+// Gas-flare detections (NASA FIRMS)
+export function useFlares(enabled: boolean) {
+  const [flares, setFlares] = useState<Flare[] | null>(null);
+  const [flaresError, setFlaresError] = useState<string | null>(null);
+  useEffect(() => {
+    if (!enabled || flares || flaresError) return;
+    fetch("/api/flares")
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (ok) setFlares(d.flares ?? []);
+        else setFlaresError(d.error ?? "Қолжетімсіз");
+      })
+      .catch(() => setFlaresError("Қолжетімсіз"));
+  }, [enabled, flares, flaresError]);
+  return { flares, flaresError };
+}

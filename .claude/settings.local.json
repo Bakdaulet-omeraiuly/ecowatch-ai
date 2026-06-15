@@ -80,7 +80,10 @@
       "WebFetch(domain:atyrautv.kz)",
       "WebFetch(domain:camera1.ru)",
       "WebFetch(domain:docs.api.nvidia.com)",
-      "WebFetch(domain:build.nvidia.com)"
+      "WebFetch(domain:build.nvidia.com)",
+      "Bash(sed -n '105,135p' src/app/api/agent/route.ts)",
+      "Bash(sed -n '55,72p' src/app/api/forecast/route.ts)",
+      "Bash(python3 -)"
     ]
   }
 }

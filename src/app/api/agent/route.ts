@@ -5,6 +5,7 @@ import { satelliteImageUrl } from "@/lib/mapbox";
 import { scoreToLevel } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { AnalysisResult } from "@/types/site";
+import { AGENT_SYSTEM } from "@/lib/prompts";
 
 // AI Agent: a multi-source assessment. It does NOT rely on satellite imagery
 // alone — it also pulls LIVE official data for the exact point (Copernicus CAMS
@@ -118,8 +119,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content:
-            "Сен Атырау облысының көп дереккөзді экологиялық AI агентісің. Сен ТЕК спутник суретіне сүйенбейсің — қоса берілген тірі ресми деректерді (Copernicus CAMS ауа сапасы, Open-Meteo ауа райы) де есепке аласың. Әр дереккөзден нақты тұжырым жаса. Тек JSON, мәтін қазақша.",
+          content: AGENT_SYSTEM,
         },
         {
           role: "user",
@@ -134,7 +134,9 @@ export async function POST(req: Request) {
       ],
     });
     const raw = JSON.parse(completion.choices[0].message.content ?? "{}");
-    const result = resultSchema.parse(raw);
+    const sp = resultSchema.safeParse(raw);
+    if (!sp.success) { console.error("Agent schema:", sp.error.message); return NextResponse.json({ analysis: mockAgent(lat, lng, live), imageUrl, live, mri, mock: true }); }
+    const result = sp.data;
     const analysis: AnalysisResult = { ...result, riskLevel: scoreToLevel(result.riskScore), isAgent: true };
     return NextResponse.json({ analysis, imageUrl, live, mri, mock: false });
   } catch (err) {

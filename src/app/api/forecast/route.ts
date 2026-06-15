@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { z } from "zod";
+import { FORECAST_SYSTEM } from "@/lib/prompts";
 
 const reqSchema = z.object({
   district: z.string().optional(),
@@ -63,8 +64,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content:
-            "Сен Атырау облысының экологиялық болжам жасайтын AI-сың. Аймақ контексті: мұнай өндіру, Каспий жағалауы, Жайық өзені, мамыр-шілде тасқыны. Тек JSON қайтар, мәтін өрістері қазақша.",
+          content: FORECAST_SYSTEM,
         },
         {
           role: "user",
@@ -72,7 +72,9 @@ export async function POST(req: Request) {
         },
       ],
     });
-    const forecast = forecastSchema.parse(JSON.parse(completion.choices[0].message.content ?? "{}"));
+    const fp = forecastSchema.safeParse(JSON.parse(completion.choices[0].message.content ?? "{}"));
+    if (!fp.success) { console.error("Forecast schema:", fp.error.message); return NextResponse.json({ forecast: mockForecast(history), mock: true }); }
+    const forecast = fp.data;
     return NextResponse.json({ forecast, mock: false });
   } catch (err) {
     console.error("Forecast error:", err);

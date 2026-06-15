@@ -3,6 +3,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { satelliteImageUrl, historicalImageUrl } from "@/lib/mapbox";
 import { scoreToLevel } from "@/lib/risk";
+import { ANALYZE_SYSTEM, analyzeUserPrompt } from "@/lib/prompts";
 import type { AnalysisResult } from "@/types/site";
 
 const reqSchema = z.object({
@@ -45,31 +46,6 @@ const resultSchema = z.object({
   verificationStatus: z.enum(["confirmed", "unconfirmed", "contradicted"]).optional(),
   verificationNotes: z.string().optional(),
 });
-
-const SYSTEM_PROMPT = `Сен Қазақстанның Атырау облысын бақылайтын экологиялық AI мониторинг жүйесісің.
-Бұл — мұнай өндіруші аймақ: Каспий теңізі жағалауы, Жайық (Орал) өзені, Теңіз кен орны, мұнай өңдеу зауыттары.
-Суреттерден мынаны іздейсің: мұнай ластануы (қара/қоңыр дақтар, су түсінің өзгеруі), заңсыз қоқыс
-(объекттер кластері, жол іздері), жер деградациясы (өсімдік жоғалуы, тұздану), тұрған су (маса көбею ошағы).
-Жауапты ТЕК валидті JSON түрінде қайтар, басқа мәтінсіз. Барлық мәтін өрістері қазақ тілінде болсын.
-
-Сен сондай-ақ ҒЫЛЫМИ САРАПТАМА жасайсың (RGB суреттен прокси-бағалау):
-- NDVI прокси (0-1): өсімдік жамылғысының тығыздығы — жасыл түс үлесі мен текстурасынан
-- NDBI прокси (0-1): техногендік беттер — құрылыс, қоқыс, тегіс шағылысатын аймақтар
-- NDWI прокси (0-1): су айдындары — көк/қара тегіс беттер
-- Ластанған аумақ көлемі (м²): сурет ~600м×600м (zoom 15) екенін ескере отырып бағала
-- Текстуралық талдау: қоқыс үйінділері хаотикалық пішінді, ландшафттан түсі өзгеше; мұнай дақтары ерекше шағылысуға ие
-- Жақын инфрақұрылым: суретте көрінетін жолдар, ғимараттар, зауыттар, елді мекендер
-- Әр анықталған белгіге СЕБЕП-САЛДАР тізбегі: Белгі → Дәлел (нақты визуалды дәлел + индекс мәні) → Болжам (шара қолданылмаса не болады, % және мерзіммен)`;
-
-function userPrompt(mode: string): string {
-  const science = `"science":{"ndvi":0-1,"ndbi":0-1,"ndwi":0-1,"areaM2":number,"changeDynamics":"өткен кезеңмен салыстырғандағы болжалды динамика","nearbyInfrastructure":["..."],"textureNote":"...","evidence":[{"sign":"...","evidence":"...","confidence":0-100,"prediction":"..."}]}`;
-  const schema = `{"riskScore":0-100,"confidence":0-100,"oilPollution":bool,"illegalDumping":bool,"landDegradation":bool,"standingWater":bool,"detectedFeatures":["..."],"recommendation":"...","summary":"...",${science}}`;
-  if (mode === "satellite")
-    return `Осы спутник суретін экологиялық тәуекелге талда. JSON: ${schema}`;
-  if (mode === "photo")
-    return `Азамат түсірген жер деңгейіндегі осы фотоны талда: қоқыс түрі, көлемі, қауіптілігі. JSON: ${schema}`;
-  return `1-сурет — азаматтың жердегі фотосы, 2-сурет — сол координаттың спутник көрінісі. Спутник көрінісі жердегі дәлелді растай ма? JSON: ${schema} + "verificationStatus":"confirmed|unconfirmed|contradicted","verificationNotes":"..."`;
-}
 
 // Deterministic fallback when no API key — keyed off coordinates so the demo
 // stays consistent: oil zones near Tengiz/refinery score high, river zones
@@ -192,7 +168,7 @@ export async function POST(req: Request) {
       max_tokens: 1800,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: ANALYZE_SYSTEM },
         {
           role: "user",
           content: [
@@ -201,7 +177,7 @@ export async function POST(req: Request) {
               text:
                 (imageryYear
                   ? `НАЗАР АУДАР: спутник суреті ${imageryYear} жылғы Sentinel-2 мозаикасы — талдау сол жылғы жағдайды сипаттайды. `
-                  : "") + userPrompt(mode),
+                  : "") + analyzeUserPrompt(mode),
             },
             ...images,
           ],
@@ -210,8 +186,12 @@ export async function POST(req: Request) {
     });
 
     const raw = JSON.parse(completion.choices[0].message.content ?? "{}");
-    const result = resultSchema.parse(raw);
-    const analysis: AnalysisResult = { ...result, riskLevel: scoreToLevel(result.riskScore) };
+    const parsedResult = resultSchema.safeParse(raw);
+    if (!parsedResult.success) {
+      console.error("Analyze schema mismatch:", parsedResult.error.message);
+      return NextResponse.json({ analysis: mockAnalysis(lat, lng, mode), imageUrl, mock: true });
+    }
+    const analysis: AnalysisResult = { ...parsedResult.data, riskLevel: scoreToLevel(parsedResult.data.riskScore) };
     return NextResponse.json({ analysis, imageUrl, mock: false });
   } catch (err) {
     console.error("Analyze error:", err);

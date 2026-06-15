@@ -6,6 +6,7 @@ import { satelliteImageUrl } from "@/lib/mapbox";
 import { scoreToLevel } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { AnalysisResult } from "@/types/site";
+import { REPORT_MODERATION_SYSTEM, REPORT_ANALYSIS_SYSTEM } from "@/lib/prompts";
 
 // Shared citizen reports: stored in Supabase so every user sees them.
 // On submit: AI moderation (is this a real ecological issue?) + combined
@@ -68,8 +69,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content:
-              "Сен модерациялық сүзгісің. Фото экологиялық мәселені (қоқыс, мұнай ластануы, жер деградациясы, тұрған су, өлі жануарлар, түтін) көрсете ме, әлде қатысы жоқ па (селфи, мем, жарнама, кездейсоқ зат)? Тек JSON.",
+            content: REPORT_MODERATION_SYSTEM,
           },
           {
             role: "user",
@@ -96,8 +96,7 @@ export async function POST(req: Request) {
         messages: [
           {
             role: "system",
-            content:
-              "Сен Атырау облысының экологиялық AI-сың. 1-сурет азаматтың фотосы, 2-сурет сол координаттың спутник көрінісі. Тек JSON, қазақша.",
+            content: REPORT_ANALYSIS_SYSTEM,
           },
           {
             role: "user",
@@ -112,7 +111,9 @@ export async function POST(req: Request) {
           },
         ],
       });
-      const raw = analysisSchema.parse(JSON.parse(completion.choices[0].message.content ?? "{}"));
+      const sp = analysisSchema.safeParse(JSON.parse(completion.choices[0].message.content ?? "{}"));
+      if (!sp.success) { console.error("Report schema:", sp.error.message); return NextResponse.json({ error: "Талдау форматы дұрыс емес" }, { status: 500 }); }
+      const raw = sp.data;
       analysis = { ...raw, riskLevel: scoreToLevel(raw.riskScore) };
     } catch (err) {
       console.error("Report analysis error:", err);

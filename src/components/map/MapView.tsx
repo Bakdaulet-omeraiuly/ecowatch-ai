@@ -47,6 +47,10 @@ function yearTileConfig(year: number): { tiles: string[]; maxzoom: number; attri
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import { MosquitoIcon } from "./MosquitoIcon";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
+import {
+  useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares,
+  type AirGridPoint, type MosquitoGridPoint,
+} from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
@@ -60,71 +64,6 @@ const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
   water: Waves,
 };
 
-interface AirGridPoint {
-  lat: number;
-  lng: number;
-  aqi: number | null;
-  pm2_5: number | null;
-  pm10: number | null;
-  no2?: number | null;
-  so2?: number | null;
-  ozone?: number | null;
-  dust?: number | null;
-  dense?: boolean;
-  name?: string;
-  hourly?: { time: string; aqi: number | null }[];
-}
-interface Dominant {
-  key: string;
-  label: string;
-  source: string;
-  value: number;
-}
-interface Flare {
-  lat: number;
-  lng: number;
-  brightness: number;
-  frp: number;
-  confidence: string;
-  acqDate: string;
-  dayNight: string;
-}
-interface FloodPoint {
-  lat: number;
-  lng: number;
-  name: string;
-  discharge: number;
-  ratio: number;
-  level: string;
-  color: string;
-  trend: string;
-}
-interface SoilPoint {
-  lat: number;
-  lng: number;
-  soilMoisture: number;
-  soilTemp: number;
-  rain30: number;
-  stress: number;
-}
-
-interface MosquitoDay {
-  date: string;
-  index: number;
-  temp: number;
-  rainMm: number;
-}
-interface MosquitoGridPoint {
-  lat: number;
-  lng: number;
-  index: number;
-  temperature: number;
-  humidity: number;
-  weekRainMm: number;
-  days?: MosquitoDay[];
-  dense?: boolean; // true = city district (tight icon cluster)
-  name?: string;
-}
 
 // Per-layer weight for a site (0..1)
 function layerWeight(s: Site, layer: LayerKey): number {
@@ -166,36 +105,7 @@ export function MapView() {
     () => userSites.filter((s) => (s.imageryYear ?? null) === viewYear),
     [userSites, viewYear]
   );
-  // Shared citizen reports loaded from Supabase (visible to everyone)
-  const [sharedReports, setSharedReports] = useState<Site[]>([]);
-  useEffect(() => {
-    fetch("/api/reports")
-      .then((r) => r.json())
-      .then((d) => {
-        const rows = (d.reports ?? []) as Array<{
-          id: string; lat: number; lng: number; name: string | null; district: string | null;
-          risk_score: number; mosquito_index: number; analysis: AnalysisResult;
-          image_url: string | null; photo_thumb: string | null; created_at: string;
-        }>;
-        setSharedReports(
-          rows.map((r) => ({
-            id: r.id,
-            lat: r.lat,
-            lng: r.lng,
-            name: r.name ?? "Азаматтық хабарлама",
-            district: r.district ?? "Атырау облысы",
-            mode: "combined" as const,
-            analysis: r.analysis,
-            mosquitoRiskIndex: r.mosquito_index,
-            imageUrl: r.image_url ?? undefined,
-            photoThumb: r.photo_thumb ?? undefined,
-            createdAt: r.created_at,
-            flagged: r.risk_score >= 80,
-          }))
-        );
-      })
-      .catch(() => {});
-  }, []);
+  const sharedReports = useSharedReports();
 
   // Citizen photo reports: shared (Supabase) + any local ones not yet synced
   const photoReports = useMemo(() => {
@@ -216,23 +126,9 @@ export function MapView() {
     });
   }, [userSites, sharedReports]);
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
-  const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
-  const [airDominant, setAirDominant] = useState<Dominant | null>(null);
-  const [airError, setAirError] = useState(false);
+  const { airGrid, airDominant, airError } = useAirGrid(activeLayer === "air");
   const [airHour, setAirHour] = useState(0); // 0 = now … 23 = +23h
   const [airPlaying, setAirPlaying] = useState(false);
-
-  // Air layer uses LIVE regional data (Copernicus CAMS), fetched on first open
-  useEffect(() => {
-    if (activeLayer !== "air" || airGrid || airError) return;
-    fetch("/api/airgrid")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => {
-        setAirGrid(d.grid);
-        setAirDominant(d.dominant ?? null);
-      })
-      .catch(() => setAirError(true));
-  }, [activeLayer, airGrid, airError]);
 
   // 24h forecast animation
   useEffect(() => {
@@ -244,45 +140,11 @@ export function MapView() {
   const airHourAqi = (p: AirGridPoint) => p.hourly?.[airHour]?.aqi ?? p.aqi;
   const airHours = airGrid?.[0]?.hourly;
 
-  // Soil layer: live soil moisture + land-degradation stress (Open-Meteo)
-  const [soilGrid, setSoilGrid] = useState<SoilPoint[] | null>(null);
-  const [soilMeta, setSoilMeta] = useState<{ avgStress: number; avgMoisture: number } | null>(null);
-  const [soilError, setSoilError] = useState(false);
-  useEffect(() => {
-    if (activeLayer !== "soil" || soilGrid || soilError) return;
-    fetch("/api/soilgrid")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => {
-        setSoilGrid(d.grid);
-        setSoilMeta({ avgStress: d.avgStress, avgMoisture: d.avgMoisture });
-      })
-      .catch(() => setSoilError(true));
-  }, [activeLayer, soilGrid, soilError]);
+  const { soilGrid, soilMeta, soilError } = useSoilGrid(activeLayer === "soil");
 
-  // Water layer: live Zhaiyk river discharge + flood risk (GloFAS)
-  const [flood, setFlood] = useState<FloodPoint[] | null>(null);
-  const [floodError, setFloodError] = useState(false);
-  useEffect(() => {
-    if (activeLayer !== "water" || flood || floodError) return;
-    fetch("/api/flood")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setFlood(d.points ?? []))
-      .catch(() => setFloodError(true));
-  }, [activeLayer, flood, floodError]);
+  const { flood, floodError } = useFlood(activeLayer === "water");
 
-  // Oil layer: live gas-flare detections from NASA FIRMS
-  const [flares, setFlares] = useState<Flare[] | null>(null);
-  const [flaresError, setFlaresError] = useState<string | null>(null);
-  useEffect(() => {
-    if (activeLayer !== "oil" || flares || flaresError) return;
-    fetch("/api/flares")
-      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => {
-        if (ok) setFlares(d.flares ?? []);
-        else setFlaresError(d.error ?? "Қолжетімсіз");
-      })
-      .catch(() => setFlaresError("Қолжетімсіз"));
-  }, [activeLayer, flares, flaresError]);
+  const { flares, flaresError } = useFlares(activeLayer === "oil");
 
   // When the oil layer opens, fit the map to the real flare locations
   useEffect(() => {
@@ -298,18 +160,9 @@ export function MapView() {
     );
   }, [activeLayer, flares]);
 
-  // Mosquito layer uses LIVE climate-suitability grid (real weather + published methodology)
-  const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
-  const [mosError, setMosError] = useState(false);
+  const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
   const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
   const [mosPlaying, setMosPlaying] = useState(false);
-  useEffect(() => {
-    if (activeLayer !== "mosquito" || mosGrid || mosError) return;
-    fetch("/api/mosquitogrid")
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setMosGrid(d.grid))
-      .catch(() => setMosError(true));
-  }, [activeLayer, mosGrid, mosError]);
 
   // Animation: step through the 7 forecast days
   useEffect(() => {
