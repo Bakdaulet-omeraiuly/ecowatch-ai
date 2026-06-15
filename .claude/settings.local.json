@@ -78,7 +78,9 @@
       "WebFetch(domain:webcamsrussia.ru)",
       "WebFetch(domain:real-webcam.com)",
       "WebFetch(domain:atyrautv.kz)",
-      "WebFetch(domain:camera1.ru)"
+      "WebFetch(domain:camera1.ru)",
+      "WebFetch(domain:docs.api.nvidia.com)",
+      "WebFetch(domain:build.nvidia.com)"
     ]
   }
 }
