@@ -2,7 +2,7 @@
 // Seeded realistic trajectory: oil extraction grew sharply after Tengiz
 // expansion, waste grew with urbanization, mosquito risk follows flood cycles.
 
-export type LayerKey = "mosquito" | "air" | "soil" | "oil" | "waste" | "water";
+export type LayerKey = "mosquito" | "air" | "soil" | "oil" | "waste" | "water" | "fire" | "drought";
 
 export const YEARS = [1995, 2000, 2005, 2010, 2015, 2020, 2026] as const;
 
@@ -14,6 +14,8 @@ export const historyFactors: Record<LayerKey, number[]> = {
   waste:    [0.25, 0.35, 0.50, 0.65, 0.82, 0.95, 1.0],
   water:    [0.50, 0.55, 0.62, 0.72, 0.85, 0.94, 1.0],
   mosquito: [0.70, 0.65, 0.80, 0.75, 0.90, 0.95, 1.0], // flood-cycle driven
+  fire:     [0.55, 0.58, 0.65, 0.72, 0.82, 0.92, 1.0], // жылыну → құрғақшылық өсімі
+  drought:  [0.50, 0.55, 0.60, 0.70, 0.80, 0.90, 1.0], // климаттық құрғау тренді
 };
 
 export function factorFor(layer: LayerKey, year: number): number {
@@ -60,5 +62,15 @@ export const LAYERS: LayerDef[] = [
     key: "water", label: "Су", emoji: "💧",
     ramp: ["rgba(13,148,136,0.3)", "rgba(20,184,166,0.55)", "rgba(45,212,191,0.78)", "rgba(153,246,228,0.95)"],
     activeCls: "border-teal-500/50 bg-teal-500/20 text-teal-200",
+  },
+  {
+    key: "fire", label: "Өрт", emoji: "🔥",
+    ramp: ["rgba(220,38,38,0.3)", "rgba(239,68,68,0.55)", "rgba(249,115,22,0.78)", "rgba(254,215,170,0.95)"],
+    activeCls: "border-red-500/50 bg-red-500/20 text-red-200",
+  },
+  {
+    key: "drought", label: "Құрғақшылық", emoji: "🌵",
+    ramp: ["rgba(180,83,9,0.3)", "rgba(217,119,6,0.55)", "rgba(245,158,11,0.78)", "rgba(253,230,138,0.95)"],
+    activeCls: "border-amber-500/50 bg-amber-500/20 text-amber-200",
   },
 ];

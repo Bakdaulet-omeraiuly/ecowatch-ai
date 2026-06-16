@@ -6,7 +6,7 @@ import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
-  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame,
+  Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame, Droplets,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -62,6 +62,8 @@ const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
   oil: Fuel,
   waste: Trash2,
   water: Waves,
+  fire: Flame,
+  drought: Droplets,
 };
 
 
@@ -75,6 +77,8 @@ function layerWeight(s: Site, layer: LayerKey): number {
     case "soil": return a.landDegradation ? a.riskScore / 100 : 0.08;
     case "waste": return a.illegalDumping ? a.riskScore / 100 : 0.05;
     case "water": return a.standingWater ? 0.4 + a.riskScore / 250 : 0.05;
+    case "fire": return 0.5; // өрт — аймақтық көрсеткіш (FWI), нүктеге тәуелсіз
+    case "drought": return 0.5; // құрғақшылық — аймақтық көрсеткіш (SPI)
   }
 }
 
@@ -145,6 +149,36 @@ export function MapView() {
   const { flood, floodError } = useFlood(activeLayer === "water");
 
   const { flares, flaresError } = useFlares(activeLayer === "oil");
+
+  // Өрт қаупі (FWI) — қабат белсенді болғанда жүктеледі
+  const [fireData, setFireData] = useState<{
+    fwi: number; dangerLabel: string; dangerColor: string;
+    isi: number; bui: number; dc: number; spinupDays: number;
+  } | null>(null);
+  const [fireError, setFireError] = useState(false);
+  useEffect(() => {
+    if (activeLayer !== "fire") return;
+    setFireError(false);
+    fetch("/api/fire")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(setFireData)
+      .catch(() => setFireError(true));
+  }, [activeLayer]);
+
+  // Құрғақшылық (SPI) — қабат белсенді болғанда жүктеледі
+  const [droughtData, setDroughtData] = useState<{
+    spi: number; droughtLabel: string; droughtColor: string;
+    precip3m: number; yearsOfRecord: number; period: string;
+  } | null>(null);
+  const [droughtError, setDroughtError] = useState(false);
+  useEffect(() => {
+    if (activeLayer !== "drought") return;
+    setDroughtError(false);
+    fetch("/api/drought")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(setDroughtData)
+      .catch(() => setDroughtError(true));
+  }, [activeLayer]);
 
   // When the oil layer opens, fit the map to the real flare locations
   useEffect(() => {
@@ -669,6 +703,109 @@ export function MapView() {
             </button>
           </div>
         </div>
+
+        {/* Өрт қаупі панелі — FWI (Канада жүйесі) */}
+        {activeLayer === "fire" && (
+          <div className="w-56 rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-red-300">
+              <Flame className="h-3 w-3" /> Дала/орман өрті қаупі — тірі
+            </div>
+            {fireError ? (
+              <p className="text-[11px] text-neutral-400">
+                Тірі ауа райы деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.
+              </p>
+            ) : !fireData ? (
+              <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
+            ) : (
+              <>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-3xl font-bold" style={{ color: fireData.dangerColor }}>
+                      {fireData.fwi}
+                    </div>
+                    <div className="text-[11px] font-medium" style={{ color: fireData.dangerColor }}>
+                      {fireData.dangerLabel}
+                    </div>
+                  </div>
+                  <div className="text-right text-[10px] text-neutral-500">FWI индексі</div>
+                </div>
+                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-white/5">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${Math.min(100, (fireData.fwi / 60) * 100)}%`, backgroundColor: fireData.dangerColor }}
+                  />
+                </div>
+                <div className="mt-2 grid grid-cols-3 gap-1 text-center">
+                  <div className="rounded bg-white/5 p-1.5">
+                    <div className="text-sm font-bold text-white">{fireData.isi}</div>
+                    <div className="text-[9px] text-neutral-500">ISI</div>
+                  </div>
+                  <div className="rounded bg-white/5 p-1.5">
+                    <div className="text-sm font-bold text-white">{fireData.bui}</div>
+                    <div className="text-[9px] text-neutral-500">BUI</div>
+                  </div>
+                  <div className="rounded bg-white/5 p-1.5">
+                    <div className="text-sm font-bold text-white">{fireData.dc}</div>
+                    <div className="text-[9px] text-neutral-500">DC</div>
+                  </div>
+                </div>
+                <p className="mt-2 text-[9px] leading-snug text-neutral-500">
+                  Канада FWI жүйесі (EFFIS) · Open-Meteo {fireData.spinupDays} күндік нақты ауа райынан.
+                  Қызыл реңк — қауіп деңгейі.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Құрғақшылық панелі — SPI-3 (McKee 1993) */}
+        {activeLayer === "drought" && (
+          <div className="w-56 rounded-lg border border-amber-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-amber-300">
+              <Droplets className="h-3 w-3" /> Құрғақшылық индексі — SPI-3
+            </div>
+            {droughtError ? (
+              <p className="text-[11px] text-neutral-400">
+                Архив деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.
+              </p>
+            ) : !droughtData ? (
+              <p className="text-[11px] text-neutral-500">Жүктелуде…</p>
+            ) : (
+              <>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <div className="text-3xl font-bold" style={{ color: droughtData.droughtColor }}>
+                      {droughtData.spi > 0 ? "+" : ""}{droughtData.spi}
+                    </div>
+                    <div className="text-[11px] font-medium" style={{ color: droughtData.droughtColor }}>
+                      {droughtData.droughtLabel}
+                    </div>
+                  </div>
+                  <div className="text-right text-[10px] text-neutral-500">SPI-3</div>
+                </div>
+                <div
+                  className="relative mt-2 h-2 w-full overflow-hidden rounded-full"
+                  style={{ background: "linear-gradient(90deg,#dc2626,#f97316,#eab308,#22c55e,#60a5fa,#1d4ed8)" }}
+                >
+                  <div
+                    className="absolute top-1/2 h-3.5 w-1 -translate-y-1/2 rounded-full bg-white"
+                    style={{ left: `${Math.min(100, Math.max(0, ((droughtData.spi + 3) / 6) * 100))}%` }}
+                  />
+                </div>
+                <div className="mt-1 flex justify-between text-[8px] text-neutral-500">
+                  <span>Құрғақ</span><span>Қалыпты</span><span>Ылғалды</span>
+                </div>
+                <div className="mt-2 rounded bg-white/5 p-1.5 text-center">
+                  <div className="text-sm font-bold text-white">{droughtData.precip3m} мм</div>
+                  <div className="text-[9px] text-neutral-500">3-айлық жауын ({droughtData.period})</div>
+                </div>
+                <p className="mt-2 text-[9px] leading-snug text-neutral-500">
+                  McKee 1993 (WMO) · Open-Meteo ERA5 архиві, {droughtData.yearsOfRecord} жылдық климатология.
+                </p>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Live mosquito-suitability panel */}
         {activeLayer === "mosquito" && (

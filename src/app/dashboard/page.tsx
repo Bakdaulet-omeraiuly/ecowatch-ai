@@ -12,7 +12,7 @@ import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
 import { monthlyMosquitoForecast } from "@/lib/mosquito";
 import { aqiCategory } from "@/lib/airQuality";
 import type { Forecast } from "@/types/site";
-import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Droplets, Gauge } from "lucide-react";
+import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Droplets, Gauge, Flame } from "lucide-react";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -33,6 +33,30 @@ interface LiveEnv {
   forecastHourly: { time: string; pm2_5: number | null; pm10: number | null; aqi: number | null }[];
 }
 
+interface FireData {
+  fwi: number;
+  isi: number;
+  bui: number;
+  ffmc: number;
+  dmc: number;
+  dc: number;
+  danger: string;
+  dangerLabel: string;
+  dangerColor: string;
+  spinupDays: number;
+  source: string;
+}
+
+interface DroughtData {
+  spi: number;
+  precip3m: number;
+  period: string;
+  yearsOfRecord: number;
+  droughtClass: string;
+  droughtLabel: string;
+  droughtColor: string;
+}
+
 // WHO 2021 guideline: PM2.5 daily mean 15 µg/m³
 const WHO_PM25_DAILY = 15;
 
@@ -49,12 +73,22 @@ export default function DashboardPage() {
   const [forecast, setForecast] = useState<Forecast | null>(null);
   const [env, setEnv] = useState<LiveEnv | null>(null);
   const [envError, setEnvError] = useState(false);
+  const [fire, setFire] = useState<FireData | null>(null);
+  const [drought, setDrought] = useState<DroughtData | null>(null);
 
   useEffect(() => {
     fetch("/api/environment")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setEnv)
       .catch(() => setEnvError(true));
+    fetch("/api/fire")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(setFire)
+      .catch(() => setFire(null));
+    fetch("/api/drought")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(setDrought)
+      .catch(() => setDrought(null));
   }, []);
 
   // Forecast input: real history of the platform's own analyses, grouped by day
@@ -237,6 +271,9 @@ export default function DashboardPage() {
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
+          {fire && <FireDangerCard fire={fire} />}
+          {drought && <DroughtCard drought={drought} />}
+
           <ChartCard title="Тәуекел деңгейлері бойынша">
             <BarChart data={riskDist}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -422,6 +459,119 @@ function LiveStat({
         <span className="ml-0.5 text-[10px] font-normal text-neutral-500">{unit}</span>
       </div>
     </div>
+  );
+}
+
+function FireDangerCard({ fire }: { fire: FireData }) {
+  // Шкала: FWI 0–50+ (EFFIS). Көрсеткіш үшін 60-қа дейін нормалаймыз.
+  const pct = Math.min(100, (fire.fwi / 60) * 100);
+  const components = [
+    { label: "ISI", value: fire.isi, hint: "Бастапқы тарау индексі" },
+    { label: "BUI", value: fire.bui, hint: "Жиналу индексі" },
+    { label: "FFMC", value: fire.ffmc, hint: "Жеңіл отын ылғалы" },
+    { label: "DC", value: fire.dc, hint: "Құрғақшылық коды" },
+  ];
+  return (
+    <Card className="border-white/10 bg-white/[0.03]">
+      <CardContent className="pt-5">
+        <div className="mb-3 flex flex-wrap items-center gap-3">
+          <div
+            className="flex h-12 w-12 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${fire.dangerColor}22`, border: `1px solid ${fire.dangerColor}55` }}
+          >
+            <Flame className="h-6 w-6" style={{ color: fire.dangerColor }} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-white">Дала/орман өрті қаупі — FWI</h3>
+            <p className="text-[11px] text-neutral-500">
+              Канада FWI жүйесі (EFFIS) · {fire.spinupDays} күндік нақты ауа райынан есептелді
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold" style={{ color: fire.dangerColor }}>
+              {fire.fwi}
+            </div>
+            <div className="text-xs font-medium" style={{ color: fire.dangerColor }}>
+              {fire.dangerLabel}
+            </div>
+          </div>
+        </div>
+
+        {/* Қауіп шкаласы */}
+        <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-white/5">
+          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: fire.dangerColor }} />
+        </div>
+
+        {/* Құрамдас индекстер */}
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {components.map((c) => (
+            <div key={c.label} className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+              <div className="text-base font-bold text-white">{c.value}</div>
+              <div className="text-[10px] font-medium text-neutral-300">{c.label}</div>
+              <div className="text-[9px] text-neutral-500">{c.hint}</div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-2 text-[10px] text-neutral-600">
+          Шкала: &lt;5 өте төмен · 5–11 төмен · 11–21 орташа · 21–38 жоғары · 38–50 өте жоғары · 50+ аса қауіпті
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DroughtCard({ drought }: { drought: DroughtData }) {
+  // SPI шкаласы −3…+3 → 0–100% (көрсеткіш орналасуы)
+  const pos = Math.min(100, Math.max(0, ((drought.spi + 3) / 6) * 100));
+  return (
+    <Card className="border-white/10 bg-white/[0.03]">
+      <CardContent className="pt-5">
+        <div className="mb-3 flex flex-wrap items-center gap-3">
+          <div
+            className="flex h-12 w-12 items-center justify-center rounded-xl"
+            style={{ backgroundColor: `${drought.droughtColor}22`, border: `1px solid ${drought.droughtColor}55` }}
+          >
+            <Droplets className="h-6 w-6" style={{ color: drought.droughtColor }} />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-white">Құрғақшылық индексі — SPI-3</h3>
+            <p className="text-[11px] text-neutral-500">
+              McKee 1993 (WMO) · {drought.yearsOfRecord} жылдық ERA5 климатологиясы
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold" style={{ color: drought.droughtColor }}>
+              {drought.spi > 0 ? "+" : ""}{drought.spi}
+            </div>
+            <div className="text-xs font-medium" style={{ color: drought.droughtColor }}>
+              {drought.droughtLabel}
+            </div>
+          </div>
+        </div>
+
+        {/* SPI шкаласы: құрғақ ← қалыпты → ылғалды */}
+        <div className="relative mb-1 h-2.5 w-full overflow-hidden rounded-full"
+          style={{ background: "linear-gradient(90deg,#dc2626,#f97316,#eab308,#22c55e,#60a5fa,#1d4ed8)" }}>
+          <div className="absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-white shadow" style={{ left: `${pos}%` }} />
+        </div>
+        <div className="mb-3 flex justify-between text-[9px] text-neutral-500">
+          <span>Құрғақ (−3)</span><span>Қалыпты (0)</span><span>Ылғалды (+3)</span>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+            <div className="text-base font-bold text-white">{drought.precip3m} мм</div>
+            <div className="text-[10px] font-medium text-neutral-300">3-айлық жауын</div>
+            <div className="text-[9px] text-neutral-500">{drought.period} кезеңі</div>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+            <div className="text-base font-bold text-white">{drought.yearsOfRecord}</div>
+            <div className="text-[10px] font-medium text-neutral-300">Климат жылдары</div>
+            <div className="text-[9px] text-neutral-500">ERA5 архиві</div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
