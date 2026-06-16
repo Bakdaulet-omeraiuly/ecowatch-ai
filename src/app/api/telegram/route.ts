@@ -169,20 +169,24 @@ async function expertReply(userText: string, liveCtx: string): Promise<string> {
   }
 }
 
-async function forwardToModerator(fromUsername: string, question: string, answer: string) {
-  const chatId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
-  if (!BOT || !chatId) return;
+// Forward citizen question + bot answer to moderator.
+// Citizen's chat_id is embedded as [uid:XXXXXXX] so moderator's Reply
+// can be routed back to the correct citizen.
+async function forwardToModerator(citizenChatId: number, fromUsername: string, question: string, answer: string) {
+  const modChatId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
+  if (!BOT || !modChatId) return;
   const text =
     `💬 <b>Азамат сұрақ қойды</b>\n` +
     `👤 @${fromUsername || "белгісіз"}\n\n` +
     `❓ <i>${question.slice(0, 300)}</i>\n\n` +
     `🤖 Бот жауабы:\n${answer.slice(0, 500)}\n\n` +
-    `<i>Модератор қажет деп санаса, азаматқа тікелей жаза алады.</i>`;
+    `<i>👆 Осы хабарламаға Reply жасасаңыз — жауабыңыз азаматқа тікелей жетеді.</i>\n` +
+    `[uid:${citizenChatId}]`;
   try {
     await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+      body: JSON.stringify({ chat_id: modChatId, text, parse_mode: "HTML" }),
     });
   } catch (e) {
     console.error("Forward to moderator error:", e);
@@ -208,7 +212,12 @@ async function fetchMosquito() {
 // ─── Webhook handler ──────────────────────────────────────────────────────
 
 interface TelegramUpdate {
-  message?: { chat: { id: number }; from?: { username?: string }; text?: string };
+  message?: {
+    chat: { id: number };
+    from?: { username?: string };
+    text?: string;
+    reply_to_message?: { text?: string; caption?: string };
+  };
   callback_query?: {
     id: string;
     from: { id: number };
@@ -284,6 +293,28 @@ export async function POST(req: Request) {
   const username = msg.from?.username ?? "";
   const text = msg.text.trim().toLowerCase();
   const rawText = msg.text.trim();
+  const modChatId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
+
+  // ── Moderator Reply → forward to citizen ──
+  // If the message is a reply AND comes from the moderator's chat,
+  // extract [uid:XXXXXXX] from the original message and relay the reply.
+  if (
+    msg.reply_to_message &&
+    modChatId &&
+    String(chatId) === String(modChatId)
+  ) {
+    const originalText = msg.reply_to_message.text ?? msg.reply_to_message.caption ?? "";
+    const match = originalText.match(/\[uid:(\d+)\]/);
+    if (match) {
+      const citizenId = Number(match[1]);
+      await sendMessage(
+        citizenId,
+        `👨‍💼 <b>Маман жауабы:</b>\n\n${rawText}`
+      );
+      await sendMessage(chatId, "✅ Жауабыңыз азаматқа жіберілді.");
+      return NextResponse.json({ ok: true });
+    }
+  }
 
   if (text.startsWith("/start")) {
     await sendMessage(chatId,
@@ -345,8 +376,8 @@ export async function POST(req: Request) {
   const answer = await expertReply(rawText, liveCtx);
   await sendMessage(chatId, answer);
 
-  // Forward conversation to moderator so they can intervene if needed
-  forwardToModerator(username, rawText, answer);
+  // Forward conversation to moderator so they can reply directly
+  forwardToModerator(chatId, username, rawText, answer);
 
   return NextResponse.json({ ok: true });
 }
