@@ -161,8 +161,21 @@ export function MapView() {
   }, [activeLayer, flares]);
 
   const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
+  const [timelapsePlaying, setTimelapsePlaying] = useState(false);
   const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
   const [mosPlaying, setMosPlaying] = useState(false);
+
+  // Timelapse: auto-advance through historical years
+  useEffect(() => {
+    if (!timelapsePlaying || !historyMode) return;
+    const t = setInterval(() => {
+      setYearIdx((i) => {
+        if (i >= HISTORY_YEARS.length) { setTimelapsePlaying(false); return i; }
+        return i + 1;
+      });
+    }, 1400);
+    return () => clearInterval(t);
+  }, [timelapsePlaying, historyMode]);
 
   // Animation: step through the 7 forecast days
   useEffect(() => {
@@ -1089,9 +1102,21 @@ export function MapView() {
               <History className="h-3.5 w-3.5" />
               Атыраудың нақты спутник тарихы (2000–2025)
             </span>
-            <button onClick={() => setHistoryMode(false)} className="text-neutral-500 hover:text-white">
-              <X className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  if (yearIdx >= HISTORY_YEARS.length) setYearIdx(0);
+                  setTimelapsePlaying((v) => !v);
+                }}
+                className="flex items-center gap-1 rounded bg-amber-500/25 px-2 py-1 text-[11px] text-amber-200 hover:bg-amber-500/40"
+              >
+                {timelapsePlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                {timelapsePlaying ? "Тоқтату" : "Тайм-лапс"}
+              </button>
+              <button onClick={() => { setHistoryMode(false); setTimelapsePlaying(false); }} className="text-neutral-500 hover:text-white">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <input
@@ -1100,7 +1125,7 @@ export function MapView() {
               max={HISTORY_YEARS.length}
               step={1}
               value={yearIdx}
-              onChange={(e) => setYearIdx(Number(e.target.value))}
+              onChange={(e) => { setTimelapsePlaying(false); setYearIdx(Number(e.target.value)); }}
               className="flex-1 accent-amber-400"
             />
             <span className="w-16 text-right text-lg font-bold text-amber-300">

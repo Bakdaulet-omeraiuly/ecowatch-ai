@@ -230,8 +230,10 @@ export default function DashboardPage() {
       <Tabs defaultValue="overview">
         <TabsList className="bg-white/5">
           <TabsTrigger value="overview">Шолу</TabsTrigger>
-          <TabsTrigger value="forecast">🔮 Болжам</TabsTrigger>
-          <TabsTrigger value="mosquito">🦟 Маса</TabsTrigger>
+          <TabsTrigger value="rating">Рейтинг</TabsTrigger>
+          <TabsTrigger value="heatmap">Жылу картасы</TabsTrigger>
+          <TabsTrigger value="forecast">Болжам</TabsTrigger>
+          <TabsTrigger value="mosquito">Маса</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -361,6 +363,16 @@ export default function DashboardPage() {
           )}
         </TabsContent>
 
+        {/* District Eco-Rating tab */}
+        <TabsContent value="rating" className="mt-4 space-y-4">
+          <DistrictRating allSites={allSites} env={env} />
+        </TabsContent>
+
+        {/* Weekly heatmap tab */}
+        <TabsContent value="heatmap" className="mt-4 space-y-4">
+          <WeeklyHeatmap allSites={allSites} />
+        </TabsContent>
+
         <TabsContent value="mosquito" className="mt-4 space-y-4">
           <ChartCard title="Маса белсенділігінің маусымдық болжамы — математикалық модель (тасқын маусымы + климат)">
             <AreaChart data={mosquitoSeason}>
@@ -424,6 +436,172 @@ function Kpi({ icon: Icon, label, value, color }: { icon: React.ElementType; lab
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+const DISTRICT_LIST = [
+  "Атырау қаласы",
+  "Жылыой ауданы",
+  "Индер ауданы",
+  "Исатай ауданы",
+  "Қызылқоға ауданы",
+  "Мақат ауданы",
+  "Махамбет ауданы",
+  "Құрманғазы ауданы",
+];
+
+function DistrictRating({ allSites, env }: { allSites: { district: string; analysis: { riskScore: number } }[]; env: LiveEnv | null }) {
+  // Build rating from own analyses + add base air quality context
+  const byDistrict = useMemo(() => {
+    const map = new Map<string, number[]>();
+    DISTRICT_LIST.forEach((d) => map.set(d, []));
+    allSites.forEach((s) => {
+      const d = s.district;
+      if (!map.has(d)) map.set(d, []);
+      map.get(d)!.push(s.analysis.riskScore);
+    });
+    return DISTRICT_LIST.map((d) => {
+      const scores = map.get(d) ?? [];
+      const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+      return { name: d, avg, count: scores.length };
+    }).sort((a, b) => (b.avg ?? 0) - (a.avg ?? 0));
+  }, [allSites]);
+
+  const aqi = env?.current?.europeanAqi;
+
+  return (
+    <div className="space-y-4">
+      {aqi != null && (
+        <Card className="border-sky-500/20 bg-sky-500/5">
+          <CardContent className="pt-4">
+            <p className="text-sm text-neutral-300">
+              Қазіргі Атырау EU AQI:{" "}
+              <span className={`font-bold ${aqi > 50 ? "text-orange-400" : "text-emerald-400"}`}>{aqi}</span>
+              {" "}— Copernicus CAMS тірі деректері бойынша.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+      <Card className="border-white/10 bg-white/[0.03]">
+        <CardHeader>
+          <CardTitle className="text-sm text-white">Аудандардың эко-рейтингі</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {byDistrict.filter((d) => d.avg !== null).length === 0 ? (
+            <p className="text-sm text-neutral-400">
+              Аудандар бойынша деректер жоқ. Картада аудандарды талдасаңыз, рейтинг осында жаңарады.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {byDistrict.map((d, i) => (
+                <div key={d.name} className="flex items-center gap-3">
+                  <span className="w-5 text-right text-xs text-neutral-500">{i + 1}</span>
+                  <span className="w-40 truncate text-sm text-neutral-300">{d.name}</span>
+                  <div className="flex-1 overflow-hidden rounded-full bg-white/5">
+                    <div
+                      className="h-2 rounded-full transition-all"
+                      style={{
+                        width: `${d.avg ?? 0}%`,
+                        backgroundColor: (d.avg ?? 0) >= 70 ? "#ef4444" : (d.avg ?? 0) >= 40 ? "#f97316" : "#22c55e",
+                      }}
+                    />
+                  </div>
+                  <span
+                    className="w-12 text-right text-sm font-bold"
+                    style={{ color: (d.avg ?? 0) >= 70 ? "#ef4444" : (d.avg ?? 0) >= 40 ? "#f97316" : "#22c55e" }}
+                  >
+                    {d.avg ?? "—"}
+                  </span>
+                  <span className="text-xs text-neutral-600">({d.count} талдау)</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <p className="text-xs text-neutral-500">
+        Рейтинг платформаның өз AI талдауларынан есептеледі. Картада аудандарды нүктелесеңіз, рейтинг
+        нақты деректермен толығады. Балл — 0 (таза) – 100 (критикалық).
+      </p>
+    </div>
+  );
+}
+
+function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: { riskScore: number } }[] }) {
+  const today = new Date();
+  // Build 12 weeks × 7 days grid
+  const cells = useMemo(() => {
+    const scoreByDay = new Map<string, number[]>();
+    allSites.forEach((s) => {
+      const day = s.createdAt.slice(0, 10);
+      if (!scoreByDay.has(day)) scoreByDay.set(day, []);
+      scoreByDay.get(day)!.push(s.analysis.riskScore);
+    });
+    const grid: { date: string; score: number | null }[] = [];
+    for (let i = 83; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().slice(0, 10);
+      const scores = scoreByDay.get(key) ?? [];
+      grid.push({
+        date: key,
+        score: scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null,
+      });
+    }
+    return grid;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allSites]);
+
+  function cellColor(score: number | null) {
+    if (score === null) return "bg-white/5";
+    if (score >= 70) return "bg-red-500";
+    if (score >= 50) return "bg-orange-500";
+    if (score >= 30) return "bg-yellow-500";
+    return "bg-emerald-500";
+  }
+
+  const weeks: typeof cells[] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+  return (
+    <div className="space-y-4">
+      <Card className="border-white/10 bg-white/[0.03]">
+        <CardHeader>
+          <CardTitle className="text-sm text-white">Апталық тәуекел жылу картасы — соңғы 12 апта</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {allSites.length === 0 ? (
+            <p className="text-sm text-neutral-400">
+              Деректер жоқ. Картада нүктелерді AI талдасаңыз, жылу картасы толығады.
+            </p>
+          ) : (
+            <>
+              <div className="flex gap-1">
+                {weeks.map((week, wi) => (
+                  <div key={wi} className="flex flex-col gap-1">
+                    {week.map((cell) => (
+                      <div
+                        key={cell.date}
+                        title={`${cell.date}: ${cell.score ?? "деректер жоқ"}`}
+                        className={`h-3.5 w-3.5 rounded-sm ${cellColor(cell.score)}`}
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center gap-3 text-[11px] text-neutral-500">
+                <span>Тәуекел деңгейі:</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-emerald-500 inline-block" /> Төмен</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-yellow-500 inline-block" /> Орташа</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-500 inline-block" /> Жоғары</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-red-500 inline-block" /> Критикалық</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-white/5 inline-block" /> Деректер жоқ</span>
+              </div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

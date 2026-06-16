@@ -8,7 +8,9 @@ import { Leaf } from "lucide-react";
 const links = [
   { href: "/map", label: "Карта" },
   { href: "/dashboard", label: "Аналитика" },
+  { href: "/compare", label: "Салыстыру" },
   { href: "/report", label: "Хабарлау" },
+  { href: "/eco-passport", label: "Эко паспорт" },
   { href: "/alerts", label: "Ескертулер" },
 ];
 

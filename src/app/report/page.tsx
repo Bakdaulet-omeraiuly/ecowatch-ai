@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, MapPin, Loader2, Image as ImageIcon } from "lucide-react";
+import { Camera, MapPin, Loader2, Image as ImageIcon, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -237,6 +237,81 @@ export default function ReportPage() {
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Camera className="mr-2 h-4 w-4" />}
         {busy ? "AI талдап жатыр…" : "Жіберу және AI талдауын алу"}
       </Button>
+
+      <Leaderboard />
     </div>
+  );
+}
+
+interface ReportRow {
+  id: string;
+  name: string;
+  risk_score: number;
+  verification_status: string | null;
+  created_at: string;
+}
+
+function Leaderboard() {
+  const [reports, setReports] = useState<ReportRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/reports")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => setReports(d.reports ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null;
+  if (reports.length === 0) return null;
+
+  // Leaderboard: count reports per submitter name, sum confirmed
+  const byName = new Map<string, { count: number; confirmed: number; maxRisk: number }>();
+  reports.forEach((r) => {
+    const n = r.name || "Атымыз белгісіз";
+    if (!byName.has(n)) byName.set(n, { count: 0, confirmed: 0, maxRisk: 0 });
+    const e = byName.get(n)!;
+    e.count++;
+    if (r.verification_status === "confirmed") e.confirmed++;
+    if (r.risk_score > e.maxRisk) e.maxRisk = r.risk_score;
+  });
+  const ranked = [...byName.entries()]
+    .map(([name, v]) => ({ name, ...v }))
+    .sort((a, b) => b.confirmed * 2 + b.count - (a.confirmed * 2 + a.count))
+    .slice(0, 10);
+
+  const medals = ["🥇", "🥈", "🥉"];
+
+  return (
+    <Card className="border-amber-500/20 bg-amber-500/5">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-sm text-white">
+          <Trophy className="h-4 w-4 text-amber-400" />
+          Азамат белсенділерінің лидерборды
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {ranked.map((r, i) => (
+            <div key={r.name} className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2">
+              <span className="text-base">{medals[i] ?? `${i + 1}.`}</span>
+              <div className="flex-1 truncate">
+                <div className="truncate text-sm text-white">{r.name.slice(0, 50)}</div>
+                <div className="text-[11px] text-neutral-500">
+                  {r.count} хабарлама · {r.confirmed} расталған
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-xs font-semibold text-amber-300">+{r.confirmed * 10 + r.count * 2} XP</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-[11px] text-neutral-500">
+          XP = расталған хабарлама × 10 + барлық хабарлама × 2. Лидерборд нақты уақытта жаңарады.
+        </p>
+      </CardContent>
+    </Card>
   );
 }
