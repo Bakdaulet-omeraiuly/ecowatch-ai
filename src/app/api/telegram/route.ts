@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import OpenAI from "openai";
 import { supabase } from "@/lib/supabase";
 
 // Jaiyq Telegram Bot webhook.
@@ -117,6 +118,77 @@ async function fetchAir() {
   } catch { return null; }
 }
 
+async function fetchLiveContext(): Promise<string> {
+  try {
+    const [airRes, meteoRes] = await Promise.all([
+      fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=47.1167&longitude=51.9014&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,european_aqi", { cache: "no-store" }),
+      fetch("https://api.open-meteo.com/v1/forecast?latitude=47.1167&longitude=51.9014&current=temperature_2m,relative_humidity_2m,wind_speed_10m&daily=precipitation_sum&past_days=7&forecast_days=1&timezone=auto", { cache: "no-store" }),
+    ]);
+    const air = airRes.ok ? await airRes.json() : null;
+    const met = meteoRes.ok ? await meteoRes.json() : null;
+    const rain7 = (met?.daily?.precipitation_sum ?? []).reduce((a: number, x: number) => a + (x ?? 0), 0);
+    return [
+      air ? `Нақты уақыт ауа сапасы (Copernicus CAMS): EU AQI=${air.current?.european_aqi}, PM2.5=${air.current?.pm2_5} µg/m³, PM10=${air.current?.pm10}, NO₂=${air.current?.nitrogen_dioxide}, SO₂=${air.current?.sulphur_dioxide}.` : "",
+      met ? `Ауа райы (Open-Meteo): ${met.current?.temperature_2m}°C, ылғал ${met.current?.relative_humidity_2m}%, жел ${met.current?.wind_speed_10m} км/сағ, 7 күн жаңбыр ${rain7.toFixed(1)} мм.` : "",
+    ].filter(Boolean).join(" ");
+  } catch {
+    return "";
+  }
+}
+
+const ECO_EXPERT_SYSTEM = `Сен Атырау облысының тәжірибелі экология маманысың. Жауаптарың нақты, қысқа, практикалық.
+
+Атырау облысы туралы негізгі факттар:
+- Каспий теңізі жағалауы, Жайық өзені арқылы өтеді
+- Теңіз, Қашаған кен орындары — ірі мұнай өндіруші аймақ
+- Негізгі экологиялық мәселелер: мұнай ластануы, газ факелдері, Жайық тасқыны, топырақ тұздануы, маса белсенділігі
+- Халық саны: ~650 мың (Атырау қаласы ~350 мың)
+
+Ережелер:
+- Тек шынайы, дәл ғылыми ақпарат бер
+- Егер білмесең — "дерегім жоқ, ресми дереккөзге жүгін" де
+- Жауапты қазақ тілінде бер, 3-5 сөйлемнен аспасын
+- Тірі деректер берілсе — оларды жауапқа қос`;
+
+async function expertReply(userText: string, liveCtx: string): Promise<string> {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return "OpenAI кілті орнатылмаған — AI жауабы қолжетімсіз.";
+  try {
+    const openai = new OpenAI({ apiKey });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_tokens: 400,
+      messages: [
+        { role: "system", content: ECO_EXPERT_SYSTEM + (liveCtx ? `\n\nТІРІ ДЕРЕКТЕР (қазір): ${liveCtx}` : "") },
+        { role: "user", content: userText },
+      ],
+    });
+    return completion.choices[0].message.content?.trim() ?? "Жауап алу мүмкін болмады.";
+  } catch {
+    return "AI уақытша қолжетімсіз. Кейін қайталаңыз.";
+  }
+}
+
+async function forwardToModerator(fromUsername: string, question: string, answer: string) {
+  const chatId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
+  if (!BOT || !chatId) return;
+  const text =
+    `💬 <b>Азамат сұрақ қойды</b>\n` +
+    `👤 @${fromUsername || "белгісіз"}\n\n` +
+    `❓ <i>${question.slice(0, 300)}</i>\n\n` +
+    `🤖 Бот жауабы:\n${answer.slice(0, 500)}\n\n` +
+    `<i>Модератор қажет деп санаса, азаматқа тікелей жаза алады.</i>`;
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    });
+  } catch (e) {
+    console.error("Forward to moderator error:", e);
+  }
+}
+
 async function fetchMosquito() {
   try {
     const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=47.1167&longitude=51.9014&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&past_days=7&forecast_days=1&timezone=auto", { cache: "no-store" });
@@ -136,7 +208,7 @@ async function fetchMosquito() {
 // ─── Webhook handler ──────────────────────────────────────────────────────
 
 interface TelegramUpdate {
-  message?: { chat: { id: number }; text?: string };
+  message?: { chat: { id: number }; from?: { username?: string }; text?: string };
   callback_query?: {
     id: string;
     from: { id: number };
@@ -209,7 +281,9 @@ export async function POST(req: Request) {
   const msg = update.message;
   if (!msg?.text) return NextResponse.json({ ok: true });
   const chatId = msg.chat.id;
+  const username = msg.from?.username ?? "";
   const text = msg.text.trim().toLowerCase();
+  const rawText = msg.text.trim();
 
   if (text.startsWith("/start")) {
     await sendMessage(chatId,
@@ -266,7 +340,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
-  await sendMessage(chatId, "Команда танылмады. /start — командалар тізімі.");
+  // Free-text → GPT-4o-mini Atyrau ecology expert
+  const liveCtx = await fetchLiveContext();
+  const answer = await expertReply(rawText, liveCtx);
+  await sendMessage(chatId, answer);
+
+  // Forward conversation to moderator so they can intervene if needed
+  forwardToModerator(username, rawText, answer);
+
   return NextResponse.json({ ok: true });
 }
 
