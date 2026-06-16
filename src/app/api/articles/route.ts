@@ -92,7 +92,7 @@ export async function GET() {
       const openai = new OpenAI({ apiKey });
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
-        max_tokens: 1200,
+        max_tokens: 2200,
         response_format: { type: "json_object" },
         messages: [
           {
@@ -101,7 +101,7 @@ export async function GET() {
           },
           {
             role: "user",
-            content: `Мына мақалалардың әрқайсысына қазақша атау (titleKz) және 1-2 сөйлемдік қазақша түйін (summaryKz) жаз. JSON: {"items":[{"titleKz":"...","summaryKz":"..."}]} — реті сақталсын. Мақалалар: ${JSON.stringify(top.map((t) => ({ title: t.title, desc: t.desc })))}`,
+            content: `Мына мақалалардың әрқайсысына қазақша атау (titleKz) және 3-4 сөйлемдік мазмұнды қазақша түйін (summaryKz) жаз — зерттеудің не туралы екенін, негізгі нәтижесін және неге маңызды екенін қамтыған толық абзац болсын. JSON: {"items":[{"titleKz":"...","summaryKz":"..."}]} — реті сақталсын. Мақалалар: ${JSON.stringify(top.map((t) => ({ title: t.title, desc: t.desc })))}`,
           },
         ],
       });

@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0b1f17"/><stop offset="1" stop-color="#052e25"/>
+    </linearGradient>
+    <linearGradient id="leaf" x1="120" y1="120" x2="392" y2="392" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#34d399"/><stop offset="1" stop-color="#059669"/>
+    </linearGradient>
+    <linearGradient id="river" x1="150" y1="150" x2="362" y2="362" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#bae6fd"/><stop offset="0.5" stop-color="#38bdf8"/><stop offset="1" stop-color="#0284c7"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <g transform="translate(256 256) rotate(-35) scale(9.4) translate(-12 -12)">
+    <path d="M12 22C4.5 16.8 4.3 7.4 12 2C19.7 7.4 19.5 16.8 12 22Z"
+          fill="url(#leaf)" fill-opacity="0.20"
+          stroke="url(#leaf)" stroke-width="1.7" stroke-linejoin="round"/>
+    <path d="M12 22.6L12 20.6" stroke="url(#leaf)" stroke-width="1.7" stroke-linecap="round"/>
+    <path d="M12 20.6C9.7 17.4 14.3 14.4 12 11.5C9.7 8.6 14.3 5.6 12 3.4"
+          stroke="url(#river)" stroke-width="2.1" stroke-linecap="round" fill="none"/>
+  </g>
+</svg>

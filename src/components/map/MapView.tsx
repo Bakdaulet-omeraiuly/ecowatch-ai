@@ -162,6 +162,7 @@ export function MapView() {
 
   const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
   const [timelapsePlaying, setTimelapsePlaying] = useState(false);
+  const [panelOpen, setPanelOpen] = useState(true); // эко қабаттар панелі (мобильде жинауға болады)
   const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
   const [mosPlaying, setMosPlaying] = useState(false);
 
@@ -417,7 +418,7 @@ export function MapView() {
   }
 
   return (
-    <div className="relative h-[calc(100vh-3.5rem)]">
+    <div className="relative h-[calc(100dvh-3.5rem)] overflow-hidden">
       <Map
         ref={mapRef}
         mapboxAccessToken={token}
@@ -580,15 +581,38 @@ export function MapView() {
           ))}
       </Map>
 
-      {/* Layer panel */}
-      <div className="absolute left-4 top-4 flex flex-col gap-2">
+      {/* Жиналған кездегі ашу батырмасы */}
+      {!panelOpen && (
         <button
-          onClick={() => setMapStyle((s) => (s === "satellite" ? "streets" : "satellite"))}
-          className="flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
+          onClick={() => setPanelOpen(true)}
+          className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
         >
-          <Layers className="h-4 w-4" />
-          {mapStyle === "satellite" ? "Қала картасы" : "Спутник"}
+          <Layers className="h-4 w-4" /> Қабаттар
         </button>
+      )}
+
+      {/* Layer panel */}
+      <div
+        className={`absolute left-4 top-4 bottom-4 flex max-h-[calc(100dvh-7rem)] flex-col gap-2 overflow-y-auto pr-1 ${
+          panelOpen ? "flex" : "hidden"
+        }`}
+      >
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMapStyle((s) => (s === "satellite" ? "streets" : "satellite"))}
+            className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
+          >
+            <Layers className="h-4 w-4" />
+            {mapStyle === "satellite" ? "Қала картасы" : "Спутник"}
+          </button>
+          <button
+            onClick={() => setPanelOpen(false)}
+            aria-label="Қабаттарды жасыру"
+            className="flex items-center justify-center rounded-lg border border-white/10 bg-neutral-900/90 p-2 text-white backdrop-blur hover:bg-neutral-800"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
         <div className="rounded-lg border border-white/10 bg-neutral-900/90 p-2 backdrop-blur">
           <div className="mb-1.5 px-1 text-[10px] uppercase tracking-wide text-neutral-500">

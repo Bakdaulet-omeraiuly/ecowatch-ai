@@ -3,8 +3,11 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { FloatingReportButton } from "@/components/layout/FloatingReportButton";
 import { Toaster } from "@/components/ui/sonner";
 import { PWARegister } from "@/components/layout/PWARegister";
+import { LanguageProvider } from "@/lib/i18n";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,10 +43,14 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-neutral-950 text-neutral-100">
-        <Navbar />
-        <main className="flex-1 pt-14">{children}</main>
-        <Toaster position="top-center" richColors />
-        <PWARegister />
+        <LanguageProvider>
+          <Navbar />
+          <main className="flex-1 pt-14">{children}</main>
+          <Footer />
+          <FloatingReportButton />
+          <Toaster position="top-center" richColors />
+          <PWARegister />
+        </LanguageProvider>
       </body>
     </html>
   );
