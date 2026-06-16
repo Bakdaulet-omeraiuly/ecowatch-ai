@@ -9,68 +9,12 @@ import { scoreToLevel } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { AnalysisResult } from "@/types/site";
 import { REPORT_MODERATION_SYSTEM, REPORT_ANALYSIS_SYSTEM } from "@/lib/prompts";
+import { notifyModerator } from "@/app/api/telegram/route";
 
 // Shared citizen reports: stored in Supabase so every user sees them.
 // On submit: AI moderation (is this a real ecological issue?) + combined
 // satellite/photo analysis, then insert. GET returns all reports.
 // After insert, a Telegram notification is sent to TELEGRAM_MODERATOR_CHAT_ID.
-
-async function notifyModerator(opts: {
-  lat: number;
-  lng: number;
-  description: string | undefined;
-  analysis: AnalysisResult;
-  photoUrl: string;
-  reportId: string;
-}) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
-  if (!token || !chatId) return;
-
-  const { lat, lng, description, analysis, photoUrl, reportId } = opts;
-  const risk = analysis.riskScore;
-  const riskEmoji = risk >= 70 ? "🔴" : risk >= 50 ? "🟠" : risk >= 30 ? "🟡" : "🟢";
-  const verified = analysis.verificationStatus === "confirmed" ? "✅ Спутникпен расталды" : analysis.verificationStatus === "contradicted" ? "❌ Спутникпен қайшылықты" : "❔ Расталмаған";
-
-  const issues = [
-    analysis.oilPollution && "🛢 Мұнай ластануы",
-    analysis.illegalDumping && "🗑 Заңсыз қоқыс",
-    analysis.landDegradation && "⛰ Жер деградациясы",
-    analysis.standingWater && "💧 Тұрған су",
-  ].filter(Boolean).join(" · ") || "Белгілі мәселе жоқ";
-
-  const caption =
-    `${riskEmoji} <b>Жаңа азаматтық хабарлама</b>\n\n` +
-    `📍 Координат: <code>${lat.toFixed(5)}, ${lng.toFixed(5)}</code>\n` +
-    `🗺 <a href="https://maps.google.com/?q=${lat},${lng}">Google Maps</a>\n\n` +
-    `📊 Тәуекел: <b>${risk}/100</b>\n` +
-    `🔍 ${verified}\n` +
-    `⚠️ Мәселелер: ${issues}\n\n` +
-    (description ? `💬 Азамат сипаттамасы: <i>${description.slice(0, 300)}</i>\n\n` : "") +
-    `📝 Ұсыныс: ${analysis.recommendation}\n\n` +
-    `🆔 ID: <code>${reportId}</code>\n` +
-    `🌐 Картада: https://jaiyq.vercel.app/map`;
-
-  try {
-    // If photo is a public URL (Supabase Storage), send it as photo
-    if (photoUrl.startsWith("http")) {
-      await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, photo: photoUrl, caption, parse_mode: "HTML" }),
-      });
-    } else {
-      // base64 — send as document (Telegram doesn't accept base64 URLs directly, send text only)
-      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: chatId, text: caption + "\n\n📷 Фото Storage-ке жүктелмеді (base64 fallback)", parse_mode: "HTML" }),
-      });
-    }
-  } catch (e) {
-    console.error("Telegram notify error:", e);
-  }
-}
 
 const postSchema = z.object({
   lat: z.number().min(-90).max(90),
@@ -246,12 +190,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  // Fire-and-forget: notify Telegram moderator
+  // Fire-and-forget: notify Telegram moderator with inline action buttons
   notifyModerator({
     lat,
     lng,
     description,
-    analysis,
+    riskScore: analysis.riskScore,
+    verificationStatus: analysis.verificationStatus,
+    features: analysis.detectedFeatures ?? [],
+    recommendation: analysis.recommendation ?? "",
     photoUrl: photoRef,
     reportId: data.id,
   });
