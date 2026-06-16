@@ -151,18 +151,26 @@ export async function POST(req: Request) {
   return NextResponse.json({ ok: true });
 }
 
-// Verify that the bot token is set — returns setup instructions
+// Returns setup status + instructions
 export async function GET() {
+  const moderatorId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
   if (!BOT) {
     return NextResponse.json({
       configured: false,
       setup: [
         "1. @BotFather-ға /newbot жазыңыз, жаңа бот жасаңыз",
-        "2. Алынған токенді TELEGRAM_BOT_TOKEN env айнымалысына қосыңыз",
-        "3. Vercel-де env-ке қосып, қайта деплой жасаңыз",
-        "4. Вебхукты орнатыңыз: curl 'https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://YOUR_DOMAIN/api/telegram'",
+        "2. TELEGRAM_BOT_TOKEN — бот токені",
+        "3. TELEGRAM_MODERATOR_CHAT_ID — модератор чат ID-і (боттан /start жазып, https://api.telegram.org/bot<TOKEN>/getUpdates арқылы id алыңыз)",
+        "4. Vercel env-ке қосып, қайта деплой жасаңыз",
+        "5. Вебхукты орнатыңыз: curl 'https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://jaiyq.vercel.app/api/telegram'",
       ],
     });
   }
-  return NextResponse.json({ configured: true, message: "Telegram боты дайын." });
+  return NextResponse.json({
+    configured: true,
+    moderatorConfigured: !!moderatorId,
+    message: moderatorId
+      ? "Telegram боты дайын. Азаматтық хабарламалар модераторға автоматты жіберіледі."
+      : "Бот жұмыс істейді, бірақ TELEGRAM_MODERATOR_CHAT_ID орнатылмаған — автохабарламалар өшірулі.",
+  });
 }
