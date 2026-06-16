@@ -10,6 +10,7 @@ const links = [
   { href: "/dashboard", label: "Аналитика" },
   { href: "/compare", label: "Салыстыру" },
   { href: "/report", label: "Хабарлау" },
+  { href: "/moderation", label: "Модерация" },
   { href: "/eco-passport", label: "Эко паспорт" },
   { href: "/alerts", label: "Ескертулер" },
 ];
