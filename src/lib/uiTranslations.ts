@@ -492,6 +492,31 @@ Object.assign(UI_TR, {
   "Критикалық": { ru: "Критический", en: "Critical" },
 });
 
+// ── Соңғы toast/жапсырмалар ──────────────────────────────────────────
+Object.assign(UI_TR, {
+  "AI спутник суретін талдап жатыр…": { ru: "AI анализирует спутниковый снимок…", en: "AI is analyzing the satellite image…" },
+  "AI талдауы дайын!": { ru: "AI-анализ готов!", en: "AI analysis ready!" },
+  "ДДСҰ PM2.5 шегі": { ru: "Предел ВОЗ PM2.5", en: "WHO PM2.5 limit" },
+  "Жалған дерек көрсетілмейді.": { ru: "Ложные данные не показываются.", en: "No fake data shown." },
+  "Жақсару": { ru: "Улучшение", en: "Improving" },
+  "Координаттар жарамсыз": { ru: "Координаты недействительны", en: "Invalid coordinates" },
+  "Нашарлау": { ru: "Ухудшение", en: "Worsening" },
+  "Пик деңгейі": { ru: "Пиковый уровень", en: "Peak level" },
+  "Расталды ✅": { ru: "Подтверждено ✅", en: "Confirmed ✅" },
+  "Талдау дайын (демо режимі — API кілті жоқ)": { ru: "Анализ готов (демо — нет API-ключа)", en: "Analysis ready (demo — no API key)" },
+  "Талдау сәтсіз аяқталды. Қайталап көріңіз.": { ru: "Анализ не удался. Попробуйте снова.", en: "Analysis failed. Please try again." },
+  "Тексеруге жіберілді 🔍": { ru: "Отправлено на проверку 🔍", en: "Sent for review 🔍" },
+  "Толығырақ: «Ескертулер» бөлімінде": { ru: "Подробнее: раздел «Оповещения»", en: "More: in the “Alerts” section" },
+  "Тұрақты": { ru: "Стабильно", en: "Stable" },
+  "Хабарламаны толығымен жоясыз ба?": { ru: "Удалить сообщение полностью?", en: "Delete the report permanently?" },
+  "болжам": { ru: "прогноз", en: "forecast" },
+  "тарих": { ru: "история", en: "history" },
+  "жылғы Sentinel-2 суретін талдап жатыр…": { ru: "г.: AI анализирует снимок Sentinel-2…", en: "AI is analyzing the Sentinel-2 image…" },
+  "Өшірілді ❌": { ru: "Удалено ❌", en: "Removed ❌" },
+  "⚠️ Жоғары тәуекел! Жауапты органға хабарлама автоматты жіберілді": { ru: "⚠️ Высокий риск! Сообщение автоматически отправлено в орган", en: "⚠️ High risk! Alert automatically sent to the authority" },
+  "🤖 AI агент картаны жақындатып, спутник + тірі ресми деректерді талдап жатыр…": { ru: "🤖 AI-агент приближает карту и анализирует спутник + живые официальные данные…", en: "🤖 AI agent zooms the map and analyzes satellite + live official data…" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

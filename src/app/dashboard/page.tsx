@@ -356,7 +356,7 @@ export default function DashboardPage() {
                   y={WHO_PM25_DAILY}
                   stroke="#22c55e"
                   strokeDasharray="6 4"
-                  label={{ value: "ДДСҰ PM2.5 шегі", fill: "#22c55e", fontSize: 11 }}
+                  label={{ value: tr("ДДСҰ PM2.5 шегі"), fill: "#22c55e", fontSize: 11 }}
                 />
                 <Line type="monotone" dataKey="aqi" name="EU AQI" stroke="#a855f7" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="pm2_5" name="PM2.5 µg/m³" stroke="#38bdf8" strokeWidth={2} dot={false} />
@@ -380,7 +380,7 @@ export default function DashboardPage() {
                   y={WHO_PM25_DAILY}
                   stroke="#22c55e"
                   strokeDasharray="6 4"
-                  label={{ value: "ДДСҰ PM2.5 шегі", fill: "#22c55e", fontSize: 11 }}
+                  label={{ value: tr("ДДСҰ PM2.5 шегі"), fill: "#22c55e", fontSize: 11 }}
                 />
                 <Area type="monotone" dataKey="pm2_5" name="PM2.5 µg/m³" stroke="#38bdf8" fill="#38bdf833" strokeWidth={2} />
                 <Area type="monotone" dataKey="pm10" name="PM10 µg/m³" stroke="#f97316" fill="#f9731622" strokeWidth={2} />
@@ -397,8 +397,8 @@ export default function DashboardPage() {
               <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Line type="monotone" dataKey="тарих" stroke="#38bdf8" strokeWidth={2} dot />
-              <Line type="monotone" dataKey="болжам" stroke="#f97316" strokeWidth={2} strokeDasharray="7 5" dot />
+              <Line type="monotone" dataKey="тарих" name={tr("тарих")} stroke="#38bdf8" strokeWidth={2} dot />
+              <Line type="monotone" dataKey="болжам" name={tr("болжам")} stroke="#f97316" strokeWidth={2} strokeDasharray="7 5" dot />
             </LineChart>
           </ChartCard>
           {forecast && (
@@ -409,7 +409,7 @@ export default function DashboardPage() {
                   <p className="text-sm text-neutral-300">{forecast.outlook}</p>
                   <p className="mt-2 text-xs text-neutral-500">
                     Тренд: <b className={forecast.trend === "degrading" ? "text-red-400" : forecast.trend === "improving" ? "text-emerald-400" : "text-yellow-400"}>
-                      {forecast.trend === "degrading" ? "Нашарлау" : forecast.trend === "improving" ? "Жақсару" : "Тұрақты"}
+                      {forecast.trend === "degrading" ? tr("Нашарлау") : forecast.trend === "improving" ? tr("Жақсару") : tr("Тұрақты")}
                     </b>
                   </p>
                 </CardContent>
@@ -447,7 +447,7 @@ export default function DashboardPage() {
               <XAxis dataKey="month" stroke="#737373" fontSize={11} />
               <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
               <Tooltip contentStyle={tooltipStyle} />
-              <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="6 4" label={{ value: "Пик деңгейі", fill: "#ef4444", fontSize: 11 }} />
+              <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="6 4" label={{ value: tr("Пик деңгейі"), fill: "#ef4444", fontSize: 11 }} />
               <Area type="monotone" dataKey="index" name={tr("Маса индексі")} stroke="#a855f7" fill="#a855f733" strokeWidth={2} />
             </AreaChart>
           </ChartCard>

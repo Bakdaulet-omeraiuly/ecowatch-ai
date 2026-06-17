@@ -549,11 +549,12 @@ function MlBar({ label, value, min, max, color, note }: { label: string; value: 
 }
 
 function Indicator({ on, label }: { on: boolean; label: string }) {
+  const { tr } = useLang();
   return (
     <div
       className={`rounded-md px-2 py-1.5 ${on ? "bg-red-500/10 text-red-300" : "bg-white/5 text-neutral-500"}`}
     >
-      {label}: {on ? "Иә" : "Жоқ"}
+      {label}: {on ? tr("Иә") : tr("Жоқ")}
     </div>
   );
 }

@@ -80,7 +80,7 @@ export default function ModerationPage() {
       });
       if (!res.ok) throw new Error();
       setReports((prev) => prev.map((r) => r.id === id ? { ...r, verification_status: status } : r));
-      toast.success(status === "confirmed" ? "Расталды ✅" : status === "contradicted" ? "Өшірілді ❌" : "Тексеруге жіберілді 🔍");
+      toast.success(status === "confirmed" ? tr("Расталды ✅") : status === "contradicted" ? tr("Өшірілді ❌") : tr("Тексеруге жіберілді 🔍"));
     } catch {
       toast.error(tr("Өзгерту мүмкін болмады"));
     } finally {
@@ -89,7 +89,7 @@ export default function ModerationPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Хабарламаны толығымен жоясыз ба?")) return;
+    if (!confirm(tr("Хабарламаны толығымен жоясыз ба?"))) return;
     setBusy((b) => ({ ...b, [id]: true }));
     try {
       const res = await fetch(`/api/moderation/${id}`, { method: "DELETE" });

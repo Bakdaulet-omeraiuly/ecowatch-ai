@@ -2,8 +2,10 @@
 
 import { RISK_COLORS } from "@/lib/risk";
 import { scoreToLevel } from "@/lib/risk";
+import { useLang } from "@/lib/i18n";
 
 export function RiskGauge({ score }: { score: number }) {
+  const { tr } = useLang();
   const level = scoreToLevel(score);
   const color = RISK_COLORS[level];
   const r = 52;
@@ -29,7 +31,7 @@ export function RiskGauge({ score }: { score: number }) {
         <span className="text-3xl font-bold" style={{ color }}>
           {score}
         </span>
-        <span className="text-[10px] uppercase tracking-wide text-neutral-400">тәуекел</span>
+        <span className="text-[10px] uppercase tracking-wide text-neutral-400">{tr("тәуекел")}</span>
       </div>
     </div>
   );

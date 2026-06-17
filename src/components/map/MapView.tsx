@@ -359,7 +359,7 @@ export function MapView() {
           // AI agent: zoom the map to the point itself, then synthesise
           // satellite imagery + live official data (CAMS, weather)
           mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 1400 });
-          toast.info("🤖 AI агент картаны жақындатып, спутник + тірі ресми деректерді талдап жатыр…");
+          toast.info(tr("🤖 AI агент картаны жақындатып, спутник + тірі ресми деректерді талдап жатыр…"));
           const res = await fetch("/api/agent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -388,8 +388,8 @@ export function MapView() {
         } else {
           toast.info(
             viewYear
-              ? `AI ${viewYear} жылғы Sentinel-2 суретін талдап жатыр…`
-              : "AI спутник суретін талдап жатыр…"
+              ? `AI ${viewYear} ${tr("жылғы Sentinel-2 суретін талдап жатыр…")}`
+              : tr("AI спутник суретін талдап жатыр…")
           );
           const res = await fetch("/api/analyze", {
             method: "POST",
@@ -415,15 +415,15 @@ export function MapView() {
           };
           addSite(site);
           setSelected(site);
-          toast.success(data.mock ? "Талдау дайын (демо режимі — API кілті жоқ)" : "AI талдауы дайын!");
+          toast.success(data.mock ? tr("Талдау дайын (демо режимі — API кілті жоқ)") : tr("AI талдауы дайын!"));
           if (data.analysis.riskScore >= 55) {
-            toast.warning("⚠️ Жоғары тәуекел! Жауапты органға хабарлама автоматты жіберілді", {
-              description: "Толығырақ: «Ескертулер» бөлімінде",
+            toast.warning(tr("⚠️ Жоғары тәуекел! Жауапты органға хабарлама автоматты жіберілді"), {
+              description: tr("Толығырақ: «Ескертулер» бөлімінде"),
             });
           }
         }
       } catch {
-        toast.error("Талдау сәтсіз аяқталды. Қайталап көріңіз.");
+        toast.error(tr("Талдау сәтсіз аяқталды. Қайталап көріңіз."));
       } finally {
         setAnalyzing(false);
       }
@@ -492,7 +492,7 @@ export function MapView() {
   const addByCoords = () => {
     const la = parseFloat(addLat), ln = parseFloat(addLng);
     if (isNaN(la) || isNaN(ln) || la < -90 || la > 90 || ln < -180 || ln > 180) {
-      toast.error("Координаттар жарамсыз");
+      toast.error(tr("Координаттар жарамсыз"));
       return;
     }
     setAddOpen(false);
