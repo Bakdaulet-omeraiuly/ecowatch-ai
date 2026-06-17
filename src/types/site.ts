@@ -66,6 +66,7 @@ export interface Site {
   mosquitoRiskIndex: number; // 0-100
   imageUrl?: string; // satellite static image
   areaKm2?: number; // сызылған аумақ ауданы (полигон талдауы)
+  analysisLang?: "kk" | "ru" | "en"; // талдау қай тілде жасалды (жедел аудару үшін)
   imageryYear?: number | null; // Sentinel-2 mosaic year; null/undefined = current imagery
   photoThumb?: string; // citizen photo (base64 thumbnail)
   createdAt: string; // ISO

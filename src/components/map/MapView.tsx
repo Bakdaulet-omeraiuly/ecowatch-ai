@@ -373,11 +373,13 @@ export function MapView() {
             lng,
             name: "AI агент бағалауы",
             district: "Атырау облысы",
+            // analysisLang төменде
             mode: "satellite",
             analysis: data.analysis,
             mosquitoRiskIndex: data.mri,
             imageUrl: data.imageUrl,
             createdAt: new Date().toISOString(),
+            analysisLang: lang,
             flagged: data.analysis.riskScore >= 80,
           };
           addSite(site);
@@ -411,6 +413,7 @@ export function MapView() {
             imageUrl: opts?.imageUrl ?? data.imageUrl,
             areaKm2: opts?.areaKm2,
             createdAt: new Date().toISOString(),
+            analysisLang: lang,
             flagged: false,
           };
           addSite(site);

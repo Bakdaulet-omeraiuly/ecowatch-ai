@@ -47,6 +47,38 @@ export function AnalysisDrawer({
   // Деректерге негізделген нақты ұсыныстар (ML индекстер + LLM нәтижесіне сүйенеді)
   const [recs, setRecs] = useState<string[] | null>(null);
   const [recsState, setRecsState] = useState<"idle" | "loading" | "error">("idle");
+  // Сақталған талдауды таңдалған тілге жедел аудару (тіл ≠ талдау тілі болғанда)
+  const [tx, setTx] = useState<{ summary?: string; features?: string[]; changeDynamics?: string; textureNote?: string; agentFindings?: string[] } | null>(null);
+  useEffect(() => {
+    const src = site?.analysisLang ?? "kk";
+    if (!site || lang === src) { setTx(null); return; }
+    const a = site.analysis;
+    const fLen = a.detectedFeatures.length;
+    const texts = [a.summary, ...a.detectedFeatures];
+    const sciAt = texts.length;
+    if (a.science) texts.push(a.science.changeDynamics, a.science.textureNote);
+    const agAt = texts.length;
+    const findings = a.agentSources?.map((s) => s.finding) ?? [];
+    texts.push(...findings);
+    const ctrl = new AbortController();
+    fetch("/api/translate", {
+      method: "POST", headers: { "Content-Type": "application/json" }, signal: ctrl.signal,
+      body: JSON.stringify({ texts: texts.slice(0, 40), lang }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        const t: string[] = d.texts;
+        setTx({
+          summary: t[0],
+          features: t.slice(1, 1 + fLen),
+          changeDynamics: a.science ? t[sciAt] : undefined,
+          textureNote: a.science ? t[sciAt + 1] : undefined,
+          agentFindings: findings.length ? t.slice(agAt, agAt + findings.length) : undefined,
+        });
+      })
+      .catch(() => {});
+    return () => ctrl.abort();
+  }, [site?.id, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Нақты ML спектрлік индекстер (Sentinel-2 Statistical API)
   const [indices, setIndices] = useState<MlIndicesResult | null>(null);
@@ -151,6 +183,7 @@ export function AnalysisDrawer({
           lat: site.lat,
           lng: site.lng,
           imageryYear: site.imageryYear ?? null,
+          lang,
         }),
       });
       if (!res.ok) throw new Error();
@@ -162,6 +195,7 @@ export function AnalysisDrawer({
         mosquitoRiskIndex: mosquitoRiskIndex(site.lat, site.lng, data.analysis.standingWater),
         imageUrl: data.imageUrl,
         createdAt: new Date().toISOString(),
+        analysisLang: lang,
         isSeed: false,
       };
       updateSite(updated);
@@ -311,7 +345,7 @@ export function AnalysisDrawer({
             <div>
               <h3 className="mb-1.5 text-sm font-medium text-white">{tr("Анықталған белгілер")}</h3>
               <ul className="space-y-1">
-                {site.analysis.detectedFeatures.map((f, i) => (
+                {(tx?.features ?? site.analysis.detectedFeatures).map((f, i) => (
                   <li key={i} className="flex gap-2 text-xs text-neutral-300">
                     <span className="text-emerald-400">•</span> {f}
                   </li>
@@ -352,7 +386,7 @@ export function AnalysisDrawer({
                 🤖 {tr("LLM Vision талдауы")}
                 <span className="rounded bg-violet-500/15 px-1 py-px text-[8px] uppercase text-violet-300">GPT-4o</span>
               </h3>
-              <p className="text-xs text-neutral-300">{site.analysis.summary}</p>
+              <p className="text-xs text-neutral-300">{tx?.summary ?? site.analysis.summary}</p>
             </div>
 
             {site.analysis.isAgent && site.analysis.agentSources && (
@@ -366,7 +400,7 @@ export function AnalysisDrawer({
                 {site.analysis.agentSources.map((s, i) => (
                   <div key={i} className="rounded-md bg-neutral-900/60 p-2 text-[11px]">
                     <b className="text-violet-200">{s.source}</b>
-                    <div className="text-neutral-300">{s.finding}</div>
+                    <div className="text-neutral-300">{tx?.agentFindings?.[i] ?? s.finding}</div>
                   </div>
                 ))}
               </div>
@@ -398,10 +432,10 @@ export function AnalysisDrawer({
                 </div>
 
                 <div className="text-[11px] text-neutral-400">
-                  <b className="text-neutral-300">{tr("Динамика:")}</b> {site.analysis.science.changeDynamics}
+                  <b className="text-neutral-300">{tr("Динамика:")}</b> {tx?.changeDynamics ?? site.analysis.science.changeDynamics}
                 </div>
                 <div className="text-[11px] text-neutral-400">
-                  <b className="text-neutral-300">{tr("Текстура:")}</b> {site.analysis.science.textureNote}
+                  <b className="text-neutral-300">{tr("Текстура:")}</b> {tx?.textureNote ?? site.analysis.science.textureNote}
                 </div>
 
                 {/* Evidence-based reasoning */}
