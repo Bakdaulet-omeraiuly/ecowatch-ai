@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import { translate } from "./uiTranslations";
 
 export type Lang = "kk" | "ru" | "en";
 
@@ -294,6 +295,7 @@ interface Ctx {
   lang: Lang;
   setLang: (l: Lang) => void;
   t: (k: Key) => string;
+  tr: (s: string) => string; // қазақ мәтінін кілт ретінде аудару (жол-тығыз беттерге)
 }
 
 const LangContext = createContext<Ctx | null>(null);
@@ -313,15 +315,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const t = useCallback((k: Key) => DICT[lang][k] ?? DICT.kk[k] ?? k, [lang]);
+  const tr = useCallback((s: string) => translate(s, lang), [lang]);
 
-  return <LangContext.Provider value={{ lang, setLang, t }}>{children}</LangContext.Provider>;
+  return <LangContext.Provider value={{ lang, setLang, t, tr }}>{children}</LangContext.Provider>;
 }
 
 export function useLang(): Ctx {
   const ctx = useContext(LangContext);
   if (!ctx) {
     // Провайдерсіз қолданылса — қазақша әдепкі
-    return { lang: "kk", setLang: () => {}, t: (k: Key) => DICT.kk[k] ?? k };
+    return { lang: "kk", setLang: () => {}, t: (k: Key) => DICT.kk[k] ?? k, tr: (s: string) => s };
   }
   return ctx;
 }
