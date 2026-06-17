@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Map, { Marker, type MapMouseEvent } from "react-map-gl/mapbox";
 import { MapPin } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.8833, zoom: 9 };
 
@@ -15,6 +16,7 @@ export function LocationPicker({
   lng: number | null;
   onPick: (lat: number, lng: number) => void;
 }) {
+  const { tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const [hover, setHover] = useState(false);
 
@@ -51,8 +53,8 @@ export function LocationPicker({
         {lat != null && lng != null
           ? `Таңдалды: ${lat.toFixed(5)}, ${lng.toFixed(5)} — басқа жерді басып өзгертуге болады`
           : hover
-            ? "Мәселе байқалған нақты жерді басыңыз"
-            : "Картадан мәселе орнын басып белгілеңіз"}
+            ? tr("Мәселе байқалған нақты жерді басыңыз")
+            : tr("Картадан мәселе орнын басып белгілеңіз")}
       </div>
     </div>
   );

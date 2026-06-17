@@ -461,6 +461,18 @@ Object.assign(UI_TR, {
   "Жоқ": { ru: "Нет", en: "No" },
 });
 
+// ── WasteDetector (YOLO) + LocationPicker ────────────────────────────
+Object.assign(UI_TR, {
+  "YOLO арқылы қоқысты анықтау": { ru: "Найти мусор через YOLO", en: "Detect waste with YOLO" },
+  "YOLO моделі жүктеліп, талдап жатыр…": { ru: "Модель YOLO загружается и анализирует…", en: "YOLO model is loading and analyzing…" },
+  "Модель жүктелмеді. Интернетті тексеріп, қайталаңыз.": { ru: "Модель не загрузилась. Проверьте интернет и повторите.", en: "Model failed to load. Check your internet and retry." },
+  "қоқысқа қатысты зат анықталды": { ru: "объектов, связанных с мусором, обнаружено", en: "waste-related objects detected" },
+  "объект": { ru: "объектов", en: "objects" },
+  "YOLOS-tiny моделі браузерде on-device жұмыс істейді (transformers.js). Қызғылт сары — қоқысқа қатысты, көк — басқа объект.": { ru: "Модель YOLOS-tiny работает в браузере on-device (transformers.js). Оранжевый — связано с мусором, синий — другой объект.", en: "The YOLOS-tiny model runs on-device in the browser (transformers.js). Orange — waste-related, blue — other objects." },
+  "Мәселе байқалған нақты жерді басыңыз": { ru: "Нажмите точное место, где замечена проблема", en: "Click the exact spot where the issue was seen" },
+  "Картадан мәселе орнын басып белгілеңіз": { ru: "Отметьте место проблемы на карте", en: "Mark the issue location on the map" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;
