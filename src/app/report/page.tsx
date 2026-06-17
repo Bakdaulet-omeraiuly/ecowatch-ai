@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Camera, MapPin, Loader2, Image as ImageIcon, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLang } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,6 +42,7 @@ function resizeImage(file: File, maxDim = 1024): Promise<string> {
 }
 
 export default function ReportPage() {
+  const { tr } = useLang();
   const router = useRouter();
   const addSite = useSitesStore((s) => s.addSite);
   const galleryRef = useRef<HTMLInputElement>(null);
@@ -57,7 +59,7 @@ export default function ReportPage() {
     try {
       setPhoto(await resizeImage(f));
     } catch {
-      toast.error("Фотоны оқу мүмкін болмады");
+      toast.error(tr("Фотоны оқу мүмкін болмады"));
     }
   };
 
@@ -68,21 +70,21 @@ export default function ReportPage() {
         setLat(pos.coords.latitude.toFixed(5));
         setLng(pos.coords.longitude.toFixed(5));
         setLocating(false);
-        toast.success("Орналасу анықталды");
+        toast.success(tr("Орналасу анықталды"));
       },
       () => {
         setLocating(false);
-        toast.error("GPS қолжетімсіз — координатты қолмен енгізіңіз");
+        toast.error(tr("GPS қолжетімсіз — координатты қолмен енгізіңіз"));
       }
     );
   };
 
   const submit = async () => {
     const la = parseFloat(lat), ln = parseFloat(lng);
-    if (!photo) return toast.error("Фото жүктеңіз");
-    if (isNaN(la) || isNaN(ln)) return toast.error("Координаттарды енгізіңіз");
+    if (!photo) return toast.error(tr("Фото жүктеңіз"));
+    if (isNaN(la) || isNaN(ln)) return toast.error(tr("Координаттарды енгізіңіз"));
     setBusy(true);
-    toast.info("AI фотоны тексеріп, спутникпен салыстырып жатыр…");
+    toast.info(tr("AI фотоны тексеріп, спутникпен салыстырып жатыр…"));
     try {
       const res = await fetch("/api/reports", {
         method: "POST",
@@ -93,7 +95,7 @@ export default function ReportPage() {
 
       // AI moderation rejected the photo
       if (res.status === 422) {
-        toast.error("Фото қабылданбады", { description: data.reason });
+        toast.error(tr("Фото қабылданбады"), { description: data.reason });
         setBusy(false);
         return;
       }
@@ -118,12 +120,12 @@ export default function ReportPage() {
       addSite(site);
       toast.success(
         r.analysis?.verificationStatus === "confirmed"
-          ? "✅ Хабарлама расталды және бәріне көрінеді!"
-          : "Хабарлама қабылданды — бәріне көрінеді"
+          ? tr("✅ Хабарлама расталды және бәріне көрінеді!")
+          : tr("Хабарлама қабылданды — бәріне көрінеді")
       );
       router.push("/map");
     } catch {
-      toast.error("Жіберу сәтсіз. Қайталап көріңіз.");
+      toast.error(tr("Жіберу сәтсіз. Қайталап көріңіз."));
     } finally {
       setBusy(false);
     }
@@ -132,14 +134,14 @@ export default function ReportPage() {
   return (
     <div className="mx-auto max-w-xl space-y-4 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Экологиялық мәселе туралы хабарлау</h1>
+        <h1 className="text-2xl font-bold text-white">{tr("Экологиялық мәселе туралы хабарлау")}</h1>
         <p className="text-sm text-neutral-400">
-          Фото түсіріңіз — AI оны талдап, сол нүктенің спутник суретімен салыстырып растайды
+          {tr("Фото түсіріңіз — AI оны талдап, сол нүктенің спутник суретімен салыстырып растайды")}
         </p>
       </div>
 
       <Card className="border-white/10 bg-white/[0.03]">
-        <CardHeader><CardTitle className="text-sm text-white">📸 Фото</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-white">📸 {tr("Фото")}</CardTitle></CardHeader>
         <CardContent>
           {/* Gallery: no capture attr → opens photo library / file picker */}
           <input
@@ -161,13 +163,13 @@ export default function ReportPage() {
           {photo ? (
             <div className="space-y-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={photo} alt="Жүктелген фото" className="max-h-64 w-full rounded-lg object-cover" />
+              <img src={photo} alt={tr("Жүктелген фото")} className="max-h-64 w-full rounded-lg object-cover" />
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => galleryRef.current?.click()}>
-                  <ImageIcon className="mr-1 h-3.5 w-3.5" /> Галереядан
+                  <ImageIcon className="mr-1 h-3.5 w-3.5" /> {tr("Галереядан")}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => cameraRef.current?.click()}>
-                  <Camera className="mr-1 h-3.5 w-3.5" /> Камера
+                  <Camera className="mr-1 h-3.5 w-3.5" /> {tr("Камера")}
                 </Button>
               </div>
               <WasteDetector photo={photo} />
@@ -179,14 +181,14 @@ export default function ReportPage() {
                 className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/15 p-6 text-neutral-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
               >
                 <ImageIcon className="h-7 w-7" />
-                <span className="text-xs">Галереядан таңдау</span>
+                <span className="text-xs">{tr("Галереядан таңдау")}</span>
               </button>
               <button
                 onClick={() => cameraRef.current?.click()}
                 className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/15 p-6 text-neutral-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
               >
                 <Camera className="h-7 w-7" />
-                <span className="text-xs">Камерадан түсіру</span>
+                <span className="text-xs">{tr("Камерадан түсіру")}</span>
               </button>
             </div>
           )}
@@ -194,7 +196,7 @@ export default function ReportPage() {
       </Card>
 
       <Card className="border-white/10 bg-white/[0.03]">
-        <CardHeader><CardTitle className="text-sm text-white">📍 Орналасу — картадан белгілеңіз</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-white">📍 {tr("Орналасу — картадан белгілеңіз")}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <LocationPicker
             lat={parseFloat(lat) || null}
@@ -207,14 +209,14 @@ export default function ReportPage() {
           <div className="flex flex-wrap items-end gap-3">
             <Button variant="outline" size="sm" onClick={locate} disabled={locating}>
               {locating ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <MapPin className="mr-1 h-4 w-4" />}
-              GPS арқылы анықтау
+              {tr("GPS арқылы анықтау")}
             </Button>
             <div className="flex-1 space-y-1">
-              <Label htmlFor="lat" className="text-xs text-neutral-400">Ендік (lat)</Label>
+              <Label htmlFor="lat" className="text-xs text-neutral-400">{tr("Ендік (lat)")}</Label>
               <Input id="lat" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="47.1167" />
             </div>
             <div className="flex-1 space-y-1">
-              <Label htmlFor="lng" className="text-xs text-neutral-400">Бойлық (lng)</Label>
+              <Label htmlFor="lng" className="text-xs text-neutral-400">{tr("Бойлық (lng)")}</Label>
               <Input id="lng" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="51.9014" />
             </div>
           </div>
@@ -222,12 +224,12 @@ export default function ReportPage() {
       </Card>
 
       <Card className="border-white/10 bg-white/[0.03]">
-        <CardHeader><CardTitle className="text-sm text-white">📝 Сипаттама (міндетті емес)</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-white">📝 {tr("Сипаттама (міндетті емес)")}</CardTitle></CardHeader>
         <CardContent>
           <Textarea
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-            placeholder="Мысалы: өзен жағасында қоқыс үйіндісі, жанында тұрған су бар…"
+            placeholder={tr("Мысалы: өзен жағасында қоқыс үйіндісі, жанында тұрған су бар…")}
             rows={3}
           />
         </CardContent>
@@ -235,7 +237,7 @@ export default function ReportPage() {
 
       <Button className="w-full" size="lg" onClick={submit} disabled={busy}>
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Camera className="mr-2 h-4 w-4" />}
-        {busy ? "AI талдап жатыр…" : "Жіберу және AI талдауын алу"}
+        {busy ? tr("AI талдап жатыр…") : tr("Жіберу және AI талдауын алу")}
       </Button>
 
       <Leaderboard />
@@ -252,6 +254,7 @@ interface ReportRow {
 }
 
 function Leaderboard() {
+  const { tr } = useLang();
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -288,7 +291,7 @@ function Leaderboard() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm text-white">
           <Trophy className="h-4 w-4 text-amber-400" />
-          Азамат белсенділерінің лидерборды
+          {tr("Азамат белсенділерінің лидерборды")}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -299,7 +302,7 @@ function Leaderboard() {
               <div className="flex-1 truncate">
                 <div className="truncate text-sm text-white">{r.name.slice(0, 50)}</div>
                 <div className="text-[11px] text-neutral-500">
-                  {r.count} хабарлама · {r.confirmed} расталған
+                  {r.count} {tr("хабарлама")} · {r.confirmed} {tr("расталған")}
                 </div>
               </div>
               <div className="text-right">
@@ -309,7 +312,7 @@ function Leaderboard() {
           ))}
         </div>
         <p className="mt-3 text-[11px] text-neutral-500">
-          XP = расталған хабарлама × 10 + барлық хабарлама × 2. Лидерборд нақты уақытта жаңарады.
+          {tr("XP = расталған хабарлама × 10 + барлық хабарлама × 2. Лидерборд нақты уақытта жаңарады.")}
         </p>
       </CardContent>
     </Card>

@@ -268,6 +268,67 @@ Object.assign(UI_TR, {
   "Таңдалған нүкте (AI талдау)": { ru: "Выбранная точка (AI-анализ)", en: "Selected point (AI analysis)" },
 });
 
+// ── Модерация беті ───────────────────────────────────────────────────
+Object.assign(UI_TR, {
+  "Модерация панелі": { ru: "Панель модерации", en: "Moderation panel" },
+  "Азаматтардың фото-хабарламаларын қарап, растаңыз немесе өшіріңіз": { ru: "Просматривайте фото-сообщения граждан, подтверждайте или удаляйте", en: "Review citizen photo reports, confirm or delete" },
+  "Жаңарту": { ru: "Обновить", en: "Refresh" },
+  "Растау": { ru: "Подтвердить", en: "Confirm" },
+  "Қабылдамау": { ru: "Отклонить", en: "Reject" },
+  "Жою": { ru: "Удалить", en: "Delete" },
+  "Хабарламалар жоқ": { ru: "Сообщений нет", en: "No reports" },
+  "Фото жоқ": { ru: "Нет фото", en: "No photo" },
+  "Тәуекел": { ru: "Риск", en: "Risk" },
+  "Сүзгі": { ru: "Фильтр", en: "Filter" },
+  "Барлығын көру": { ru: "Показать все", en: "Show all" },
+  "Барлығы": { ru: "Все", en: "All" },
+  "Күтілуде": { ru: "Ожидает", en: "Pending" },
+  "Расталған": { ru: "Подтверждённые", en: "Confirmed" },
+  "Өшірілген": { ru: "Удалённые", en: "Removed" },
+  // STATUS_CFG label
+  "Расталды": { ru: "Подтверждено", en: "Confirmed" },
+  // toast
+  "Хабарламаларды жүктеу мүмкін болмады": { ru: "Не удалось загрузить сообщения", en: "Failed to load reports" },
+  "Өзгерту мүмкін болмады": { ru: "Не удалось изменить", en: "Couldn't update" },
+  "Жою мүмкін болмады": { ru: "Не удалось удалить", en: "Couldn't delete" },
+  "Хабарлама жойылды": { ru: "Сообщение удалено", en: "Report deleted" },
+});
+
+// ── Хабарлау беті ────────────────────────────────────────────────────
+Object.assign(UI_TR, {
+  "Экологиялық мәселе туралы хабарлау": { ru: "Сообщить об экологической проблеме", en: "Report an environmental issue" },
+  "Фото түсіріңіз — AI оны талдап, сол нүктенің спутник суретімен салыстырып растайды": { ru: "Сделайте фото — AI проанализирует и сверит со спутниковым снимком этой точки", en: "Take a photo — AI analyzes it and cross-checks with the satellite image of the point" },
+  "Фото": { ru: "Фото", en: "Photo" },
+  "Жүктелген фото": { ru: "Загруженное фото", en: "Uploaded photo" },
+  "Галереядан": { ru: "Из галереи", en: "From gallery" },
+  "Камера": { ru: "Камера", en: "Camera" },
+  "Галереядан таңдау": { ru: "Выбрать из галереи", en: "Choose from gallery" },
+  "Камерадан түсіру": { ru: "Снять на камеру", en: "Take with camera" },
+  "Орналасу — картадан белгілеңіз": { ru: "Локация — отметьте на карте", en: "Location — mark on the map" },
+  "GPS арқылы анықтау": { ru: "Определить по GPS", en: "Detect via GPS" },
+  "Ендік (lat)": { ru: "Широта (lat)", en: "Latitude (lat)" },
+  "Бойлық (lng)": { ru: "Долгота (lng)", en: "Longitude (lng)" },
+  "Сипаттама (міндетті емес)": { ru: "Описание (необязательно)", en: "Description (optional)" },
+  "Мысалы: өзен жағасында қоқыс үйіндісі, жанында тұрған су бар…": { ru: "Например: свалка на берегу реки, рядом застойная вода…", en: "E.g.: a waste pile by the river, standing water nearby…" },
+  "Жіберу және AI талдауын алу": { ru: "Отправить и получить AI-анализ", en: "Submit and get AI analysis" },
+  "Атымыз белгісіз": { ru: "Имя неизвестно", en: "Anonymous" },
+  "Азамат белсенділерінің лидерборды": { ru: "Лидерборд активных граждан", en: "Citizen activists leaderboard" },
+  "хабарлама": { ru: "сообщений", en: "reports" },
+  "расталған": { ru: "подтверждено", en: "confirmed" },
+  "XP = расталған хабарлама × 10 + барлық хабарлама × 2. Лидерборд нақты уақытта жаңарады.": { ru: "XP = подтверждённые × 10 + все сообщения × 2. Лидерборд обновляется в реальном времени.", en: "XP = confirmed reports × 10 + all reports × 2. Leaderboard updates in real time." },
+  // toast
+  "Фотоны оқу мүмкін болмады": { ru: "Не удалось прочитать фото", en: "Couldn't read the photo" },
+  "Орналасу анықталды": { ru: "Локация определена", en: "Location detected" },
+  "GPS қолжетімсіз — координатты қолмен енгізіңіз": { ru: "GPS недоступен — введите координаты вручную", en: "GPS unavailable — enter coordinates manually" },
+  "Фото жүктеңіз": { ru: "Загрузите фото", en: "Upload a photo" },
+  "Координаттарды енгізіңіз": { ru: "Введите координаты", en: "Enter coordinates" },
+  "AI фотоны тексеріп, спутникпен салыстырып жатыр…": { ru: "AI проверяет фото и сверяет со спутником…", en: "AI is checking the photo and comparing with satellite…" },
+  "Фото қабылданбады": { ru: "Фото отклонено", en: "Photo rejected" },
+  "✅ Хабарлама расталды және бәріне көрінеді!": { ru: "✅ Сообщение подтверждено и видно всем!", en: "✅ Report confirmed and visible to everyone!" },
+  "Хабарлама қабылданды — бәріне көрінеді": { ru: "Сообщение принято — видно всем", en: "Report accepted — visible to everyone" },
+  "Жіберу сәтсіз. Қайталап көріңіз.": { ru: "Не удалось отправить. Попробуйте снова.", en: "Submission failed. Please try again." },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

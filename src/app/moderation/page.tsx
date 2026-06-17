@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { Shield, CheckCircle2, XCircle, Clock, Trash2, MapPin, RefreshCw, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
+import { useLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -52,6 +53,7 @@ function statusKey(s: string | null): keyof typeof STATUS_CFG {
 }
 
 export default function ModerationPage() {
+  const { tr } = useLang();
   const [reports, setReports]   = useState<Report[]>([]);
   const [loading, setLoading]   = useState(true);
   const [filter, setFilter]     = useState<FilterType>("all");
@@ -62,7 +64,7 @@ export default function ModerationPage() {
     fetch("/api/reports")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => setReports(d.reports ?? []))
-      .catch(() => toast.error("Хабарламаларды жүктеу мүмкін болмады"))
+      .catch(() => toast.error(tr("Хабарламаларды жүктеу мүмкін болмады")))
       .finally(() => setLoading(false));
   }, []);
 
@@ -80,7 +82,7 @@ export default function ModerationPage() {
       setReports((prev) => prev.map((r) => r.id === id ? { ...r, verification_status: status } : r));
       toast.success(status === "confirmed" ? "Расталды ✅" : status === "contradicted" ? "Өшірілді ❌" : "Тексеруге жіберілді 🔍");
     } catch {
-      toast.error("Өзгерту мүмкін болмады");
+      toast.error(tr("Өзгерту мүмкін болмады"));
     } finally {
       setBusy((b) => ({ ...b, [id]: false }));
     }
@@ -93,9 +95,9 @@ export default function ModerationPage() {
       const res = await fetch(`/api/moderation/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
       setReports((prev) => prev.filter((r) => r.id !== id));
-      toast.success("Хабарлама жойылды");
+      toast.success(tr("Хабарлама жойылды"));
     } catch {
-      toast.error("Жою мүмкін болмады");
+      toast.error(tr("Жою мүмкін болмады"));
     } finally {
       setBusy((b) => ({ ...b, [id]: false }));
     }
@@ -122,13 +124,13 @@ export default function ModerationPage() {
         <div>
           <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
             <Shield className="h-6 w-6 text-violet-400" />
-            Модерация панелі
+            {tr("Модерация панелі")}
           </h1>
-          <p className="text-sm text-neutral-400">Азаматтардың фото-хабарламаларын қарап, растаңыз немесе өшіріңіз</p>
+          <p className="text-sm text-neutral-400">{tr("Азаматтардың фото-хабарламаларын қарап, растаңыз немесе өшіріңіз")}</p>
         </div>
         <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-2">
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          Жаңарту
+          {tr("Жаңарту")}
         </Button>
       </div>
 
@@ -146,7 +148,7 @@ export default function ModerationPage() {
               }`}
             >
               <div className={`text-2xl font-bold ${colors[f]}`}>{counts[f]}</div>
-              <div className="text-xs text-neutral-400">{labels[f]}</div>
+              <div className="text-xs text-neutral-400">{tr(labels[f])}</div>
             </button>
           );
         })}
@@ -156,17 +158,17 @@ export default function ModerationPage() {
       {filter !== "all" && (
         <div className="flex items-center gap-2 text-sm text-neutral-400">
           <Filter className="h-4 w-4" />
-          Сүзгі: <span className="text-white">{filter === "pending" ? "Күтілуде" : filter === "confirmed" ? "Расталған" : "Өшірілген"}</span>
-          <button onClick={() => setFilter("all")} className="ml-2 text-xs text-violet-400 hover:underline">Барлығын көру</button>
+          {tr("Сүзгі")}: <span className="text-white">{filter === "pending" ? "Күтілуде" : filter === "confirmed" ? "Расталған" : "Өшірілген"}</span>
+          <button onClick={() => setFilter("all")} className="ml-2 text-xs text-violet-400 hover:underline">{tr("Барлығын көру")}</button>
         </div>
       )}
 
       {/* Reports list */}
       {loading ? (
-        <div className="py-12 text-center text-sm text-neutral-500">Жүктелуде…</div>
+        <div className="py-12 text-center text-sm text-neutral-500">{tr("Жүктелуде…")}</div>
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] py-12 text-center text-sm text-neutral-400">
-          Хабарламалар жоқ
+          {tr("Хабарламалар жоқ")}
         </div>
       ) : (
         <div className="space-y-3">
@@ -188,7 +190,7 @@ export default function ModerationPage() {
                       />
                     ) : (
                       <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-white/5 text-xs text-neutral-500">
-                        Фото жоқ
+                        {tr("Фото жоқ")}
                       </div>
                     )}
 
@@ -199,10 +201,10 @@ export default function ModerationPage() {
                           className="rounded-full px-2 py-0.5 text-xs font-bold"
                           style={{ backgroundColor: `${RISK_COLOR[r.risk_level]}22`, color: RISK_COLOR[r.risk_level] }}
                         >
-                          Тәуекел {r.risk_score}/100
+                          {tr("Тәуекел")} {r.risk_score}/100
                         </span>
                         <Badge variant="outline" className={`text-[11px] ${sc.cls}`}>
-                          {sc.label}
+                          {tr(sc.label)}
                         </Badge>
                         <span className="ml-auto text-[11px] text-neutral-500">
                           {new Date(r.created_at).toLocaleString("kk-KZ", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
@@ -234,28 +236,28 @@ export default function ModerationPage() {
                           disabled={isBusy || r.verification_status === "confirmed"}
                           className="flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-40"
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Растау
+                          <CheckCircle2 className="h-3.5 w-3.5" /> {tr("Растау")}
                         </button>
                         <button
                           onClick={() => update(r.id, "unconfirmed")}
                           disabled={isBusy || r.verification_status === "unconfirmed"}
                           className="flex items-center gap-1 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-1 text-xs text-yellow-300 hover:bg-yellow-500/20 disabled:opacity-40"
                         >
-                          <Clock className="h-3.5 w-3.5" /> Тексеруде
+                          <Clock className="h-3.5 w-3.5" /> {tr("Тексеруде")}
                         </button>
                         <button
                           onClick={() => update(r.id, "contradicted")}
                           disabled={isBusy || r.verification_status === "contradicted"}
                           className="flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-xs text-red-300 hover:bg-red-500/20 disabled:opacity-40"
                         >
-                          <XCircle className="h-3.5 w-3.5" /> Қабылдамау
+                          <XCircle className="h-3.5 w-3.5" /> {tr("Қабылдамау")}
                         </button>
                         <button
                           onClick={() => remove(r.id)}
                           disabled={isBusy}
                           className="ml-auto flex items-center gap-1 rounded-md border border-white/10 px-2.5 py-1 text-xs text-neutral-500 hover:border-red-500/30 hover:text-red-400 disabled:opacity-40"
                         >
-                          <Trash2 className="h-3.5 w-3.5" /> Жою
+                          <Trash2 className="h-3.5 w-3.5" /> {tr("Жою")}
                         </button>
                       </div>
                     </div>
