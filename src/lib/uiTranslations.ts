@@ -329,6 +329,48 @@ Object.assign(UI_TR, {
   "Жіберу сәтсіз. Қайталап көріңіз.": { ru: "Не удалось отправить. Попробуйте снова.", en: "Submission failed. Please try again." },
 });
 
+// ── Эко паспорт ──────────────────────────────────────────────────────
+Object.assign(UI_TR, {
+  "Эко паспорт": { ru: "Эко паспорт", en: "Eco passport" },
+  "Атырау облысының жылдық экологиялық паспорты": { ru: "Годовой экологический паспорт Атырауской области", en: "Annual environmental passport of Atyrau region" },
+  "басып шығару": { ru: "печать", en: "print" },
+  "Экологиялық мониторинг": { ru: "Экологический мониторинг", en: "Environmental monitoring" },
+  "Атырау облысының экологиялық паспорты": { ru: "Экологический паспорт Атырауской области", en: "Environmental passport of Atyrau region" },
+  "Жасалған күні": { ru: "Дата создания", en: "Created on" },
+  "Деректер нақты уақытта": { ru: "Данные в реальном времени", en: "Real-time data" },
+  "Дереккөздер:": { ru: "Источники:", en: "Sources:" },
+  "Ауа сапасы": { ru: "Качество воздуха", en: "Air quality" },
+  "EU AQI (Copernicus CAMS, нақты)": { ru: "EU AQI (Copernicus CAMS, реальный)", en: "EU AQI (Copernicus CAMS, real)" },
+  "Жел жылдамдығы": { ru: "Скорость ветра", en: "Wind speed" },
+  "Газ факелдері (мұнай-газ саласы)": { ru: "Газовые факелы (нефтегаз)", en: "Gas flares (oil & gas)" },
+  "Анықталған жану нүктесі (соңғы 2 күн)": { ru: "Обнаружено очагов (за 2 дня)", en: "Detected fire spots (last 2 days)" },
+  "Дереккөз": { ru: "Источник", en: "Source" },
+  "м ажыратымдылық": { ru: "м разрешение", en: "m resolution" },
+  "Атырау облысы шекарасы ішінде ғана": { ru: "Только в пределах Атырауской области", en: "Within Atyrau region boundaries only" },
+  "Аймақ": { ru: "Регион", en: "Region" },
+  "Азаматтық хабарламалар": { ru: "Сообщения граждан", en: "Citizen reports" },
+  "Жіберілген хабарламалар (барлық уақытта)": { ru: "Отправлено сообщений (за всё время)", en: "Reports submitted (all time)" },
+  "AI растаған хабарламалар": { ru: "Подтверждено AI", en: "AI-confirmed reports" },
+  "Расталу пайызы": { ru: "Процент подтверждения", en: "Confirmation rate" },
+  "Жалпы экологиялық жағдай": { ru: "Общая экологическая обстановка", en: "Overall environmental status" },
+  "Платформа бағасы": { ru: "Оценка платформы", en: "Platform assessment" },
+  "Деградациялық тренд": { ru: "Тренд деградации", en: "Degradation trend" },
+  "Мониторинг жүргізілуде": { ru: "Ведётся мониторинг", en: "Monitoring in progress" },
+  "Ұсыныс": { ru: "Рекомендация", en: "Recommendation" },
+  "Ауа сапасы нашар — сезімтал топтарға сыртқа шықпаған дұрыс": { ru: "Качество воздуха плохое — чувствительным группам лучше не выходить на улицу", en: "Poor air quality — sensitive groups should stay indoors" },
+  "Қазіргі жағдай қалыпты деңгейде — мониторингті жалғастыру ұсынылады": { ru: "Текущая обстановка в норме — рекомендуется продолжать мониторинг", en: "Current status is normal — continued monitoring is recommended" },
+  "Бұл паспорт": { ru: "Этот паспорт", en: "This passport" },
+  "платформасының нақты уақыттағы ресми дереккөздерден (Copernicus CAMS, Open-Meteo, NASA FIRMS) алынған деректер негізінде автоматты жасалады. Жалған дерек қолданылмайды.": { ru: "формируется автоматически на основе данных платформы в реальном времени из официальных источников (Copernicus CAMS, Open-Meteo, NASA FIRMS). Ложные данные не используются.", en: "is generated automatically from the platform's real-time data from official sources (Copernicus CAMS, Open-Meteo, NASA FIRMS). No fake data is used." },
+  "Платформа: Атырау облысы": { ru: "Платформа: Атырауская область", en: "Platform: Atyrau region" },
+  "Hakaton жобасы": { ru: "Хакатон-проект", en: "Hackathon project" },
+  // Рейтинг (ratingFor)
+  "Өте жаман": { ru: "Очень плохо", en: "Very poor" },
+  "Жаман": { ru: "Плохо", en: "Poor" },
+  "Қанағаттанарлық": { ru: "Удовлетворительно", en: "Fair" },
+  "Жақсы": { ru: "Хорошо", en: "Good" },
+  "Өте жақсы": { ru: "Отлично", en: "Excellent" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLang } from "@/lib/i18n";
 import { Printer, Leaf, Wind, Droplets, Bug, Flame, Mountain, AlertTriangle } from "lucide-react";
 
 interface EnvData {
@@ -37,6 +38,7 @@ function aqiLabel(aqi: number | null) {
 }
 
 export default function EcoPassportPage() {
+  const { tr } = useLang();
   const [env, setEnv] = useState<EnvData | null>(null);
   const [reports, setReports] = useState<number>(0);
   const [confirmed, setConfirmed] = useState<number>(0);
@@ -71,15 +73,15 @@ export default function EcoPassportPage() {
       {/* Action bar — hidden on print */}
       <div className="flex items-center justify-between print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-white">Эко паспорт</h1>
-          <p className="text-sm text-neutral-400">Атырау облысының жылдық экологиялық паспорты</p>
+          <h1 className="text-2xl font-bold text-white">{tr("Эко паспорт")}</h1>
+          <p className="text-sm text-neutral-400">{tr("Атырау облысының жылдық экологиялық паспорты")}</p>
         </div>
         <button
           onClick={() => window.print()}
           className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-sm font-medium text-emerald-300 hover:bg-emerald-500/20"
         >
           <Printer className="h-4 w-4" />
-          PDF / басып шығару
+          PDF / {tr("басып шығару")}
         </button>
       </div>
 
@@ -93,17 +95,17 @@ export default function EcoPassportPage() {
           <div>
             <div className="flex items-center gap-2 text-emerald-400 print:text-green-700">
               <Leaf className="h-5 w-5" />
-              <span className="text-sm font-semibold uppercase tracking-widest">Jaiyq · Экологиялық мониторинг</span>
+              <span className="text-sm font-semibold uppercase tracking-widest">Jaiyq · {tr("Экологиялық мониторинг")}</span>
             </div>
             <h2 className="mt-1 text-xl font-bold text-white print:text-black">
-              Атырау облысының экологиялық паспорты — {YEAR} жыл
+              {tr("Атырау облысының экологиялық паспорты")} — {YEAR}
             </h2>
             <p className="text-sm text-neutral-400 print:text-gray-500">
-              Жасалған күні: {TODAY} · Деректер нақты уақытта
+              {tr("Жасалған күні")}: {TODAY} · {tr("Деректер нақты уақытта")}
             </p>
           </div>
           <div className="text-right text-xs text-neutral-500 print:text-gray-400">
-            <div>Дереккөздер:</div>
+            <div>{tr("Дереккөздер:")}</div>
             <div>Copernicus CAMS</div>
             <div>Open-Meteo</div>
             <div>NASA FIRMS</div>
@@ -111,68 +113,66 @@ export default function EcoPassportPage() {
         </div>
 
         {/* 1. Ауа сапасы */}
-        <Section icon={Wind} title="Ауа сапасы" color="text-sky-400">
-          <Row label="EU AQI (Copernicus CAMS, нақты)">
-            <span className={`font-bold ${aqiLbl.cls}`}>{aqi ?? "—"} — {aqiLbl.text}</span>
+        <Section icon={Wind} title={tr("Ауа сапасы")} color="text-sky-400">
+          <Row label={tr("EU AQI (Copernicus CAMS, нақты)")}>
+            <span className={`font-bold ${aqiLbl.cls}`}>{aqi ?? "—"} — {tr(aqiLbl.text)}</span>
           </Row>
           <Row label="PM2.5"><Val v={env?.current?.pm2_5} unit="µg/m³" warn={15} /></Row>
           <Row label="PM10"><Val v={env?.current?.pm10} unit="µg/m³" warn={50} /></Row>
           <Row label="NO₂"><Val v={env?.current?.no2} unit="µg/m³" warn={40} /></Row>
           <Row label="SO₂"><Val v={env?.current?.so2} unit="µg/m³" warn={125} /></Row>
-          <Row label="Температура"><Val v={env?.current?.temperature} unit="°C" /></Row>
-          <Row label="Ылғалдылық"><Val v={env?.current?.humidity} unit="%" /></Row>
-          <Row label="Жел жылдамдығы"><Val v={env?.current?.windSpeed} unit="км/сағ" /></Row>
+          <Row label={tr("Температура")}><Val v={env?.current?.temperature} unit="°C" /></Row>
+          <Row label={tr("Ылғалдылық")}><Val v={env?.current?.humidity} unit="%" /></Row>
+          <Row label={tr("Жел жылдамдығы")}><Val v={env?.current?.windSpeed} unit="км/сағ" /></Row>
         </Section>
 
         {/* 2. Газ факелдері */}
-        <Section icon={Flame} title="Газ факелдері (мұнай-газ саласы)" color="text-orange-400">
-          <Row label="Анықталған жану нүктесі (соңғы 2 күн)">
+        <Section icon={Flame} title={tr("Газ факелдері (мұнай-газ саласы)")} color="text-orange-400">
+          <Row label={tr("Анықталған жану нүктесі (соңғы 2 күн)")}>
             <span className={`font-bold ${(flares ?? 0) > 5 ? "text-orange-400" : "text-emerald-400"}`}>
-              {flares === null ? "Жүктелуде…" : flares}
+              {flares === null ? tr("Жүктелуде…") : flares}
             </span>
           </Row>
-          <Row label="Дереккөз">NASA FIRMS VIIRS (375 м ажыратымдылық)</Row>
-          <Row label="Аймақ">Атырау облысы шекарасы ішінде ғана</Row>
+          <Row label={tr("Дереккөз")}>NASA FIRMS VIIRS (375 {tr("м ажыратымдылық")})</Row>
+          <Row label={tr("Аймақ")}>{tr("Атырау облысы шекарасы ішінде ғана")}</Row>
         </Section>
 
         {/* 3. Азаматтық хабарламалар */}
-        <Section icon={AlertTriangle} title="Азаматтық хабарламалар" color="text-yellow-400">
-          <Row label="Жіберілген хабарламалар (барлық уақытта)">{reports}</Row>
-          <Row label="AI растаған хабарламалар">
+        <Section icon={AlertTriangle} title={tr("Азаматтық хабарламалар")} color="text-yellow-400">
+          <Row label={tr("Жіберілген хабарламалар (барлық уақытта)")}>{reports}</Row>
+          <Row label={tr("AI растаған хабарламалар")}>
             <span className="font-bold text-emerald-400">{confirmed}</span>
           </Row>
-          <Row label="Расталу пайызы">
+          <Row label={tr("Расталу пайызы")}>
             {reports > 0 ? `${Math.round((confirmed / reports) * 100)}%` : "—"}
           </Row>
         </Section>
 
         {/* 4. Экологиялық жалпы баға */}
-        <Section icon={Mountain} title="Жалпы экологиялық жағдай" color="text-emerald-400">
-          <Row label="Платформа бағасы">
+        <Section icon={Mountain} title={tr("Жалпы экологиялық жағдай")} color="text-emerald-400">
+          <Row label={tr("Платформа бағасы")}>
             {(() => {
-              if (aqi === null) return <span className="text-neutral-400">Деректер жоқ</span>;
+              if (aqi === null) return <span className="text-neutral-400">{tr("Деректер жоқ")}</span>;
               const r = aqi > 50 ? 65 : aqi > 25 ? 40 : 20;
               const lbl = riskLabel(r);
-              return <span className={`font-bold ${lbl.cls}`}>{lbl.text} ({r}/100)</span>;
+              return <span className={`font-bold ${lbl.cls}`}>{tr(lbl.text)} ({r}/100)</span>;
             })()}
           </Row>
-          <Row label="Деградациялық тренд">Мониторинг жүргізілуде</Row>
-          <Row label="Ұсыныс">
+          <Row label={tr("Деградациялық тренд")}>{tr("Мониторинг жүргізілуде")}</Row>
+          <Row label={tr("Ұсыныс")}>
             {(aqi ?? 0) > 50
-              ? "Ауа сапасы нашар — сезімтал топтарға сыртқа шықпаған дұрыс"
-              : "Қазіргі жағдай қалыпты деңгейде — мониторингті жалғастыру ұсынылады"}
+              ? tr("Ауа сапасы нашар — сезімтал топтарға сыртқа шықпаған дұрыс")
+              : tr("Қазіргі жағдай қалыпты деңгейде — мониторингті жалғастыру ұсынылады")}
           </Row>
         </Section>
 
         {/* Footer */}
         <div className="border-t border-white/10 pt-4 text-xs text-neutral-500 print:border-gray-200 print:text-gray-400">
           <p>
-            Бұл паспорт <b className="text-white print:text-black">Jaiyq</b> платформасының нақты уақыттағы
-            ресми дереккөздерден (Copernicus CAMS, Open-Meteo, NASA FIRMS) алынған деректер негізінде
-            автоматты жасалады. Жалған дерек қолданылмайды.
+            {tr("Бұл паспорт")} <b className="text-white print:text-black">Jaiyq</b> {tr("платформасының нақты уақыттағы ресми дереккөздерден (Copernicus CAMS, Open-Meteo, NASA FIRMS) алынған деректер негізінде автоматты жасалады. Жалған дерек қолданылмайды.")}
           </p>
           <p className="mt-1">
-            Платформа: Атырау облысы · jaiyq.vercel.app · Hakaton жобасы
+            {tr("Платформа: Атырау облысы")} · jaiyq.vercel.app · {tr("Hakaton жобасы")}
           </p>
         </div>
       </div>
