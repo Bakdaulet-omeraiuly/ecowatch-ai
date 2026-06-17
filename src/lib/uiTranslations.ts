@@ -126,6 +126,52 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   "Жақындату": { ru: "Приблизить", en: "Zoom in" },
   "Алыстату": { ru: "Отдалить", en: "Zoom out" },
   "Жабу": { ru: "Закрыть", en: "Close" },
+
+  // Әдістеме абзацтары
+  "🦟 иконкалар индекс бойынша шоғырланады. Слайдермен 7 күндік болжамды көріңіз. Басты фактор —": {
+    ru: "🦟 иконки группируются по индексу. Слайдером смотрите прогноз на 7 дней. Главный фактор —",
+    en: "🦟 icons cluster by index. Use the slider for the 7-day forecast. Main factor —",
+  },
+  "Жайық жайылмасы мен атырауы": { ru: "пойма и дельта Урала", en: "Ural floodplain and delta" },
+  "(қамыс, тұрған су) + температура + жаңбыр + қала. Әдістеме: Mordecai 2017 (WHO/ECDC) + гидрология. Дереккөз: Open-Meteo.": {
+    ru: "(камыш, застойная вода) + температура + дождь + город. Методика: Mordecai 2017 (WHO/ECDC) + гидрология. Источник: Open-Meteo.",
+    en: "(reeds, standing water) + temperature + rain + city. Methodology: Mordecai 2017 (WHO/ECDC) + hydrology. Source: Open-Meteo.",
+  },
+  "Тірі деректер қолжетімсіз": { ru: "Живые данные недоступны", en: "Live data unavailable" },
+  "🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері спутниктен жылулық аномалия ретінде көрінеді. Дереккөз: NASA FIRMS (VIIRS 375м).": {
+    ru: "🔥 размер иконки соответствует мощности горения (FRP). Факелы нефтегазовых месторождений видны со спутника как тепловые аномалии. Источник: NASA FIRMS (VIIRS 375м).",
+    en: "🔥 icon size reflects fire power (FRP). Oil & gas field flares appear from space as thermal anomalies. Source: NASA FIRMS (VIIRS 375m).",
+  },
+  "Қоқыс — жергілікті мәселе, спутник API-ы жоқ. Сондықтан ол AI спутник талдауы мен азаматтық фото-хабарламалардан жинақталады (краудсорсинг).": {
+    ru: "Мусор — локальная проблема, спутникового API нет. Поэтому он собирается из AI-анализа спутника и фото-сообщений граждан (краудсорсинг).",
+    en: "Waste is a local issue with no satellite API. So it's aggregated from AI satellite analysis and citizen photo reports (crowdsourcing).",
+  },
+  "Сары/қызыл аймақ — құрғақ топырақ, жоғары деградация/тұздану стрессі. Көк — ылғалды, сау. Есеп: түбір қабатының ылғалы + температура + 30 күндік жаңбыр. Дереккөз: Open-Meteo (ECMWF).": {
+    ru: "Жёлтая/красная зона — сухая почва, высокий стресс деградации/засоления. Синяя — влажная, здоровая. Расчёт: влажность корневого слоя + температура + дождь за 30 дней. Источник: Open-Meteo (ECMWF).",
+    en: "Yellow/red zone — dry soil, high degradation/salinization stress. Blue — moist, healthy. Calculation: root-zone moisture + temperature + 30-day rain. Source: Open-Meteo (ECMWF).",
+  },
+  "Атырау тұсы · тренд": { ru: "У Атырау · тренд", en: "Near Atyrau · trend" },
+  "Нақты өзен ағыны мен тасқын қаупі. Жоғары ағын → жайылма су басу → маса ошақтары. Дереккөз: Copernicus GloFAS (Open-Meteo).": {
+    ru: "Реальный сток реки и риск паводка. Высокий сток → затопление поймы → очаги комаров. Источник: Copernicus GloFAS (Open-Meteo).",
+    en: "Real river flow and flood risk. High flow → floodplain inundation → mosquito hotspots. Source: Copernicus GloFAS (Open-Meteo).",
+  },
+  "EU AQI (EAQI), Copernicus CAMS — сағат сайын. Аудандар CAMS ажыратымдылығымен (~10км) бағаланады.": {
+    ru: "EU AQI (EAQI), Copernicus CAMS — ежечасно. Районы оцениваются с разрешением CAMS (~10км).",
+    en: "EU AQI (EAQI), Copernicus CAMS — hourly. Districts assessed at CAMS resolution (~10km).",
+  },
+  "Бұл жылдың нүктелері": { ru: "Точек этого года", en: "Points this year" },
+  "жыл — NASA MODIS нақты суреті (250м, шолу деңгейі). Sentinel-2 спутнигі 2015 жылы ұшырылғандықтан, бұдан ескі жоғары сапалы сурет жоқ.": {
+    ru: "г. — реальный снимок NASA MODIS (250м, обзорный). Спутник Sentinel-2 запущен в 2015 г., более старых снимков высокого качества нет.",
+    en: "— real NASA MODIS image (250m, overview). Sentinel-2 launched in 2015, no older high-quality imagery exists.",
+  },
+  "жыл — бұлтсыз Sentinel-2 мозаикасы (10м), дәл сол жылғы Атыраудың шынайы көрінісі. Картаны бассаңыз, AI сол жылғы суретті талдайды.": {
+    ru: "г. — безоблачная мозаика Sentinel-2 (10м), реальный вид Атырау того года. Нажмите на карту — AI проанализирует снимок того года.",
+    en: "— cloudless Sentinel-2 mosaic (10m), real view of Atyrau that year. Click the map — AI will analyze that year's image.",
+  },
+  "Қазіргі Mapbox спутник суреті. Слайдерді жылжытып, өткен жылдармен салыстырыңыз.": {
+    ru: "Текущий спутниковый снимок Mapbox. Двигайте слайдер, чтобы сравнить с прошлыми годами.",
+    en: "Current Mapbox satellite imagery. Move the slider to compare with past years.",
+  },
 };
 
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
