@@ -473,6 +473,25 @@ Object.assign(UI_TR, {
   "Картадан мәселе орнын басып белгілеңіз": { ru: "Отметьте место проблемы на карте", en: "Mark the issue location on the map" },
 });
 
+// ── Дашборд карточкалары (FWI / құрғақшылық / графиктер) ────────────
+Object.assign(UI_TR, {
+  "AI қорытындысы": { ru: "Вывод AI", en: "AI summary" },
+  "ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві": { ru: "Запасы воды в почве ERA5 (0–100 см) · архив Open-Meteo", en: "ERA5 soil water storage (0–100 cm) · Open-Meteo archive" },
+  "Бастапқы тарау индексі": { ru: "Индекс начального распространения", en: "Initial spread index" },
+  "Жиналу индексі": { ru: "Индекс накопления", en: "Buildup index" },
+  "Жеңіл отын ылғалы": { ru: "Влажность лёгкого топлива", en: "Fine fuel moisture" },
+  "Құрғақшылық коды": { ru: "Код засухи", en: "Drought code" },
+  "Негізгі факторлар": { ru: "Основные факторы", en: "Key drivers" },
+  "Нүктелер": { ru: "Точки", en: "Points" },
+  "Орташа темп. °C": { ru: "Ср. темп. °C", en: "Avg temp °C" },
+  "Топырақ су қоры (м³/м³)": { ru: "Запас воды в почве (м³/м³)", en: "Soil water storage (m³/m³)" },
+  "Тәуекел деңгейі:": { ru: "Уровень риска:", en: "Risk level:" },
+  "Ылғалды (+3)": { ru: "Влажно (+3)", en: "Wet (+3)" },
+  "Қалыпты (0)": { ru: "Норма (0)", en: "Normal (0)" },
+  "Құрғақ (−3)": { ru: "Сухо (−3)", en: "Dry (−3)" },
+  "Критикалық": { ru: "Критический", en: "Critical" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

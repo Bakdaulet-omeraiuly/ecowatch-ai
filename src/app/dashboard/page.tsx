@@ -310,7 +310,7 @@ export default function DashboardPage() {
               <XAxis dataKey="level" stroke="#737373" fontSize={12} />
               <YAxis stroke="#737373" fontSize={12} allowDecimals={false} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-              <Bar dataKey="count" name="Нүктелер" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="count" name={tr("Нүктелер")} radius={[6, 6, 0, 0]}>
                 {riskDist.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Bar>
             </BarChart>
@@ -332,13 +332,13 @@ export default function DashboardPage() {
               <XAxis type="number" domain={[0, 100]} stroke="#737373" fontSize={12} />
               <YAxis type="category" dataKey="district" stroke="#737373" fontSize={11} width={90} />
               <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
-              <Bar dataKey="avgRisk" name="Орташа тәуекел" fill="#f97316" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="avgRisk" name={tr("Орташа тәуекел")} fill="#f97316" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ChartCard>
 
           {env && env.forecastHourly?.length > 0 && (
             <ChartCard
-              title="Ауа сапасы болжамы — алдағы 48 сағат (Copernicus CAMS моделі)"
+              title={tr("Ауа сапасы болжамы — алдағы 48 сағат (Copernicus CAMS моделі)")}
               className="lg:col-span-2"
             >
               <LineChart
@@ -367,7 +367,7 @@ export default function DashboardPage() {
 
           {env && env.daily.length > 0 && (
             <ChartCard
-              title="Ауа сапасы — соңғы 30 күн, нақты өлшем (Copernicus CAMS)"
+              title={tr("Ауа сапасы — соңғы 30 күн, нақты өлшем (Copernicus CAMS)")}
               className="lg:col-span-2"
             >
               <AreaChart data={env.daily.map((d) => ({ ...d, date: d.date.slice(5) }))}>
@@ -404,7 +404,7 @@ export default function DashboardPage() {
           {forecast && (
             <div className="grid gap-4 lg:grid-cols-2">
               <Card className="border-white/10 bg-white/[0.03]">
-                <CardHeader><CardTitle className="text-sm text-white">AI қорытындысы</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm text-white">{tr("AI қорытындысы")}</CardTitle></CardHeader>
                 <CardContent>
                   <p className="text-sm text-neutral-300">{forecast.outlook}</p>
                   <p className="mt-2 text-xs text-neutral-500">
@@ -415,7 +415,7 @@ export default function DashboardPage() {
                 </CardContent>
               </Card>
               <Card className="border-white/10 bg-white/[0.03]">
-                <CardHeader><CardTitle className="text-sm text-white">Негізгі факторлар</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-sm text-white">{tr("Негізгі факторлар")}</CardTitle></CardHeader>
                 <CardContent>
                   <ul className="space-y-1.5">
                     {forecast.drivers.map((d, i) => (
@@ -448,13 +448,13 @@ export default function DashboardPage() {
               <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
               <Tooltip contentStyle={tooltipStyle} />
               <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="6 4" label={{ value: "Пик деңгейі", fill: "#ef4444", fontSize: 11 }} />
-              <Area type="monotone" dataKey="index" name="Маса индексі" stroke="#a855f7" fill="#a855f733" strokeWidth={2} />
+              <Area type="monotone" dataKey="index" name={tr("Маса индексі")} stroke="#a855f7" fill="#a855f733" strokeWidth={2} />
             </AreaChart>
           </ChartCard>
           <Card className="border-purple-500/20 bg-purple-500/5">
             <CardContent className="pt-4">
               <p className="text-sm text-neutral-300">
-                🦟 <b className="text-purple-300">Маусымдық ескерту:</b> мамыр–шілде — Жайық тасқыны кезеңі,
+                🦟 <b className="text-purple-300">{tr("Маусымдық ескерту:")}</b> мамыр–шілде — Жайық тасқыны кезеңі,
                 жайылмадағы тұрған су айдындары маса көбеюінің басты ошағы. Картадағы «Маса қабатын» қосып,
                 тәуекелді аймақтарды көріңіз. Өзенге жақын, тұрған суы бар нүктелерде индекс ең жоғары.
               </p>
@@ -464,7 +464,7 @@ export default function DashboardPage() {
 
         <TabsContent value="climate" className="mt-4 space-y-4">
           {!climate && !water && (
-            <p className="py-8 text-center text-sm text-neutral-500">Климат деректері жүктелуде…</p>
+            <p className="py-8 text-center text-sm text-neutral-500">{tr("Климат деректері жүктелуде…")}</p>
           )}
 
           {climate && (
@@ -473,7 +473,7 @@ export default function DashboardPage() {
                 <Card className="border-orange-500/20 bg-orange-500/5">
                   <CardContent className="pt-4 text-center">
                     <div className="text-3xl font-bold text-orange-400">+{climate.tempDelta}°C</div>
-                    <div className="mt-1 text-xs text-neutral-400">2050 жылға температура</div>
+                    <div className="mt-1 text-xs text-neutral-400">{tr("2050 жылға температура")}</div>
                   </CardContent>
                 </Card>
                 <Card className="border-sky-500/20 bg-sky-500/5">
@@ -481,7 +481,7 @@ export default function DashboardPage() {
                     <div className={`text-3xl font-bold ${climate.precipDeltaPct < 0 ? "text-red-400" : "text-sky-400"}`}>
                       {climate.precipDeltaPct > 0 ? "+" : ""}{climate.precipDeltaPct}%
                     </div>
-                    <div className="mt-1 text-xs text-neutral-400">Жауын-шашын өзгерісі</div>
+                    <div className="mt-1 text-xs text-neutral-400">{tr("Жауын-шашын өзгерісі")}</div>
                   </CardContent>
                 </Card>
                 <Card className="border-white/10 bg-white/[0.03]">
@@ -499,7 +499,7 @@ export default function DashboardPage() {
                   <YAxis stroke="#737373" fontSize={12} unit="°" />
                   <Tooltip contentStyle={tooltipStyle} />
                   <ReferenceLine x={2025} stroke="#a855f7" strokeDasharray="4 4" label={{ value: "бүгін", fill: "#a855f7", fontSize: 10 }} />
-                  <Line type="monotone" dataKey="temp" name="Орташа темп. °C" stroke="#f97316" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="temp" name={tr("Орташа темп. °C")} stroke="#f97316" strokeWidth={2} dot={false} />
                 </LineChart>
               </ChartCard>
               <p className="text-[11px] text-neutral-500">
@@ -515,14 +515,14 @@ export default function DashboardPage() {
                   <div className="flex flex-wrap items-center gap-3">
                     <Droplets className={`h-7 w-7 ${water.trend === "drying" ? "text-amber-400" : "text-sky-400"}`} />
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-white">Жер су қоры трендісі (GRACE баламасы)</h3>
-                      <p className="text-[11px] text-neutral-500">ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві</p>
+                      <h3 className="text-sm font-semibold text-white">{tr("Жер су қоры трендісі (GRACE баламасы)")}</h3>
+                      <p className="text-[11px] text-neutral-500">{tr("ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві")}</p>
                     </div>
                     <div className="text-right">
                       <div className={`text-2xl font-bold ${water.slopePerDecadePct < 0 ? "text-amber-400" : "text-sky-400"}`}>
                         {water.slopePerDecadePct > 0 ? "+" : ""}{water.slopePerDecadePct}%
                       </div>
-                      <div className="text-xs text-neutral-400">онжылдықта</div>
+                      <div className="text-xs text-neutral-400">{tr("онжылдықта")}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -533,13 +533,13 @@ export default function DashboardPage() {
                   <XAxis dataKey="year" stroke="#737373" fontSize={10} interval={3} />
                   <YAxis stroke="#737373" fontSize={11} domain={["auto", "auto"]} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Area type="monotone" dataKey="sm" name="Топырақ су қоры (м³/м³)" stroke="#38bdf8" fill="#38bdf833" strokeWidth={2} />
+                  <Area type="monotone" dataKey="sm" name={tr("Топырақ су қоры (м³/м³)")} stroke="#38bdf8" fill="#38bdf833" strokeWidth={2} />
                 </AreaChart>
               </ChartCard>
               <Card className="border-amber-500/20 bg-amber-500/5">
                 <CardContent className="pt-4">
                   <p className="text-sm text-neutral-300">
-                    💧 <b className="text-amber-300">Қорытынды:</b> CMIP6 моделі бойынша Атырау 2050 жылға қарай{" "}
+                    💧 <b className="text-amber-300">{tr("Қорытынды:")}</b> CMIP6 моделі бойынша Атырау 2050 жылға қарай{" "}
                     <b className="text-orange-300">+{climate?.tempDelta ?? "—"}°C</b> жылынады, ал жер су қоры соңғы
                     онжылдықтарда <b className="text-amber-300">{water.slopePerDecadePct}%/онжылдық</b> азайып келеді
                     ({water.trend === "drying" ? "құрғау трендісі" : "тұрақты"}). Бұл — өрт, құрғақшылық пен
@@ -582,13 +582,14 @@ function LiveStat({
 }
 
 function FireDangerCard({ fire }: { fire: FireData }) {
+  const { tr } = useLang();
   // Шкала: FWI 0–50+ (EFFIS). Көрсеткіш үшін 60-қа дейін нормалаймыз.
   const pct = Math.min(100, (fire.fwi / 60) * 100);
   const components = [
-    { label: "ISI", value: fire.isi, hint: "Бастапқы тарау индексі" },
-    { label: "BUI", value: fire.bui, hint: "Жиналу индексі" },
-    { label: "FFMC", value: fire.ffmc, hint: "Жеңіл отын ылғалы" },
-    { label: "DC", value: fire.dc, hint: "Құрғақшылық коды" },
+    { label: "ISI", value: fire.isi, hint: tr("Бастапқы тарау индексі") },
+    { label: "BUI", value: fire.bui, hint: tr("Жиналу индексі") },
+    { label: "FFMC", value: fire.ffmc, hint: tr("Жеңіл отын ылғалы") },
+    { label: "DC", value: fire.dc, hint: tr("Құрғақшылық коды") },
   ];
   return (
     <Card className="border-white/10 bg-white/[0.03]">
@@ -601,7 +602,7 @@ function FireDangerCard({ fire }: { fire: FireData }) {
             <Flame className="h-6 w-6" style={{ color: fire.dangerColor }} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-white">Дала/орман өрті қаупі — FWI</h3>
+            <h3 className="text-sm font-semibold text-white">{tr("Дала/орман өрті қаупі — FWI")}</h3>
             <p className="text-[11px] text-neutral-500">
               Канада FWI жүйесі (EFFIS) · {fire.spinupDays} күндік нақты ауа райынан есептелді
             </p>
@@ -640,6 +641,7 @@ function FireDangerCard({ fire }: { fire: FireData }) {
 }
 
 function DroughtCard({ drought }: { drought: DroughtData }) {
+  const { tr } = useLang();
   // SPI шкаласы −3…+3 → 0–100% (көрсеткіш орналасуы)
   const pos = Math.min(100, Math.max(0, ((drought.spi + 3) / 6) * 100));
   return (
@@ -653,7 +655,7 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
             <Droplets className="h-6 w-6" style={{ color: drought.droughtColor }} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-white">Құрғақшылық индексі — SPI-3</h3>
+            <h3 className="text-sm font-semibold text-white">{tr("Құрғақшылық индексі — SPI-3")}</h3>
             <p className="text-[11px] text-neutral-500">
               McKee 1993 (WMO) · {drought.yearsOfRecord} жылдық ERA5 климатологиясы
             </p>
@@ -674,19 +676,19 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
           <div className="absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-white shadow" style={{ left: `${pos}%` }} />
         </div>
         <div className="mb-3 flex justify-between text-[9px] text-neutral-500">
-          <span>Құрғақ (−3)</span><span>Қалыпты (0)</span><span>Ылғалды (+3)</span>
+          <span>{tr("Құрғақ (−3)")}</span><span>{tr("Қалыпты (0)")}</span><span>{tr("Ылғалды (+3)")}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
             <div className="text-base font-bold text-white">{drought.precip3m} мм</div>
-            <div className="text-[10px] font-medium text-neutral-300">3-айлық жауын</div>
+            <div className="text-[10px] font-medium text-neutral-300">{tr("3-айлық жауын")}</div>
             <div className="text-[9px] text-neutral-500">{drought.period} кезеңі</div>
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
             <div className="text-base font-bold text-white">{drought.yearsOfRecord}</div>
-            <div className="text-[10px] font-medium text-neutral-300">Климат жылдары</div>
-            <div className="text-[9px] text-neutral-500">ERA5 архиві</div>
+            <div className="text-[10px] font-medium text-neutral-300">{tr("Климат жылдары")}</div>
+            <div className="text-[9px] text-neutral-500">{tr("ERA5 архиві")}</div>
           </div>
         </div>
       </CardContent>
@@ -720,6 +722,7 @@ const DISTRICT_LIST = [
 ];
 
 function DistrictRating({ allSites, env }: { allSites: { district: string; analysis: { riskScore: number } }[]; env: LiveEnv | null }) {
+  const { tr } = useLang();
   // Build rating from own analyses + add base air quality context
   const byDistrict = useMemo(() => {
     const map = new Map<string, number[]>();
@@ -753,7 +756,7 @@ function DistrictRating({ allSites, env }: { allSites: { district: string; analy
       )}
       <Card className="border-white/10 bg-white/[0.03]">
         <CardHeader>
-          <CardTitle className="text-sm text-white">Аудандардың эко-рейтингі</CardTitle>
+          <CardTitle className="text-sm text-white">{tr("Аудандардың эко-рейтингі")}</CardTitle>
         </CardHeader>
         <CardContent>
           {byDistrict.filter((d) => d.avg !== null).length === 0 ? (
@@ -797,6 +800,7 @@ function DistrictRating({ allSites, env }: { allSites: { district: string; analy
 }
 
 function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: { riskScore: number } }[] }) {
+  const { tr } = useLang();
   const today = new Date();
   // Build 12 weeks × 7 days grid
   const cells = useMemo(() => {
@@ -836,7 +840,7 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
     <div className="space-y-4">
       <Card className="border-white/10 bg-white/[0.03]">
         <CardHeader>
-          <CardTitle className="text-sm text-white">Апталық тәуекел жылу картасы — соңғы 12 апта</CardTitle>
+          <CardTitle className="text-sm text-white">{tr("Апталық тәуекел жылу картасы — соңғы 12 апта")}</CardTitle>
         </CardHeader>
         <CardContent>
           {allSites.length === 0 ? (
@@ -859,12 +863,12 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
                 ))}
               </div>
               <div className="mt-3 flex items-center gap-3 text-[11px] text-neutral-500">
-                <span>Тәуекел деңгейі:</span>
-                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-emerald-500 inline-block" /> Төмен</span>
-                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-yellow-500 inline-block" /> Орташа</span>
-                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-500 inline-block" /> Жоғары</span>
-                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-red-500 inline-block" /> Критикалық</span>
-                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-white/5 inline-block" /> Деректер жоқ</span>
+                <span>{tr("Тәуекел деңгейі:")}</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-emerald-500 inline-block" />{tr("Төмен")}</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-yellow-500 inline-block" />{tr("Орташа")}</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-500 inline-block" />{tr("Жоғары")}</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-red-500 inline-block" />{tr("Критикалық")}</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-white/5 inline-block" />{tr("Деректер жоқ")}</span>
               </div>
             </>
           )}
