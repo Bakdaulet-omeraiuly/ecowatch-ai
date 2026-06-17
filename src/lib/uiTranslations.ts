@@ -517,6 +517,13 @@ Object.assign(UI_TR, {
   "🤖 AI агент картаны жақындатып, спутник + тірі ресми деректерді талдап жатыр…": { ru: "🤖 AI-агент приближает карту и анализирует спутник + живые официальные данные…", en: "🤖 AI agent zooms the map and analyzes satellite + live official data…" },
 });
 
+// ── Site атаулары / аудандар ─────────────────────────────────────────
+Object.assign(UI_TR, {
+  "AI агент бағалауы": { ru: "Оценка AI-агента", en: "AI agent assessment" },
+  "Атырау облысы": { ru: "Атырауская область", en: "Atyrau region" },
+  "Азаматтық хабарлама": { ru: "Сообщение гражданина", en: "Citizen report" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

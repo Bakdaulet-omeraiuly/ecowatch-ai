@@ -221,7 +221,7 @@ export function AnalysisDrawer({
           <div className="flex items-start justify-between p-4">
             <div>
               <h2 className="flex items-center gap-2 font-semibold text-white">
-                {site.areaKm2 ? tr("Талданған аумақ") : site.name ?? tr("Талданған нүкте")}
+                {site.areaKm2 ? tr("Талданған аумақ") : site.name ? tr(site.name) : tr("Талданған нүкте")}
                 {site.imageryYear && (
                   <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-normal text-amber-300">
                     {site.imageryYear} жыл
@@ -234,7 +234,7 @@ export function AnalysisDrawer({
                 )}
               </h2>
               <p className="text-xs text-neutral-400">
-                {site.district} · {site.lat.toFixed(4)}, {site.lng.toFixed(4)}
+                {tr(site.district)} · {site.lat.toFixed(4)}, {site.lng.toFixed(4)}
               </p>
               <p className="text-[10px] text-neutral-500">
                 {tr("Соңғы талдау")}: {new Date(site.createdAt).toLocaleString("kk-KZ")}
