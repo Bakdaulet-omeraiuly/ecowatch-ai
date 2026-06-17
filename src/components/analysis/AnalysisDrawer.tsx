@@ -42,12 +42,16 @@ export function AnalysisDrawer({
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  // Деректерге негізделген нақты ұсыныстар (ML индекстер + LLM нәтижесіне сүйенеді)
+  const [recs, setRecs] = useState<string[] | null>(null);
+  const [recsState, setRecsState] = useState<"idle" | "loading" | "error">("idle");
 
   // Нақты ML спектрлік индекстер (Sentinel-2 Statistical API)
   const [indices, setIndices] = useState<MlIndicesResult | null>(null);
   const [indicesState, setIndicesState] = useState<"idle" | "loading" | "error">("idle");
   useEffect(() => {
     setSent(false);
+    setRecs(null);
     if (!site) { setIndices(null); setIndicesState("idle"); return; }
     setIndices(null);
     setIndicesState("loading");
@@ -63,6 +67,35 @@ export function AnalysisDrawer({
       .catch(() => { if (!ctrl.signal.aborted) setIndicesState("error"); });
     return () => ctrl.abort();
   }, [site?.id, site?.lat, site?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Индекстер шешілгенде (сәтті/қате) деректерге негізделген ұсыныс сұрау
+  useEffect(() => {
+    if (!site || indicesState === "loading") return;
+    setRecsState("loading");
+    const ctrl = new AbortController();
+    fetch("/api/recommend", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: ctrl.signal,
+      body: JSON.stringify({
+        lat: site.lat, lng: site.lng,
+        riskScore: site.analysis.riskScore, riskLevel: site.analysis.riskLevel,
+        detectedFeatures: site.analysis.detectedFeatures,
+        oilPollution: site.analysis.oilPollution,
+        illegalDumping: site.analysis.illegalDumping,
+        landDegradation: site.analysis.landDegradation,
+        standingWater: site.analysis.standingWater,
+        mosquitoRiskIndex: site.mosquitoRiskIndex,
+        areaKm2: site.areaKm2,
+        summary: site.analysis.summary,
+        indices: indices ? { ndvi: indices.ndvi, ndwi: indices.ndwi, ndmi: indices.ndmi, ndbi: indices.ndbi } : null,
+      }),
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => { setRecs(d.recommendations ?? null); setRecsState("idle"); })
+      .catch(() => { if (!ctrl.signal.aborted) setRecsState("error"); });
+    return () => ctrl.abort();
+  }, [site?.id, indicesState]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sendToAuthority = async () => {
     if (!site || sending) return;
@@ -393,8 +426,31 @@ export function AnalysisDrawer({
             )}
 
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
-              <h3 className="mb-1 text-xs font-medium text-emerald-300">Ұсыныс</h3>
-              <p className="text-xs text-neutral-300">{site.analysis.recommendation}</p>
+              <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-300">
+                🎯 Деректерге негізделген ұсыныс
+                <span className="rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
+                  ML + AI
+                </span>
+              </h3>
+              {recsState === "loading" ? (
+                <p className="flex items-center gap-1.5 text-[11px] text-neutral-500">
+                  <RefreshCw className="h-3 w-3 animate-spin" /> Талдау деректеріне сай ұсыныс дайындалуда…
+                </p>
+              ) : recs && recs.length > 0 ? (
+                <ol className="space-y-1.5">
+                  {recs.map((r, i) => (
+                    <li key={i} className="flex gap-2 text-xs text-neutral-200">
+                      <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[9px] font-bold text-emerald-300">
+                        {i + 1}
+                      </span>
+                      <span>{r}</span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                // Резерв — талдаудың өз ұсынысы
+                <p className="text-xs text-neutral-300">{site.analysis.recommendation}</p>
+              )}
             </div>
 
             {site.analysis.verificationNotes && (

@@ -1,0 +1,87 @@
+import { NextResponse } from "next/server";
+import { allow } from "@/lib/ratelimit";
+import OpenAI from "openai";
+import { z } from "zod";
+
+// Деректерге негізделген НАҚТЫ ұсыныстар. ML спектрлік индекстер +
+// LLM Vision нәтижесі + анықталған белгілерге сүйеніп, тек осы нүктеге
+// қатысты, сандарға сілтеме жасайтын орындалатын ұсыныстар генерациялайды.
+
+const reqSchema = z.object({
+  lat: z.number(), lng: z.number(),
+  riskScore: z.number(), riskLevel: z.string(),
+  detectedFeatures: z.array(z.string()).optional(),
+  oilPollution: z.boolean().optional(),
+  illegalDumping: z.boolean().optional(),
+  landDegradation: z.boolean().optional(),
+  standingWater: z.boolean().optional(),
+  mosquitoRiskIndex: z.number().optional(),
+  areaKm2: z.number().optional(),
+  summary: z.string().optional(),
+  indices: z.object({
+    ndvi: z.number(), ndwi: z.number(), ndmi: z.number(), ndbi: z.number(),
+  }).nullable().optional(),
+});
+
+const SYSTEM = `Сен — Атырау облысының (мұнай өңірі, Каспий жағалауы, шөлейт климат) тәжірибелі экологиялық сарапшысың.
+Саған бір нақты нүктенің НАҚТЫ талдау деректері беріледі: спектрлік индекстер (Sentinel-2), тәуекел деңгейі, анықталған белгілер.
+Міндетің — ТЕК осы деректерге сүйеніп, дәл осы нүктеге бағытталған 3-4 ОРЫНДАЛАТЫН ұсыныс жазу.
+
+ҚАТАҢ ережелер:
+- Әр ұсыныс белгілі бір САНҒА немесе анықталған белгіге сілтеме жасасын (мысалы: "NDVI 0.12 — өсімдік аз, ...").
+- Жалпылама, банальды сөз ТЫЙЫМ: "мониторингке алу", "бақылау керек", "шара қолдану" деген жалаң тіркестер болмасын.
+- Нақты әрекет: кім, нені, қалай (мысалы: "тұзға төзімді изен/жусан егу", "дренаж арық қазу", "мұнай қалдығын сорбентпен жинау").
+- Атырау контексі: мұнай инфрақұрылымы, Жайық/Каспий, маса, шөлейттену.
+- Қазақ тілінде, әр ұсыныс 1-2 сөйлем, нақты.
+- JSON қайтар: {"recommendations":["...","...","..."]}`;
+
+export async function POST(req: Request) {
+  if (!(await allow(req))) {
+    return NextResponse.json({ error: "Тым көп сұраныс" }, { status: 429 });
+  }
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "AI кілті жоқ" }, { status: 503 });
+
+  const parsed = reqSchema.safeParse(await req.json());
+  if (!parsed.success) return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
+  const d = parsed.data;
+
+  const ctx = [
+    `Координат: ${d.lat.toFixed(4)}, ${d.lng.toFixed(4)}`,
+    d.areaKm2 ? `Аумақ: ${d.areaKm2.toFixed(2)} км²` : null,
+    `Тәуекел: ${d.riskScore}/100 (${d.riskLevel})`,
+    d.indices
+      ? `Нақты спектрлік индекстер (Sentinel-2): NDVI=${d.indices.ndvi} (өсімдік), NDWI=${d.indices.ndwi} (су), NDMI=${d.indices.ndmi} (ылғал), NDBI=${d.indices.ndbi} (құрылыс/тас)`
+      : `Спектрлік индекстер қолжетімсіз (бұлт)`,
+    d.mosquitoRiskIndex != null ? `Маса индексі: ${d.mosquitoRiskIndex}/100` : null,
+    `Анықталған мәселелер: ${[
+      d.oilPollution && "мұнай ластануы",
+      d.illegalDumping && "заңсыз қоқыс",
+      d.landDegradation && "жер деградациясы",
+      d.standingWater && "тұрған су",
+    ].filter(Boolean).join(", ") || "айқын мәселе жоқ"}`,
+    d.detectedFeatures?.length ? `AI белгілері: ${d.detectedFeatures.join(", ")}` : null,
+    d.summary ? `LLM түйіні: ${d.summary}` : null,
+  ].filter(Boolean).join("\n");
+
+  try {
+    const openai = new OpenAI({ apiKey });
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      max_tokens: 600,
+      temperature: 0.4,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: `Талдау деректері:\n${ctx}\n\nОсы деректерге негізделген нақты ұсыныстарды JSON-мен бер.` },
+      ],
+    });
+    const raw = JSON.parse(completion.choices[0].message.content ?? "{}");
+    const recs = Array.isArray(raw.recommendations) ? raw.recommendations.slice(0, 4).filter((x: unknown) => typeof x === "string") : [];
+    if (!recs.length) throw new Error("бос");
+    return NextResponse.json({ recommendations: recs });
+  } catch (err) {
+    console.error("Recommend error:", err);
+    return NextResponse.json({ error: "Ұсыныс генерациясы сәтсіз" }, { status: 502 });
+  }
+}
