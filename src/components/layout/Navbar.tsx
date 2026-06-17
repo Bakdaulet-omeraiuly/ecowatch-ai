@@ -18,8 +18,10 @@ export function Navbar() {
   const onPointerDown = (e: React.PointerEvent) => {
     const el = navRef.current;
     if (!el) return;
+    // Тек тінтуірмен сүйреу (саусақ — браузердің өз скроллы; pointer capture жоқ,
+    // әйтпесе сілтеме басылмайды)
+    if (e.pointerType !== "mouse") return;
     drag.current = { down: true, startX: e.clientX, scroll: el.scrollLeft, moved: false };
-    el.setPointerCapture(e.pointerId);
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const el = navRef.current;
