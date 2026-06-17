@@ -57,6 +57,23 @@ interface DroughtData {
   droughtColor: string;
 }
 
+interface ClimateData {
+  years: { year: number; temp: number; precip: number }[];
+  baseline: { period: string; temp: number; precip: number };
+  future: { period: string; temp: number; precip: number };
+  tempDelta: number;
+  precipDeltaPct: number;
+  model: string;
+}
+
+interface WaterData {
+  years: { year: number; sm: number }[];
+  slopePerDecadePct: number;
+  baseline: number;
+  recent: number;
+  trend: string;
+}
+
 // WHO 2021 guideline: PM2.5 daily mean 15 µg/m³
 const WHO_PM25_DAILY = 15;
 
@@ -75,6 +92,8 @@ export default function DashboardPage() {
   const [envError, setEnvError] = useState(false);
   const [fire, setFire] = useState<FireData | null>(null);
   const [drought, setDrought] = useState<DroughtData | null>(null);
+  const [climate, setClimate] = useState<ClimateData | null>(null);
+  const [water, setWater] = useState<WaterData | null>(null);
 
   useEffect(() => {
     fetch("/api/environment")
@@ -89,6 +108,14 @@ export default function DashboardPage() {
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setDrought)
       .catch(() => setDrought(null));
+    fetch("/api/climate")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(setClimate)
+      .catch(() => setClimate(null));
+    fetch("/api/water")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(setWater)
+      .catch(() => setWater(null));
   }, []);
 
   // Forecast input: real history of the platform's own analyses, grouped by day
@@ -267,6 +294,7 @@ export default function DashboardPage() {
           <TabsTrigger value="rating">Рейтинг</TabsTrigger>
           <TabsTrigger value="heatmap">Жылу картасы</TabsTrigger>
           <TabsTrigger value="forecast">Болжам</TabsTrigger>
+          <TabsTrigger value="climate">Климат болашағы</TabsTrigger>
           <TabsTrigger value="mosquito">Маса</TabsTrigger>
         </TabsList>
 
@@ -430,6 +458,95 @@ export default function DashboardPage() {
               </p>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="climate" className="mt-4 space-y-4">
+          {!climate && !water && (
+            <p className="py-8 text-center text-sm text-neutral-500">Климат деректері жүктелуде…</p>
+          )}
+
+          {climate && (
+            <>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Card className="border-orange-500/20 bg-orange-500/5">
+                  <CardContent className="pt-4 text-center">
+                    <div className="text-3xl font-bold text-orange-400">+{climate.tempDelta}°C</div>
+                    <div className="mt-1 text-xs text-neutral-400">2050 жылға температура</div>
+                  </CardContent>
+                </Card>
+                <Card className="border-sky-500/20 bg-sky-500/5">
+                  <CardContent className="pt-4 text-center">
+                    <div className={`text-3xl font-bold ${climate.precipDeltaPct < 0 ? "text-red-400" : "text-sky-400"}`}>
+                      {climate.precipDeltaPct > 0 ? "+" : ""}{climate.precipDeltaPct}%
+                    </div>
+                    <div className="mt-1 text-xs text-neutral-400">Жауын-шашын өзгерісі</div>
+                  </CardContent>
+                </Card>
+                <Card className="border-white/10 bg-white/[0.03]">
+                  <CardContent className="pt-4 text-center">
+                    <div className="text-lg font-bold text-white">{climate.baseline.temp}° → {climate.future.temp}°C</div>
+                    <div className="mt-1 text-xs text-neutral-400">{climate.baseline.period} → {climate.future.period}</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <ChartCard title="Жылдық орташа температура: 2000–2050 (IPCC CMIP6 проекциясы)">
+                <LineChart data={climate.years}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="year" stroke="#737373" fontSize={10} interval={4} />
+                  <YAxis stroke="#737373" fontSize={12} unit="°" />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <ReferenceLine x={2025} stroke="#a855f7" strokeDasharray="4 4" label={{ value: "бүгін", fill: "#a855f7", fontSize: 10 }} />
+                  <Line type="monotone" dataKey="temp" name="Орташа темп. °C" stroke="#f97316" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ChartCard>
+              <p className="text-[11px] text-neutral-500">
+                Дереккөз: Open-Meteo Climate · IPCC CMIP6 HighResMIP (MRI-AGCM3-2-S) даунскейлингі.
+              </p>
+            </>
+          )}
+
+          {water && (
+            <>
+              <Card className={`${water.trend === "drying" ? "border-amber-500/30 bg-amber-500/5" : "border-sky-500/20 bg-sky-500/5"}`}>
+                <CardContent className="pt-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Droplets className={`h-7 w-7 ${water.trend === "drying" ? "text-amber-400" : "text-sky-400"}`} />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-white">Жер су қоры трендісі (GRACE баламасы)</h3>
+                      <p className="text-[11px] text-neutral-500">ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві</p>
+                    </div>
+                    <div className="text-right">
+                      <div className={`text-2xl font-bold ${water.slopePerDecadePct < 0 ? "text-amber-400" : "text-sky-400"}`}>
+                        {water.slopePerDecadePct > 0 ? "+" : ""}{water.slopePerDecadePct}%
+                      </div>
+                      <div className="text-xs text-neutral-400">онжылдықта</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <ChartCard title="Жер су қорының өзгерісі: 1995–қазір (ERA5 топырақ ылғалы)">
+                <AreaChart data={water.years}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="year" stroke="#737373" fontSize={10} interval={3} />
+                  <YAxis stroke="#737373" fontSize={11} domain={["auto", "auto"]} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Area type="monotone" dataKey="sm" name="Топырақ су қоры (м³/м³)" stroke="#38bdf8" fill="#38bdf833" strokeWidth={2} />
+                </AreaChart>
+              </ChartCard>
+              <Card className="border-amber-500/20 bg-amber-500/5">
+                <CardContent className="pt-4">
+                  <p className="text-sm text-neutral-300">
+                    💧 <b className="text-amber-300">Қорытынды:</b> CMIP6 моделі бойынша Атырау 2050 жылға қарай{" "}
+                    <b className="text-orange-300">+{climate?.tempDelta ?? "—"}°C</b> жылынады, ал жер су қоры соңғы
+                    онжылдықтарда <b className="text-amber-300">{water.slopePerDecadePct}%/онжылдық</b> азайып келеді
+                    ({water.trend === "drying" ? "құрғау трендісі" : "тұрақты"}). Бұл — өрт, құрғақшылық пен
+                    шөлейттену тәуекелін арттыратын фактор.
+                  </p>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
       </Tabs>
     </div>

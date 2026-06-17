@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { X, Flag, CheckCircle2, AlertTriangle, XCircle, Bug, RefreshCw, Trash2, Maximize2, Sparkles } from "lucide-react";
@@ -12,6 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSitesStore } from "@/store/useSitesStore";
+
+interface MlIndicesResult {
+  ndvi: number; ndwi: number; ndmi: number; ndbi: number;
+  from: string; to: string; source: string;
+  interpretation: { veg: string; water: string; moist: string; built: string };
+}
 
 const verificationUi = {
   confirmed: { icon: CheckCircle2, label: "Расталды", cls: "text-emerald-400 bg-emerald-500/10" },
@@ -34,6 +40,26 @@ export function AnalysisDrawer({
   const [refreshing, setRefreshing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
+
+  // Нақты ML спектрлік индекстер (Sentinel-2 Statistical API)
+  const [indices, setIndices] = useState<MlIndicesResult | null>(null);
+  const [indicesState, setIndicesState] = useState<"idle" | "loading" | "error">("idle");
+  useEffect(() => {
+    if (!site) { setIndices(null); setIndicesState("idle"); return; }
+    setIndices(null);
+    setIndicesState("loading");
+    const ctrl = new AbortController();
+    fetch("/api/indices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ lat: site.lat, lng: site.lng }),
+      signal: ctrl.signal,
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => { setIndices(d); setIndicesState("idle"); })
+      .catch(() => { if (!ctrl.signal.aborted) setIndicesState("error"); });
+    return () => ctrl.abort();
+  }, [site?.id, site?.lat, site?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const remove = () => {
     if (!site) return;
@@ -223,7 +249,41 @@ export function AnalysisDrawer({
               </ul>
             </div>
 
-            <div className="rounded-lg bg-white/5 p-3 text-xs text-neutral-300">{site.analysis.summary}</div>
+            {/* 🛰 ML спектрлік талдау (Sentinel-2, нақты есептелген) */}
+            <div className="rounded-lg border border-sky-500/25 bg-sky-500/5 p-3">
+              <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-sky-300">
+                🛰 ML спектрлік талдау
+                <span className="rounded bg-sky-500/15 px-1 py-px text-[8px] uppercase text-sky-300">Sentinel-2 · 10м</span>
+              </h3>
+              {indicesState === "loading" ? (
+                <p className="text-[11px] text-neutral-500">Спутник деректері есептелуде…</p>
+              ) : indices ? (
+                <>
+                  <div className="grid grid-cols-2 gap-2">
+                    <MlBar label="NDVI · өсімдік" value={indices.ndvi} min={-0.2} max={0.9} color="#22c55e" note={indices.interpretation.veg} />
+                    <MlBar label="NDWI · су" value={indices.ndwi} min={-0.5} max={0.6} color="#38bdf8" note={indices.interpretation.water} />
+                    <MlBar label="NDMI · ылғал" value={indices.ndmi} min={-0.5} max={0.6} color="#06b6d4" note={indices.interpretation.moist} />
+                    <MlBar label="NDBI · құрылыс" value={indices.ndbi} min={-0.4} max={0.5} color="#f97316" note={indices.interpretation.built} />
+                  </div>
+                  <p className="mt-2 text-[9px] text-neutral-500">
+                    {indices.source} · {indices.from} — {indices.to} (соңғы бұлтсыз кадр)
+                  </p>
+                </>
+              ) : (
+                <p className="text-[11px] text-neutral-500">
+                  Спектрлік талдау қолжетімсіз (бұлт болуы мүмкін) — жалған дерек көрсетілмейді.
+                </p>
+              )}
+            </div>
+
+            {/* 🤖 LLM Vision (GPT-4o) — табиғи тілдегі пайымдау */}
+            <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
+              <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-violet-300">
+                🤖 LLM Vision талдауы
+                <span className="rounded bg-violet-500/15 px-1 py-px text-[8px] uppercase text-violet-300">GPT-4o</span>
+              </h3>
+              <p className="text-xs text-neutral-300">{site.analysis.summary}</p>
+            </div>
 
             {site.analysis.isAgent && site.analysis.agentSources && (
               <div className="space-y-2 rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
@@ -356,6 +416,22 @@ export function AnalysisDrawer({
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+function MlBar({ label, value, min, max, color, note }: { label: string; value: number; min: number; max: number; color: string; note: string }) {
+  const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+  return (
+    <div className="rounded-md bg-white/[0.03] p-2">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-neutral-400">{label}</span>
+        <span className="text-[11px] font-bold text-white">{value.toFixed(2)}</span>
+      </div>
+      <div className="my-1 h-1.5 overflow-hidden rounded-full bg-white/10">
+        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+      </div>
+      <span className="text-[9px] text-neutral-500">{note}</span>
+    </div>
   );
 }
 
