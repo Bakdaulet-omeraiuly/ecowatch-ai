@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useSitesStore } from "@/store/useSitesStore";
+import { useLang } from "@/lib/i18n";
 
 interface MlIndicesResult {
   ndvi: number; ndwi: number; ndmi: number; ndbi: number;
@@ -34,6 +35,7 @@ export function AnalysisDrawer({
   onClose: () => void;
   onUpdate?: (site: Site) => void;
 }) {
+  const { lang } = useLang();
   const toggleFlag = useSitesStore((s) => s.toggleFlag);
   const updateSite = useSitesStore((s) => s.updateSite);
   const removeSite = useSitesStore((s) => s.removeSite);
@@ -59,14 +61,14 @@ export function AnalysisDrawer({
     fetch("/api/indices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ lat: site.lat, lng: site.lng }),
+      body: JSON.stringify({ lat: site.lat, lng: site.lng, lang }),
       signal: ctrl.signal,
     })
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => { setIndices(d); setIndicesState("idle"); })
       .catch(() => { if (!ctrl.signal.aborted) setIndicesState("error"); });
     return () => ctrl.abort();
-  }, [site?.id, site?.lat, site?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [site?.id, site?.lat, site?.lng, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Индекстер шешілгенде (сәтті/қате) деректерге негізделген ұсыныс сұрау
   useEffect(() => {
@@ -78,7 +80,7 @@ export function AnalysisDrawer({
       headers: { "Content-Type": "application/json" },
       signal: ctrl.signal,
       body: JSON.stringify({
-        lat: site.lat, lng: site.lng,
+        lat: site.lat, lng: site.lng, lang,
         riskScore: site.analysis.riskScore, riskLevel: site.analysis.riskLevel,
         detectedFeatures: site.analysis.detectedFeatures,
         oilPollution: site.analysis.oilPollution,
@@ -95,7 +97,7 @@ export function AnalysisDrawer({
       .then((d) => { setRecs(d.recommendations ?? null); setRecsState("idle"); })
       .catch(() => { if (!ctrl.signal.aborted) setRecsState("error"); });
     return () => ctrl.abort();
-  }, [site?.id, indicesState]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [site?.id, indicesState, lang]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const sendToAuthority = async () => {
     if (!site || sending) return;
