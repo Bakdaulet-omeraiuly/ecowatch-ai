@@ -174,6 +174,63 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   },
 };
 
+// ── Дашборд ──────────────────────────────────────────────────────────
+Object.assign(UI_TR, {
+  "Аймақтық аналитика": { ru: "Региональная аналитика", en: "Regional analytics" },
+  "Атырау облысының экологиялық жағдайы — нақты уақытта": { ru: "Экологическая обстановка Атырауской области — в реальном времени", en: "Environmental status of Atyrau region — in real time" },
+  "Шолу": { ru: "Обзор", en: "Overview" },
+  "Рейтинг": { ru: "Рейтинг", en: "Ranking" },
+  "Жылу картасы": { ru: "Тепловая карта", en: "Heatmap" },
+  "Болжам": { ru: "Прогноз", en: "Forecast" },
+  "Климат болашағы": { ru: "Климат будущего", en: "Climate future" },
+  // Графиктер
+  "Тәуекел деңгейлері бойынша": { ru: "По уровням риска", en: "By risk levels" },
+  "Мәселе түрлері": { ru: "Типы проблем", en: "Issue types" },
+  "Аудандар бойынша орташа тәуекел (платформа талдаулары)": { ru: "Средний риск по районам (анализы платформы)", en: "Average risk by district (platform analyses)" },
+  "Ауа сапасы болжамы — алдағы 48 сағат (Copernicus CAMS моделі)": { ru: "Прогноз качества воздуха — 48 ч (модель Copernicus CAMS)", en: "Air quality forecast — next 48h (Copernicus CAMS model)" },
+  "Ауа сапасы — соңғы 30 күн, нақты өлшем (Copernicus CAMS)": { ru: "Качество воздуха — 30 дней, реальные измерения (Copernicus CAMS)", en: "Air quality — last 30 days, real measurements (Copernicus CAMS)" },
+  "Аймақтық тәуекел: тарих + 6 айлық AI болжамы": { ru: "Региональный риск: история + AI-прогноз на 6 мес.", en: "Regional risk: history + 6-month AI forecast" },
+  "Маса белсенділігінің маусымдық болжамы — математикалық модель (тасқын маусымы + климат)": { ru: "Сезонный прогноз активности комаров — мат. модель (паводок + климат)", en: "Seasonal mosquito activity forecast — math model (flood season + climate)" },
+  "Жылдық орташа температура: 2000–2050 (IPCC CMIP6 проекциясы)": { ru: "Среднегодовая температура: 2000–2050 (проекция IPCC CMIP6)", en: "Annual mean temperature: 2000–2050 (IPCC CMIP6 projection)" },
+  "Жер су қорының өзгерісі: 1995–қазір (ERA5 топырақ ылғалы)": { ru: "Изменение запасов воды: 1995–сейчас (влажность почвы ERA5)", en: "Water storage change: 1995–now (ERA5 soil moisture)" },
+  // Мәселе түрлері
+  "Деградация": { ru: "Деградация", en: "Degradation" },
+  "Тұрған су": { ru: "Застойная вода", en: "Standing water" },
+  // KPI
+  "Талданған нүктелер": { ru: "Проанализировано точек", en: "Points analyzed" },
+  "Жоғары тәуекел": { ru: "Высокий риск", en: "High risk" },
+  "Тексеруге белгіленген": { ru: "Помечено к проверке", en: "Flagged for review" },
+  "Орташа тәуекел": { ru: "Средний риск", en: "Average risk" },
+  // Тірі мониторинг
+  "Тірі мониторинг — Атырау": { ru: "Живой мониторинг — Атырау", en: "Live monitoring — Atyrau" },
+  "Тірі деректер уақытша қолжетімсіз — дереккөзге қосылу мүмкін болмады. Жалған дерек көрсетілмейді.": { ru: "Живые данные временно недоступны — не удалось подключиться к источнику. Ложные данные не показываются.", en: "Live data temporarily unavailable — couldn't connect to source. No fake data shown." },
+  "Тірі деректер жүктелуде…": { ru: "Загрузка живых данных…", en: "Loading live data…" },
+  "Температура": { ru: "Температура", en: "Temperature" },
+  "Жел": { ru: "Ветер", en: "Wind" },
+  "Ылғалдылық": { ru: "Влажность", en: "Humidity" },
+  "Қысым": { ru: "Давление", en: "Pressure" },
+  "Соңғы жаңару": { ru: "Последнее обновление", en: "Last update" },
+  // Климат болашағы
+  "Климат деректері жүктелуде…": { ru: "Загрузка климатических данных…", en: "Loading climate data…" },
+  "2050 жылға температура": { ru: "Температура к 2050", en: "Temperature by 2050" },
+  "Жауын-шашын өзгерісі": { ru: "Изменение осадков", en: "Precipitation change" },
+  "Жер су қоры трендісі (GRACE баламасы)": { ru: "Тренд запасов воды (аналог GRACE)", en: "Water storage trend (GRACE analog)" },
+  "онжылдықта": { ru: "за десятилетие", en: "per decade" },
+  "Климат жылдары": { ru: "Годы климата", en: "Climate years" },
+  "ERA5 архиві": { ru: "Архив ERA5", en: "ERA5 archive" },
+  // Рейтинг / жылу
+  "Аудандардың эко-рейтингі": { ru: "Эко-рейтинг районов", en: "District eco-ranking" },
+  "Апталық тәуекел жылу картасы — соңғы 12 апта": { ru: "Тепловая карта риска по неделям — последние 12 недель", en: "Weekly risk heatmap — last 12 weeks" },
+  // FWI карточка
+  "Дала/орман өрті қаупі — FWI": { ru: "Риск степного/лесного пожара — FWI", en: "Wildfire risk — FWI" },
+  // Жалпы
+  "Деректер жоқ": { ru: "Нет данных", en: "No data" },
+  "Маусымдық ескерту:": { ru: "Сезонное предупреждение:", en: "Seasonal alert:" },
+  "Тірі мониторинг — Атырау қ.": { ru: "Живой мониторинг — г. Атырау", en: "Live monitoring — Atyrau city" },
+  "Дереккөз: Open-Meteo + Copernicus CAMS (ЕО ресми атмосфера қызметі) · сағат сайын жаңарады": { ru: "Источник: Open-Meteo + Copernicus CAMS (офиц. служба атмосферы ЕС) · обновление ежечасно", en: "Source: Open-Meteo + Copernicus CAMS (EU official atmosphere service) · updated hourly" },
+  "Қорытынды:": { ru: "Вывод:", en: "Conclusion:" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

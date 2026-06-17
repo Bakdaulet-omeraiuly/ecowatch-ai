@@ -8,6 +8,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSitesStore } from "@/store/useSitesStore";
+import { useLang } from "@/lib/i18n";
 import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
 import { monthlyMosquitoForecast } from "@/lib/mosquito";
 import { aqiCategory } from "@/lib/airQuality";
@@ -85,6 +86,7 @@ const tooltipStyle = {
 };
 
 export default function DashboardPage() {
+  const { tr } = useLang();
   const userSites = useSitesStore((s) => s.userSites);
   const allSites = userSites;
   const [forecast, setForecast] = useState<Forecast | null>(null);
@@ -185,10 +187,10 @@ export default function DashboardPage() {
       if (s.analysis.standingWater) water++;
     });
     return [
-      { name: "Мұнай", value: oil, color: "#0ea5e9" },
-      { name: "Қоқыс", value: dump, color: "#f97316" },
-      { name: "Деградация", value: degrade, color: "#eab308" },
-      { name: "Тұрған су", value: water, color: "#a855f7" },
+      { name: tr("Мұнай"), value: oil, color: "#0ea5e9" },
+      { name: tr("Қоқыс"), value: dump, color: "#f97316" },
+      { name: tr("Деградация"), value: degrade, color: "#eab308" },
+      { name: tr("Тұрған су"), value: water, color: "#a855f7" },
     ];
   }, [allSites]);
 
@@ -222,8 +224,8 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">Аймақтық аналитика</h1>
-        <p className="text-sm text-neutral-400">Атырау облысының экологиялық жағдайы — нақты уақытта</p>
+        <h1 className="text-2xl font-bold text-white">{tr("Аймақтық аналитика")}</h1>
+        <p className="text-sm text-neutral-400">{tr("Атырау облысының экологиялық жағдайы — нақты уақытта")}</p>
       </div>
 
       {/* LIVE environmental data — Open-Meteo / Copernicus CAMS */}
@@ -231,25 +233,25 @@ export default function DashboardPage() {
         <CardHeader className="pb-2">
           <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
             <Radio className="h-4 w-4 animate-pulse text-emerald-400" />
-            Тірі мониторинг — Атырау қ.
+            {tr("Тірі мониторинг — Атырау қ.")}
             <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-normal text-emerald-300">
-              Дереккөз: Open-Meteo + Copernicus CAMS (ЕО ресми атмосфера қызметі) · сағат сайын жаңарады
+              {tr("Дереккөз: Open-Meteo + Copernicus CAMS (ЕО ресми атмосфера қызметі) · сағат сайын жаңарады")}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {envError ? (
             <p className="text-sm text-neutral-400">
-              Тірі деректер уақытша қолжетімсіз — дереккөзге қосылу мүмкін болмады. Жалған дерек көрсетілмейді.
+              {tr("Тірі деректер уақытша қолжетімсіз — дереккөзге қосылу мүмкін болмады. Жалған дерек көрсетілмейді.")}
             </p>
           ) : !env ? (
-            <p className="text-sm text-neutral-500">Тірі деректер жүктелуде…</p>
+            <p className="text-sm text-neutral-500">{tr("Тірі деректер жүктелуде…")}</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-                <LiveStat icon={Thermometer} label="Температура" value={env.current.temperature} unit="°C" />
-                <LiveStat icon={Wind} label="Жел" value={env.current.windSpeed} unit="км/сағ" />
-                <LiveStat icon={Droplets} label="Ылғалдылық" value={env.current.humidity} unit="%" />
+                <LiveStat icon={Thermometer} label={tr("Температура")} value={env.current.temperature} unit="°C" />
+                <LiveStat icon={Wind} label={tr("Жел")} value={env.current.windSpeed} unit="км/сағ" />
+                <LiveStat icon={Droplets} label={tr("Ылғалдылық")} value={env.current.humidity} unit="%" />
                 <LiveStat icon={Gauge} label="EU AQI" value={env.current.europeanAqi} unit="" highlight={(env.current.europeanAqi ?? 0) > 50} />
                 <LiveStat label="PM2.5" value={env.current.pm2_5} unit="µg/m³" highlight={(env.current.pm2_5 ?? 0) > WHO_PM25_DAILY} />
                 <LiveStat label="PM10" value={env.current.pm10} unit="µg/m³" />
@@ -282,27 +284,27 @@ export default function DashboardPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi icon={MapPin} label="Талданған нүктелер" value={stats.total} color="text-sky-400" />
-        <Kpi icon={AlertTriangle} label="Жоғары тәуекел" value={stats.high} color="text-orange-400" />
-        <Kpi icon={Flag} label="Тексеруге белгіленген" value={stats.flagged} color="text-red-400" />
-        <Kpi icon={TrendingUp} label="Орташа тәуекел" value={stats.avg} color="text-emerald-400" />
+        <Kpi icon={MapPin} label={tr("Талданған нүктелер")} value={stats.total} color="text-sky-400" />
+        <Kpi icon={AlertTriangle} label={tr("Жоғары тәуекел")} value={stats.high} color="text-orange-400" />
+        <Kpi icon={Flag} label={tr("Тексеруге белгіленген")} value={stats.flagged} color="text-red-400" />
+        <Kpi icon={TrendingUp} label={tr("Орташа тәуекел")} value={stats.avg} color="text-emerald-400" />
       </div>
 
       <Tabs defaultValue="overview">
         <TabsList className="bg-white/5">
-          <TabsTrigger value="overview">Шолу</TabsTrigger>
-          <TabsTrigger value="rating">Рейтинг</TabsTrigger>
-          <TabsTrigger value="heatmap">Жылу картасы</TabsTrigger>
-          <TabsTrigger value="forecast">Болжам</TabsTrigger>
-          <TabsTrigger value="climate">Климат болашағы</TabsTrigger>
-          <TabsTrigger value="mosquito">Маса</TabsTrigger>
+          <TabsTrigger value="overview">{tr("Шолу")}</TabsTrigger>
+          <TabsTrigger value="rating">{tr("Рейтинг")}</TabsTrigger>
+          <TabsTrigger value="heatmap">{tr("Жылу картасы")}</TabsTrigger>
+          <TabsTrigger value="forecast">{tr("Болжам")}</TabsTrigger>
+          <TabsTrigger value="climate">{tr("Климат болашағы")}</TabsTrigger>
+          <TabsTrigger value="mosquito">{tr("Маса")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 grid gap-4 lg:grid-cols-2">
           {fire && <FireDangerCard fire={fire} />}
           {drought && <DroughtCard drought={drought} />}
 
-          <ChartCard title="Тәуекел деңгейлері бойынша">
+          <ChartCard title={tr("Тәуекел деңгейлері бойынша")}>
             <BarChart data={riskDist}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="level" stroke="#737373" fontSize={12} />
@@ -314,7 +316,7 @@ export default function DashboardPage() {
             </BarChart>
           </ChartCard>
 
-          <ChartCard title="Мәселе түрлері">
+          <ChartCard title={tr("Мәселе түрлері")}>
             <PieChart>
               <Pie data={issueBreakdown} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={3}>
                 {issueBreakdown.map((d, i) => <Cell key={i} fill={d.color} />)}
@@ -324,7 +326,7 @@ export default function DashboardPage() {
             </PieChart>
           </ChartCard>
 
-          <ChartCard title="Аудандар бойынша орташа тәуекел (платформа талдаулары)">
+          <ChartCard title={tr("Аудандар бойынша орташа тәуекел (платформа талдаулары)")}>
             <BarChart data={districtLive} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis type="number" domain={[0, 100]} stroke="#737373" fontSize={12} />
@@ -388,7 +390,7 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="forecast" className="mt-4 space-y-4">
-          <ChartCard title="Аймақтық тәуекел: тарих + 6 айлық AI болжамы">
+          <ChartCard title={tr("Аймақтық тәуекел: тарих + 6 айлық AI болжамы")}>
             <LineChart data={forecastChart}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="month" stroke="#737373" fontSize={11} />
@@ -439,7 +441,7 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="mosquito" className="mt-4 space-y-4">
-          <ChartCard title="Маса белсенділігінің маусымдық болжамы — математикалық модель (тасқын маусымы + климат)">
+          <ChartCard title={tr("Маса белсенділігінің маусымдық болжамы — математикалық модель (тасқын маусымы + климат)")}>
             <AreaChart data={mosquitoSeason}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
               <XAxis dataKey="month" stroke="#737373" fontSize={11} />
@@ -490,7 +492,7 @@ export default function DashboardPage() {
                 </Card>
               </div>
 
-              <ChartCard title="Жылдық орташа температура: 2000–2050 (IPCC CMIP6 проекциясы)">
+              <ChartCard title={tr("Жылдық орташа температура: 2000–2050 (IPCC CMIP6 проекциясы)")}>
                 <LineChart data={climate.years}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="year" stroke="#737373" fontSize={10} interval={4} />
@@ -525,7 +527,7 @@ export default function DashboardPage() {
                   </div>
                 </CardContent>
               </Card>
-              <ChartCard title="Жер су қорының өзгерісі: 1995–қазір (ERA5 топырақ ылғалы)">
+              <ChartCard title={tr("Жер су қорының өзгерісі: 1995–қазір (ERA5 топырақ ылғалы)")}>
                 <AreaChart data={water.years}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                   <XAxis dataKey="year" stroke="#737373" fontSize={10} interval={3} />
