@@ -371,6 +371,28 @@ Object.assign(UI_TR, {
   "Өте жақсы": { ru: "Отлично", en: "Excellent" },
 });
 
+// ── Спутник қабаттарының атаулары (Sentinel-2 / GIBS / радар) ─────────
+Object.assign(UI_TR, {
+  "Шынайы түс (10 м)": { ru: "Натуральный цвет (10 м)", en: "True color (10 m)" },
+  "Жалған түс (өсімдік)": { ru: "Ложный цвет (растительность)", en: "False color (vegetation)" },
+  "Өсімдік (NDVI)": { ru: "Растительность (NDVI)", en: "Vegetation (NDVI)" },
+  "Ылғалдылық (NDMI)": { ru: "Влажность (NDMI)", en: "Moisture (NDMI)" },
+  "Ауыл шаруашылығы": { ru: "Сельское хозяйство", en: "Agriculture" },
+  "SWIR (өрт/ылғал)": { ru: "SWIR (пожар/влага)", en: "SWIR (fire/moisture)" },
+  "Геология / топырақ": { ru: "Геология / почва", en: "Geology / soil" },
+  "Су беті / тереңдік": { ru: "Поверхность воды / глубина", en: "Water surface / depth" },
+  // Радар (Sentinel-1)
+  "Су / мұнай (VV)": { ru: "Вода / нефть (VV)", en: "Water / oil (VV)" },
+  "Өсімдік / құрылым (VH)": { ru: "Растительность / структура (VH)", en: "Vegetation / structure (VH)" },
+  // GIBS резерв
+  "Жалған түс (7-2-1)": { ru: "Ложный цвет (7-2-1)", en: "False color (7-2-1)" },
+  "Жер беті жылуы (күндіз)": { ru: "Темп. поверхности (день)", en: "Land surface temp (day)" },
+  "Жер беті жылуы (түнгі)": { ru: "Темп. поверхности (ночь)", en: "Land surface temp (night)" },
+  "Аэрозоль / шаң": { ru: "Аэрозоль / пыль", en: "Aerosol / dust" },
+  "Түнгі жарық": { ru: "Ночное освещение", en: "Night lights" },
+  "Өсімдік+ (EVI)": { ru: "Растительность+ (EVI)", en: "Vegetation+ (EVI)" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;
