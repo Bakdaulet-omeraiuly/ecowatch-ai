@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { JaiyqLogo } from "@/components/layout/JaiyqLogo";
 import { useLang } from "@/lib/i18n";
@@ -9,6 +10,25 @@ import { useLang } from "@/lib/i18n";
 export function Navbar() {
   const pathname = usePathname();
   const { lang, setLang, t } = useLang();
+
+  // Ұстап сүйреп жылжыту (ролик сияқты) — тінтуір де, саусақ та
+  const navRef = useRef<HTMLElement>(null);
+  const drag = useRef({ down: false, startX: 0, scroll: 0, moved: false });
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    const el = navRef.current;
+    if (!el) return;
+    drag.current = { down: true, startX: e.clientX, scroll: el.scrollLeft, moved: false };
+    el.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const el = navRef.current;
+    if (!el || !drag.current.down) return;
+    const dx = e.clientX - drag.current.startX;
+    if (Math.abs(dx) > 4) drag.current.moved = true;
+    el.scrollLeft = drag.current.scroll - dx;
+  };
+  const endDrag = () => { drag.current.down = false; };
 
   const links = [
     { href: "/map", label: t("nav.map") },
@@ -30,12 +50,21 @@ export function Navbar() {
           </span>
         </Link>
 
-        {/* Сілтемелер — телефонда көлденең сырғиды */}
-        <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* Сілтемелер — ұстап сүйреп жылжытуға болады (ролик сияқты) */}
+        <nav
+          ref={navRef}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endDrag}
+          onPointerCancel={endDrag}
+          className="flex min-w-0 flex-1 cursor-grab items-center gap-1 overflow-x-auto select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
           {links.map((l) => (
             <Link
               key={l.href}
               href={l.href}
+              draggable={false}
+              onClick={(e) => { if (drag.current.moved) e.preventDefault(); }}
               className={cn(
                 "shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors",
                 pathname === l.href
