@@ -521,6 +521,7 @@ Object.assign(UI_TR, {
 Object.assign(UI_TR, {
   "AI агент бағалауы": { ru: "Оценка AI-агента", en: "AI agent assessment" },
   "Атырау облысы": { ru: "Атырауская область", en: "Atyrau region" },
+  "Жоғары": { ru: "Высокий", en: "High" },
   "Азаматтық хабарлама": { ru: "Сообщение гражданина", en: "Citizen report" },
 });
 
