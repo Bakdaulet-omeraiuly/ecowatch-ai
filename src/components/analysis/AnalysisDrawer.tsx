@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import { X, Flag, CheckCircle2, AlertTriangle, XCircle, Bug, RefreshCw, Trash2, Maximize2, Sparkles } from "lucide-react";
+import { X, Flag, CheckCircle2, AlertTriangle, XCircle, Bug, RefreshCw, Trash2, Maximize2, Sparkles, Send, MapPin, History } from "lucide-react";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { Site } from "@/types/site";
 import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
@@ -40,11 +40,14 @@ export function AnalysisDrawer({
   const [refreshing, setRefreshing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   // Нақты ML спектрлік индекстер (Sentinel-2 Statistical API)
   const [indices, setIndices] = useState<MlIndicesResult | null>(null);
   const [indicesState, setIndicesState] = useState<"idle" | "loading" | "error">("idle");
   useEffect(() => {
+    setSent(false);
     if (!site) { setIndices(null); setIndicesState("idle"); return; }
     setIndices(null);
     setIndicesState("loading");
@@ -60,6 +63,33 @@ export function AnalysisDrawer({
       .catch(() => { if (!ctrl.signal.aborted) setIndicesState("error"); });
     return () => ctrl.abort();
   }, [site?.id, site?.lat, site?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const sendToAuthority = async () => {
+    if (!site || sending) return;
+    setSending(true);
+    try {
+      const res = await fetch("/api/alert", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lat: site.lat,
+          lng: site.lng,
+          riskScore: site.analysis.riskScore,
+          riskLevel: site.analysis.riskLevel,
+          summary: site.analysis.summary,
+          features: site.analysis.detectedFeatures,
+          areaKm2: site.areaKm2,
+        }),
+      });
+      if (!res.ok) throw new Error();
+      setSent(true);
+      toast.success("✅ Тиісті органға (модераторға) жіберілді");
+    } catch {
+      toast.error("Жіберу мүмкін болмады (Telegram бапталмаған болуы мүмкін)");
+    } finally {
+      setSending(false);
+    }
+  };
 
   const remove = () => {
     if (!site) return;
@@ -122,10 +152,15 @@ export function AnalysisDrawer({
           <div className="flex items-start justify-between p-4">
             <div>
               <h2 className="flex items-center gap-2 font-semibold text-white">
-                {site.name ?? "Талданған нүкте"}
+                {site.areaKm2 ? "Талданған аумақ" : site.name ?? "Талданған нүкте"}
                 {site.imageryYear && (
                   <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-normal text-amber-300">
                     {site.imageryYear} жыл
+                  </span>
+                )}
+                {site.areaKm2 != null && (
+                  <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-normal text-sky-300">
+                    ⬡ {site.areaKm2.toFixed(2)} км²
                   </span>
                 )}
               </h2>
@@ -303,20 +338,14 @@ export function AnalysisDrawer({
             )}
 
             {site.analysis.science && (
-              <div className="space-y-3 rounded-lg border border-sky-500/20 bg-sky-500/5 p-3">
-                <h3 className="flex items-center gap-1.5 text-xs font-semibold text-sky-300">
+              <div className="space-y-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+                <h3 className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200">
                   🔬 Ғылыми сараптама
-                  <span className="rounded bg-white/10 px-1.5 py-0.5 text-[9px] font-normal text-neutral-400">
-                    RGB прокси-бағалау
+                  <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-normal text-violet-300">
+                    GPT-4o пайымдауы
                   </span>
                 </h3>
-
-                {/* Spectral indices */}
-                <div className="space-y-1.5">
-                  <IndexBar label="NDVI · өсімдік" value={site.analysis.science.ndvi} color="#22c55e" />
-                  <IndexBar label="NDBI · техногендік" value={site.analysis.science.ndbi} color="#f97316" />
-                  <IndexBar label="NDWI · су" value={site.analysis.science.ndwi} color="#38bdf8" />
-                </div>
+                {/* Спектрлік индекстер жоғарыдағы «ML спектрлік талдауда» (нақты Sentinel-2) */}
 
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div className="rounded bg-white/5 p-2">
@@ -372,19 +401,45 @@ export function AnalysisDrawer({
               <p className="text-xs italic text-neutral-400">{site.analysis.verificationNotes}</p>
             )}
 
-            <div className="flex gap-2 pb-4">
+            <div className="space-y-2 pb-4">
+              {/* Басты әрекет — органға жіберу */}
               <Button
                 size="sm"
-                variant={site.flagged ? "secondary" : "default"}
-                className="flex-1"
-                onClick={() => toggleFlag(site.id)}
+                className="w-full bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-60"
+                onClick={sendToAuthority}
+                disabled={sending || sent}
               >
-                <Flag className="mr-1 h-3.5 w-3.5" />
-                {site.flagged ? "Белгіленген" : "Тексеруге белгілеу"}
+                <Send className="mr-1.5 h-3.5 w-3.5" />
+                {sent ? "Жіберілді ✓" : sending ? "Жіберілуде…" : "Тиісті органға жіберу"}
               </Button>
-              <Button size="sm" variant="outline" className="flex-1" onClick={() => window.print()}>
-                PDF экспорт
-              </Button>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant={site.flagged ? "secondary" : "outline"}
+                  onClick={() => toggleFlag(site.id)}
+                >
+                  <Flag className="mr-1 h-3.5 w-3.5" />
+                  {site.flagged ? "Белгіленген" : "Белгілеу"}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => window.print()}>
+                  PDF экспорт
+                </Button>
+                <a
+                  href={`https://maps.google.com/?q=${site.lat},${site.lng}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center gap-1 rounded-md border border-white/15 px-2.5 py-1.5 text-xs text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <MapPin className="h-3.5 w-3.5" /> Google Maps
+                </a>
+                <a
+                  href={`/compare?lat=${site.lat.toFixed(4)}&lng=${site.lng.toFixed(4)}`}
+                  className="inline-flex items-center justify-center gap-1 rounded-md border border-white/15 px-2.5 py-1.5 text-xs text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <History className="h-3.5 w-3.5" /> Тарихи салыстыру
+                </a>
+              </div>
             </div>
           </div>
         </motion.aside>
@@ -431,18 +486,6 @@ function MlBar({ label, value, min, max, color, note }: { label: string; value: 
         <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
       <span className="text-[9px] text-neutral-500">{note}</span>
-    </div>
-  );
-}
-
-function IndexBar({ label, value, color }: { label: string; value: number; color: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span className="w-32 shrink-0 text-[10px] text-neutral-400">{label}</span>
-      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
-        <div className="h-full rounded-full" style={{ width: `${value * 100}%`, backgroundColor: color }} />
-      </div>
-      <span className="w-8 text-right text-[10px] font-semibold text-white">{value.toFixed(2)}</span>
     </div>
   );
 }

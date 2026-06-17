@@ -101,6 +101,7 @@ export function MapView() {
   const [aiOn, setAiOn] = useState(false);
   const [aiTool, setAiTool] = useState<"point" | "area">("point");
   const [drawPoints, setDrawPoints] = useState<[number, number][]>([]); // [lng, lat] төбелер
+  const [analyzedArea, setAnalyzedArea] = useState<[number, number][] | null>(null); // талданған аумақ (айқын белгіленеді)
   // last index = "Қазір" (current Mapbox imagery)
   const [yearIdx, setYearIdx] = useState(HISTORY_YEARS.length);
 
@@ -346,7 +347,7 @@ export function MapView() {
   }, [activeLayer, mosGrid, mosDay]);
 
   const analyzeAt = useCallback(
-    async (lat: number, lng: number, opts?: { zoom?: number; areaKm2?: number }) => {
+    async (lat: number, lng: number, opts?: { zoom?: number; areaKm2?: number; imageUrl?: string }) => {
       if (analyzing) return;
       setAnalyzing(true);
       try {
@@ -404,7 +405,9 @@ export function MapView() {
             imageryYear: viewYear,
             analysis: data.analysis,
             mosquitoRiskIndex: mosquitoRiskIndex(lat, lng, data.analysis.standingWater),
-            imageUrl: data.imageUrl,
+            // Аумақ режимінде — полигон шекарасы белгіленген спутник суреті
+            imageUrl: opts?.imageUrl ?? data.imageUrl,
+            areaKm2: opts?.areaKm2,
             createdAt: new Date().toISOString(),
             flagged: false,
           };
@@ -430,11 +433,13 @@ export function MapView() {
     (e: MapLayerMouseEvent) => {
       if (!aiOn) return; // AI талдау өшулі болса — кездейсоқ басу талдамайды
       if (aiTool === "area") {
-        // Аумақ режимі: басқан жерге полигон төбесін қосады
+        // Аумақ режимі: басқан жерге полигон төбесін қосады (жаңа сызу — ескі белгіні тазалайды)
+        setAnalyzedArea(null);
         setDrawPoints((pts) => [...pts, [e.lngLat.lng, e.lngLat.lat]]);
         return;
       }
       // Нүкте режимі: сол жерді көп дереккөзді агент талдайды
+      setAnalyzedArea(null);
       analyzeAt(e.lngLat.lat, e.lngLat.lng);
     },
     [analyzeAt, aiOn, aiTool]
@@ -463,8 +468,23 @@ export function MapView() {
     const span = Math.max(spanLng, spanLat, 0.0008);
     const zoom = Math.max(11, Math.min(16, Math.round(Math.log2(720 / span) - 0.4)));
     mapRef.current?.flyTo({ center: [cLng, cLat], zoom: Math.min(zoom, 15), duration: 1000 });
+
+    // Полигон шекарасы белгіленген спутник суреті (Mapbox Static GeoJSON overlay,
+    // auto — дәл аумаққа шақталады). Талдау нәтижесінде осы айқын сурет көрінеді.
+    const ring = [...drawPoints, drawPoints[0]];
+    const overlay = {
+      type: "Feature",
+      properties: { stroke: "#38bdf8", "stroke-width": 4, "stroke-opacity": 1, fill: "#38bdf8", "fill-opacity": 0.12 },
+      geometry: { type: "Polygon", coordinates: [ring] },
+    };
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+    const areaImageUrl =
+      `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/` +
+      `geojson(${encodeURIComponent(JSON.stringify(overlay))})/auto/1024x1024?padding=50&access_token=${token}`;
+
+    setAnalyzedArea([...drawPoints]); // картада да айқын белгіленіп қалады
     setDrawPoints([]);
-    analyzeAt(cLat, cLng, { zoom, areaKm2 });
+    analyzeAt(cLat, cLng, { zoom, areaKm2, imageUrl: areaImageUrl });
   }, [drawPoints, analyzeAt]);
 
   const addByCoords = () => {
@@ -570,6 +590,27 @@ export function MapView() {
               </Marker>
             ))}
           </>
+        )}
+
+        {/* Талданған аумақ — айқын белгіленген (анализден кейін қалады) */}
+        {analyzedArea && analyzedArea.length >= 3 && (
+          <Source
+            id="analyzed-area"
+            type="geojson"
+            data={{
+              type: "Feature",
+              properties: {},
+              geometry: { type: "Polygon", coordinates: [[...analyzedArea, analyzedArea[0]]] },
+            }}
+          >
+            <Layer id="analyzed-fill" type="fill" paint={{ "fill-color": "#38bdf8", "fill-opacity": 0.12 }} />
+            <Layer id="analyzed-outline" type="line" paint={{ "line-color": "#38bdf8", "line-width": 3 }} />
+            <Layer
+              id="analyzed-glow"
+              type="line"
+              paint={{ "line-color": "#7dd3fc", "line-width": 8, "line-opacity": 0.25, "line-blur": 4 }}
+            />
+          </Source>
         )}
 
         {heatmapData && layerDef && (
@@ -840,7 +881,7 @@ export function MapView() {
             })}
             <div className="my-0.5 h-px bg-white/10" />
             <button
-              onClick={() => { setAiOn((v) => !v); setAiTool("point"); setDrawPoints([]); }}
+              onClick={() => { setAiOn((v) => !v); setAiTool("point"); setDrawPoints([]); setAnalyzedArea(null); }}
               className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
                 aiOn
                   ? "border-violet-500/50 bg-violet-500/15 text-violet-200"
@@ -1551,7 +1592,7 @@ export function MapView() {
             )}
 
             <button
-              onClick={() => { setAiOn(false); setDrawPoints([]); }}
+              onClick={() => { setAiOn(false); setDrawPoints([]); setAnalyzedArea(null); }}
               className="rounded-full px-2 py-1 text-[11px] text-neutral-400 hover:text-white"
               aria-label="Жабу"
             >

@@ -49,7 +49,19 @@ export default function ComparePage() {
   const [rightErr, setRightErr] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const spot = ATYRAU_SPOTS[spotIdx];
+  // AI талдаудан келген координат (?lat=&lng=) — қосымша нүкте ретінде қосылады
+  const [customSpot, setCustomSpot] = useState<{ label: string; lat: number; lng: number } | null>(null);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const lat = parseFloat(p.get("lat") ?? ""), lng = parseFloat(p.get("lng") ?? "");
+    if (isFinite(lat) && isFinite(lng)) {
+      setCustomSpot({ label: "Таңдалған нүкте (AI талдау)", lat, lng });
+      setSpotIdx(0);
+    }
+  }, []);
+
+  const spots = customSpot ? [customSpot, ...ATYRAU_SPOTS] : ATYRAU_SPOTS;
+  const spot = spots[spotIdx] ?? spots[0];
 
   useEffect(() => { setLeftErr(false); setRightErr(false); }, [spotIdx, leftYear, rightYear]);
 
@@ -94,7 +106,7 @@ export default function ComparePage() {
             onChange={(e) => setSpotIdx(Number(e.target.value))}
             className="w-full rounded-md border border-white/10 bg-white/5 px-2 py-1.5 text-sm text-white focus:outline-none"
           >
-            {ATYRAU_SPOTS.map((s, i) => (
+            {spots.map((s, i) => (
               <option key={i} value={i} className="bg-neutral-900">{s.label}</option>
             ))}
           </select>
