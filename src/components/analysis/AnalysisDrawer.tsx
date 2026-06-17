@@ -35,7 +35,7 @@ export function AnalysisDrawer({
   onClose: () => void;
   onUpdate?: (site: Site) => void;
 }) {
-  const { lang } = useLang();
+  const { lang, tr } = useLang();
   const toggleFlag = useSitesStore((s) => s.toggleFlag);
   const updateSite = useSitesStore((s) => s.updateSite);
   const removeSite = useSitesStore((s) => s.removeSite);
@@ -118,9 +118,9 @@ export function AnalysisDrawer({
       });
       if (!res.ok) throw new Error();
       setSent(true);
-      toast.success("✅ Тиісті органға (модераторға) жіберілді");
+      toast.success(tr("✅ Тиісті органға (модераторға) жіберілді"));
     } catch {
-      toast.error("Жіберу мүмкін болмады (Telegram бапталмаған болуы мүмкін)");
+      toast.error(tr("Жіберу мүмкін болмады (Telegram бапталмаған болуы мүмкін)"));
     } finally {
       setSending(false);
     }
@@ -134,14 +134,14 @@ export function AnalysisDrawer({
       return;
     }
     removeSite(site);
-    toast.success("Нүкте өшірілді");
+    toast.success(tr("Нүкте өшірілді"));
     onClose();
   };
 
   const refresh = async () => {
     if (!site || refreshing) return;
     setRefreshing(true);
-    toast.info("Соңғы спутник деректері бойынша қайта талданып жатыр…");
+    toast.info(tr("Соңғы спутник деректері бойынша қайта талданып жатыр…"));
     try {
       const res = await fetch("/api/analyze", {
         method: "POST",
@@ -166,9 +166,9 @@ export function AnalysisDrawer({
       };
       updateSite(updated);
       onUpdate?.(updated);
-      toast.success("Деректер жаңартылды!");
+      toast.success(tr("Деректер жаңартылды!"));
     } catch {
-      toast.error("Жаңарту сәтсіз аяқталды. Қайталап көріңіз.");
+      toast.error(tr("Жаңарту сәтсіз аяқталды. Қайталап көріңіз."));
     } finally {
       setRefreshing(false);
     }
@@ -187,7 +187,7 @@ export function AnalysisDrawer({
           <div className="flex items-start justify-between p-4">
             <div>
               <h2 className="flex items-center gap-2 font-semibold text-white">
-                {site.areaKm2 ? "Талданған аумақ" : site.name ?? "Талданған нүкте"}
+                {site.areaKm2 ? tr("Талданған аумақ") : site.name ?? tr("Талданған нүкте")}
                 {site.imageryYear && (
                   <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-normal text-amber-300">
                     {site.imageryYear} жыл
@@ -203,7 +203,7 @@ export function AnalysisDrawer({
                 {site.district} · {site.lat.toFixed(4)}, {site.lng.toFixed(4)}
               </p>
               <p className="text-[10px] text-neutral-500">
-                Соңғы талдау: {new Date(site.createdAt).toLocaleString("kk-KZ")}
+                {tr("Соңғы талдау")}: {new Date(site.createdAt).toLocaleString("kk-KZ")}
               </p>
             </div>
             <div className="flex items-center gap-1">
@@ -221,7 +221,7 @@ export function AnalysisDrawer({
               <button
                 onClick={refresh}
                 disabled={refreshing}
-                title="Соңғы деректермен жаңарту"
+                title={tr("Соңғы деректермен жаңарту")}
                 className="rounded-md p-1.5 text-neutral-400 transition-colors hover:bg-emerald-500/15 hover:text-emerald-300 disabled:opacity-50"
               >
                 <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
@@ -236,17 +236,17 @@ export function AnalysisDrawer({
           {site.photoThumb && (
             <div
               role="button"
-              onClick={() => setLightbox({ url: site.photoThumb!, label: "📸 Азамат фотосы" })}
+              onClick={() => setLightbox({ url: site.photoThumb!, label: `📸 ${tr("Азамат фотосы")}` })}
               className="group relative mx-4 shrink-0 cursor-pointer overflow-hidden rounded-lg border border-white/10"
               style={{ aspectRatio: "16 / 9" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={site.photoThumb} alt="Азамат фотосы" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={site.photoThumb} alt={tr("Азамат фотосы")} className="absolute inset-0 h-full w-full object-cover" />
               <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
-                📸 Азамат фотосы
+                📸 {tr("Азамат фотосы")}
               </span>
               <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
-                <Maximize2 className="h-3 w-3" /> Үлкейту
+                <Maximize2 className="h-3 w-3" /> {tr("Үлкейту")}
               </span>
             </div>
           )}
@@ -256,19 +256,19 @@ export function AnalysisDrawer({
               onClick={() =>
                 setLightbox({
                   url: site.imageUrl!,
-                  label: site.imageryYear ? `🛰 Sentinel-2, ${site.imageryYear} жыл` : "🛰 Спутник көрінісі",
+                  label: site.imageryYear ? `🛰 Sentinel-2, ${site.imageryYear} ${tr("жыл")}` : `🛰 ${tr("Спутник көрінісі")}`,
                 })
               }
               className={`group relative mx-4 shrink-0 ${site.photoThumb ? "mt-2" : ""} cursor-pointer overflow-hidden rounded-lg border border-white/10`}
               style={{ aspectRatio: "16 / 9" }}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={site.imageUrl} alt="Спутник суреті" className="absolute inset-0 h-full w-full object-cover" />
+              <img src={site.imageUrl} alt={tr("Спутник суреті")} className="absolute inset-0 h-full w-full object-cover" />
               <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
-                🛰 {site.imageryYear ? `Sentinel-2, ${site.imageryYear} жыл` : "Спутник көрінісі (қазіргі)"}
+                🛰 {site.imageryYear ? `Sentinel-2, ${site.imageryYear} ${tr("жыл")}` : tr("Спутник көрінісі (қазіргі)")}
               </span>
               <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
-                <Maximize2 className="h-3 w-3" /> Үлкейту
+                <Maximize2 className="h-3 w-3" /> {tr("Үлкейту")}
               </span>
             </div>
           )}
@@ -279,21 +279,21 @@ export function AnalysisDrawer({
               <Badge
                 style={{ backgroundColor: `${RISK_COLORS[site.analysis.riskLevel]}22`, color: RISK_COLORS[site.analysis.riskLevel] }}
               >
-                {RISK_LABELS_KZ[site.analysis.riskLevel]} тәуекел
+                {tr(RISK_LABELS_KZ[site.analysis.riskLevel])} {tr("тәуекел")}
               </Badge>
-              <p className="text-xs text-neutral-400">Сенімділік: {site.analysis.confidence}%</p>
+              <p className="text-xs text-neutral-400">{tr("Сенімділік")}: {site.analysis.confidence}%</p>
               {site.analysis.verificationStatus && (() => {
                 const v = verificationUi[site.analysis.verificationStatus];
                 const Icon = v.icon;
                 return (
                   <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${v.cls}`}>
-                    <Icon className="h-3.5 w-3.5" /> {v.label}
+                    <Icon className="h-3.5 w-3.5" /> {tr(v.label)}
                   </span>
                 );
               })()}
               <div className="flex items-center gap-1.5 text-xs text-neutral-300">
                 <Bug className="h-3.5 w-3.5 text-purple-400" />
-                Маса индексі: <b>{site.mosquitoRiskIndex}</b>/100
+                {tr("Маса индексі")}: <b>{site.mosquitoRiskIndex}</b>/100
               </div>
             </div>
           </div>
@@ -302,14 +302,14 @@ export function AnalysisDrawer({
 
           <div className="space-y-3 p-4">
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <Indicator on={site.analysis.oilPollution} label="🛢 Мұнай ластануы" />
-              <Indicator on={site.analysis.illegalDumping} label="🗑 Заңсыз қоқыс" />
-              <Indicator on={site.analysis.landDegradation} label="🏜 Жер деградациясы" />
-              <Indicator on={site.analysis.standingWater} label="💧 Тұрған су" />
+              <Indicator on={site.analysis.oilPollution} label={tr("🛢 Мұнай ластануы")} />
+              <Indicator on={site.analysis.illegalDumping} label={tr("🗑 Заңсыз қоқыс")} />
+              <Indicator on={site.analysis.landDegradation} label={tr("🏜 Жер деградациясы")} />
+              <Indicator on={site.analysis.standingWater} label={tr("💧 Тұрған су")} />
             </div>
 
             <div>
-              <h3 className="mb-1.5 text-sm font-medium text-white">Анықталған белгілер</h3>
+              <h3 className="mb-1.5 text-sm font-medium text-white">{tr("Анықталған белгілер")}</h3>
               <ul className="space-y-1">
                 {site.analysis.detectedFeatures.map((f, i) => (
                   <li key={i} className="flex gap-2 text-xs text-neutral-300">
@@ -322,26 +322,26 @@ export function AnalysisDrawer({
             {/* 🛰 ML спектрлік талдау (Sentinel-2, нақты есептелген) */}
             <div className="rounded-lg border border-sky-500/25 bg-sky-500/5 p-3">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-sky-300">
-                🛰 ML спектрлік талдау
-                <span className="rounded bg-sky-500/15 px-1 py-px text-[8px] uppercase text-sky-300">Sentinel-2 · 10м</span>
+                🛰 {tr("ML спектрлік талдау")}
+                <span className="rounded bg-sky-500/15 px-1 py-px text-[8px] uppercase text-sky-300">{tr("Sentinel-2 · 10м")}</span>
               </h3>
               {indicesState === "loading" ? (
-                <p className="text-[11px] text-neutral-500">Спутник деректері есептелуде…</p>
+                <p className="text-[11px] text-neutral-500">{tr("Спутник деректері есептелуде…")}</p>
               ) : indices ? (
                 <>
                   <div className="grid grid-cols-2 gap-2">
-                    <MlBar label="NDVI · өсімдік" value={indices.ndvi} min={-0.2} max={0.9} color="#22c55e" note={indices.interpretation.veg} />
-                    <MlBar label="NDWI · су" value={indices.ndwi} min={-0.5} max={0.6} color="#38bdf8" note={indices.interpretation.water} />
-                    <MlBar label="NDMI · ылғал" value={indices.ndmi} min={-0.5} max={0.6} color="#06b6d4" note={indices.interpretation.moist} />
-                    <MlBar label="NDBI · құрылыс" value={indices.ndbi} min={-0.4} max={0.5} color="#f97316" note={indices.interpretation.built} />
+                    <MlBar label={tr("NDVI · өсімдік")} value={indices.ndvi} min={-0.2} max={0.9} color="#22c55e" note={indices.interpretation.veg} />
+                    <MlBar label={tr("NDWI · су")} value={indices.ndwi} min={-0.5} max={0.6} color="#38bdf8" note={indices.interpretation.water} />
+                    <MlBar label={tr("NDMI · ылғал")} value={indices.ndmi} min={-0.5} max={0.6} color="#06b6d4" note={indices.interpretation.moist} />
+                    <MlBar label={tr("NDBI · құрылыс")} value={indices.ndbi} min={-0.4} max={0.5} color="#f97316" note={indices.interpretation.built} />
                   </div>
                   <p className="mt-2 text-[9px] text-neutral-500">
-                    {indices.source} · {indices.from} — {indices.to} (соңғы бұлтсыз кадр)
+                    {indices.source} · {indices.from} — {indices.to} ({tr("соңғы бұлтсыз кадр")})
                   </p>
                 </>
               ) : (
                 <p className="text-[11px] text-neutral-500">
-                  Спектрлік талдау қолжетімсіз (бұлт болуы мүмкін) — жалған дерек көрсетілмейді.
+                  {tr("Спектрлік талдау қолжетімсіз (бұлт болуы мүмкін) — жалған дерек көрсетілмейді.")}
                 </p>
               )}
             </div>
@@ -349,7 +349,7 @@ export function AnalysisDrawer({
             {/* 🤖 LLM Vision (GPT-4o) — табиғи тілдегі пайымдау */}
             <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-violet-300">
-                🤖 LLM Vision талдауы
+                🤖 {tr("LLM Vision талдауы")}
                 <span className="rounded bg-violet-500/15 px-1 py-px text-[8px] uppercase text-violet-300">GPT-4o</span>
               </h3>
               <p className="text-xs text-neutral-300">{site.analysis.summary}</p>
@@ -358,10 +358,10 @@ export function AnalysisDrawer({
             {site.analysis.isAgent && site.analysis.agentSources && (
               <div className="space-y-2 rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-violet-300">
-                  <Sparkles className="h-3.5 w-3.5" /> AI агент — көп дереккөзді талдау
+                  <Sparkles className="h-3.5 w-3.5" /> {tr("AI агент — көп дереккөзді талдау")}
                 </h3>
                 <p className="text-[11px] text-neutral-400">
-                  Тек спутникке емес, тірі ресми деректерге де сүйенді:
+                  {tr("Тек спутникке емес, тірі ресми деректерге де сүйенді:")}
                 </p>
                 {site.analysis.agentSources.map((s, i) => (
                   <div key={i} className="rounded-md bg-neutral-900/60 p-2 text-[11px]">
@@ -375,22 +375,22 @@ export function AnalysisDrawer({
             {site.analysis.science && (
               <div className="space-y-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200">
-                  🔬 Ғылыми сараптама
+                  🔬 {tr("Ғылыми сараптама")}
                   <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-normal text-violet-300">
-                    GPT-4o пайымдауы
+                    {tr("GPT-4o пайымдауы")}
                   </span>
                 </h3>
                 {/* Спектрлік индекстер жоғарыдағы «ML спектрлік талдауда» (нақты Sentinel-2) */}
 
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   <div className="rounded bg-white/5 p-2">
-                    <div className="text-neutral-500">Ластанған аумақ</div>
+                    <div className="text-neutral-500">{tr("Ластанған аумақ")}</div>
                     <div className="font-semibold text-white">
                       ≈ {site.analysis.science.areaM2.toLocaleString("kk-KZ")} м²
                     </div>
                   </div>
                   <div className="rounded bg-white/5 p-2">
-                    <div className="text-neutral-500">Жақын инфрақұрылым</div>
+                    <div className="text-neutral-500">{tr("Жақын инфрақұрылым")}</div>
                     <div className="text-neutral-300">
                       {site.analysis.science.nearbyInfrastructure.join(", ") || "—"}
                     </div>
@@ -398,27 +398,27 @@ export function AnalysisDrawer({
                 </div>
 
                 <div className="text-[11px] text-neutral-400">
-                  <b className="text-neutral-300">Динамика:</b> {site.analysis.science.changeDynamics}
+                  <b className="text-neutral-300">{tr("Динамика:")}</b> {site.analysis.science.changeDynamics}
                 </div>
                 <div className="text-[11px] text-neutral-400">
-                  <b className="text-neutral-300">Текстура:</b> {site.analysis.science.textureNote}
+                  <b className="text-neutral-300">{tr("Текстура:")}</b> {site.analysis.science.textureNote}
                 </div>
 
                 {/* Evidence-based reasoning */}
                 {site.analysis.science.evidence.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-[11px] font-semibold text-white">Себеп-салдар талдауы</h4>
+                    <h4 className="text-[11px] font-semibold text-white">{tr("Себеп-салдар талдауы")}</h4>
                     {site.analysis.science.evidence.map((e, i) => (
                       <div key={i} className="rounded-md border border-white/10 bg-neutral-900/60 p-2.5 text-[11px]">
                         <div className="flex items-center justify-between">
                           <b className="text-white">⚠ {e.sign}</b>
-                          <span className="text-neutral-500">сенімділік {e.confidence}%</span>
+                          <span className="text-neutral-500">{tr("сенімділік")} {e.confidence}%</span>
                         </div>
                         <div className="mt-1 text-neutral-300">
-                          <span className="text-sky-400">Дәлел:</span> {e.evidence}
+                          <span className="text-sky-400">{tr("Дәлел:")}</span> {e.evidence}
                         </div>
                         <div className="mt-0.5 text-neutral-300">
-                          <span className="text-orange-400">Болжам:</span> {e.prediction}
+                          <span className="text-orange-400">{tr("Болжам:")}</span> {e.prediction}
                         </div>
                       </div>
                     ))}
@@ -429,14 +429,14 @@ export function AnalysisDrawer({
 
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-300">
-                🎯 Деректерге негізделген ұсыныс
+                🎯 {tr("Деректерге негізделген ұсыныс")}
                 <span className="rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                   ML + AI
                 </span>
               </h3>
               {recsState === "loading" ? (
                 <p className="flex items-center gap-1.5 text-[11px] text-neutral-500">
-                  <RefreshCw className="h-3 w-3 animate-spin" /> Талдау деректеріне сай ұсыныс дайындалуда…
+                  <RefreshCw className="h-3 w-3 animate-spin" /> {tr("Талдау деректеріне сай ұсыныс дайындалуда…")}
                 </p>
               ) : recs && recs.length > 0 ? (
                 <ol className="space-y-1.5">
@@ -468,7 +468,7 @@ export function AnalysisDrawer({
                 disabled={sending || sent}
               >
                 <Send className="mr-1.5 h-3.5 w-3.5" />
-                {sent ? "Жіберілді ✓" : sending ? "Жіберілуде…" : "Тиісті органға жіберу"}
+                {sent ? tr("Жіберілді ✓") : sending ? tr("Жіберілуде…") : tr("Тиісті органға жіберу")}
               </Button>
 
               <div className="grid grid-cols-2 gap-2">
@@ -478,10 +478,10 @@ export function AnalysisDrawer({
                   onClick={() => toggleFlag(site.id)}
                 >
                   <Flag className="mr-1 h-3.5 w-3.5" />
-                  {site.flagged ? "Белгіленген" : "Белгілеу"}
+                  {site.flagged ? tr("Белгіленген") : tr("Белгілеу")}
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => window.print()}>
-                  PDF экспорт
+                  {tr("PDF экспорт")}
                 </Button>
                 <a
                   href={`https://maps.google.com/?q=${site.lat},${site.lng}`}
@@ -495,7 +495,7 @@ export function AnalysisDrawer({
                   href={`/compare?lat=${site.lat.toFixed(4)}&lng=${site.lng.toFixed(4)}`}
                   className="inline-flex items-center justify-center gap-1 rounded-md border border-white/15 px-2.5 py-1.5 text-xs text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
                 >
-                  <History className="h-3.5 w-3.5" /> Тарихи салыстыру
+                  <History className="h-3.5 w-3.5" /> {tr("Тарихи салыстыру")}
                 </a>
               </div>
             </div>
@@ -525,7 +525,7 @@ export function AnalysisDrawer({
             onClick={(e) => e.stopPropagation()}
             className="max-h-[80vh] max-w-4xl rounded-lg object-contain shadow-2xl"
           />
-          <p className="mt-3 text-xs text-neutral-500">Жабу үшін кез келген жерді басыңыз</p>
+          <p className="mt-3 text-xs text-neutral-500">{tr("Жабу үшін кез келген жерді басыңыз")}</p>
         </motion.div>
       )}
     </AnimatePresence>
