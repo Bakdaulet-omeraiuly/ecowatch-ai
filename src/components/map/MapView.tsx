@@ -971,7 +971,7 @@ export function MapView() {
             </div>
             {droughtError ? (
               <p className="text-[11px] text-neutral-400">
-                Архив деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.
+                {tr("Архив деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
               </p>
             ) : !droughtData ? (
               <p className="text-[11px] text-neutral-500">{tr("Жүктелуде…")}</p>
@@ -998,11 +998,11 @@ export function MapView() {
                   />
                 </div>
                 <div className="mt-1 flex justify-between text-[8px] text-neutral-500">
-                  <span>Құрғақ</span><span>Қалыпты</span><span>Ылғалды</span>
+                  <span>{tr("Құрғақ")}</span><span>{tr("Қалыпты")}</span><span>{tr("Ылғалды")}</span>
                 </div>
                 <div className="mt-2 rounded bg-white/5 p-1.5 text-center">
                   <div className="text-sm font-bold text-white">{droughtData.precip3m} мм</div>
-                  <div className="text-[9px] text-neutral-500">3-айлық жауын ({droughtData.period})</div>
+                  <div className="text-[9px] text-neutral-500">{tr("3-айлық жауын")} ({droughtData.period})</div>
                 </div>
                 <p className="mt-2 text-[9px] leading-snug text-neutral-500">
                   McKee 1993 (WMO) · Open-Meteo ERA5 архиві, {droughtData.yearsOfRecord} жылдық климатология.
@@ -1050,7 +1050,7 @@ export function MapView() {
                   <div className="mt-2 rounded-lg bg-purple-500/10 p-2">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[10px] font-semibold text-purple-200">
-                        {mosDay === 0 ? "Бүгін" : `+${mosDay} күн`} ·{" "}
+                        {mosDay === 0 ? tr("Бүгін") : `+${mosDay} ${tr("күн")}`} ·{" "}
                         {mosDays[mosDay]?.date?.slice(5) ?? ""}
                       </span>
                       <button
@@ -1112,12 +1112,12 @@ export function MapView() {
             ) : !flares ? (
               <p className="text-[11px] text-neutral-500">{tr("Жүктелуде…")}</p>
             ) : flares.length === 0 ? (
-              <p className="text-[11px] text-neutral-400">Соңғы 2 күнде жану нүктесі анықталмады.</p>
+              <p className="text-[11px] text-neutral-400">{tr("Соңғы 2 күнде жану нүктесі анықталмады.")}</p>
             ) : (
               <>
                 <div className="rounded-lg bg-orange-500/10 p-2 text-center">
                   <div className="text-2xl font-bold text-orange-300">{flares.length}</div>
-                  <div className="text-[10px] text-neutral-400">анықталған жану нүктесі (2 күн)</div>
+                  <div className="text-[10px] text-neutral-400">{tr("анықталған жану нүктесі (2 күн)")}</div>
                 </div>
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері
@@ -1141,22 +1141,22 @@ export function MapView() {
               const fromCitizens = wasteSites.filter((s) => s.photoThumb).length;
               return wasteSites.length === 0 ? (
                 <p className="text-[11px] text-neutral-400">
-                  Әзірге қоқыс нүктесі жоқ. Картаны басып AI талдаңыз немесе фото-хабарлама жіберіңіз.
+                  {tr("Әзірге қоқыс нүктесі жоқ. Картаны басып AI талдаңыз немесе фото-хабарлама жіберіңіз.")}
                 </p>
               ) : (
                 <>
                   <div className="grid grid-cols-3 gap-1 text-center">
                     <div className="rounded bg-white/5 p-1.5">
                       <div className="text-sm font-bold text-white">{wasteSites.length}</div>
-                      <div className="text-[9px] text-neutral-500">барлығы</div>
+                      <div className="text-[9px] text-neutral-500">{tr("барлығы")}</div>
                     </div>
                     <div className="rounded bg-white/5 p-1.5">
                       <div className="text-sm font-bold text-emerald-300">{confirmed}</div>
-                      <div className="text-[9px] text-neutral-500">расталған</div>
+                      <div className="text-[9px] text-neutral-500">{tr("расталған")}</div>
                     </div>
                     <div className="rounded bg-white/5 p-1.5">
                       <div className="text-sm font-bold text-pink-300">{fromCitizens}</div>
-                      <div className="text-[9px] text-neutral-500">азаматтан</div>
+                      <div className="text-[9px] text-neutral-500">{tr("азаматтан")}</div>
                     </div>
                   </div>
                   <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
@@ -1190,7 +1190,7 @@ export function MapView() {
                 <div className="grid grid-cols-2 gap-1.5">
                   <div className="rounded-lg bg-white/5 p-2 text-center">
                     <div className="text-lg font-bold text-sky-300">{soilMeta.avgMoisture}</div>
-                    <div className="text-[9px] text-neutral-400">орташа ылғал м³/м³</div>
+                    <div className="text-[9px] text-neutral-400">{tr("орташа ылғал м³/м³")}</div>
                   </div>
                   <div className="rounded-lg bg-white/5 p-2 text-center">
                     <div
@@ -1198,7 +1198,7 @@ export function MapView() {
                     >
                       {soilMeta.avgStress}
                     </div>
-                    <div className="text-[9px] text-neutral-400">деградация стрессі</div>
+                    <div className="text-[9px] text-neutral-400">{tr("деградация стрессі")}</div>
                   </div>
                 </div>
                 <p className="mt-2 text-[9px] leading-snug text-neutral-500">
@@ -1222,7 +1222,7 @@ export function MapView() {
             ) : !flood ? (
               <p className="text-[11px] text-neutral-500">{tr("Жүктелуде…")}</p>
             ) : flood.length === 0 ? (
-              <p className="text-[11px] text-neutral-400">Өзен деректері қолжетімсіз.</p>
+              <p className="text-[11px] text-neutral-400">{tr("Өзен деректері қолжетімсіз.")}</p>
             ) : (
               <>
                 {(() => {
@@ -1267,7 +1267,7 @@ export function MapView() {
         {activeLayer === "air" && (
           <div className="w-52 rounded-lg border border-sky-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-sky-300">
-              <Radio className="h-3 w-3 animate-pulse" /> Ауа сапасы — тірі
+              <Radio className="h-3 w-3 animate-pulse" /> {tr("Ауа сапасы — тірі")}
             </div>
             {airError ? (
               <p className="text-[11px] text-neutral-400">{tr("Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}</p>
@@ -1290,7 +1290,7 @@ export function MapView() {
                         <div className="text-[11px] font-semibold" style={{ color: cat.color }}>
                           {cat.name}
                         </div>
-                        <div className="text-[9px] text-neutral-400">облыс бойынша орташа EU AQI</div>
+                        <div className="text-[9px] text-neutral-400">{tr("облыс бойынша орташа EU AQI")}</div>
                       </div>
 
                       {/* Color scale bar */}
@@ -1308,11 +1308,11 @@ export function MapView() {
                       {/* Health advice */}
                       <div className="rounded-lg bg-white/5 p-2 text-[10px] leading-snug text-neutral-300">
                         <div className="mb-1 font-semibold" style={{ color: cat.color }}>
-                          🩺 Денсаулық кеңесі
+                          {tr("🩺 Денсаулық кеңесі")}
                         </div>
                         <p>{cat.advice}</p>
                         <p className="mt-1 text-neutral-400">
-                          <b>Сезімтал топтар:</b> {cat.sensitiveAdvice}
+                          <b>{tr("Сезімтал топтар:")}</b> {cat.sensitiveAdvice}
                         </p>
                       </div>
 
@@ -1327,7 +1327,7 @@ export function MapView() {
                 {/* Dominant pollutant + source */}
                 {airDominant && (
                   <div className="mt-2 rounded-lg bg-white/5 p-2 text-[10px]">
-                    <div className="font-semibold text-sky-300">Басты ластаушы</div>
+                    <div className="font-semibold text-sky-300">{tr("Басты ластаушы")}</div>
                     <div className="text-white">
                       {airDominant.label} · {airDominant.value.toFixed(1)} µg/m³
                     </div>
@@ -1340,7 +1340,7 @@ export function MapView() {
                   <div className="mt-2 rounded-lg bg-sky-500/10 p-2">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[10px] font-semibold text-sky-200">
-                        {airHour === 0 ? "Қазір" : `+${airHour} сағ`} ·{" "}
+                        {airHour === 0 ? tr("Қазір") : `+${airHour} ${tr("сағ")}`} ·{" "}
                         {airHours[airHour]?.time?.slice(11, 16) ?? ""}
                       </span>
                       <button
@@ -1363,14 +1363,14 @@ export function MapView() {
                       }}
                       className="w-full accent-sky-400"
                     />
-                    <p className="mt-0.5 text-[9px] text-neutral-500">Алдағы 24 сағат — нақты CAMS болжамы</p>
+                    <p className="mt-0.5 text-[9px] text-neutral-500">{tr("Алдағы 24 сағат — нақты CAMS болжамы")}</p>
                   </div>
                 )}
 
                 {/* City districts ranking */}
                 {airStats?.districts && airStats.districts.length > 0 && (
                   <div className="mt-2 rounded-lg bg-white/5 p-2">
-                    <div className="mb-1 text-[10px] font-semibold text-sky-300">Қала аудандары</div>
+                    <div className="mb-1 text-[10px] font-semibold text-sky-300">{tr("Қала аудандары")}</div>
                     <div className="space-y-0.5">
                       {airStats.districts.map((dd) => {
                         const c = aqiCategory(dd.aqi);
@@ -1411,7 +1411,7 @@ export function MapView() {
         {addOpen && (
           <div className="w-48 rounded-lg border border-emerald-500/30 bg-neutral-900/95 p-2.5 backdrop-blur">
             <div className="mb-1.5 text-[10px] uppercase tracking-wide text-neutral-500">
-              Координат бойынша
+              {tr("Координат бойынша")}
             </div>
             <input
               value={addLat}
@@ -1431,7 +1431,7 @@ export function MapView() {
               disabled={analyzing}
               className="w-full rounded-md bg-emerald-600 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
             >
-              Талдау жасау
+              {tr("Талдау жасау")}
             </button>
           </div>
         )}
@@ -1458,7 +1458,7 @@ export function MapView() {
           <div className="mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <History className="h-3.5 w-3.5" />
-              Атыраудың нақты спутник тарихы (2000–2025)
+              {tr("Атыраудың нақты спутник тарихы (2000–2025)")}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -1469,7 +1469,7 @@ export function MapView() {
                 className="flex items-center gap-1 rounded bg-amber-500/25 px-2 py-1 text-[11px] text-amber-200 hover:bg-amber-500/40"
               >
                 {timelapsePlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                {timelapsePlaying ? "Тоқтату" : "Тайм-лапс"}
+                {timelapsePlaying ? tr("Тоқтату") : tr("Тайм-лапс")}
               </button>
               <button onClick={() => { setHistoryMode(false); setTimelapsePlaying(false); }} className="text-neutral-500 hover:text-white">
                 <X className="h-4 w-4" />
@@ -1487,14 +1487,14 @@ export function MapView() {
               className="flex-1 accent-amber-400"
             />
             <span className="w-16 text-right text-lg font-bold text-amber-300">
-              {year ?? "Қазір"}
+              {year ?? tr("Қазір")}
             </span>
           </div>
           <div className="mt-1 flex justify-between text-[10px] text-neutral-500">
             {HISTORY_YEARS.map((y) => (
               <span key={y}>{String(y).slice(2)}</span>
             ))}
-            <span>Қазір</span>
+            <span>{tr("Қазір")}</span>
           </div>
           <p className="mt-2 text-[11px] text-neutral-400">
             {year
@@ -1513,7 +1513,7 @@ export function MapView() {
           onClick={() =>
             mapRef.current?.flyTo({ center: [51.8833, 47.1167], zoom: 12.5, duration: 1400 })
           }
-          title="Атырау қаласына жақындау"
+          title={tr("Атырау қаласына жақындау")}
           className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-neutral-900/95 text-neutral-300 shadow-xl backdrop-blur transition-colors hover:bg-neutral-800 hover:text-white"
         >
           <Locate className="h-5 w-5" />
@@ -1521,7 +1521,7 @@ export function MapView() {
         <div className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-neutral-900/95 shadow-xl backdrop-blur">
           <button
             onClick={() => mapRef.current?.zoomIn({ duration: 300 })}
-            title="Жақындату"
+            title={tr("Жақындату")}
             className="flex h-11 w-11 items-center justify-center text-neutral-200 transition-colors hover:bg-white/10 hover:text-white active:bg-white/20"
           >
             <Plus className="h-5 w-5" />
@@ -1529,7 +1529,7 @@ export function MapView() {
           <div className="mx-2 h-px bg-white/10" />
           <button
             onClick={() => mapRef.current?.zoomOut({ duration: 300 })}
-            title="Алыстату"
+            title={tr("Алыстату")}
             className="flex h-11 w-11 items-center justify-center text-neutral-200 transition-colors hover:bg-white/10 hover:text-white active:bg-white/20"
           >
             <Minus className="h-5 w-5" />
@@ -1541,7 +1541,7 @@ export function MapView() {
       <div className="pointer-events-none absolute bottom-6 left-1/2 -translate-x-1/2">
         {analyzing ? (
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-neutral-900/90 px-4 py-2 text-sm text-emerald-300 backdrop-blur">
-            <Loader2 className="h-4 w-4 animate-spin" /> AI талдап жатыр…
+            <Loader2 className="h-4 w-4 animate-spin" /> {tr("AI талдап жатыр…")}
           </div>
         ) : aiOn ? (
           <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-violet-500/40 bg-neutral-900/95 px-3 py-2 text-xs text-violet-100 backdrop-blur">
@@ -1586,7 +1586,7 @@ export function MapView() {
             <button
               onClick={() => { setAiOn(false); setDrawPoints([]); setAnalyzedArea(null); }}
               className="rounded-full px-2 py-1 text-[11px] text-neutral-400 hover:text-white"
-              aria-label="Жабу"
+              aria-label={tr("Жабу")}
             >
               ✕
             </button>
