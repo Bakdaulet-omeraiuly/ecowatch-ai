@@ -7,7 +7,7 @@ export interface SatLayer {
   key: string;
   labelKz: string;
   descKz: string;
-  source: "eox" | "gibs" | "sentinel";
+  source: "eox" | "gibs" | "sentinel" | "sentinel1";
   layer: string;
   matrix?: string;
   ext: "jpg" | "png";
@@ -18,6 +18,7 @@ export interface SatLayer {
 }
 
 const SH_INSTANCE = process.env.NEXT_PUBLIC_SENTINELHUB_INSTANCE_ID;
+const S1_INSTANCE = process.env.NEXT_PUBLIC_SENTINELHUB_S1_INSTANCE_ID;
 
 // ── Sentinel-2 (Copernicus, 10 м) — 8 спектрлік қабат ───────────────────
 const SENTINEL_LAYERS: SatLayer[] = [
@@ -60,9 +61,25 @@ const GIBS_FALLBACK: SatLayer[] = [
     ext: "png", maxzoom: 8, tileSize: 256, cadence: "static", opacity: 1 },
 ];
 
+// ── Sentinel-1 (радар) — бұлт/түн кедергі емес, мұнай/тасқынды көреді ────
+const RADAR_LAYERS: SatLayer[] = [
+  { key: "radar_vv", labelKz: "Су / мұнай (VV)", descKz: "Sentinel-1 VV радары — су бетіндегі мұнай, тасқын (қара = тегіс су)",
+    source: "sentinel1", layer: "IW_VV_DB", ext: "png", maxzoom: 15, tileSize: 512, opacity: 1 },
+  { key: "radar_vh", labelKz: "Өсімдік / құрылым (VH)", descKz: "Sentinel-1 VH радары — өсімдік, құрылыс, рельеф",
+    source: "sentinel1", layer: "IW-VH-DB", ext: "png", maxzoom: 15, tileSize: 512, opacity: 1 },
+];
+
 // Instance ID болса — Sentinel-2 (жоғары сапа), болмаса — GIBS
 export const GIBS_LAYERS: SatLayer[] = SH_INSTANCE ? SENTINEL_LAYERS : GIBS_FALLBACK;
 export const SAT_PROVIDER = SH_INSTANCE ? "Sentinel-2 · 10 м" : "NASA GIBS";
+
+// Радар қабаттары (S1 кілті болса ғана)
+export const RADAR_SAT_LAYERS: SatLayer[] = S1_INSTANCE ? RADAR_LAYERS : [];
+
+// Кез келген қабатты key бойынша табу (оптика + радар)
+export function findSatLayer(key: string): SatLayer | undefined {
+  return [...GIBS_LAYERS, ...RADAR_SAT_LAYERS].find((l) => l.key === key);
+}
 
 function isoAgo(days: number): string {
   return new Date(Date.now() - days * 86400_000).toISOString().slice(0, 10);
@@ -87,6 +104,15 @@ export function gibsTiles(def: SatLayer): string[] {
       `https://sh.dataspace.copernicus.eu/ogc/wms/${SH_INSTANCE}?SERVICE=WMS&REQUEST=GetMap` +
         `&VERSION=1.1.1&LAYERS=${def.layer}&BBOX={bbox-epsg-3857}&SRS=EPSG:3857` +
         `&WIDTH=512&HEIGHT=512&FORMAT=image/png&TIME=${time}&MAXCC=40&PRIORITY=mostRecent`,
+    ];
+  }
+  if (def.source === "sentinel1") {
+    // Радар — соңғы 30 күн (бұлт кедергі емес)
+    const time = `${isoAgo(30)}/${isoAgo(0)}`;
+    return [
+      `https://sh.dataspace.copernicus.eu/ogc/wms/${S1_INSTANCE}?SERVICE=WMS&REQUEST=GetMap` +
+        `&VERSION=1.1.1&LAYERS=${def.layer}&BBOX={bbox-epsg-3857}&SRS=EPSG:3857` +
+        `&WIDTH=512&HEIGHT=512&FORMAT=image/png&TIME=${time}&PRIORITY=mostRecent`,
     ];
   }
   if (def.source === "eox") {
