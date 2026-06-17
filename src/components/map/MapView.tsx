@@ -12,6 +12,7 @@ import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
+import { GIBS_LAYERS, gibsTiles, SAT_PROVIDER } from "@/data/gibsLayers";
 
 // Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
 // All imagery is real, no simulation:
@@ -197,6 +198,8 @@ export function MapView() {
   const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
   const [timelapsePlaying, setTimelapsePlaying] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true); // эко қабаттар панелі (мобильде жинауға болады)
+  const [gibsKey, setGibsKey] = useState<string | null>(null); // NASA GIBS спутник қабаты
+  const [gibsPanelOpen, setGibsPanelOpen] = useState(true); // оң жақ спутник панелі
   const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
   const [mosPlaying, setMosPlaying] = useState(false);
 
@@ -479,6 +482,29 @@ export function MapView() {
             <Layer id="hist-imagery-layer" type="raster" paint={{ "raster-opacity": 1 }} />
           </Source>
         )}
+        {/* NASA GIBS спутник қабаты (нақты MODIS/VIIRS тайлдары) */}
+        {gibsKey && (() => {
+          const def = GIBS_LAYERS.find((g) => g.key === gibsKey);
+          if (!def) return null;
+          return (
+            <Source
+              key={`gibs-${def.key}`}
+              id="gibs-layer"
+              type="raster"
+              tiles={gibsTiles(def)}
+              tileSize={def.tileSize}
+              maxzoom={def.maxzoom}
+              attribution={def.source === "sentinel" ? "Sentinel-2 · Copernicus / Sentinel Hub" : "NASA GIBS / EOSDIS"}
+            >
+              <Layer
+                id="gibs-raster"
+                type="raster"
+                paint={{ "raster-opacity": def.opacity, "raster-resampling": "linear", "raster-fade-duration": 300 }}
+              />
+            </Source>
+          );
+        })()}
+
         {heatmapData && layerDef && (
           <Source id="eco-layer" type="geojson" data={heatmapData}>
             <Layer
@@ -614,6 +640,53 @@ export function MapView() {
             </Marker>
           ))}
       </Map>
+
+      {/* Оң жақ — NASA спутник қабаттары панелі */}
+      {gibsPanelOpen ? (
+        <div className="absolute right-4 top-4 z-10 w-52 rounded-lg border border-white/10 bg-neutral-900/90 p-2 backdrop-blur">
+          <div className="mb-1.5 flex items-center justify-between px-1">
+            <span className="text-[10px] uppercase tracking-wide text-neutral-500">Спутник қабаты · {SAT_PROVIDER}</span>
+            <button
+              onClick={() => setGibsPanelOpen(false)}
+              aria-label="Жасыру"
+              className="rounded p-0.5 text-neutral-400 hover:bg-white/10 hover:text-white"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="flex max-h-[calc(100dvh-9rem)] flex-col gap-1 overflow-y-auto pr-0.5">
+            {GIBS_LAYERS.map((g) => (
+              <button
+                key={g.key}
+                onClick={() => setGibsKey((cur) => (cur === g.key ? null : g.key))}
+                title={g.descKz}
+                className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                  gibsKey === g.key
+                    ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-200"
+                    : "border-transparent text-neutral-300 hover:bg-white/5"
+                }`}
+              >
+                <Satellite className="h-3.5 w-3.5 flex-shrink-0" /> <span className="text-left leading-tight">{g.labelKz}</span>
+              </button>
+            ))}
+            {gibsKey && (
+              <button
+                onClick={() => setGibsKey(null)}
+                className="mt-0.5 rounded-md border border-transparent px-2.5 py-1 text-[10px] text-neutral-500 hover:bg-white/5 hover:text-white"
+              >
+                Қабатты өшіру
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setGibsPanelOpen(true)}
+          className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
+        >
+          <Satellite className="h-4 w-4" /> Спутник
+        </button>
+      )}
 
       {/* Жиналған кездегі ашу батырмасы */}
       {!panelOpen && (
