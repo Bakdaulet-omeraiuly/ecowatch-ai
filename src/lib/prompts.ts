@@ -1,6 +1,15 @@
 // All AI prompts in one place. System prompts are static constants; user
 // prompts that need runtime data are exported as builder functions.
 
+// Тіл директивасы — жүйелік промптқа қосылып, AI-дың қай тілде жазатынын
+// басқарады (қазақ — әдепкі).
+export type PromptLang = "kk" | "ru" | "en";
+export function langDirective(lang?: PromptLang): string {
+  if (lang === "ru") return "\n\nВАЖНО: Все текстовые поля (summary, recommendation, detectedFeatures и т.д.) пиши на РУССКОМ языке.";
+  if (lang === "en") return "\n\nIMPORTANT: Write all text fields (summary, recommendation, detectedFeatures, etc.) in ENGLISH.";
+  return "\n\nМАҢЫЗДЫ: Барлық мәтін өрістерін (summary, recommendation, detectedFeatures, т.б.) ҚАЗАҚ тілінде жаз.";
+}
+
 export const ANALYZE_SYSTEM = `Сен Қазақстанның Атырау облысын бақылайтын экологиялық AI мониторинг жүйесісің.
 Бұл — мұнай өндіруші аймақ: Каспий теңізі жағалауы, Жайық (Орал) өзені, Теңіз кен орны, мұнай өңдеу зауыттары.
 Суреттерден мынаны іздейсің: мұнай ластануы (қара/қоңыр дақтар, су түсінің өзгеруі), заңсыз қоқыс

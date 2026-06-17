@@ -5,7 +5,7 @@ import { z } from "zod";
 import OpenAI from "openai";
 import { satelliteImageUrl, historicalImageUrl } from "@/lib/mapbox";
 import { scoreToLevel } from "@/lib/risk";
-import { ANALYZE_SYSTEM, analyzeUserPrompt } from "@/lib/prompts";
+import { ANALYZE_SYSTEM, analyzeUserPrompt, langDirective } from "@/lib/prompts";
 import type { AnalysisResult } from "@/types/site";
 
 const reqSchema = z.object({
@@ -16,6 +16,7 @@ const reqSchema = z.object({
   imageryYear: z.number().int().min(2000).max(2025).nullable().optional(), // imagery year
   zoom: z.number().min(8).max(17).optional(), // таңдалған аумаққа сай масштаб
   areaKm2: z.number().optional(), // сызылған аумақ ауданы (контекст үшін)
+  lang: z.enum(["kk", "ru", "en"]).optional(), // жауап тілі
 });
 
 const evidenceSchema = z.object({
@@ -149,7 +150,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
   }
-  const { mode, lat, lng, photo, imageryYear, zoom, areaKm2 } = parsed.data;
+  const { mode, lat, lng, photo, imageryYear, zoom, areaKm2, lang } = parsed.data;
   const imageUrl = imageryYear
     ? historicalImageUrl(lat, lng, imageryYear)
     : satelliteImageUrl(lat, lng, zoom ?? 15);
@@ -175,7 +176,7 @@ export async function POST(req: Request) {
       max_tokens: 1800,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: ANALYZE_SYSTEM },
+        { role: "system", content: ANALYZE_SYSTEM + langDirective(lang) },
         {
           role: "user",
           content: [

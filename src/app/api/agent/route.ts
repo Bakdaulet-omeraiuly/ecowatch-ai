@@ -7,7 +7,7 @@ import { satelliteImageUrl } from "@/lib/mapbox";
 import { scoreToLevel } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { AnalysisResult } from "@/types/site";
-import { AGENT_SYSTEM } from "@/lib/prompts";
+import { AGENT_SYSTEM, langDirective } from "@/lib/prompts";
 
 // AI Agent: a multi-source assessment. It does NOT rely on satellite imagery
 // alone — it also pulls LIVE official data for the exact point (Copernicus CAMS
@@ -16,6 +16,7 @@ import { AGENT_SYSTEM } from "@/lib/prompts";
 const reqSchema = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),
+  lang: z.enum(["kk", "ru", "en"]).optional(),
 });
 
 async function fetchLive(lat: number, lng: number) {
@@ -105,7 +106,7 @@ export async function POST(req: Request) {
   }
   const parsed = reqSchema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
-  const { lat, lng } = parsed.data;
+  const { lat, lng, lang } = parsed.data;
   const imageUrl = satelliteImageUrl(lat, lng);
   const live = await fetchLive(lat, lng);
   const mri = mosquitoRiskIndex(lat, lng, (live?.weekRainMm ?? 0) > 5);
@@ -124,7 +125,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "system",
-          content: AGENT_SYSTEM,
+          content: AGENT_SYSTEM + langDirective(lang),
         },
         {
           role: "user",

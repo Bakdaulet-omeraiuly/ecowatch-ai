@@ -13,6 +13,7 @@ import { RISK_COLORS } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER } from "@/data/gibsLayers";
+import { useLang } from "@/lib/i18n";
 
 // Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
 // All imagery is real, no simulation:
@@ -84,6 +85,7 @@ function layerWeight(s: Site, layer: LayerKey): number {
 }
 
 export function MapView() {
+  const { lang } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef>(null);
   const userSites = useSitesStore((s) => s.userSites);
@@ -361,7 +363,7 @@ export function MapView() {
           const res = await fetch("/api/agent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ lat, lng }),
+            body: JSON.stringify({ lat, lng, lang }),
           });
           if (!res.ok) throw new Error();
           const data = await res.json();
@@ -392,7 +394,7 @@ export function MapView() {
           const res = await fetch("/api/analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear, zoom: opts?.zoom, areaKm2: opts?.areaKm2 }),
+            body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear, zoom: opts?.zoom, areaKm2: opts?.areaKm2, lang }),
           });
           if (!res.ok) throw new Error("API қатесі");
           const data = await res.json();
@@ -426,7 +428,7 @@ export function MapView() {
         setAnalyzing(false);
       }
     },
-    [analyzing, addSite, viewYear]
+    [analyzing, addSite, viewYear, lang]
   );
 
   const handleClick = useCallback(
