@@ -10,10 +10,12 @@ import { useSitesStore } from "@/store/useSitesStore";
 import { liveStatus, STATUS_UI } from "@/lib/alerts";
 import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
 import type { AlertStatus } from "@/types/site";
+import { useLang } from "@/lib/i18n";
 
 const PIPELINE: AlertStatus[] = ["sent", "acknowledged", "inspecting", "resolved"];
 
 export default function AlertsPage() {
+  const { tr } = useLang();
   const userAlerts = useSitesStore((s) => s.alerts);
   const resolveAlert = useSitesStore((s) => s.resolveAlert);
 
@@ -32,10 +34,10 @@ export default function AlertsPage() {
     <div className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <BellRing className="h-6 w-6 text-red-400" /> Хабарлау орталығы
+          <BellRing className="h-6 w-6 text-red-400" /> {tr("Хабарлау орталығы")}
         </h1>
         <p className="text-sm text-neutral-400">
-          Тәуекелі жоғары нүктелер бойынша жауапты органдарға автоматты жіберілген хабарламалар
+          {tr("Тәуекелі жоғары нүктелер бойынша жауапты органдарға автоматты жіберілген хабарламалар")}
         </p>
       </div>
 
@@ -45,7 +47,7 @@ export default function AlertsPage() {
             <CardContent className="pt-3 pb-3 text-center">
               <div className="text-xl font-bold text-white">{counts[st]}</div>
               <div className={`mx-auto mt-1 w-fit rounded-full px-2 py-0.5 text-[10px] ${STATUS_UI[st].cls}`}>
-                {STATUS_UI[st].label}
+                {tr(STATUS_UI[st].label)}
               </div>
             </CardContent>
           </Card>
@@ -54,8 +56,7 @@ export default function AlertsPage() {
 
       {all.length === 0 && (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] p-10 text-center text-sm text-neutral-400">
-          Әзірге ескертулер жоқ. Картада талдау жасаңыз — тәуекелі жоғары (55+) нүктелер бойынша
-          хабарламалар осында автоматты пайда болады.
+          {tr("Әзірге ескертулер жоқ. Картада талдау жасаңыз — тәуекелі жоғары (55+) нүктелер бойынша хабарламалар осында автоматты пайда болады.")}
         </div>
       )}
 
@@ -82,10 +83,10 @@ export default function AlertsPage() {
                             color: RISK_COLORS[alert.riskLevel],
                           }}
                         >
-                          {RISK_LABELS_KZ[alert.riskLevel]} · {alert.riskScore}
+                          {tr(RISK_LABELS_KZ[alert.riskLevel])} · {alert.riskScore}
                         </Badge>
                         <span className={`rounded-full px-2 py-0.5 text-[11px] ${STATUS_UI[status].cls}`}>
-                          {STATUS_UI[status].label}
+                          {tr(STATUS_UI[status].label)}
                         </span>
                       </div>
                       <h3 className="mt-1.5 text-sm font-semibold text-white">{alert.siteName}</h3>
@@ -96,7 +97,7 @@ export default function AlertsPage() {
                     </div>
                     {isUserAlert && status !== "resolved" && (
                       <Button size="sm" variant="outline" onClick={() => resolveAlert(alert.id)}>
-                        <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> Шешілді деп белгілеу
+                        <CheckCircle2 className="mr-1 h-3.5 w-3.5" /> {tr("Шешілді деп белгілеу")}
                       </Button>
                     )}
                   </div>
@@ -123,11 +124,11 @@ export default function AlertsPage() {
                   </div>
                   <div className="flex justify-between text-[10px] text-neutral-500">
                     <span className="flex items-center gap-1">
-                      <Send className="h-3 w-3" /> Жіберілді
+                      <Send className="h-3 w-3" /> {tr("Жіберілді")}
                     </span>
-                    <span>Қабылданды</span>
-                    <span>Тексеруде</span>
-                    <span>Шешілді</span>
+                    <span>{tr("Қабылданды")}</span>
+                    <span>{tr("Тексеруде")}</span>
+                    <span>{tr("Шешілді")}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -137,8 +138,7 @@ export default function AlertsPage() {
       </div>
 
       <p className="text-center text-[11px] text-neutral-600">
-        Демо режимі: хабарламалар жүйе ішінде модельденеді. Өндірісте — e-eGov / email / Telegram
-        интеграциясы арқылы нақты жіберіледі.
+        {tr("Демо режимі: хабарламалар жүйе ішінде модельденеді. Өндірісте — e-eGov / email / Telegram интеграциясы арқылы нақты жіберіледі.")}
       </p>
     </div>
   );

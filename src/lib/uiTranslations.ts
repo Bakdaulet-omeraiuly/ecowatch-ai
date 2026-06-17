@@ -231,6 +231,43 @@ Object.assign(UI_TR, {
   "Қорытынды:": { ru: "Вывод:", en: "Conclusion:" },
 });
 
+// ── Ескертулер беті + жалпы тәуекел/статус ──────────────────────────
+Object.assign(UI_TR, {
+  "Хабарлау орталығы": { ru: "Центр оповещений", en: "Alert center" },
+  "Тәуекелі жоғары нүктелер бойынша жауапты органдарға автоматты жіберілген хабарламалар": { ru: "Сообщения, автоматически отправленные ответственным органам по точкам высокого риска", en: "Alerts automatically sent to responsible authorities for high-risk points" },
+  "Шешілді деп белгілеу": { ru: "Отметить решённым", en: "Mark resolved" },
+  "Әзірге ескертулер жоқ. Картада талдау жасаңыз — тәуекелі жоғары (55+) нүктелер бойынша хабарламалар осында автоматты пайда болады.": { ru: "Пока нет оповещений. Сделайте анализ на карте — сообщения по точкам высокого риска (55+) появятся здесь автоматически.", en: "No alerts yet. Run an analysis on the map — alerts for high-risk points (55+) appear here automatically." },
+  "Демо режимі: хабарламалар жүйе ішінде модельденеді. Өндірісте — e-eGov / email / Telegram интеграциясы арқылы нақты жіберіледі.": { ru: "Демо-режим: сообщения моделируются внутри системы. В продакшене — реально отправляются через e-eGov / email / Telegram.", en: "Demo mode: alerts are simulated in-system. In production they're sent via e-eGov / email / Telegram integration." },
+  // Статус (lib/alerts)
+  "Жіберілді": { ru: "Отправлено", en: "Sent" },
+  "Қабылданды": { ru: "Принято", en: "Acknowledged" },
+  "Тексеруде": { ru: "Проверяется", en: "Inspecting" },
+  "Шешілді": { ru: "Решено", en: "Resolved" },
+  // Тәуекел деңгейлері (lib/risk RISK_LABELS_KZ)
+  "Төмен": { ru: "Низкий", en: "Low" },
+  "Қауіпті": { ru: "Критический", en: "Critical" },
+  "Орташа": { ru: "Средний", en: "Medium" },
+});
+
+// ── Салыстыру беті ───────────────────────────────────────────────────
+Object.assign(UI_TR, {
+  "Жыл салыстыру": { ru: "Сравнение лет", en: "Compare years" },
+  "Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015)": { ru: "Реальные спутниковые снимки: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015)", en: "Real satellite imagery: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015)" },
+  "Орын": { ru: "Место", en: "Location" },
+  "Сол жыл": { ru: "Левый год", en: "Left year" },
+  "Оң жыл": { ru: "Правый год", en: "Right year" },
+  "Слайдерді сүйреп жылжытыңыз": { ru: "Перетащите слайдер", en: "Drag the slider" },
+  "NASA MODIS Terra (250 м ажыратымдылық) — Sentinel-2 спутнигі 2015 жылға дейін болмаған, сондықтан осы дәуірдің жалғыз нақты дереккөзі.": { ru: "NASA MODIS Terra (разрешение 250 м) — спутник Sentinel-2 до 2015 г. не существовал, поэтому это единственный реальный источник той эпохи.", en: "NASA MODIS Terra (250 m resolution) — Sentinel-2 didn't exist before 2015, so this is the only real source for that era." },
+  "Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 м) — жыл сайынғы жазғы мозаика, бұлтсыз.": { ru: "Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 м) — ежегодная летняя мозаика, безоблачная.", en: "Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 m) — annual summer mosaic, cloudless." },
+  // Орындар (ATYRAU_SPOTS)
+  "Атырау қаласы": { ru: "город Атырау", en: "Atyrau city" },
+  "Жайық өзені жайылмасы": { ru: "Пойма реки Урал", en: "Ural river floodplain" },
+  "Мұнай зауыты маңы": { ru: "Район НПЗ", en: "Near oil refinery" },
+  "Теңіз кен орны": { ru: "Месторождение Тенгиз", en: "Tengiz field" },
+  "Солтүстік аймақ": { ru: "Северная зона", en: "Northern zone" },
+  "Таңдалған нүкте (AI талдау)": { ru: "Выбранная точка (AI-анализ)", en: "Selected point (AI analysis)" },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

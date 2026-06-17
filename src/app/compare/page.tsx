@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { ArrowLeftRight, Loader2, ZoomIn } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 const HISTORY_YEARS = [
   2000, 2003, 2006, 2009, 2012, 2015,
@@ -40,6 +41,7 @@ function mapboxUrl(lat: number, lng: number): string {
 }
 
 export default function ComparePage() {
+  const { tr } = useLang();
   const [spotIdx, setSpotIdx] = useState(0);
   const [leftYear, setLeftYear] = useState(2000);
   const [rightYear, setRightYear] = useState(2025);
@@ -90,29 +92,29 @@ export default function ComparePage() {
     <div className="mx-auto max-w-5xl space-y-5 p-4 sm:p-6">
       <div>
         <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <ArrowLeftRight className="h-6 w-6 text-amber-400" /> Жыл салыстыру
+          <ArrowLeftRight className="h-6 w-6 text-amber-400" /> {tr("Жыл салыстыру")}
         </h1>
         <p className="text-sm text-neutral-400">
-          Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015)
+          {tr("Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015)")}
         </p>
       </div>
 
       {/* Controls */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-          <div className="mb-1.5 text-xs text-neutral-400">Орын</div>
+          <div className="mb-1.5 text-xs text-neutral-400">{tr("Орын")}</div>
           <select
             value={spotIdx}
             onChange={(e) => setSpotIdx(Number(e.target.value))}
             className="w-full rounded-md border border-white/10 bg-white/5 px-2 py-1.5 text-sm text-white focus:outline-none"
           >
             {spots.map((s, i) => (
-              <option key={i} value={i} className="bg-neutral-900">{s.label}</option>
+              <option key={i} value={i} className="bg-neutral-900">{tr(s.label)}</option>
             ))}
           </select>
         </div>
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-          <div className="mb-1.5 text-xs text-amber-400">Сол жыл</div>
+          <div className="mb-1.5 text-xs text-amber-400">{tr("Сол жыл")}</div>
           <select
             value={leftYear}
             onChange={(e) => setLeftYear(Number(e.target.value))}
@@ -124,7 +126,7 @@ export default function ComparePage() {
           </select>
         </div>
         <div className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-3">
-          <div className="mb-1.5 text-xs text-sky-400">Оң жыл</div>
+          <div className="mb-1.5 text-xs text-sky-400">{tr("Оң жыл")}</div>
           <select
             value={rightYear}
             onChange={(e) => setRightYear(Number(e.target.value))}
@@ -189,18 +191,16 @@ export default function ComparePage() {
         {/* Hint */}
         <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-neutral-300 backdrop-blur">
           <ZoomIn className="mr-1 inline h-3 w-3" />
-          Слайдерді сүйреп жылжытыңыз
+          {tr("Слайдерді сүйреп жылжытыңыз")}
         </div>
       </div>
 
       <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4 text-sm text-neutral-400">
         <p>
-          <span className="font-semibold text-amber-300">2000–2015:</span> NASA MODIS Terra (250 м ажыратымдылық) —
-          Sentinel-2 спутнигі 2015 жылға дейін болмаған, сондықтан осы дәуірдің жалғыз нақты дереккөзі.
+          <span className="font-semibold text-amber-300">2000–2015:</span> {tr("NASA MODIS Terra (250 м ажыратымдылық) — Sentinel-2 спутнигі 2015 жылға дейін болмаған, сондықтан осы дәуірдің жалғыз нақты дереккөзі.")}
         </p>
         <p className="mt-1">
-          <span className="font-semibold text-sky-300">2016–2025:</span> Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 м) —
-          жыл сайынғы жазғы мозаика, бұлтсыз.
+          <span className="font-semibold text-sky-300">2016–2025:</span> {tr("Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 м) — жыл сайынғы жазғы мозаика, бұлтсыз.")}
         </p>
       </div>
     </div>
