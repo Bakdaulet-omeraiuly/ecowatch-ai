@@ -97,7 +97,10 @@ export function MapView() {
   const [activeLayer, setActiveLayer] = useState<LayerKey | null>(null);
   const [historyMode, setHistoryMode] = useState(false);
   const [showReports, setShowReports] = useState(true);
-  const [agentMode, setAgentMode] = useState(false);
+  // Біріккен AI талдау: қосулы болғанда «нүкте» немесе «аумақ» режимінде істейді
+  const [aiOn, setAiOn] = useState(false);
+  const [aiTool, setAiTool] = useState<"point" | "area">("point");
+  const [drawPoints, setDrawPoints] = useState<[number, number][]>([]); // [lng, lat] төбелер
   // last index = "Қазір" (current Mapbox imagery)
   const [yearIdx, setYearIdx] = useState(HISTORY_YEARS.length);
 
@@ -343,11 +346,13 @@ export function MapView() {
   }, [activeLayer, mosGrid, mosDay]);
 
   const analyzeAt = useCallback(
-    async (lat: number, lng: number) => {
+    async (lat: number, lng: number, opts?: { zoom?: number; areaKm2?: number }) => {
       if (analyzing) return;
       setAnalyzing(true);
       try {
-        if (agentMode) {
+        // Нүкте режимі → көп дереккөзді агент (спутник + тірі деректер).
+        // Аумақ режимі (opts.areaKm2) → таңдалған аймақтың спутник талдауы.
+        if (!opts?.areaKm2) {
           // AI agent: zoom the map to the point itself, then synthesise
           // satellite imagery + live official data (CAMS, weather)
           mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 1400 });
@@ -386,7 +391,7 @@ export function MapView() {
           const res = await fetch("/api/analyze", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear }),
+            body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear, zoom: opts?.zoom, areaKm2: opts?.areaKm2 }),
           });
           if (!res.ok) throw new Error("API қатесі");
           const data = await res.json();
@@ -418,13 +423,49 @@ export function MapView() {
         setAnalyzing(false);
       }
     },
-    [analyzing, addSite, viewYear, agentMode]
+    [analyzing, addSite, viewYear]
   );
 
   const handleClick = useCallback(
-    (e: MapLayerMouseEvent) => analyzeAt(e.lngLat.lat, e.lngLat.lng),
-    [analyzeAt]
+    (e: MapLayerMouseEvent) => {
+      if (!aiOn) return; // AI талдау өшулі болса — кездейсоқ басу талдамайды
+      if (aiTool === "area") {
+        // Аумақ режимі: басқан жерге полигон төбесін қосады
+        setDrawPoints((pts) => [...pts, [e.lngLat.lng, e.lngLat.lat]]);
+        return;
+      }
+      // Нүкте режимі: сол жерді көп дереккөзді агент талдайды
+      analyzeAt(e.lngLat.lat, e.lngLat.lng);
+    },
+    [analyzeAt, aiOn, aiTool]
   );
+
+  // Сызылған полигонның центроиді, ауданы (км²) және сай масштабы
+  const finishAreaAnalysis = useCallback(() => {
+    if (drawPoints.length < 3) return;
+    const lngs = drawPoints.map((p) => p[0]);
+    const lats = drawPoints.map((p) => p[1]);
+    const cLng = lngs.reduce((a, b) => a + b, 0) / drawPoints.length;
+    const cLat = lats.reduce((a, b) => a + b, 0) / drawPoints.length;
+    // Shoelace ауданы (метрге шамалап)
+    const mPerDegLat = 111_320;
+    const mPerDegLng = 111_320 * Math.cos((cLat * Math.PI) / 180);
+    let area2 = 0;
+    for (let i = 0; i < drawPoints.length; i++) {
+      const [x1, y1] = drawPoints[i];
+      const [x2, y2] = drawPoints[(i + 1) % drawPoints.length];
+      area2 += (x1 * mPerDegLng) * (y2 * mPerDegLat) - (x2 * mPerDegLng) * (y1 * mPerDegLat);
+    }
+    const areaKm2 = Math.abs(area2 / 2) / 1e6;
+    // Масштабты аумақ ауқымынан есептеу
+    const spanLng = Math.max(...lngs) - Math.min(...lngs);
+    const spanLat = (Math.max(...lats) - Math.min(...lats)) * Math.cos((cLat * Math.PI) / 180);
+    const span = Math.max(spanLng, spanLat, 0.0008);
+    const zoom = Math.max(11, Math.min(16, Math.round(Math.log2(720 / span) - 0.4)));
+    mapRef.current?.flyTo({ center: [cLng, cLat], zoom: Math.min(zoom, 15), duration: 1000 });
+    setDrawPoints([]);
+    analyzeAt(cLat, cLng, { zoom, areaKm2 });
+  }, [drawPoints, analyzeAt]);
 
   const addByCoords = () => {
     const la = parseFloat(addLat), ln = parseFloat(addLng);
@@ -466,7 +507,7 @@ export function MapView() {
             : "mapbox://styles/mapbox/dark-v11"
         }
         onClick={handleClick}
-        cursor={analyzing ? "wait" : "crosshair"}
+        cursor={analyzing ? "wait" : aiOn ? "crosshair" : "grab"}
       >
         {/* Real historical Sentinel-2 mosaic for the selected year */}
         {historyMode && year && (
@@ -504,6 +545,32 @@ export function MapView() {
             </Source>
           );
         })()}
+
+        {/* Сызылған аумақ (полигон) */}
+        {drawPoints.length > 0 && (
+          <>
+            <Source
+              id="draw-area"
+              type="geojson"
+              data={{
+                type: "Feature",
+                properties: {},
+                geometry:
+                  drawPoints.length >= 3
+                    ? { type: "Polygon", coordinates: [[...drawPoints, drawPoints[0]]] }
+                    : { type: "LineString", coordinates: drawPoints },
+              }}
+            >
+              <Layer id="draw-fill" type="fill" paint={{ "fill-color": "#38bdf8", "fill-opacity": 0.18 }} />
+              <Layer id="draw-line" type="line" paint={{ "line-color": "#38bdf8", "line-width": 2, "line-dasharray": [2, 1] }} />
+            </Source>
+            {drawPoints.map((p, i) => (
+              <Marker key={`dp-${i}`} longitude={p[0]} latitude={p[1]}>
+                <div className="h-2.5 w-2.5 rounded-full border border-white bg-sky-400 shadow" />
+              </Marker>
+            ))}
+          </>
+        )}
 
         {heatmapData && layerDef && (
           <Source id="eco-layer" type="geojson" data={heatmapData}>
@@ -773,16 +840,16 @@ export function MapView() {
             })}
             <div className="my-0.5 h-px bg-white/10" />
             <button
-              onClick={() => setAgentMode((v) => !v)}
+              onClick={() => { setAiOn((v) => !v); setAiTool("point"); setDrawPoints([]); }}
               className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-                agentMode
+                aiOn
                   ? "border-violet-500/50 bg-violet-500/15 text-violet-200"
                   : "border-transparent text-neutral-300 hover:bg-white/5"
               }`}
             >
-              <Sparkles className="h-3.5 w-3.5" /> AI агент
-              <span className="ml-auto rounded bg-violet-500/15 px-1 py-px text-[8px] uppercase text-violet-300">
-                көп дереккөз
+              <Sparkles className="h-3.5 w-3.5" /> AI талдау
+              <span className={`ml-auto rounded px-1 py-px text-[8px] uppercase ${aiOn ? "bg-violet-500/20 text-violet-300" : "bg-white/10 text-neutral-400"}`}>
+                {aiOn ? "қосулы" : "өшулі"}
               </span>
             </button>
             <button
@@ -1443,13 +1510,57 @@ export function MapView() {
           <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-neutral-900/90 px-4 py-2 text-sm text-emerald-300 backdrop-blur">
             <Loader2 className="h-4 w-4 animate-spin" /> AI талдап жатыр…
           </div>
-        ) : agentMode ? (
-          <div className="flex items-center gap-2 rounded-full border border-violet-500/40 bg-neutral-900/90 px-4 py-2 text-xs text-violet-200 backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5" /> AI агент режимі: нүктені басыңыз — карта жақындап, спутник + тірі ресми деректер біріктіріледі
+        ) : aiOn ? (
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-violet-500/40 bg-neutral-900/95 px-3 py-2 text-xs text-violet-100 backdrop-blur">
+            {/* Нүкте / Аумақ ауыстырғыш */}
+            <div className="flex items-center overflow-hidden rounded-full border border-white/10">
+              <button
+                onClick={() => { setAiTool("point"); setDrawPoints([]); }}
+                className={`px-3 py-1 text-[11px] font-medium transition-colors ${aiTool === "point" ? "bg-violet-500/30 text-violet-200" : "text-neutral-400 hover:bg-white/5"}`}
+              >
+                📍 Нүкте
+              </button>
+              <button
+                onClick={() => setAiTool("area")}
+                className={`px-3 py-1 text-[11px] font-medium transition-colors ${aiTool === "area" ? "bg-sky-500/30 text-sky-200" : "text-neutral-400 hover:bg-white/5"}`}
+              >
+                ⬡ Аумақ
+              </button>
+            </div>
+
+            {aiTool === "point" ? (
+              <span className="text-neutral-300">Картадан нүкте басыңыз — спутник + тірі деректер талданады</span>
+            ) : (
+              <>
+                <span className="text-neutral-300">Төбе қосыңыз ({drawPoints.length})</span>
+                <button
+                  onClick={finishAreaAnalysis}
+                  disabled={drawPoints.length < 3}
+                  className="rounded-full bg-sky-500 px-3 py-1 text-[11px] font-medium text-white hover:bg-sky-400 disabled:opacity-40"
+                >
+                  Талдау
+                </button>
+                <button
+                  onClick={() => setDrawPoints([])}
+                  disabled={drawPoints.length === 0}
+                  className="rounded-full border border-white/15 px-2.5 py-1 text-[11px] text-neutral-300 hover:bg-white/10 disabled:opacity-40"
+                >
+                  Тазалау
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={() => { setAiOn(false); setDrawPoints([]); }}
+              className="rounded-full px-2 py-1 text-[11px] text-neutral-400 hover:text-white"
+              aria-label="Жабу"
+            >
+              ✕
+            </button>
           </div>
         ) : (
-          <div className="rounded-full border border-white/10 bg-neutral-900/80 px-4 py-2 text-xs text-neutral-300 backdrop-blur">
-            Кез келген жерді басыңыз — AI сол аумақты талдайды
+          <div className="rounded-full border border-white/10 bg-neutral-900/80 px-4 py-2 text-xs text-neutral-400 backdrop-blur">
+            Талдау үшін сол жақтан «AI талдау» қосыңыз
           </div>
         )}
       </div>

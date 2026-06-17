@@ -14,6 +14,8 @@ const reqSchema = z.object({
   lng: z.number().min(-180).max(180),
   photo: z.string().optional(), // base64 data URL for photo/combined modes
   imageryYear: z.number().int().min(2000).max(2025).nullable().optional(), // imagery year
+  zoom: z.number().min(8).max(17).optional(), // таңдалған аумаққа сай масштаб
+  areaKm2: z.number().optional(), // сызылған аумақ ауданы (контекст үшін)
 });
 
 const evidenceSchema = z.object({
@@ -147,10 +149,10 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
   }
-  const { mode, lat, lng, photo, imageryYear } = parsed.data;
+  const { mode, lat, lng, photo, imageryYear, zoom, areaKm2 } = parsed.data;
   const imageUrl = imageryYear
     ? historicalImageUrl(lat, lng, imageryYear)
-    : satelliteImageUrl(lat, lng);
+    : satelliteImageUrl(lat, lng, zoom ?? 15);
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
@@ -182,7 +184,11 @@ export async function POST(req: Request) {
               text:
                 (imageryYear
                   ? `НАЗАР АУДАР: спутник суреті ${imageryYear} жылғы Sentinel-2 мозаикасы — талдау сол жылғы жағдайды сипаттайды. `
-                  : "") + analyzeUserPrompt(mode),
+                  : "") +
+                (areaKm2
+                  ? `Бұл — пайдаланушы картада сызған шамамен ${areaKm2.toFixed(2)} км² аумақ. Тек осы аумаққа қатысты талдау жаса. `
+                  : "") +
+                analyzeUserPrompt(mode),
             },
             ...images,
           ],
