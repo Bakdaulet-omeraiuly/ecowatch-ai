@@ -100,9 +100,28 @@ function droughtAdvice(spi: number): string {
   return "Апатты құрғақшылық — су ресурстарын қатаң үнемдеңіз.";
 }
 function mosquitoAdvice(idx: number): string {
-  if (idx < 30) return "Маса аз — қорғану қажеті шамалы.";
-  if (idx < 60) return "Орташа — кешке репеллент қолданыңыз.";
-  return "Маса көп — репеллент пен тор қажет, тұрған суды құрғатыңыз.";
+  if (idx < 20) return "Маса жоқтың қасы — қорғану қажет емес.";
+  if (idx < 35) return "Маса аз — қорғану қажеті шамалы.";
+  if (idx < 50) return "Орташа төмен — кешке репеллент жеткілікті.";
+  if (idx < 65) return "Орташа жоғары — репеллент пен жабық киім қажет.";
+  return "Маса өте көп — репеллент, тор қажет, тұрған суды құрғатыңыз.";
+}
+function soilAdvice(stress: number): string {
+  if (stress < 25) return "Топырақ сау әрі ылғалды — деградация қаупі төмен.";
+  if (stress < 45) return "Топырақ қалыпты — елеулі стресс жоқ.";
+  if (stress < 65) return "Орташа стресс — құрғау мен тұздану басталуы мүмкін.";
+  return "Жоғары стресс — топырақ құрғаған, шөлейттену қаупі бар.";
+}
+function flaresAdvice(count: number): string {
+  if (count <= 3) return "Бірнеше факел — қалыпты мұнай-газ белсенділігі.";
+  if (count <= 10) return "Факел саны орташа — ауаға жану өнімдері бөлінуде.";
+  return "Факел көп — ауа сапасына әсер ететін қарқынды жану.";
+}
+function waterAdvice(level: string): string {
+  if (level.includes("Жоғары")) return "Тасқын қаупі жоғары — өзен жайылмасынан аулақ болыңыз.";
+  if (level.includes("Орташа")) return "Су деңгейі көтерілуде — жағада сақ болыңыз.";
+  if (level.includes("Бақылауда")) return "Су деңгейі бақылауда — әзірге қауіп жоқ.";
+  return "Өзен деңгейі қалыпты — тасқын қаупі жоқ.";
 }
 
 export function MapView() {
@@ -1151,6 +1170,9 @@ export function MapView() {
                   <div className="text-2xl font-bold text-orange-300">{flares.length}</div>
                   <div className="text-[10px] text-neutral-400">{tr("анықталған жану нүктесі (2 күн)")}</div>
                 </div>
+                <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
+                  💡 {tr(flaresAdvice(flares.length))}
+                </div>
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   {tr("🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері спутниктен жылулық аномалия ретінде көрінеді. Дереккөз: NASA FIRMS (VIIRS 375м).")}
                 </p>
@@ -1231,7 +1253,10 @@ export function MapView() {
                     <div className="text-[9px] text-neutral-400">{tr("деградация стрессі")}</div>
                   </div>
                 </div>
-                <p className="mt-2 text-[9px] leading-snug text-neutral-500">
+                <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
+                  💡 {tr(soilAdvice(soilMeta.avgStress))}
+                </div>
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   {tr("Сары/қызыл аймақ — құрғақ топырақ, жоғары деградация/тұздану стрессі. Көк — ылғалды, сау. Есеп: түбір қабатының ылғалы + температура + 30 күндік жаңбыр. Дереккөз: Open-Meteo (ECMWF).")}
                 </p>
               </>
@@ -1268,6 +1293,9 @@ export function MapView() {
                       </div>
                       <div className="text-[9px] text-neutral-400">
                         {tr("Атырау тұсы · тренд")}: {aty.trend}
+                      </div>
+                      <div className="mt-1.5 rounded-md bg-white/10 p-1.5 text-[10px] leading-snug text-neutral-100">
+                        💡 {tr(waterAdvice(aty.level))}
                       </div>
                     </div>
                   );

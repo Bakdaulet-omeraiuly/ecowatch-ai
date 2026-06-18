@@ -537,9 +537,25 @@ Object.assign(UI_TR, {
   "Орташа құрғақшылық — өсімдікке су жетіспейді.": { ru: "Умеренная засуха — растениям не хватает воды.", en: "Moderate drought — plants lack water." },
   "Қатты құрғақшылық — суды үнемдеу қажет.": { ru: "Сильная засуха — нужно экономить воду.", en: "Severe drought — water saving needed." },
   "Апатты құрғақшылық — су ресурстарын қатаң үнемдеңіз.": { ru: "Катастрофическая засуха — строго экономьте воду.", en: "Extreme drought — conserve water strictly." },
+  "Маса жоқтың қасы — қорғану қажет емес.": { ru: "Комаров почти нет — защита не нужна.", en: "Almost no mosquitoes — no protection needed." },
   "Маса аз — қорғану қажеті шамалы.": { ru: "Комаров мало — защита почти не нужна.", en: "Few mosquitoes — little protection needed." },
-  "Орташа — кешке репеллент қолданыңыз.": { ru: "Умеренно — вечером используйте репеллент.", en: "Moderate — use repellent in the evening." },
-  "Маса көп — репеллент пен тор қажет, тұрған суды құрғатыңыз.": { ru: "Много комаров — нужны репеллент и сетки, осушите застойную воду.", en: "Many mosquitoes — use repellent and nets, drain standing water." },
+  "Орташа төмен — кешке репеллент жеткілікті.": { ru: "Умеренно-низко — вечером достаточно репеллента.", en: "Low-moderate — evening repellent is enough." },
+  "Орташа жоғары — репеллент пен жабық киім қажет.": { ru: "Умеренно-высоко — нужны репеллент и закрытая одежда.", en: "Moderate-high — repellent and covering clothes needed." },
+  "Маса өте көп — репеллент, тор қажет, тұрған суды құрғатыңыз.": { ru: "Очень много комаров — нужны репеллент, сетки, осушите застойную воду.", en: "Very many mosquitoes — repellent, nets, and drain standing water." },
+  // Топырақ
+  "Топырақ сау әрі ылғалды — деградация қаупі төмен.": { ru: "Почва здоровая и влажная — риск деградации низкий.", en: "Soil is healthy and moist — low degradation risk." },
+  "Топырақ қалыпты — елеулі стресс жоқ.": { ru: "Почва в норме — серьёзного стресса нет.", en: "Soil is normal — no significant stress." },
+  "Орташа стресс — құрғау мен тұздану басталуы мүмкін.": { ru: "Умеренный стресс — возможны иссушение и засоление.", en: "Moderate stress — drying and salinization may begin." },
+  "Жоғары стресс — топырақ құрғаған, шөлейттену қаупі бар.": { ru: "Высокий стресс — почва иссушена, риск опустынивания.", en: "High stress — soil is dry, desertification risk." },
+  // Факел
+  "Бірнеше факел — қалыпты мұнай-газ белсенділігі.": { ru: "Несколько факелов — нормальная нефтегазовая активность.", en: "A few flares — normal oil & gas activity." },
+  "Факел саны орташа — ауаға жану өнімдері бөлінуде.": { ru: "Среднее число факелов — продукты горения попадают в воздух.", en: "Moderate flares — combustion products are released into the air." },
+  "Факел көп — ауа сапасына әсер ететін қарқынды жану.": { ru: "Много факелов — интенсивное горение, влияет на качество воздуха.", en: "Many flares — intense burning affecting air quality." },
+  // Су
+  "Тасқын қаупі жоғары — өзен жайылмасынан аулақ болыңыз.": { ru: "Высокий риск паводка — держитесь подальше от поймы.", en: "High flood risk — stay away from the floodplain." },
+  "Су деңгейі көтерілуде — жағада сақ болыңыз.": { ru: "Уровень воды растёт — будьте осторожны у берега.", en: "Water level is rising — be careful near the bank." },
+  "Су деңгейі бақылауда — әзірге қауіп жоқ.": { ru: "Уровень воды под контролем — пока опасности нет.", en: "Water level is monitored — no danger for now." },
+  "Өзен деңгейі қалыпты — тасқын қаупі жоқ.": { ru: "Уровень реки в норме — паводка не ожидается.", en: "River level is normal — no flood risk." },
 });
 
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
