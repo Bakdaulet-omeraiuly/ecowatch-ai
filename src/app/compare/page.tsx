@@ -5,9 +5,11 @@ import { ArrowLeftRight, Loader2, ZoomIn } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 const HISTORY_YEARS = [
+  1984, 1990, 1999,
   2000, 2003, 2006, 2009, 2012, 2015,
   2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
 ];
+const LANDSAT_YEARS = new Set([1984, 1990, 1999]);
 
 const ATYRAU_SPOTS = [
   { label: "Атырау қаласы", lat: 47.1167, lng: 51.8833 },
@@ -18,7 +20,15 @@ const ATYRAU_SPOTS = [
 ];
 
 function imageUrl(lat: number, lng: number, year: number): string {
-  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
+  if (LANDSAT_YEARS.has(year)) {
+    const d = 0.12;
+    const bbox = `${lat - d},${lng - d},${lat + d},${lng + d}`;
+    return (
+      `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap` +
+      `&VERSION=1.3.0&LAYERS=Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual&CRS=EPSG:4326` +
+      `&TIME=${year}-07-15&BBOX=${bbox}&WIDTH=800&HEIGHT=800&FORMAT=image/jpeg`
+    );
+  }
   if (year < 2016) {
     const d = 0.12;
     const bbox = `${lat - d},${lng - d},${lat + d},${lng + d}`;
@@ -95,7 +105,7 @@ export default function ComparePage() {
           <ArrowLeftRight className="h-6 w-6 text-amber-400" /> {tr("Жыл салыстыру")}
         </h1>
         <p className="text-sm text-neutral-400">
-          {tr("Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015)")}
+          {tr("Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015) · NASA Landsat (1984–1999)")}
         </p>
       </div>
 
@@ -182,10 +192,10 @@ export default function ComparePage() {
 
         {/* Year labels */}
         <div className="pointer-events-none absolute left-3 top-3 rounded-md bg-amber-500/80 px-2 py-1 text-xs font-bold text-white backdrop-blur">
-          {leftYear} · {leftErr ? "Mapbox" : leftYear < 2016 ? "NASA MODIS" : "Sentinel-2"}
+          {leftYear} · {leftErr ? "Mapbox" : LANDSAT_YEARS.has(leftYear) ? "NASA Landsat" : leftYear < 2016 ? "NASA MODIS" : "Sentinel-2"}
         </div>
         <div className="pointer-events-none absolute right-3 top-3 rounded-md bg-sky-500/80 px-2 py-1 text-xs font-bold text-white backdrop-blur">
-          {rightYear} · {rightErr ? "Mapbox" : rightYear < 2016 ? "NASA MODIS" : "Sentinel-2"}
+          {rightYear} · {rightErr ? "Mapbox" : LANDSAT_YEARS.has(rightYear) ? "NASA Landsat" : rightYear < 2016 ? "NASA MODIS" : "Sentinel-2"}
         </div>
 
         {/* Hint */}
