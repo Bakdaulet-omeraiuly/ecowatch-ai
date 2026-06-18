@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { ArrowLeftRight, Loader2, ZoomIn } from "lucide-react";
+import { ArrowLeftRight, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 const HISTORY_YEARS = [
@@ -45,7 +45,6 @@ function imageUrl(lat: number, lng: number, year: number): string {
   return `https://tiles.maps.eox.at/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=${layer}&SRS=EPSG:4326&BBOX=${bbox}&WIDTH=800&HEIGHT=800&FORMAT=image/jpeg`;
 }
 
-// Fallback Mapbox static satellite image
 function mapboxUrl(lat: number, lng: number): string {
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN ?? "";
   return `https://api.mapbox.com/styles/v1/mapbox/satellite-v9/static/${lng},${lat},12,0/800x800?access_token=${token}`;
@@ -62,7 +61,20 @@ export default function ComparePage() {
   const [rightErr, setRightErr] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // AI талдаудан келген координат (?lat=&lng=) — қосымша нүкте ретінде қосылады
+  // Zoom & pan state
+  const [scale, setScale] = useState(1);
+  const [panX, setPanX] = useState(0);
+  const [panY, setPanY] = useState(0);
+  const panRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null);
+  const [panning, setPanning] = useState(false);
+
+  const resetView = useCallback(() => {
+    setScale(1);
+    setPanX(0);
+    setPanY(0);
+  }, []);
+
+  // AI талдаудан келген координат
   const [customSpot, setCustomSpot] = useState<{ label: string; lat: number; lng: number } | null>(null);
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
@@ -77,15 +89,28 @@ export default function ComparePage() {
   const spot = spots[spotIdx] ?? spots[0];
 
   useEffect(() => { setLeftErr(false); setRightErr(false); }, [spotIdx, leftYear, rightYear]);
+  useEffect(() => { resetView(); }, [spotIdx, resetView]);
 
+  // Slider drag
   const onPointerMove = useCallback((e: PointerEvent) => {
-    if (!dragging || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.min(95, Math.max(5, ((e.clientX - rect.left) / rect.width) * 100));
-    setSliderX(x);
-  }, [dragging]);
+    if (dragging && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = Math.min(95, Math.max(5, ((e.clientX - rect.left) / rect.width) * 100));
+      setSliderX(x);
+    }
+    if (panning && panRef.current && containerRef.current) {
+      const dx = e.clientX - panRef.current.startX;
+      const dy = e.clientY - panRef.current.startY;
+      setPanX(panRef.current.panX + dx);
+      setPanY(panRef.current.panY + dy);
+    }
+  }, [dragging, panning]);
 
-  const onPointerUp = useCallback(() => setDragging(false), []);
+  const onPointerUp = useCallback(() => {
+    setDragging(false);
+    setPanning(false);
+    panRef.current = null;
+  }, []);
 
   useEffect(() => {
     window.addEventListener("pointermove", onPointerMove);
@@ -96,8 +121,31 @@ export default function ComparePage() {
     };
   }, [onPointerMove, onPointerUp]);
 
+  // Wheel zoom toward cursor
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const factor = e.deltaY < 0 ? 1.2 : 1 / 1.2;
+      setScale(prev => {
+        const next = Math.min(8, Math.max(1, prev * factor));
+        setPanX(px => cx - (cx - px) * (next / prev));
+        setPanY(py => cy - (cy - py) * (next / prev));
+        return next;
+      });
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
   const lUrl = leftErr ? mapboxUrl(spot.lat, spot.lng) : imageUrl(spot.lat, spot.lng, leftYear);
   const rUrl = rightErr ? mapboxUrl(spot.lat, spot.lng) : imageUrl(spot.lat, spot.lng, rightYear);
+
+  const imgTransform = `translate(${panX}px, ${panY}px) scale(${scale})`;
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-4 sm:p-6">
@@ -153,38 +201,57 @@ export default function ComparePage() {
       {/* Split image viewer */}
       <div
         ref={containerRef}
-        className="relative select-none overflow-hidden rounded-xl border border-white/10"
-        style={{ aspectRatio: "1 / 1", maxHeight: "70vh" }}
+        className="relative select-none overflow-hidden rounded-xl border border-white/10 bg-black"
+        style={{ aspectRatio: "1 / 1", maxHeight: "70vh", cursor: scale > 1 ? (panning ? "grabbing" : "grab") : "default" }}
+        onPointerDown={(e) => {
+          // Only start pan if not clicking on the slider handle area
+          const target = e.target as HTMLElement;
+          if (target.closest("[data-slider]")) return;
+          if (scale > 1) {
+            e.preventDefault();
+            setPanning(true);
+            panRef.current = { startX: e.clientX, startY: e.clientY, panX, panY };
+          }
+        }}
       >
-        {/* Right image (full width) */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={rUrl}
-          alt={`${rightYear} жыл`}
-          className="absolute inset-0 h-full w-full object-cover"
-          onError={() => setRightErr(true)}
-        />
-
-        {/* Left image clipped to left side */}
+        {/* Zoomable image layer */}
         <div
-          className="absolute inset-0 overflow-hidden"
-          style={{ width: `${sliderX}%` }}
+          className="absolute inset-0"
+          style={{ transformOrigin: "0 0", transform: imgTransform, willChange: "transform" }}
         >
+          {/* Right image (full width) */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={lUrl}
-            alt={`${leftYear} жыл`}
-            className="absolute inset-0 h-full object-cover"
-            style={{ width: `${10000 / sliderX}%`, maxWidth: "none" }}
-            onError={() => setLeftErr(true)}
+            src={rUrl}
+            alt={`${rightYear} жыл`}
+            className="absolute inset-0 h-full w-full object-cover"
+            draggable={false}
+            onError={() => setRightErr(true)}
           />
+
+          {/* Left image clipped to left side */}
+          <div
+            className="absolute inset-0 overflow-hidden"
+            style={{ width: `${sliderX}%` }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lUrl}
+              alt={`${leftYear} жыл`}
+              className="absolute inset-0 h-full object-cover"
+              style={{ width: `${10000 / sliderX}%`, maxWidth: "none" }}
+              draggable={false}
+              onError={() => setLeftErr(true)}
+            />
+          </div>
         </div>
 
-        {/* Divider */}
+        {/* Slider divider (outside transform, always at correct screen position) */}
         <div
+          data-slider
           className="absolute inset-y-0 z-10 w-0.5 cursor-ew-resize bg-white/80 shadow-lg"
           style={{ left: `${sliderX}%` }}
-          onPointerDown={(e) => { e.preventDefault(); setDragging(true); }}
+          onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 cursor-ew-resize items-center justify-center rounded-full border-2 border-white/80 bg-neutral-900/95 shadow-xl">
             <ArrowLeftRight className="h-4 w-4 text-white" />
@@ -192,18 +259,58 @@ export default function ComparePage() {
         </div>
 
         {/* Year labels */}
-        <div className="pointer-events-none absolute left-3 top-3 rounded-md bg-amber-500/80 px-2 py-1 text-xs font-bold text-white backdrop-blur">
+        <div className="pointer-events-none absolute left-3 top-3 z-20 rounded-md bg-amber-500/80 px-2 py-1 text-xs font-bold text-white backdrop-blur">
           {leftYear} · {leftErr ? "Mapbox" : LANDSAT_YEARS.has(leftYear) ? "NASA Landsat" : leftYear < 2016 ? "NASA MODIS" : "Sentinel-2"}
         </div>
-        <div className="pointer-events-none absolute right-3 top-3 rounded-md bg-sky-500/80 px-2 py-1 text-xs font-bold text-white backdrop-blur">
+        <div className="pointer-events-none absolute right-3 top-3 z-20 rounded-md bg-sky-500/80 px-2 py-1 text-xs font-bold text-white backdrop-blur">
           {rightYear} · {rightErr ? "Mapbox" : LANDSAT_YEARS.has(rightYear) ? "NASA Landsat" : rightYear < 2016 ? "NASA MODIS" : "Sentinel-2"}
         </div>
 
-        {/* Hint */}
-        <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 rounded-full bg-black/60 px-3 py-1 text-xs text-neutral-300 backdrop-blur">
-          <ZoomIn className="mr-1 inline h-3 w-3" />
-          {tr("Слайдерді сүйреп жылжытыңыз")}
+        {/* Zoom controls */}
+        <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-1">
+          <button
+            onClick={() => setScale(s => {
+              const next = Math.min(8, s * 1.4);
+              return next;
+            })}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur hover:bg-black/90"
+          >
+            <ZoomIn className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => setScale(s => {
+              const next = Math.max(1, s / 1.4);
+              if (next === 1) { setPanX(0); setPanY(0); }
+              return next;
+            })}
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur hover:bg-black/90"
+          >
+            <ZoomOut className="h-4 w-4" />
+          </button>
+          {scale > 1 && (
+            <button
+              onClick={resetView}
+              className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur hover:bg-black/90"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+          )}
         </div>
+
+        {/* Scale indicator */}
+        {scale > 1 && (
+          <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur">
+            {scale.toFixed(1)}×
+          </div>
+        )}
+
+        {/* Hint */}
+        {scale === 1 && (
+          <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/60 px-3 py-1 text-xs text-neutral-300 backdrop-blur">
+            <ZoomIn className="mr-1 inline h-3 w-3" />
+            {tr("Слайдерді сүйреп · тышқан дөңгелегімен зумдаңыз")}
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4 text-sm text-neutral-400">
