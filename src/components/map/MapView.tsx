@@ -418,22 +418,25 @@ export function MapView() {
     const swarm: { id: string; lat: number; lng: number; size: number; color: string }[] = [];
     for (const p of mosGrid) {
       const idx = mosDayIndex(p);
-      // Индекс 0–19 → иконка жоқ; 20–39 → 1; 40–59 → 3; 60–79 → 6; 80–100 → 10
-      const count = idx < 20 ? 0 : idx < 40 ? 1 : idx < 60 ? 3 : idx < 80 ? 6 : 10;
-      // Индекс бойынша түс: жасыл → сары → қызғылт → қызыл
-      const color = idx < 30 ? "#4ade80" : idx < 55 ? "#facc15" : idx < 75 ? "#fb923c" : "#ef4444";
-      const spreadLat = p.dense ? 0.010 : 0.13;
-      const spreadLng = p.dense ? 0.013 : 0.18;
-      for (let i = 0; i < count; i++) {
-        const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
-        const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
-        swarm.push({
-          id: `${p.lat},${p.lng},${mosDay},${i}`,
-          lat: p.lat + a * spreadLat,
-          lng: p.lng + b * spreadLng,
-          size: p.dense ? 15 : 12,
-          color,
-        });
+      if (idx < 20) continue; // индекс тым төмен → иконка жоқ
+      const color = idx < 40 ? "#4ade80" : idx < 60 ? "#facc15" : idx < 78 ? "#fb923c" : "#ef4444";
+      if (p.dense) {
+        // Қала нүктесі — дәл координатта бір иконка
+        swarm.push({ id: `${p.lat},${p.lng},${mosDay}`, lat: p.lat, lng: p.lng, size: 16, color });
+      } else {
+        // Аймақтық тор — кең шашыратылған 1–5 иконка
+        const count = idx < 40 ? 1 : idx < 60 ? 2 : idx < 80 ? 3 : 5;
+        for (let i = 0; i < count; i++) {
+          const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
+          const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
+          swarm.push({
+            id: `${p.lat},${p.lng},${mosDay},${i}`,
+            lat: p.lat + a * 0.13,
+            lng: p.lng + b * 0.18,
+            size: 12,
+            color,
+          });
+        }
       }
     }
     return swarm;
