@@ -95,6 +95,9 @@ export const ATMOS_LAYERS: SatLayer[] = [
   { key: "aod", labelKz: "Аэрозоль (3 км)", descKz: "Шаң мен майда бөлшектердің тығыздығы",
     source: "gibs", layer: "MODIS_Terra_Aerosol_Optical_Depth_3km", matrix: "GoogleMapsCompatible_Level6",
     ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
+  { key: "snow", labelKz: "Қар жамылғысы", descKz: "MODIS NDSI — қар жамылғысы (қыс мезгілінде)",
+    source: "gibs", layer: "MODIS_Terra_NDSI_Snow_Cover", matrix: "GoogleMapsCompatible_Level8",
+    ext: "png", maxzoom: 6, tileSize: 256, cadence: "daily", opacity: 0.85 },
 ];
 
 // Кез келген қабатты key бойынша табу (оптика + радар + атмосфера)

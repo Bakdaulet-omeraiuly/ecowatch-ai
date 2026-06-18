@@ -398,6 +398,7 @@ Object.assign(UI_TR, {
   "Күкірт диоксиді (SO₂)": { ru: "Диоксид серы (SO₂)", en: "Sulfur dioxide (SO₂)" },
   "Көміртек тотығы (CO)": { ru: "Оксид углерода (CO)", en: "Carbon monoxide (CO)" },
   "Аэрозоль (3 км)": { ru: "Аэрозоль (3 км)", en: "Aerosol (3 km)" },
+  "Қар жамылғысы": { ru: "Снежный покров", en: "Snow cover" },
   // Жел қабаты
   "Жел": { ru: "Ветер", en: "Wind" },
   "Жел бағыты — тірі": { ru: "Направление ветра — live", en: "Wind direction — live" },
