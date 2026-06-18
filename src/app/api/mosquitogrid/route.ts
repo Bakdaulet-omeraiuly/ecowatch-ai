@@ -287,8 +287,8 @@ export async function GET() {
         });
 
         return {
-          lat: d.latitude,
-          lng: d.longitude,
+          lat: meta.lat ?? d.latitude,   // нақты координата (Open-Meteo snap емес)
+          lng: meta.lng ?? d.longitude,
           dense: meta.dense,
           name: meta.name,
           urban: +urban.toFixed(2),
