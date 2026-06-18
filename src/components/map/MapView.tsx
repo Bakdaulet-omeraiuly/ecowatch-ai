@@ -66,6 +66,7 @@ const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
   water: Waves,
   fire: Flame,
   drought: Droplets,
+  wind: Wind,
 };
 
 
@@ -81,6 +82,7 @@ function layerWeight(s: Site, layer: LayerKey): number {
     case "water": return a.standingWater ? 0.4 + a.riskScore / 250 : 0.05;
     case "fire": return 0.5; // өрт — аймақтық көрсеткіш (FWI), нүктеге тәуелсіз
     case "drought": return 0.5; // құрғақшылық — аймақтық көрсеткіш (SPI)
+    case "wind": return 0; // жел — жылу картасы емес, стрелкалармен көрсетіледі
   }
 }
 
@@ -116,6 +118,16 @@ function flaresAdvice(count: number): string {
   if (count <= 3) return "Бірнеше факел — қалыпты мұнай-газ белсенділігі.";
   if (count <= 10) return "Факел саны орташа — ауаға жану өнімдері бөлінуде.";
   return "Факел көп — ауа сапасына әсер ететін қарқынды жану.";
+}
+function compassKz(deg: number): string {
+  const dirs = ["Солтүстік", "Солтүстік-шығыс", "Шығыс", "Оңтүстік-шығыс", "Оңтүстік", "Оңтүстік-батыс", "Батыс", "Солтүстік-батыс"];
+  return dirs[Math.round(deg / 45) % 8];
+}
+function windAdvice(maxSpeed: number): string {
+  if (maxSpeed < 15) return "Жел әлсіз — қалыпты жағдай.";
+  if (maxSpeed < 30) return "Жел орташа — шаң аздап көтеріледі.";
+  if (maxSpeed < 45) return "Жел күшті — шаң мен ластану тез таралады, өрт қаупі артады.";
+  return "Дауыл — өте қатты жел, далада сақ болыңыз.";
 }
 function waterAdvice(level: string): string {
   if (level.includes("Жоғары")) return "Тасқын қаупі жоғары — өзен жайылмасынан аулақ болыңыз.";
@@ -210,6 +222,21 @@ export function MapView() {
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setFireData)
       .catch(() => setFireError(true));
+  }, [activeLayer]);
+
+  // Жел бағыты — қабат белсенді болғанда жүктеледі
+  const [windData, setWindData] = useState<{
+    grid: { lat: number; lng: number; speed: number; dir: number }[];
+    avgSpeed: number; maxSpeed: number; dominantDir: number;
+  } | null>(null);
+  const [windError, setWindError] = useState(false);
+  useEffect(() => {
+    if (activeLayer !== "wind") return;
+    setWindError(false);
+    fetch("/api/windgrid")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then(setWindData)
+      .catch(() => setWindError(true));
   }, [activeLayer]);
 
   // Құрғақшылық (SPI) — қабат белсенді болғанда жүктеледі
@@ -684,6 +711,20 @@ export function MapView() {
           </Source>
         )}
 
+        {/* Жел бағыты — стрелкалар (желдің КЕТЕТІН бағытын көрсетеді) */}
+        {activeLayer === "wind" && windData?.grid.map((w, i) => (
+          <Marker key={`wind-${i}`} latitude={w.lat} longitude={w.lng}>
+            <div
+              title={`${Math.round(w.speed)} км/сағ`}
+              style={{ transform: `rotate(${w.dir + 180}deg)`, opacity: Math.min(1, 0.45 + w.speed / 30) }}
+            >
+              <svg width={14 + Math.min(14, w.speed / 2)} height={14 + Math.min(14, w.speed / 2)} viewBox="0 0 24 24" className="drop-shadow">
+                <path d="M12 2 L18 20 L12 16 L6 20 Z" fill="#67e8f9" stroke="#0e7490" strokeWidth="1" />
+              </svg>
+            </div>
+          </Marker>
+        ))}
+
         {/* Live mosquito swarm — icon density follows the real suitability index */}
         {mosquitoSwarm.map((m) => (
           <Marker key={m.id} latitude={m.lat} longitude={m.lng}>
@@ -1074,6 +1115,41 @@ export function MapView() {
                 </div>
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   McKee 1993 (WMO) · Open-Meteo ERA5 архиві, {droughtData.yearsOfRecord} жылдық климатология.
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Жел бағыты панелі */}
+        {activeLayer === "wind" && (
+          <div className="w-56 rounded-lg border border-cyan-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300">
+              <Wind className="h-3 w-3" /> {tr("Жел бағыты — тірі")}
+            </div>
+            {windError ? (
+              <p className="text-[11px] text-neutral-400">{tr("Тірі ауа райы деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}</p>
+            ) : !windData ? (
+              <p className="text-[11px] text-neutral-500">{tr("Жүктелуде…")}</p>
+            ) : (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-2xl font-bold text-cyan-300">{windData.avgSpeed}</div>
+                    <div className="text-[10px] text-neutral-400">км/сағ · {tr("орташа")}</div>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <svg width="34" height="34" viewBox="0 0 24 24" style={{ transform: `rotate(${windData.dominantDir + 180}deg)` }}>
+                      <path d="M12 2 L18 20 L12 16 L6 20 Z" fill="#67e8f9" stroke="#0e7490" strokeWidth="1" />
+                    </svg>
+                    <div className="text-[9px] text-neutral-400">{tr(compassKz(windData.dominantDir))}</div>
+                  </div>
+                </div>
+                <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
+                  💡 {tr(windAdvice(windData.maxSpeed))}
+                </div>
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
+                  {tr("Стрелка — желдің кететін бағыты. Дереккөз: Open-Meteo (ECMWF).")}
                 </p>
               </>
             )}
