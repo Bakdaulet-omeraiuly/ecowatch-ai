@@ -415,21 +415,24 @@ export function MapView() {
   // Scatter mosquito icons around each grid point — count scales with the live index
   const mosquitoSwarm = useMemo(() => {
     if (activeLayer !== "mosquito" || !mosGrid) return [];
-    const swarm: { id: string; lat: number; lng: number; size: number }[] = [];
+    const swarm: { id: string; lat: number; lng: number; size: number; color: string }[] = [];
     for (const p of mosGrid) {
-      const count = Math.round(mosDayIndex(p) / 10); // 0 (cold) … ~10 icons (peak)
-      // City districts cluster tightly (~1.5 km); regional cells spread wide
-      const spreadLat = p.dense ? 0.012 : 0.13;
-      const spreadLng = p.dense ? 0.016 : 0.18;
+      const idx = mosDayIndex(p);
+      // Индекс 0–19 → иконка жоқ; 20–39 → 1; 40–59 → 3; 60–79 → 6; 80–100 → 10
+      const count = idx < 20 ? 0 : idx < 40 ? 1 : idx < 60 ? 3 : idx < 80 ? 6 : 10;
+      // Индекс бойынша түс: жасыл → сары → қызғылт → қызыл
+      const color = idx < 30 ? "#4ade80" : idx < 55 ? "#facc15" : idx < 75 ? "#fb923c" : "#ef4444";
+      const spreadLat = p.dense ? 0.010 : 0.13;
+      const spreadLng = p.dense ? 0.013 : 0.18;
       for (let i = 0; i < count; i++) {
-        // deterministic pseudo-random spread so icons don't jump each render
         const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
         const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
         swarm.push({
-          id: `${p.lat},${p.lng},${i}`,
+          id: `${p.lat},${p.lng},${mosDay},${i}`,
           lat: p.lat + a * spreadLat,
           lng: p.lng + b * spreadLng,
-          size: 14 + (Math.abs(a) > 0.6 ? 6 : 0),
+          size: p.dense ? 15 : 12,
+          color,
         });
       }
     }
@@ -757,7 +760,7 @@ export function MapView() {
         {/* Live mosquito swarm — icon density follows the real suitability index */}
         {mosquitoSwarm.map((m) => (
           <Marker key={m.id} latitude={m.lat} longitude={m.lng}>
-            <MosquitoIcon size={m.size} className="text-purple-200/85 drop-shadow" />
+            <MosquitoIcon size={m.size} style={{ color: m.color, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }} />
           </Marker>
         ))}
 

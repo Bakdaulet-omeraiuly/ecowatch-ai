@@ -1,5 +1,7 @@
+import React from "react";
+
 // Recognizable mosquito silhouette — long proboscis, slender body, two wings, six legs.
-export function MosquitoIcon({ size = 16, className = "" }: { size?: number; className?: string }) {
+export function MosquitoIcon({ size = 16, className = "", style }: { size?: number; className?: string; style?: React.CSSProperties }) {
   return (
     <svg
       width={size}
@@ -7,6 +9,7 @@ export function MosquitoIcon({ size = 16, className = "" }: { size?: number; cla
       viewBox="0 0 64 64"
       fill="none"
       className={className}
+      style={style}
       aria-label="маса"
     >
       {/* legs */}
