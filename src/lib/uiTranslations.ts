@@ -55,6 +55,30 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   "Радар": { ru: "Радар", en: "Radar" },
   "Төбе қосыңыз": { ru: "Добавьте вершину", en: "Add a vertex" },
 
+  // Атмосфера қабат атаулары (спутник панелі)
+  "Атмосфера": { ru: "Атмосфера", en: "Atmosphere" },
+  "Азот диоксиді (NO₂)": { ru: "Диоксид азота (NO₂)", en: "Nitrogen Dioxide (NO₂)" },
+  "Күкірт диоксиді (SO₂)": { ru: "Диоксид серы (SO₂)", en: "Sulfur Dioxide (SO₂)" },
+  "Метан (CH₄)": { ru: "Метан (CH₄)", en: "Methane (CH₄)" },
+  "Көміртек тотығы (CO)": { ru: "Угарный газ (CO)", en: "Carbon Monoxide (CO)" },
+  "Аэрозоль / шаң (AOD)": { ru: "Аэрозоль / пыль (AOD)", en: "Aerosol / Dust (AOD)" },
+  "Қар жамылғысы (NDSI)": { ru: "Снежный покров (NDSI)", en: "Snow Cover (NDSI)" },
+
+  // Спутник қабат атаулары
+  "Шынайы түс (10 м)": { ru: "Естественный цвет (10 м)", en: "True color (10 m)" },
+  "Жалған түс (өсімдік)": { ru: "Ложный цвет (растит.)", en: "False color (vegetation)" },
+  "Өсімдік (NDVI)": { ru: "Растительность (NDVI)", en: "Vegetation (NDVI)" },
+  "Ылғалдылық (NDMI)": { ru: "Влажность (NDMI)", en: "Moisture (NDMI)" },
+  "Ауыл шаруашылығы": { ru: "Сельское хозяйство", en: "Agriculture" },
+  "SWIR (өрт/ылғал)": { ru: "SWIR (пожар/влага)", en: "SWIR (fire/moisture)" },
+  "Геология / топырақ": { ru: "Геология / почва", en: "Geology / soil" },
+  "Су беті / тереңдік": { ru: "Поверхность воды", en: "Water surface" },
+  "Жер беті жылуы (күндіз)": { ru: "Температура поверхности (день)", en: "Land surface temp (day)" },
+  "Аэрозоль / шаң": { ru: "Аэрозоль / пыль", en: "Aerosol / dust" },
+  "Түнгі жарық": { ru: "Ночное освещение", en: "Night lights" },
+  "Су / мұнай (VV)": { ru: "Вода / нефть (VV)", en: "Water / oil (VV)" },
+  "Өсімдік / құрылым (VH)": { ru: "Растит. / структура (VH)", en: "Vegetation / structure (VH)" },
+
   // Эко қабат атаулары
   "Маса": { ru: "Комары", en: "Mosquito" },
   "Ауа": { ru: "Воздух", en: "Air" },

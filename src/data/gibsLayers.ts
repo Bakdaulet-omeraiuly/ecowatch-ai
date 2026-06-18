@@ -84,17 +84,17 @@ export const RADAR_SAT_LAYERS: SatLayer[] = S1_INSTANCE ? RADAR_LAYERS : [];
 // SH_INSTANCE болса — TROPOMI нақты спутник суреттері (тәуліктік, 5.5 км).
 // Болмаса — NASA GIBS резервіне қайтады (25–50 км, өрескел).
 const S5P_LAYERS: SatLayer[] = [
-  { key: "no2",  labelKz: "NO₂ · TROPOMI · 5.5 км", descKz: "Азот диоксиді — Sentinel-5P нақты спутник · тәуліктік",
+  { key: "no2",  labelKz: "Азот диоксиді (NO₂)", descKz: "Азот диоксиді — Sentinel-5P/TROPOMI нақты спутник · 5.5 км · тәуліктік. Мұнай өңдеу, жол көлігі.",
     source: "sentinel5p", layer: "no2",  ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
-  { key: "so2",  labelKz: "SO₂ · TROPOMI · 5.5 км", descKz: "Күкірт диоксиді — факел пен мұнай өңдеу · тәуліктік",
+  { key: "so2",  labelKz: "Күкірт диоксиді (SO₂)", descKz: "Күкірт диоксиді — Sentinel-5P/TROPOMI · 5.5 км · тәуліктік. Газ факелдері мен мұнай өңдеу белгісі.",
     source: "sentinel5p", layer: "so2",  ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
-  { key: "ch4",  labelKz: "CH₄ · TROPOMI · 5.5 км", descKz: "Метан — мұнай-газ ағуы · Sentinel-5P · тәуліктік",
+  { key: "ch4",  labelKz: "Метан (CH₄)", descKz: "Метан — Sentinel-5P/TROPOMI · 5.5 км · тәуліктік. Мұнай-газ ағуы мен тұнбалы газдарды анықтайды.",
     source: "sentinel5p", layer: "ch4",  ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
-  { key: "co",   labelKz: "CO · TROPOMI · 5.5 км",  descKz: "Көміртек тотығы — жану өнімдері · тәуліктік",
+  { key: "co",   labelKz: "Көміртек тотығы (CO)", descKz: "Көміртек тотығы — Sentinel-5P/TROPOMI · 5.5 км · тәуліктік. Жану өнімдері мен өрт.",
     source: "sentinel5p", layer: "co",   ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
-  { key: "aod",  labelKz: "Аэрозоль · TROPOMI",      descKz: "Аэрозоль индексі — шаң мен бөлшектер · тәуліктік",
+  { key: "aod",  labelKz: "Аэрозоль / шаң (AOD)", descKz: "Аэрозоль индексі — Sentinel-5P/TROPOMI · тәуліктік. Шаң бұрқасыны мен ауа бөлшектері.",
     source: "sentinel5p", layer: "aod", ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
-  { key: "snow", labelKz: "Қар жамылғысы · MODIS",   descKz: "MODIS NDSI — қар жамылғысы (қыс мезгілінде)",
+  { key: "snow", labelKz: "Қар жамылғысы (NDSI)", descKz: "MODIS NDSI — қар жамылғысы (қыс мезгілінде). NASA Terra спутнигі.",
     source: "gibs", layer: "MODIS_Terra_NDSI_Snow_Cover", matrix: "GoogleMapsCompatible_Level8",
     ext: "png", maxzoom: 6, tileSize: 256, cadence: "daily", opacity: 0.85 },
 ];
