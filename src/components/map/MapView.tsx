@@ -16,13 +16,13 @@ import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, S
 import { useLang } from "@/lib/i18n";
 
 // Real yearly satellite mosaics. All imagery is real, no simulation:
-//  • 1984–1999 → Landsat WELD Annual TrueColor (NASA GIBS, 30 м)
-//  • 2000–2015 → NASA MODIS Terra True Color (250 м)
+//  • 1984–2001 → Landsat WELD Annual TrueColor (NASA GIBS, 30 м)
+//  • 2002–2015 → NASA MODIS Terra True Color (250 м)
 //  • 2016–2025 → Sentinel-2 Cloudless yearly mosaic by EOX (10 м)
-const LANDSAT_YEARS = new Set([1984, 1990, 1999]);
+const LANDSAT_YEARS = new Set([1984, 1990, 1999, 2000, 2001]);
 const HISTORY_YEARS: number[] = [
   1984, 1990, 1999,
-  2000, 2003, 2006, 2009, 2012, 2015,
+  2000, 2001, 2003, 2006, 2009, 2012, 2015,
   2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
 ];
 

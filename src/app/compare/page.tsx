@@ -6,10 +6,10 @@ import { useLang } from "@/lib/i18n";
 
 const HISTORY_YEARS = [
   1984, 1990, 1999,
-  2000, 2003, 2006, 2009, 2012, 2015,
+  2000, 2001, 2003, 2006, 2009, 2012, 2015,
   2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
 ];
-const LANDSAT_YEARS = new Set([1984, 1990, 1999]);
+const LANDSAT_YEARS = new Set([1984, 1990, 1999, 2000, 2001]);
 
 const ATYRAU_SPOTS = [
   { label: "Атырау қаласы", lat: 47.1167, lng: 51.8833 },
@@ -105,7 +105,7 @@ export default function ComparePage() {
           <ArrowLeftRight className="h-6 w-6 text-amber-400" /> {tr("Жыл салыстыру")}
         </h1>
         <p className="text-sm text-neutral-400">
-          {tr("Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2000–2015) · NASA Landsat (1984–1999)")}
+          {tr("Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2002–2015) · NASA Landsat WELD (1984–2001)")}
         </p>
       </div>
 
@@ -207,7 +207,7 @@ export default function ComparePage() {
 
       <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4 text-sm text-neutral-400">
         <p>
-          <span className="font-semibold text-amber-300">2000–2015:</span> {tr("NASA MODIS Terra (250 м ажыратымдылық) — Sentinel-2 спутнигі 2015 жылға дейін болмаған, сондықтан осы дәуірдің жалғыз нақты дереккөзі.")}
+          <span className="font-semibold text-amber-300">2002–2015:</span> {tr("NASA MODIS Terra (250 м ажыратымдылық) — Sentinel-2 спутнигі 2015 жылға дейін болмаған, сондықтан осы дәуірдің жалғыз нақты дереккөзі.")}
         </p>
         <p className="mt-1">
           <span className="font-semibold text-sky-300">2016–2025:</span> {tr("Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 м) — жыл сайынғы жазғы мозаика, бұлтсыз.")}
