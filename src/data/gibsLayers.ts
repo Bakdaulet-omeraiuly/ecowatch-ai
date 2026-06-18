@@ -76,9 +76,30 @@ export const SAT_PROVIDER = SH_INSTANCE ? "Sentinel-2 · 10 м" : "NASA GIBS";
 // Радар қабаттары (S1 кілті болса ғана)
 export const RADAR_SAT_LAYERS: SatLayer[] = S1_INSTANCE ? RADAR_LAYERS : [];
 
-// Кез келген қабатты key бойынша табу (оптика + радар)
+// ── Атмосфералық газдар (NASA GIBS — тегін, кілтсіз) ────────────────
+// Мұнай-газ өңіріне дәл: метан ағуы, факел газдары. Дерек өрескел (~25-50км),
+// бірақ нақты концентрация үлгісін көрсетеді.
+export const ATMOS_LAYERS: SatLayer[] = [
+  { key: "ch4", labelKz: "Метан (CH₄)", descKz: "Атмосферадағы метан — мұнай-газ ағуының белгісі",
+    source: "gibs", layer: "AIRS_L2_Methane_400hPa_Volume_Mixing_Ratio_Day", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
+  { key: "no2", labelKz: "Азот диоксиді (NO₂)", descKz: "Жану мен көліктен шығатын NO₂ ластануы",
+    source: "gibs", layer: "OMI_Nitrogen_Dioxide_Tropo_Column", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
+  { key: "so2", labelKz: "Күкірт диоксиді (SO₂)", descKz: "Факел мен мұнай өңдеуден шығатын SO₂",
+    source: "gibs", layer: "OMI_SO2_Planetary_Boundary_Layer", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
+  { key: "co", labelKz: "Көміртек тотығы (CO)", descKz: "Толық емес жанудан шығатын улы CO",
+    source: "gibs", layer: "AIRS_L2_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Day", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
+  { key: "aod", labelKz: "Аэрозоль (3 км)", descKz: "Шаң мен майда бөлшектердің тығыздығы",
+    source: "gibs", layer: "MODIS_Terra_Aerosol_Optical_Depth_3km", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
+];
+
+// Кез келген қабатты key бойынша табу (оптика + радар + атмосфера)
 export function findSatLayer(key: string): SatLayer | undefined {
-  return [...GIBS_LAYERS, ...RADAR_SAT_LAYERS].find((l) => l.key === key);
+  return [...GIBS_LAYERS, ...RADAR_SAT_LAYERS, ...ATMOS_LAYERS].find((l) => l.key === key);
 }
 
 function isoAgo(days: number): string {

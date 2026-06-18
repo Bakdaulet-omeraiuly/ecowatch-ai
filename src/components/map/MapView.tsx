@@ -12,7 +12,7 @@ import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
-import { GIBS_LAYERS, RADAR_SAT_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER } from "@/data/gibsLayers";
+import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
 
 // Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
@@ -845,6 +845,25 @@ export function MapView() {
                 ))}
               </>
             )}
+
+            {/* Атмосфералық газдар (NASA) */}
+            <div className="mb-0.5 mt-2 px-1 text-[10px] uppercase tracking-wide text-neutral-500">
+              {tr("Атмосфера · газдар")}
+            </div>
+            {ATMOS_LAYERS.map((g) => (
+              <button
+                key={g.key}
+                onClick={() => setGibsKey((cur) => (cur === g.key ? null : g.key))}
+                title={g.descKz}
+                className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                  gibsKey === g.key
+                    ? "border-fuchsia-500/50 bg-fuchsia-500/15 text-fuchsia-200"
+                    : "border-transparent text-neutral-300 hover:bg-white/5"
+                }`}
+              >
+                <Wind className="h-3.5 w-3.5 flex-shrink-0" /> <span className="text-left leading-tight">{tr(g.labelKz)}</span>
+              </button>
+            ))}
 
             {gibsKey && (
               <button
