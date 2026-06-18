@@ -418,10 +418,9 @@ export function MapView() {
     const swarm: { id: string; lat: number; lng: number; size: number; color: string }[] = [];
     for (const p of mosGrid) {
       const idx = mosDayIndex(p);
-      if (idx < 20) continue; // индекс тым төмен → иконка жоқ
-      const color = idx < 40 ? "#4ade80" : idx < 60 ? "#facc15" : idx < 78 ? "#fb923c" : "#ef4444";
+      const color = idx < 25 ? "#6ee7b7" : idx < 45 ? "#4ade80" : idx < 62 ? "#facc15" : idx < 78 ? "#fb923c" : "#ef4444";
       if (p.dense) {
-        // Қала нүктесі — дәл координатта бір иконка
+        // Қала нүктесі — әрқашан дәл координатта бір иконка
         swarm.push({ id: `${p.lat},${p.lng},${mosDay}`, lat: p.lat, lng: p.lng, size: 16, color });
       } else {
         // Аймақтық тор — кең шашыратылған 1–5 иконка
