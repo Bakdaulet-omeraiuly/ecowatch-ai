@@ -14,10 +14,11 @@ export const revalidate = 3600;
 // dense=false → a regional grid cell (icons spread wide).
 const points: { lat: number; lng: number; dense: boolean; name?: string }[] = [];
 
-// 10×10 = 100-point grid covering the whole Atyrau region
+// 5×5 = 25-нүктелі тор (облыс деңгейі) — Open-Meteo 100 лимитіне сыйдыру үшін
+// Қалған 75 слот → қала аудандары мен көшелері
 const LAT_MIN = 46.0, LAT_MAX = 48.8;
 const LNG_MIN = 49.2, LNG_MAX = 54.8;
-const N = 10;
+const N = 5;
 for (let i = 0; i < N; i++)
   for (let j = 0; j < N; j++)
     points.push({
