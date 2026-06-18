@@ -525,6 +525,23 @@ Object.assign(UI_TR, {
   "Азаматтық хабарлама": { ru: "Сообщение гражданина", en: "Citizen report" },
 });
 
+// ── Қарапайым тілмен түсіндірмелер (эко қабат панельдері) ────────────
+Object.assign(UI_TR, {
+  "Өрт қаупі өте төмен — қауіп жоқ.": { ru: "Риск пожара очень низкий — опасности нет.", en: "Fire risk very low — no danger." },
+  "Өрт қаупі төмен — сақтық жеткілікті.": { ru: "Риск пожара низкий — достаточно осторожности.", en: "Fire risk low — basic caution is enough." },
+  "Орташа қауіп — далада отпен абай болыңыз.": { ru: "Средний риск — будьте осторожны с огнём на природе.", en: "Moderate risk — be careful with fire outdoors." },
+  "Жоғары қауіп — далада от жақпаңыз, темекі тастамаңыз.": { ru: "Высокий риск — не разводите огонь, не бросайте окурки.", en: "High risk — don't light fires or drop cigarettes outdoors." },
+  "Аса қауіпті — кез келген ұшқын дала өртін тудыруы мүмкін.": { ru: "Крайне опасно — любая искра может вызвать степной пожар.", en: "Extreme — any spark can start a wildfire." },
+  "Жер ылғалды — су тапшылығы жоқ.": { ru: "Земля влажная — дефицита воды нет.", en: "Land is moist — no water shortage." },
+  "Ылғалдылық қалыпты деңгейде.": { ru: "Влажность в норме.", en: "Moisture is at a normal level." },
+  "Орташа құрғақшылық — өсімдікке су жетіспейді.": { ru: "Умеренная засуха — растениям не хватает воды.", en: "Moderate drought — plants lack water." },
+  "Қатты құрғақшылық — суды үнемдеу қажет.": { ru: "Сильная засуха — нужно экономить воду.", en: "Severe drought — water saving needed." },
+  "Апатты құрғақшылық — су ресурстарын қатаң үнемдеңіз.": { ru: "Катастрофическая засуха — строго экономьте воду.", en: "Extreme drought — conserve water strictly." },
+  "Маса аз — қорғану қажеті шамалы.": { ru: "Комаров мало — защита почти не нужна.", en: "Few mosquitoes — little protection needed." },
+  "Орташа — кешке репеллент қолданыңыз.": { ru: "Умеренно — вечером используйте репеллент.", en: "Moderate — use repellent in the evening." },
+  "Маса көп — репеллент пен тор қажет, тұрған суды құрғатыңыз.": { ru: "Много комаров — нужны репеллент и сетки, осушите застойную воду.", en: "Many mosquitoes — use repellent and nets, drain standing water." },
+});
+
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {
   if (lang === "kk") return s;
   return UI_TR[s]?.[lang] ?? s;

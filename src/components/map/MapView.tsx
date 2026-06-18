@@ -84,6 +84,27 @@ function layerWeight(s: Site, layer: LayerKey): number {
   }
 }
 
+// Қарапайым тілмен түсіндірме — кез келген адам ұғатындай кеңес
+function fireAdvice(fwi: number): string {
+  if (fwi < 5.2) return "Өрт қаупі өте төмен — қауіп жоқ.";
+  if (fwi < 11.2) return "Өрт қаупі төмен — сақтық жеткілікті.";
+  if (fwi < 21.3) return "Орташа қауіп — далада отпен абай болыңыз.";
+  if (fwi < 38) return "Жоғары қауіп — далада от жақпаңыз, темекі тастамаңыз.";
+  return "Аса қауіпті — кез келген ұшқын дала өртін тудыруы мүмкін.";
+}
+function droughtAdvice(spi: number): string {
+  if (spi >= 1) return "Жер ылғалды — су тапшылығы жоқ.";
+  if (spi > -1) return "Ылғалдылық қалыпты деңгейде.";
+  if (spi > -1.5) return "Орташа құрғақшылық — өсімдікке су жетіспейді.";
+  if (spi > -2) return "Қатты құрғақшылық — суды үнемдеу қажет.";
+  return "Апатты құрғақшылық — су ресурстарын қатаң үнемдеңіз.";
+}
+function mosquitoAdvice(idx: number): string {
+  if (idx < 30) return "Маса аз — қорғану қажеті шамалы.";
+  if (idx < 60) return "Орташа — кешке репеллент қолданыңыз.";
+  return "Маса көп — репеллент пен тор қажет, тұрған суды құрғатыңыз.";
+}
+
 export function MapView() {
   const { lang, tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -957,7 +978,10 @@ export function MapView() {
                     <div className="text-[9px] text-neutral-500">DC</div>
                   </div>
                 </div>
-                <p className="mt-2 text-[9px] leading-snug text-neutral-500">
+                <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
+                  💡 {tr(fireAdvice(fireData.fwi))}
+                </div>
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   Канада FWI жүйесі (EFFIS) · Open-Meteo {fireData.spinupDays} күндік нақты ауа райынан.
                   Қызыл реңк — қауіп деңгейі.
                 </p>
@@ -1007,7 +1031,10 @@ export function MapView() {
                   <div className="text-sm font-bold text-white">{droughtData.precip3m} мм</div>
                   <div className="text-[9px] text-neutral-500">{tr("3-айлық жауын")} ({droughtData.period})</div>
                 </div>
-                <p className="mt-2 text-[9px] leading-snug text-neutral-500">
+                <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
+                  💡 {tr(droughtAdvice(droughtData.spi))}
+                </div>
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   McKee 1993 (WMO) · Open-Meteo ERA5 архиві, {droughtData.yearsOfRecord} жылдық климатология.
                 </p>
               </>
@@ -1044,6 +1071,9 @@ export function MapView() {
                         </div>
                         <div className="text-[9px] text-neutral-500">{tr("макс")}</div>
                       </div>
+                    </div>
+                    <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
+                      💡 {tr(mosquitoAdvice(mosStats.avg))}
                     </div>
                   </>
                 )}
