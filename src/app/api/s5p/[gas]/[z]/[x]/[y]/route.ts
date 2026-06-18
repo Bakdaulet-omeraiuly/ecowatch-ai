@@ -138,8 +138,10 @@ export async function GET(
   const zi = parseInt(z), xi = parseInt(x), yi = parseInt(y);
   if (isNaN(zi) || isNaN(xi) || isNaN(yi)) return new NextResponse("Bad tile", { status: 400 });
 
-  // Zoom тым үлкен болса S5P деректері мағынасыз (5.5 км пиксель)
+  // Zoom тым үлкен болса S5P деректері мағынасыз (5.5 км пиксель) — overzoom болады
   if (zi > 10) return new NextResponse(null, { status: 204 });
+  // Тым кішкентай zoom-да жер шарының үлкен бөлігі — API квотасын үнемдеу
+  if (zi < 3) return new NextResponse(null, { status: 204 });
 
   const [minX, minY, maxX, maxY] = tileToBbox(zi, xi, yi);
 

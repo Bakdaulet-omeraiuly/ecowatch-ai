@@ -643,7 +643,7 @@ export function MapView() {
           if (!def) return null;
           return (
             <Source
-              key={`gibs-${def.tileSize}`}
+              key={`gibs-${gibsKey}`}
               id="gibs-layer"
               type="raster"
               tiles={gibsTiles(def)}
