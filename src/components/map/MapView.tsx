@@ -15,35 +15,42 @@ import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
 
-// Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
-// All imagery is real, no simulation:
-//  • 2000–2015 → NASA MODIS Terra True Color (250 m) — only real source pre-Sentinel-2
-//  • 2016–2025 → Sentinel-2 Cloudless yearly mosaic by EOX (10 m, ESA Copernicus)
+// Real yearly satellite mosaics. All imagery is real, no simulation:
+//  • 1984–1999 → Landsat WELD Annual TrueColor (NASA GIBS, 30 м)
+//  • 2000–2015 → NASA MODIS Terra True Color (250 м)
+//  • 2016–2025 → Sentinel-2 Cloudless yearly mosaic by EOX (10 м)
+const LANDSAT_YEARS = new Set([1984, 1990, 1999]);
 const HISTORY_YEARS: number[] = [
+  1984, 1990, 1999,
   2000, 2003, 2006, 2009, 2012, 2015,
   2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
 ];
 
-function isModisYear(year: number): boolean {
-  return year < 2016;
-}
-
 // Raster tile config for the selected year's map layer
 function yearTileConfig(year: number): { tiles: string[]; maxzoom: number; attribution: string } {
-  if (isModisYear(year)) {
+  if (LANDSAT_YEARS.has(year)) {
+    return {
+      tiles: [
+        `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual/default/${year}-07-15/GoogleMapsCompatible_Level12/{z}/{y}/{x}.jpeg`,
+      ],
+      maxzoom: 12,
+      attribution: "NASA EOSDIS GIBS — Landsat WELD · 30 м",
+    };
+  }
+  if (year < 2016) {
     return {
       tiles: [
         `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/MODIS_Terra_CorrectedReflectance_TrueColor/default/${year}-07-15/GoogleMapsCompatible_Level9/{z}/{y}/{x}.jpg`,
       ],
-      maxzoom: 9, // MODIS native resolution cap
-      attribution: "NASA EOSDIS GIBS — MODIS Terra",
+      maxzoom: 9,
+      attribution: "NASA EOSDIS GIBS — MODIS Terra · 250 м",
     };
   }
   const layer = year === 2016 ? "s2cloudless_3857" : `s2cloudless-${year}_3857`;
   return {
     tiles: [`https://tiles.maps.eox.at/wmts/1.0.0/${layer}/default/g/{z}/{y}/{x}.jpg`],
     maxzoom: 16,
-    attribution: "Sentinel-2 cloudless by EOX — ESA Copernicus",
+    attribution: "Sentinel-2 cloudless by EOX — ESA Copernicus · 10 м",
   };
 }
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
@@ -1661,7 +1668,7 @@ export function MapView() {
           <div className="mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <History className="h-3.5 w-3.5" />
-              {tr("Атыраудың нақты спутник тарихы (2000–2025)")}
+              {tr("Атыраудың нақты спутник тарихы (1984–2025)")}
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -1701,9 +1708,11 @@ export function MapView() {
           </div>
           <p className="mt-2 text-[11px] text-neutral-400">
             {year
-              ? isModisYear(year)
-                ? `${year} ${tr("жыл — NASA MODIS нақты суреті (250м, шолу деңгейі). Sentinel-2 спутнигі 2015 жылы ұшырылғандықтан, бұдан ескі жоғары сапалы сурет жоқ.")}`
-                : `${year} ${tr("жыл — бұлтсыз Sentinel-2 мозаикасы (10м), дәл сол жылғы Атыраудың шынайы көрінісі. Картаны бассаңыз, AI сол жылғы суретті талдайды.")}`
+              ? LANDSAT_YEARS.has(year)
+                ? `${year} ${tr("жыл — NASA Landsat нақты суреті (30м). Атырау мұнай өнеркәсібі дамуының ерте кезеңі.")}`
+                : year < 2016
+                  ? `${year} ${tr("жыл — NASA MODIS нақты суреті (250м, шолу деңгейі). Sentinel-2 спутнигі 2015 жылы ұшырылғандықтан, бұдан ескі жоғары сапалы сурет жоқ.")}`
+                  : `${year} ${tr("жыл — бұлтсыз Sentinel-2 мозаикасы (10м), дәл сол жылғы Атыраудың шынайы көрінісі. Картаны бассаңыз, AI сол жылғы суретті талдайды.")}`
               : tr("Қазіргі Mapbox спутник суреті. Слайдерді жылжытып, өткен жылдармен салыстырыңыз.")}
             <span className="ml-1 text-amber-300/80">{tr("Бұл жылдың нүктелері")}: {allSites.length}</span>
           </p>
