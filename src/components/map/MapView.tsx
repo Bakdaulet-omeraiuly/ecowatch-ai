@@ -916,7 +916,7 @@ export function MapView() {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" /> {tr(l.label)}
-                  {(l.key === "air" || l.key === "mosquito" || l.key === "oil" || l.key === "water" || l.key === "soil") && (
+                  {l.key !== "waste" && (
                     <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
                     </span>
