@@ -121,8 +121,8 @@ const GIBS_ATMOS_LAYERS: SatLayer[] = [
     ext: "png", maxzoom: 6, tileSize: 256, cadence: "daily", opacity: 0.85 },
 ];
 
-// SENTINELHUB_CLIENT_ID болса → TROPOMI Process API (5.5 км), болмаса → GIBS (25–50 км)
-const HAS_S5P = !!(process.env.SENTINELHUB_CLIENT_ID || S5P_INSTANCE);
+// /api/s5p прокси серверде OAuth жасайды — клиентте кілт тексерудің қажеті жоқ
+const HAS_S5P = true;
 export const ATMOS_LAYERS: SatLayer[] = HAS_S5P ? S5P_LAYERS : GIBS_ATMOS_LAYERS;
 export const ATMOS_PROVIDER = HAS_S5P ? "TROPOMI · 5.5 км" : "NASA GIBS · 25 км";
 
