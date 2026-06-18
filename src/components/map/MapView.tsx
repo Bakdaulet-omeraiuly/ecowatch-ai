@@ -12,7 +12,7 @@ import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
-import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER } from "@/data/gibsLayers";
+import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
 
 // Real yearly satellite mosaics: Sentinel-2 Cloudless by EOX (ESA Copernicus data).
@@ -56,6 +56,7 @@ import {
 import type { Site, AnalysisResult } from "@/types/site";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
+const CAMS_ATMOS_KEYS = ["no2", "so2", "ch4", "co"];
 
 const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
   mosquito: Bug,
@@ -189,7 +190,8 @@ export function MapView() {
     });
   }, [userSites, sharedReports]);
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
-  const { airGrid, airDominant, airError } = useAirGrid(activeLayer === "air");
+  const [atmosGasActive, setAtmosGasActive] = useState(false);
+  const { airGrid, airDominant, airError } = useAirGrid(activeLayer === "air" || atmosGasActive);
   const [airHour, setAirHour] = useState(0); // 0 = now … 23 = +23h
   const [airPlaying, setAirPlaying] = useState(false);
 
@@ -271,7 +273,10 @@ export function MapView() {
   const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
   const [timelapsePlaying, setTimelapsePlaying] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true); // эко қабаттар панелі (мобильде жинауға болады)
-  const [gibsKey, setGibsKey] = useState<string | null>(null); // NASA GIBS спутник қабаты
+  const [gibsKey, setGibsKey] = useState<string | null>(null);
+  useEffect(() => {
+    setAtmosGasActive(CAMS_ATMOS_KEYS.includes(gibsKey ?? ""));
+  }, [gibsKey]);
   const [gibsPanelOpen, setGibsPanelOpen] = useState(true); // оң жақ спутник панелі
   const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
   const [mosPlaying, setMosPlaying] = useState(false);
@@ -327,6 +332,43 @@ export function MapView() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [airGrid, airHour]);
+
+  // CAMS атмосфера газ жылу картасы (gibsKey: no2/so2/ch4/co)
+  const atmosHeatmap = useMemo(() => {
+    if (!gibsKey || !CAMS_ATMOS_KEYS.includes(gibsKey) || !airGrid) return null;
+    const key = gibsKey as "no2" | "so2" | "ch4" | "co";
+    const vals = airGrid.map((p) => p[key] ?? 0).filter((v) => v > 0);
+    if (!vals.length) return null;
+    const min = Math.min(...vals);
+    const max = Math.max(...vals);
+    const range = max - min || 1;
+    return {
+      type: "FeatureCollection" as const,
+      features: airGrid
+        .filter((p) => (p[key] ?? 0) > 0)
+        .map((p) => ({
+          type: "Feature" as const,
+          geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
+          // Жергілікті масштаб: Атырау аймағы ішінде max контраст
+          properties: { weight: (((p[key] ?? 0) - min) / range) * 0.85 + 0.15 },
+        })),
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gibsKey, airGrid]);
+
+  const atmosStats = useMemo(() => {
+    if (!gibsKey || !CAMS_ATMOS_KEYS.includes(gibsKey) || !airGrid) return null;
+    const key = gibsKey as "no2" | "so2" | "ch4" | "co";
+    const vals = airGrid.map((p) => p[key] ?? 0).filter((v) => v > 0);
+    if (!vals.length) return null;
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    return {
+      avg: Math.round(avg * 10) / 10,
+      max: Math.round(Math.max(...vals) * 10) / 10,
+      unit: key === "ch4" ? "μg/m³ (метан)" : key === "co" ? "μg/m³ (CO)" : "μg/m³",
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gibsKey, airGrid]);
 
   const heatmapData = useMemo(() => {
     if (!activeLayer) return null;
@@ -503,7 +545,7 @@ export function MapView() {
 
   const handleClick = useCallback(
     (e: MapLayerMouseEvent) => {
-      if (!aiOn) return; // AI талдау өшулі болса — кездейсоқ басу талдамайды
+      if (!aiOn) return;
       if (aiTool === "area") {
         // Аумақ режимі: басқан жерге полигон төбесін қосады (жаңа сызу — ескі белгіні тазалайды)
         setAnalyzedArea(null);
@@ -621,7 +663,7 @@ export function MapView() {
           if (!def) return null;
           return (
             <Source
-              key={`gibs-${def.key}`}
+              key={`gibs-${def.tileSize}`}
               id="gibs-layer"
               type="raster"
               tiles={gibsTiles(def)}
@@ -632,11 +674,42 @@ export function MapView() {
               <Layer
                 id="gibs-raster"
                 type="raster"
-                paint={{ "raster-opacity": def.opacity, "raster-resampling": "linear", "raster-fade-duration": 300 }}
+                paint={{
+                  "raster-opacity": Math.min(1, def.opacity * 1.2),
+                  "raster-contrast": 0.3,
+                  "raster-saturation": 0.4,
+                  "raster-resampling": "linear",
+                  "raster-fade-duration": 200,
+                }}
               />
             </Source>
           );
         })()}
+
+        {/* CAMS атмосфера газ жылу картасы — Атырауға арнайы жергілікті шкала */}
+        {atmosHeatmap && (
+          <Source id="atmos-cams" type="geojson" data={atmosHeatmap}>
+            <Layer
+              id="atmos-cams-heat"
+              type="heatmap"
+              paint={{
+                "heatmap-weight": ["get", "weight"],
+                "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 4, 1, 9, 3],
+                "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 4, 40, 9, 80],
+                "heatmap-opacity": 0.82,
+                "heatmap-color": [
+                  "interpolate", ["linear"], ["heatmap-density"],
+                  0, "rgba(0,0,0,0)",
+                  0.2, "rgba(0,128,255,0.6)",
+                  0.4, "rgba(0,220,180,0.7)",
+                  0.6, "rgba(255,220,0,0.8)",
+                  0.8, "rgba(255,100,0,0.9)",
+                  1, "rgba(200,0,50,1)",
+                ],
+              }}
+            />
+          </Source>
+        )}
 
         {/* Сызылған аумақ (полигон) */}
         {drawPoints.length > 0 && (
@@ -887,9 +960,9 @@ export function MapView() {
               </>
             )}
 
-            {/* Атмосфералық газдар (NASA) */}
+            {/* Атмосфералық газдар */}
             <div className="mb-0.5 mt-2 px-1 text-[10px] uppercase tracking-wide text-neutral-500">
-              {tr("Атмосфера · газдар")}
+              {tr("Атмосфера")} · {ATMOS_PROVIDER}
             </div>
             {ATMOS_LAYERS.map((g) => (
               <button
@@ -905,6 +978,15 @@ export function MapView() {
                 <Wind className="h-3.5 w-3.5 flex-shrink-0" /> <span className="text-left leading-tight">{tr(g.labelKz)}</span>
               </button>
             ))}
+
+            {/* CAMS жергілікті деректер статистикасы */}
+            {atmosStats && (
+              <div className="mt-1.5 rounded-md border border-fuchsia-500/20 bg-fuchsia-950/30 px-2.5 py-2 text-[10px]">
+                <div className="mb-0.5 font-medium text-fuchsia-300">· CAMS · Атырау облысы</div>
+                <div className="text-neutral-300">Орташа: <span className="text-white">{atmosStats.avg}</span></div>
+                <div className="text-neutral-300">Максимум: <span className="text-white">{atmosStats.max}</span> {atmosStats.unit}</div>
+              </div>
+            )}
 
             {gibsKey && (
               <button

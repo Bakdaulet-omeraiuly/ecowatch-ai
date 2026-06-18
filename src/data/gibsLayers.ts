@@ -7,18 +7,21 @@ export interface SatLayer {
   key: string;
   labelKz: string;
   descKz: string;
-  source: "eox" | "gibs" | "sentinel" | "sentinel1";
+  source: "eox" | "gibs" | "sentinel" | "sentinel1" | "sentinel5p";
   layer: string;
   matrix?: string;
   ext: "jpg" | "png";
   maxzoom: number;
   tileSize: number;
-  cadence?: "daily" | "8day" | "static";
+  cadence?: "daily" | "8day" | "monthly" | "static";
+  fixedDate?: string; // тоқтаған аспаптар үшін бекітілген күн (AIRS т.б.)
+  dateOffset?: number; // dailyDate үшін күн кешігуі (OMI ~60 күн, қалғаны 3 күн)
   opacity: number;
 }
 
 const SH_INSTANCE = process.env.NEXT_PUBLIC_SENTINELHUB_INSTANCE_ID;
 const S1_INSTANCE = process.env.NEXT_PUBLIC_SENTINELHUB_S1_INSTANCE_ID;
+const S5P_INSTANCE = process.env.NEXT_PUBLIC_SENTINELHUB_S5P_INSTANCE_ID;
 
 // ── Sentinel-2 (Copernicus, 10 м) — 8 спектрлік қабат ───────────────────
 const SENTINEL_LAYERS: SatLayer[] = [
@@ -72,33 +75,56 @@ const RADAR_LAYERS: SatLayer[] = [
 // Instance ID болса — Sentinel-2 (жоғары сапа), болмаса — GIBS
 export const GIBS_LAYERS: SatLayer[] = SH_INSTANCE ? SENTINEL_LAYERS : GIBS_FALLBACK;
 export const SAT_PROVIDER = SH_INSTANCE ? "Sentinel-2 · 10 м" : "NASA GIBS";
+// ATMOS_PROVIDER төменде HAS_S5P жарияланғаннан кейін экспортталады
 
 // Радар қабаттары (S1 кілті болса ғана)
 export const RADAR_SAT_LAYERS: SatLayer[] = S1_INSTANCE ? RADAR_LAYERS : [];
 
-// ── Атмосфералық газдар (NASA GIBS — тегін, кілтсіз) ────────────────
-// Мұнай-газ өңіріне дәл: метан ағуы, факел газдары. Дерек өрескел (~25-50км),
-// бірақ нақты концентрация үлгісін көрсетеді.
-export const ATMOS_LAYERS: SatLayer[] = [
-  { key: "ch4", labelKz: "Метан (CH₄)", descKz: "Атмосферадағы метан — мұнай-газ ағуының белгісі",
-    source: "gibs", layer: "AIRS_L2_Methane_400hPa_Volume_Mixing_Ratio_Day", matrix: "GoogleMapsCompatible_Level6",
-    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
-  { key: "no2", labelKz: "Азот диоксиді (NO₂)", descKz: "Жану мен көліктен шығатын NO₂ ластануы",
-    source: "gibs", layer: "OMI_Nitrogen_Dioxide_Tropo_Column", matrix: "GoogleMapsCompatible_Level6",
-    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
-  { key: "so2", labelKz: "Күкірт диоксиді (SO₂)", descKz: "Факел мен мұнай өңдеуден шығатын SO₂",
-    source: "gibs", layer: "OMI_SO2_Planetary_Boundary_Layer", matrix: "GoogleMapsCompatible_Level6",
-    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
-  { key: "co", labelKz: "Көміртек тотығы (CO)", descKz: "Толық емес жанудан шығатын улы CO",
-    source: "gibs", layer: "AIRS_L2_Carbon_Monoxide_500hPa_Volume_Mixing_Ratio_Day", matrix: "GoogleMapsCompatible_Level6",
-    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
-  { key: "aod", labelKz: "Аэрозоль (3 км)", descKz: "Шаң мен майда бөлшектердің тығыздығы",
-    source: "gibs", layer: "MODIS_Terra_Aerosol_Optical_Depth_3km", matrix: "GoogleMapsCompatible_Level6",
-    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.75 },
-  { key: "snow", labelKz: "Қар жамылғысы", descKz: "MODIS NDSI — қар жамылғысы (қыс мезгілінде)",
+// ── Sentinel-5P / TROPOMI (5.5 км — ең үздік, тегін Copernicus) ──────────
+// SH_INSTANCE болса — TROPOMI нақты спутник суреттері (тәуліктік, 5.5 км).
+// Болмаса — NASA GIBS резервіне қайтады (25–50 км, өрескел).
+const S5P_LAYERS: SatLayer[] = [
+  { key: "no2",  labelKz: "NO₂ · TROPOMI · 5.5 км", descKz: "Азот диоксиді — Sentinel-5P нақты спутник · тәуліктік",
+    source: "sentinel5p", layer: "no2",  ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
+  { key: "so2",  labelKz: "SO₂ · TROPOMI · 5.5 км", descKz: "Күкірт диоксиді — факел пен мұнай өңдеу · тәуліктік",
+    source: "sentinel5p", layer: "so2",  ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
+  { key: "ch4",  labelKz: "CH₄ · TROPOMI · 5.5 км", descKz: "Метан — мұнай-газ ағуы · Sentinel-5P · тәуліктік",
+    source: "sentinel5p", layer: "ch4",  ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
+  { key: "co",   labelKz: "CO · TROPOMI · 5.5 км",  descKz: "Көміртек тотығы — жану өнімдері · тәуліктік",
+    source: "sentinel5p", layer: "co",   ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
+  { key: "aod",  labelKz: "Аэрозоль · TROPOMI",      descKz: "Аэрозоль индексі — шаң мен бөлшектер · тәуліктік",
+    source: "sentinel5p", layer: "aod", ext: "png", maxzoom: 8, tileSize: 512, opacity: 0.9 },
+  { key: "snow", labelKz: "Қар жамылғысы · MODIS",   descKz: "MODIS NDSI — қар жамылғысы (қыс мезгілінде)",
     source: "gibs", layer: "MODIS_Terra_NDSI_Snow_Cover", matrix: "GoogleMapsCompatible_Level8",
     ext: "png", maxzoom: 6, tileSize: 256, cadence: "daily", opacity: 0.85 },
 ];
+
+// NASA GIBS резерві (кілтсіз, бірақ өрескел 25–50 км)
+const GIBS_ATMOS_LAYERS: SatLayer[] = [
+  { key: "no2", labelKz: "NO₂ · OMI (60 күн кешігеді)", descKz: "Азот диоксиді · OMI/Aura · 25 км",
+    source: "gibs", layer: "OMI_Nitrogen_Dioxide_Tropo_Column", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", dateOffset: 60, opacity: 0.85 },
+  { key: "so2", labelKz: "SO₂ · OMI (60 күн кешігеді)", descKz: "Күкірт диоксиді · OMI/Aura · 25 км",
+    source: "gibs", layer: "OMI_SO2_Planetary_Boundary_Layer", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", dateOffset: 60, opacity: 0.85 },
+  { key: "ch4", labelKz: "CH₄ · AIRS (2022)", descKz: "Метан · AIRS тарихи · 2022-09-15",
+    source: "gibs", layer: "AIRS_L2_Methane_400hPa_Volume_Mixing_Ratio_Day", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, fixedDate: "2022-09-15", opacity: 0.85 },
+  { key: "co",  labelKz: "Аэрозоль · MODIS", descKz: "Шаң мен жану өнімдері · MODIS Combined · күнделікті",
+    source: "gibs", layer: "MODIS_Combined_Value_Added_AOD", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.85 },
+  { key: "aod", labelKz: "Аэрозоль (3 км) · Terra", descKz: "Аэрозоль оптикалық тығыздығы · MODIS Terra",
+    source: "gibs", layer: "MODIS_Terra_Aerosol_Optical_Depth_3km", matrix: "GoogleMapsCompatible_Level6",
+    ext: "png", maxzoom: 5, tileSize: 256, cadence: "daily", opacity: 0.85 },
+  { key: "snow", labelKz: "Қар жамылғысы · MODIS", descKz: "MODIS NDSI — қар жамылғысы (қыс мезгілінде)",
+    source: "gibs", layer: "MODIS_Terra_NDSI_Snow_Cover", matrix: "GoogleMapsCompatible_Level8",
+    ext: "png", maxzoom: 6, tileSize: 256, cadence: "daily", opacity: 0.85 },
+];
+
+// SENTINELHUB_CLIENT_ID болса → TROPOMI Process API (5.5 км), болмаса → GIBS (25–50 км)
+const HAS_S5P = !!(process.env.SENTINELHUB_CLIENT_ID || S5P_INSTANCE);
+export const ATMOS_LAYERS: SatLayer[] = HAS_S5P ? S5P_LAYERS : GIBS_ATMOS_LAYERS;
+export const ATMOS_PROVIDER = HAS_S5P ? "TROPOMI · 5.5 км" : "NASA GIBS · 25 км";
 
 // Кез келген қабатты key бойынша табу (оптика + радар + атмосфера)
 export function findSatLayer(key: string): SatLayer | undefined {
@@ -130,6 +156,10 @@ export function gibsTiles(def: SatLayer): string[] {
         `&WIDTH=512&HEIGHT=512&FORMAT=image/png&TIME=${time}&MAXCC=40&PRIORITY=mostRecent`,
     ];
   }
+  if (def.source === "sentinel5p") {
+    // Серверлік прокси арқылы Sentinel Hub Process API → TROPOMI тайлдары
+    return [`/api/s5p/${def.layer}/{z}/{x}/{y}`];
+  }
   if (def.source === "sentinel1") {
     // Радар — соңғы 30 күн (бұлт кедергі емес)
     const time = `${isoAgo(30)}/${isoAgo(0)}`;
@@ -143,9 +173,21 @@ export function gibsTiles(def: SatLayer): string[] {
     return [`https://tiles.maps.eox.at/wmts/1.0.0/${def.layer}/default/g/{z}/{y}/{x}.${def.ext}`];
   }
   const base = `https://gibs.earthdata.nasa.gov/wmts/epsg3857/best/${def.layer}/default`;
-  const path =
-    def.cadence === "static"
-      ? `${base}/${def.matrix}/{z}/{y}/{x}.${def.ext}`
-      : `${base}/${def.cadence === "8day" ? eightDayDate() : dailyDate()}/${def.matrix}/{z}/{y}/{x}.${def.ext}`;
-  return [path];
+  let date: string;
+  if (def.cadence === "static") {
+    return [`${base}/${def.matrix}/{z}/{y}/{x}.${def.ext}`];
+  } else if (def.fixedDate) {
+    return [`${base}/${def.fixedDate}/${def.matrix}/{z}/{y}/{x}.${def.ext}`];
+  } else if (def.cadence === "monthly") {
+    // Алдыңғы аяқталған айдың 1-күні
+    const d = new Date();
+    d.setUTCDate(1);
+    d.setUTCMonth(d.getUTCMonth() - 1);
+    date = d.toISOString().slice(0, 10);
+  } else if (def.cadence === "8day") {
+    date = eightDayDate();
+  } else {
+    date = isoAgo(def.dateOffset ?? 3);
+  }
+  return [`${base}/${date}/${def.matrix}/{z}/{y}/{x}.${def.ext}`];
 }

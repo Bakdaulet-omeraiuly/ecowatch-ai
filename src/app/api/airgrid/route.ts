@@ -30,7 +30,7 @@ const URL =
   `https://air-quality-api.open-meteo.com/v1/air-quality` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
-  `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust` +
+  `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,methane,carbon_monoxide` +
   `&hourly=european_aqi&forecast_days=2&timezone=auto`;
 
 let cache: { at: number; data: unknown } | null = null;
@@ -54,6 +54,7 @@ export async function GET() {
           current?: {
             european_aqi?: number; pm2_5?: number; pm10?: number;
             nitrogen_dioxide?: number; sulphur_dioxide?: number; ozone?: number; dust?: number;
+            methane?: number; carbon_monoxide?: number;
           };
           hourly?: { time?: string[]; european_aqi?: (number | null)[] };
         },
@@ -81,6 +82,8 @@ export async function GET() {
           so2: d.current?.sulphur_dioxide ?? null,
           ozone: d.current?.ozone ?? null,
           dust: d.current?.dust ?? null,
+          ch4: d.current?.methane ?? null,
+          co: d.current?.carbon_monoxide ?? null,
           hourly,
         };
       }
