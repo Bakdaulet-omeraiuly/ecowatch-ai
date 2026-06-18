@@ -19,10 +19,11 @@ import { useLang } from "@/lib/i18n";
 //  • 1984–2001 → Landsat WELD Annual TrueColor (NASA GIBS, 30 м)
 //  • 2002–2015 → NASA MODIS Terra True Color (250 м)
 //  • 2016–2025 → Sentinel-2 Cloudless yearly mosaic by EOX (10 м)
-const LANDSAT_YEARS = new Set([1984, 1990, 1999, 2000, 2001]);
+const LANDSAT_YEARS = new Set([1984, 1985, 1986, 1989, 1990, 1991, 1999, 2000, 2001]);
 const HISTORY_YEARS: number[] = [
-  1984, 1990, 1999,
-  2000, 2001, 2003, 2006, 2009, 2012, 2015,
+  1984, 1985, 1986, 1989, 1990, 1991,
+  1999, 2000, 2001,
+  2003, 2006, 2009, 2012, 2015,
   2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
 ];
 

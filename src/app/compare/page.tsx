@@ -5,11 +5,12 @@ import { ArrowLeftRight, Loader2, ZoomIn } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 const HISTORY_YEARS = [
-  1984, 1990, 1999,
-  2000, 2001, 2003, 2006, 2009, 2012, 2015,
+  1984, 1985, 1986, 1989, 1990, 1991,
+  1999, 2000, 2001,
+  2003, 2006, 2009, 2012, 2015,
   2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025,
 ];
-const LANDSAT_YEARS = new Set([1984, 1990, 1999, 2000, 2001]);
+const LANDSAT_YEARS = new Set([1984, 1985, 1986, 1989, 1990, 1991, 1999, 2000, 2001]);
 
 const ATYRAU_SPOTS = [
   { label: "Атырау қаласы", lat: 47.1167, lng: 51.8833 },
