@@ -272,6 +272,28 @@ export function MapView() {
   const [timelapsePlaying, setTimelapsePlaying] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true); // эко қабаттар панелі (мобильде жинауға болады)
   const [gibsKey, setGibsKey] = useState<string | null>(null);
+
+  // Атмосфера газ қабаты белсенді болса CAMS деректерін жүктеу
+  const ATMOS_GAS_KEYS = ["no2", "so2", "ch4", "co"] as const;
+  type AtmosGasKey = typeof ATMOS_GAS_KEYS[number];
+  const atmosGasActive = ATMOS_GAS_KEYS.includes(gibsKey as AtmosGasKey);
+  const { airGrid: atmosAirGrid } = useAirGrid(atmosGasActive);
+
+  // Белсенді газдың Атырау облысы бойынша орташа мәні
+  const atmosLevel = useMemo(() => {
+    if (!gibsKey || !ATMOS_GAS_KEYS.includes(gibsKey as AtmosGasKey) || !atmosAirGrid) return null;
+    const key = gibsKey as AtmosGasKey;
+    const vals = atmosAirGrid.map((p) => p[key] ?? 0).filter((v) => v > 0);
+    if (!vals.length) return null;
+    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
+    const max = Math.max(...vals);
+    const units: Record<AtmosGasKey, string> = {
+      no2: "мкг/м³", so2: "мкг/м³", ch4: "мкг/м³", co: "мкг/м³"
+    };
+    return { avg: avg.toFixed(1), max: max.toFixed(1), unit: units[key] };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gibsKey, atmosAirGrid]);
+
   const [gibsPanelOpen, setGibsPanelOpen] = useState(true); // оң жақ спутник панелі
   const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
   const [mosPlaying, setMosPlaying] = useState(false);
@@ -899,18 +921,37 @@ export function MapView() {
               {tr("Атмосфера")} · {ATMOS_PROVIDER}
             </div>
             {ATMOS_LAYERS.map((g) => (
-              <button
-                key={g.key}
-                onClick={() => setGibsKey((cur) => (cur === g.key ? null : g.key))}
-                title={g.descKz}
-                className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-                  gibsKey === g.key
-                    ? "border-fuchsia-500/50 bg-fuchsia-500/15 text-fuchsia-200"
-                    : "border-transparent text-neutral-300 hover:bg-white/5"
-                }`}
-              >
-                <Wind className="h-3.5 w-3.5 flex-shrink-0" /> <span className="text-left leading-tight">{tr(g.labelKz)}</span>
-              </button>
+              <div key={g.key}>
+                <button
+                  onClick={() => setGibsKey((cur) => (cur === g.key ? null : g.key))}
+                  title={g.descKz}
+                  className={`flex w-full items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                    gibsKey === g.key
+                      ? "border-fuchsia-500/50 bg-fuchsia-500/15 text-fuchsia-200"
+                      : "border-transparent text-neutral-300 hover:bg-white/5"
+                  }`}
+                >
+                  <Wind className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span className="text-left leading-tight">{tr(g.labelKz)}</span>
+                </button>
+                {gibsKey === g.key && atmosLevel && (
+                  <div className="mx-1 mb-1 rounded-md bg-fuchsia-950/50 px-2.5 py-1.5 text-[10px]">
+                    <div className="flex justify-between text-neutral-400">
+                      <span>Орташа · Атырау</span>
+                      <span className="font-medium text-fuchsia-200">{atmosLevel.avg} {atmosLevel.unit}</span>
+                    </div>
+                    <div className="flex justify-between text-neutral-400">
+                      <span>Максимум</span>
+                      <span className="font-medium text-orange-300">{atmosLevel.max} {atmosLevel.unit}</span>
+                    </div>
+                  </div>
+                )}
+                {gibsKey === g.key && atmosGasActive && !atmosLevel && (
+                  <div className="mx-1 mb-1 rounded-md bg-fuchsia-950/30 px-2.5 py-1 text-[10px] text-neutral-500">
+                    Деңгей жүктелуде…
+                  </div>
+                )}
+              </div>
             ))}
 
 
