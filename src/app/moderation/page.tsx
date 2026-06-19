@@ -5,6 +5,7 @@ import { Shield, CheckCircle2, XCircle, Clock, Trash2, MapPin, RefreshCw, Filter
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
+import { useSitesStore } from "@/store/useSitesStore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -54,6 +55,7 @@ function statusKey(s: string | null): keyof typeof STATUS_CFG {
 
 export default function ModerationPage() {
   const { tr } = useLang();
+  const hideReport = useSitesStore((s) => s.hideReport);
   const [reports, setReports]   = useState<Report[]>([]);
   const [loading, setLoading]   = useState(true);
   const [filter, setFilter]     = useState<FilterType>("all");
@@ -95,6 +97,7 @@ export default function ModerationPage() {
       const res = await fetch(`/api/moderation/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error();
       setReports((prev) => prev.filter((r) => r.id !== id));
+      hideReport(id);
       toast.success(tr("Хабарлама жойылды"));
     } catch {
       toast.error(tr("Жою мүмкін болмады"));

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Site, AnalysisResult } from "@/types/site";
+import { useSitesStore } from "@/store/useSitesStore";
 
 // Data types for the live eco-layers
 export interface AirGridPoint {
@@ -74,6 +75,7 @@ export interface MosquitoGridPoint {
 // Shared citizen reports from Supabase — fetched once, visible to everyone
 export function useSharedReports(): Site[] {
   const [reports, setReports] = useState<Site[]>([]);
+  const deletedReportIds = useSitesStore((s) => s.deletedReportIds);
   useEffect(() => {
     fetch("/api/reports")
       .then((r) => r.json())
@@ -102,7 +104,7 @@ export function useSharedReports(): Site[] {
       })
       .catch(() => {});
   }, []);
-  return reports;
+  return reports.filter((r) => !deletedReportIds.includes(r.id));
 }
 
 // Air quality grid (Copernicus CAMS) — fetched on first activation

@@ -9,6 +9,7 @@ interface SitesState {
   userSites: Site[];
   alerts: Alert[];
   hiddenSeedIds: string[];
+  deletedReportIds: string[];
   selectedSiteId: string | null;
   addSite: (site: Site) => void;
   updateSite: (site: Site) => void;
@@ -17,6 +18,7 @@ interface SitesState {
   toggleFlag: (id: string) => void;
   selectSite: (id: string | null) => void;
   allSites: () => Site[];
+  hideReport: (id: string) => void;
 }
 
 export const useSitesStore = create<SitesState>()(
@@ -25,6 +27,7 @@ export const useSitesStore = create<SitesState>()(
       userSites: [],
       alerts: [],
       hiddenSeedIds: [],
+      deletedReportIds: [],
       selectedSiteId: null,
       // Deleting: user sites are removed; seed sites are hidden by id.
       // Related alerts are cleaned up either way.
@@ -66,11 +69,13 @@ export const useSitesStore = create<SitesState>()(
           userSites: s.userSites.map((x) => (x.id === id ? { ...x, flagged: !x.flagged } : x)),
         })),
       selectSite: (id) => set({ selectedSiteId: id }),
+      hideReport: (id) =>
+        set((s) => ({ deletedReportIds: [...s.deletedReportIds, id] })),
       allSites: () => get().userSites,
     }),
     {
       name: "ecowatch-sites",
-      partialize: (s) => ({ userSites: s.userSites, alerts: s.alerts, hiddenSeedIds: s.hiddenSeedIds }),
+      partialize: (s) => ({ userSites: s.userSites, alerts: s.alerts, hiddenSeedIds: s.hiddenSeedIds, deletedReportIds: s.deletedReportIds }),
     }
   )
 );

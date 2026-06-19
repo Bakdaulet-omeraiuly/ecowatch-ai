@@ -39,6 +39,7 @@ export function AnalysisDrawer({
   const toggleFlag = useSitesStore((s) => s.toggleFlag);
   const updateSite = useSitesStore((s) => s.updateSite);
   const removeSite = useSitesStore((s) => s.removeSite);
+  const hideReport = useSitesStore((s) => s.hideReport);
   const [refreshing, setRefreshing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [lightbox, setLightbox] = useState<{ url: string; label: string } | null>(null);
@@ -166,6 +167,7 @@ export function AnalysisDrawer({
       return;
     }
     removeSite(site);
+    hideReport(site.id);
     toast.success(tr("Нүкте өшірілді"));
     onClose();
   };
