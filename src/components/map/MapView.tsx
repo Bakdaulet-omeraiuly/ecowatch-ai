@@ -14,6 +14,7 @@ import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
+import { MapSearch } from "./MapSearch";
 
 // Real yearly satellite mosaics. All imagery is real, no simulation:
 //  • 1984–2001 → Landsat WELD Annual TrueColor (NASA GIBS, 30 м)
@@ -1719,6 +1720,15 @@ export function MapView() {
           </p>
         </div>
       )}
+
+      {/* Search */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+        <MapSearch
+          onSelect={(lng, lat) =>
+            mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 1200 })
+          }
+        />
+      </div>
 
       {/* Zoom controls — Google Maps style */}
       <div className="absolute bottom-8 right-4 flex flex-col items-center gap-3">
