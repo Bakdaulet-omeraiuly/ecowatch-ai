@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
       // Step 2 — combined analysis (photo + satellite cross-verification)
       const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         max_tokens: 900,
         response_format: { type: "json_object" },
         messages: [
