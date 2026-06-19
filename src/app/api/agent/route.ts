@@ -119,7 +119,7 @@ export async function POST(req: Request) {
   try {
     const openai = new OpenAI({ apiKey });
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: "gpt-4o-mini",
       max_tokens: 1100,
       response_format: { type: "json_object" },
       messages: [
