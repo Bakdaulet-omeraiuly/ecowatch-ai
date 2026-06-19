@@ -7,6 +7,32 @@ import { satelliteImageUrl, historicalImageUrl } from "@/lib/mapbox";
 import { scoreToLevel } from "@/lib/risk";
 import { ANALYZE_SYSTEM, analyzeUserPrompt, langDirective } from "@/lib/prompts";
 import type { AnalysisResult } from "@/types/site";
+import { supabase } from "@/lib/supabase";
+
+// Cache key: lat/lng rounded to 3 decimals (~100 m), year, mode
+function cacheKey(lat: number, lng: number, year: number | null, mode: string) {
+  return { lat: +lat.toFixed(3), lng: +lng.toFixed(3), year: year ?? 0, mode };
+}
+
+async function getCached(lat: number, lng: number, year: number | null, mode: string): Promise<AnalysisResult | null> {
+  if (!supabase) return null;
+  const k = cacheKey(lat, lng, year, mode);
+  const { data } = await supabase
+    .from("analyze_cache")
+    .select("analysis, created_at")
+    .eq("lat", k.lat).eq("lng", k.lng).eq("year", k.year).eq("mode", k.mode)
+    .gt("created_at", new Date(Date.now() - 30 * 86400_000).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+  return data?.analysis ?? null;
+}
+
+async function saveCache(lat: number, lng: number, year: number | null, mode: string, analysis: AnalysisResult) {
+  if (!supabase) return;
+  const k = cacheKey(lat, lng, year, mode);
+  try { await supabase.from("analyze_cache").insert({ ...k, analysis }); } catch { /* кэш қатесін елемеу */ }
+}
 
 const reqSchema = z.object({
   mode: z.enum(["satellite", "photo", "combined"]),
@@ -160,6 +186,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ analysis: mockAnalysis(lat, lng, mode), imageUrl, mock: true });
   }
 
+  // Satellite режімінде кэш тексер (фото режімі кэштелмейді)
+  if (mode === "satellite") {
+    const cached = await getCached(lat, lng, imageryYear ?? null, mode);
+    if (cached) return NextResponse.json({ analysis: cached, imageUrl, mock: false, cached: true });
+  }
+
   try {
     const openai = new OpenAI({ apiKey });
     const images: { type: "image_url"; image_url: { url: string } }[] = [];
@@ -204,6 +236,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ analysis: mockAnalysis(lat, lng, mode), imageUrl, mock: true });
     }
     const analysis: AnalysisResult = { ...parsedResult.data, riskLevel: scoreToLevel(parsedResult.data.riskScore) };
+    if (mode === "satellite") await saveCache(lat, lng, imageryYear ?? null, mode, analysis);
     return NextResponse.json({ analysis, imageUrl, mock: false });
   } catch (err) {
     console.error("Analyze error:", err);
