@@ -20,10 +20,11 @@ const ATYRAU_SPOTS = [
   { label: "Солтүстік аймақ", lat: 47.5, lng: 51.85 },
 ];
 
-function imageUrl(lat: number, lng: number, year: number): string {
+const DEFAULT_RADIUS = 0.12; // degrees (~13 km)
+
+function imageUrl(lat: number, lng: number, year: number, r: number): string {
   if (LANDSAT_YEARS.has(year)) {
-    const d = 0.12;
-    const bbox = `${lat - d},${lng - d},${lat + d},${lng + d}`;
+    const bbox = `${lat - r},${lng - r},${lat + r},${lng + r}`;
     return (
       `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap` +
       `&VERSION=1.3.0&LAYERS=Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual&CRS=EPSG:4326` +
@@ -31,8 +32,7 @@ function imageUrl(lat: number, lng: number, year: number): string {
     );
   }
   if (year < 2016) {
-    const d = 0.12;
-    const bbox = `${lat - d},${lng - d},${lat + d},${lng + d}`;
+    const bbox = `${lat - r},${lng - r},${lat + r},${lng + r}`;
     return (
       `https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap` +
       `&VERSION=1.3.0&LAYERS=MODIS_Terra_CorrectedReflectance_TrueColor&CRS=EPSG:4326` +
@@ -40,8 +40,8 @@ function imageUrl(lat: number, lng: number, year: number): string {
     );
   }
   const layer = year === 2016 ? "s2cloudless" : `s2cloudless-${year}`;
-  const dLat = 0.035, dLng = 0.05;
-  const bbox = `${lng - dLng},${lat - dLat},${lng + dLng},${lat + dLat}`;
+  // EOX uses lng,lat order
+  const bbox = `${lng - r},${lat - r},${lng + r},${lat + r}`;
   return `https://tiles.maps.eox.at/wms?SERVICE=WMS&VERSION=1.1.1&REQUEST=GetMap&LAYERS=${layer}&SRS=EPSG:4326&BBOX=${bbox}&WIDTH=800&HEIGHT=800&FORMAT=image/jpeg`;
 }
 
@@ -56,22 +56,20 @@ export default function ComparePage() {
   const [leftYear, setLeftYear] = useState(2000);
   const [rightYear, setRightYear] = useState(2025);
   const [sliderX, setSliderX] = useState(50);
-  const [dragging, setDragging] = useState(false);
+  const [sliderDragging, setSliderDragging] = useState(false);
   const [leftErr, setLeftErr] = useState(false);
   const [rightErr, setRightErr] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Zoom & pan state
-  const [scale, setScale] = useState(1);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
-  const panRef = useRef<{ startX: number; startY: number; panX: number; panY: number } | null>(null);
-  const [panning, setPanning] = useState(false);
+  // Map-like zoom/pan state
+  const [center, setCenter] = useState({ lat: 47.1167, lng: 51.8833 });
+  const [radius, setRadius] = useState(DEFAULT_RADIUS);
+  const dragRef = useRef<{ startX: number; startY: number; startLat: number; startLng: number; startRadius: number } | null>(null);
+  const [mapDragging, setMapDragging] = useState(false);
 
-  const resetView = useCallback(() => {
-    setScale(1);
-    setPanX(0);
-    setPanY(0);
+  const resetView = useCallback((lat: number, lng: number) => {
+    setCenter({ lat, lng });
+    setRadius(DEFAULT_RADIUS);
   }, []);
 
   // AI талдаудан келген координат
@@ -88,28 +86,44 @@ export default function ComparePage() {
   const spots = customSpot ? [customSpot, ...ATYRAU_SPOTS] : ATYRAU_SPOTS;
   const spot = spots[spotIdx] ?? spots[0];
 
-  useEffect(() => { setLeftErr(false); setRightErr(false); }, [spotIdx, leftYear, rightYear]);
-  useEffect(() => { resetView(); }, [spotIdx, resetView]);
+  // Reset view when spot changes
+  useEffect(() => {
+    resetView(spot.lat, spot.lng);
+    setCenter({ lat: spot.lat, lng: spot.lng });
+    setRadius(DEFAULT_RADIUS);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spotIdx]);
 
-  // Slider drag
+  useEffect(() => { setLeftErr(false); setRightErr(false); }, [spotIdx, leftYear, rightYear, center, radius]);
+
+  // Pointer move: slider drag OR map pan
   const onPointerMove = useCallback((e: PointerEvent) => {
-    if (dragging && containerRef.current) {
+    if (sliderDragging && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       const x = Math.min(95, Math.max(5, ((e.clientX - rect.left) / rect.width) * 100));
       setSliderX(x);
     }
-    if (panning && panRef.current && containerRef.current) {
-      const dx = e.clientX - panRef.current.startX;
-      const dy = e.clientY - panRef.current.startY;
-      setPanX(panRef.current.panX + dx);
-      setPanY(panRef.current.panY + dy);
+    if (mapDragging && dragRef.current && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const W = rect.width;
+      const H = rect.height;
+      // 1 pixel = 2*radius / W degrees
+      const dx = e.clientX - dragRef.current.startX;
+      const dy = e.clientY - dragRef.current.startY;
+      const r = dragRef.current.startRadius;
+      const dLng = -(dx / W) * 2 * r;
+      const dLat = (dy / H) * 2 * r;
+      setCenter({
+        lat: dragRef.current.startLat + dLat,
+        lng: dragRef.current.startLng + dLng,
+      });
     }
-  }, [dragging, panning]);
+  }, [sliderDragging, mapDragging]);
 
   const onPointerUp = useCallback(() => {
-    setDragging(false);
-    setPanning(false);
-    panRef.current = null;
+    setSliderDragging(false);
+    setMapDragging(false);
+    dragRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -121,20 +135,28 @@ export default function ComparePage() {
     };
   }, [onPointerMove, onPointerUp]);
 
-  // Wheel zoom toward cursor
+  // Wheel zoom: shrink/grow radius around cursor position
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
       const rect = el.getBoundingClientRect();
-      const cx = e.clientX - rect.left;
-      const cy = e.clientY - rect.top;
-      const factor = e.deltaY < 0 ? 1.2 : 1 / 1.2;
-      setScale(prev => {
-        const next = Math.min(8, Math.max(1, prev * factor));
-        setPanX(px => cx - (cx - px) * (next / prev));
-        setPanY(py => cy - (cy - py) * (next / prev));
+      // Cursor position as fraction of container (0–1)
+      const fx = (e.clientX - rect.left) / rect.width;
+      const fy = (e.clientY - rect.top) / rect.height;
+      const factor = e.deltaY < 0 ? 0.7 : 1 / 0.7;
+      setRadius(prev => {
+        const next = Math.min(0.5, Math.max(0.003, prev * factor));
+        // Shift center so point under cursor stays fixed
+        const dLng = (fx - 0.5) * 2 * prev;
+        const dLat = -(fy - 0.5) * 2 * prev;
+        const newDLng = (fx - 0.5) * 2 * next;
+        const newDLat = -(fy - 0.5) * 2 * next;
+        setCenter(c => ({
+          lat: c.lat + dLat - newDLat,
+          lng: c.lng + dLng - newDLng,
+        }));
         return next;
       });
     };
@@ -142,10 +164,10 @@ export default function ComparePage() {
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  const lUrl = leftErr ? mapboxUrl(spot.lat, spot.lng) : imageUrl(spot.lat, spot.lng, leftYear);
-  const rUrl = rightErr ? mapboxUrl(spot.lat, spot.lng) : imageUrl(spot.lat, spot.lng, rightYear);
+  const zoomLevel = Math.round(Math.log2(DEFAULT_RADIUS / radius) + 1);
 
-  const imgTransform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+  const lUrl = leftErr ? mapboxUrl(center.lat, center.lng) : imageUrl(center.lat, center.lng, leftYear, radius);
+  const rUrl = rightErr ? mapboxUrl(center.lat, center.lng) : imageUrl(center.lat, center.lng, rightYear, radius);
 
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-4 sm:p-6">
@@ -202,56 +224,50 @@ export default function ComparePage() {
       <div
         ref={containerRef}
         className="relative select-none overflow-hidden rounded-xl border border-white/10 bg-black"
-        style={{ aspectRatio: "1 / 1", maxHeight: "70vh", cursor: scale > 1 ? (panning ? "grabbing" : "grab") : "default" }}
+        style={{ aspectRatio: "1 / 1", maxHeight: "70vh", cursor: mapDragging ? "grabbing" : "grab" }}
         onPointerDown={(e) => {
-          // Only start pan if not clicking on the slider handle area
           const target = e.target as HTMLElement;
           if (target.closest("[data-slider]")) return;
-          if (scale > 1) {
-            e.preventDefault();
-            setPanning(true);
-            panRef.current = { startX: e.clientX, startY: e.clientY, panX, panY };
-          }
+          e.preventDefault();
+          setMapDragging(true);
+          dragRef.current = {
+            startX: e.clientX,
+            startY: e.clientY,
+            startLat: center.lat,
+            startLng: center.lng,
+            startRadius: radius,
+          };
         }}
       >
-        {/* Zoomable image layer */}
-        <div
-          className="absolute inset-0"
-          style={{ transformOrigin: "0 0", transform: imgTransform, willChange: "transform" }}
-        >
-          {/* Right image (full width) */}
+        {/* Right image (full) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={rUrl}
+          alt={`${rightYear} жыл`}
+          className="absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+          onError={() => setRightErr(true)}
+        />
+
+        {/* Left image clipped */}
+        <div className="absolute inset-0 overflow-hidden" style={{ width: `${sliderX}%` }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={rUrl}
-            alt={`${rightYear} жыл`}
-            className="absolute inset-0 h-full w-full object-cover"
+            src={lUrl}
+            alt={`${leftYear} жыл`}
+            className="absolute inset-0 h-full object-cover"
+            style={{ width: `${10000 / sliderX}%`, maxWidth: "none" }}
             draggable={false}
-            onError={() => setRightErr(true)}
+            onError={() => setLeftErr(true)}
           />
-
-          {/* Left image clipped to left side */}
-          <div
-            className="absolute inset-0 overflow-hidden"
-            style={{ width: `${sliderX}%` }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={lUrl}
-              alt={`${leftYear} жыл`}
-              className="absolute inset-0 h-full object-cover"
-              style={{ width: `${10000 / sliderX}%`, maxWidth: "none" }}
-              draggable={false}
-              onError={() => setLeftErr(true)}
-            />
-          </div>
         </div>
 
-        {/* Slider divider (outside transform, always at correct screen position) */}
+        {/* Slider divider */}
         <div
           data-slider
           className="absolute inset-y-0 z-10 w-0.5 cursor-ew-resize bg-white/80 shadow-lg"
           style={{ left: `${sliderX}%` }}
-          onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); setDragging(true); }}
+          onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); setSliderDragging(true); }}
         >
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 cursor-ew-resize items-center justify-center rounded-full border-2 border-white/80 bg-neutral-900/95 shadow-xl">
             <ArrowLeftRight className="h-4 w-4 text-white" />
@@ -269,27 +285,20 @@ export default function ComparePage() {
         {/* Zoom controls */}
         <div className="absolute bottom-3 right-3 z-20 flex flex-col gap-1">
           <button
-            onClick={() => setScale(s => {
-              const next = Math.min(8, s * 1.4);
-              return next;
-            })}
+            onClick={() => setRadius(r => Math.max(0.003, r * 0.7))}
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur hover:bg-black/90"
           >
             <ZoomIn className="h-4 w-4" />
           </button>
           <button
-            onClick={() => setScale(s => {
-              const next = Math.max(1, s / 1.4);
-              if (next === 1) { setPanX(0); setPanY(0); }
-              return next;
-            })}
+            onClick={() => setRadius(r => Math.min(0.5, r / 0.7))}
             className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur hover:bg-black/90"
           >
             <ZoomOut className="h-4 w-4" />
           </button>
-          {scale > 1 && (
+          {(radius !== DEFAULT_RADIUS || center.lat !== spot.lat || center.lng !== spot.lng) && (
             <button
-              onClick={resetView}
+              onClick={() => resetView(spot.lat, spot.lng)}
               className="flex h-8 w-8 items-center justify-center rounded-lg bg-black/70 text-white backdrop-blur hover:bg-black/90"
             >
               <RotateCcw className="h-4 w-4" />
@@ -297,20 +306,15 @@ export default function ComparePage() {
           )}
         </div>
 
-        {/* Scale indicator */}
-        {scale > 1 && (
-          <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur">
-            {scale.toFixed(1)}×
-          </div>
-        )}
+        {/* Zoom level badge */}
+        <div className="pointer-events-none absolute bottom-3 left-3 z-20 rounded-full bg-black/60 px-2 py-1 text-xs text-white backdrop-blur">
+          {zoomLevel > 0 ? `+${zoomLevel}` : zoomLevel}× zoom
+        </div>
 
         {/* Hint */}
-        {scale === 1 && (
-          <div className="pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/60 px-3 py-1 text-xs text-neutral-300 backdrop-blur">
-            <ZoomIn className="mr-1 inline h-3 w-3" />
-            {tr("Слайдерді сүйреп · тышқан дөңгелегімен зумдаңыз")}
-          </div>
-        )}
+        <div className="pointer-events-none absolute bottom-12 left-1/2 -translate-x-1/2 z-20 rounded-full bg-black/60 px-3 py-1 text-xs text-neutral-300 backdrop-blur whitespace-nowrap">
+          {tr("Дөңгелекпен зумдаңыз · сүйреп жылжытыңыз")}
+        </div>
       </div>
 
       <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4 text-sm text-neutral-400">
