@@ -3,7 +3,7 @@ export function HeroBackground() {
     <div className="pointer-events-none absolute inset-x-0 top-0 h-[760px] overflow-hidden">
       {/* Атырау қаласының фото фоны */}
       <img
-        src="/atyrau-city.png"
+        src="/atyrau-city.jpg"
         alt=""
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
