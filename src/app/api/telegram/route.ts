@@ -296,10 +296,47 @@ export async function POST(req: Request) {
       `🌿 <b>Jaiyq — Атырау экологиялық мониторингі</b>\n\n` +
       `Сізге қандай көмек керек?\n\n` +
       `/ауа — Атырау қаласының қазіргі ауа сапасы\n` +
-      `/маса — Маса белсенділігінің индексі\n\n` +
+      `/маса — Маса белсенділігінің индексі\n` +
+      `/жазыл — Ескерту хабарламаларына жазылу\n` +
+      `/болдырма — Жазылудан шығу\n\n` +
       `Немесе экология туралы кез келген сұрағыңызды жазыңыз — маман жауап береді.\n\n` +
       `📸 Ластану байқасаңыз: jaiyq.vercel.app/report`
     );
+    return NextResponse.json({ ok: true });
+  }
+
+  // ── /жазыл (subscribe) ──
+  if (text === "/жазыл" || text === "/subscribe") {
+    if (supabase) {
+      const { error } = await supabase
+        .from("telegram_subscribers")
+        .upsert({ chat_id: chatId, username: username || null, subscribed_at: new Date().toISOString() }, { onConflict: "chat_id" });
+      if (!error) {
+        await sendMessage(chatId,
+          `✅ <b>Жазылдыңыз!</b>\n\n` +
+          `Атырауда өрт қаупі, су тасқыны немесе ауа ластығы шекті деңгейден өтсе — хабарлама жібереміз.\n\n` +
+          `/болдырма — жазылудан шығу`
+        );
+      } else {
+        await sendMessage(chatId, "⚠️ Жазылу кезінде қате шықты. Кейінірек қайталап көріңіз.");
+      }
+    } else {
+      await sendMessage(chatId, "⚠️ Жазылу жүйесі уақытша қолжетімсіз.");
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // ── /болдырма (unsubscribe) ──
+  if (text === "/болдырма" || text === "/unsubscribe") {
+    if (supabase) {
+      await supabase.from("telegram_subscribers").delete().eq("chat_id", chatId);
+      await sendMessage(chatId,
+        `👋 Жазылудан шықтыңыз.\n\n` +
+        `Қайта жазылу үшін: /жазыл`
+      );
+    } else {
+      await sendMessage(chatId, "⚠️ Жүйе уақытша қолжетімсіз.");
+    }
     return NextResponse.json({ ok: true });
   }
 
