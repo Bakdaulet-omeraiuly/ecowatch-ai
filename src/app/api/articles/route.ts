@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/lib/ratelimit";
 import OpenAI from "openai";
 import { ARTICLES_SYSTEM } from "@/lib/prompts";
 
@@ -48,7 +49,10 @@ const FALLBACK: Article[] = [
 // Module-level daily cache (survives between requests on the same instance)
 let cache: { at: number; articles: Article[] } | null = null;
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!(await allow(req))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   if (cache && Date.now() - cache.at < 86400_000) {
     return NextResponse.json({ articles: cache.articles, cached: true });
   }

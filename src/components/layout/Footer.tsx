@@ -109,8 +109,12 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/5 pt-6 text-center text-xs text-neutral-600">
-          © {new Date().getFullYear()} Jaiyq · {t("foot.rights")}
+        <div className="mt-10 border-t border-white/5 pt-6 text-center text-xs text-neutral-600 space-y-2">
+          <p>© Copernicus Service Information · Contains modified Copernicus Climate Change Service information · NASA Public Domain · ESA Sentinel-2 Open Access</p>
+          <p>
+            © {new Date().getFullYear()} Jaiyq · {t("foot.rights")} ·{" "}
+            <Link href="/privacy" className="hover:text-neutral-400 underline underline-offset-2">Құпиялық саясаты</Link>
+          </p>
         </div>
       </div>
     </footer>

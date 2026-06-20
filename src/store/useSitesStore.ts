@@ -70,7 +70,10 @@ export const useSitesStore = create<SitesState>()(
         })),
       selectSite: (id) => set({ selectedSiteId: id }),
       hideReport: (id) =>
-        set((s) => ({ deletedReportIds: [...s.deletedReportIds, id] })),
+        set((s) => {
+          const ids = [...s.deletedReportIds, id];
+          return { deletedReportIds: ids.slice(-200) };
+        }),
       allSites: () => get().userSites,
     }),
     {

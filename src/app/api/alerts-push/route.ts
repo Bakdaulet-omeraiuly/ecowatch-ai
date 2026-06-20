@@ -120,9 +120,9 @@ async function checkFire(): Promise<Alert | null> {
 }
 
 export async function GET(req: Request) {
-  // Verify cron secret so only Vercel can trigger this
-  const secret = new URL(req.url).searchParams.get("secret");
-  if (CRON_SECRET && secret !== CRON_SECRET) {
+  // Verify cron secret via Authorization header (not URL param — avoids log exposure)
+  const auth = req.headers.get("authorization");
+  if (CRON_SECRET && auth !== `Bearer ${CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

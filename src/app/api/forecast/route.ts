@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { allow } from "@/lib/ratelimit";
 import OpenAI from "openai";
 import { z } from "zod";
 import { FORECAST_SYSTEM } from "@/lib/prompts";
@@ -42,6 +43,9 @@ function mockForecast(history: { month: string; score: number }[]) {
 }
 
 export async function POST(req: Request) {
+  if (!(await allow(req))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   const parsed = reqSchema.safeParse(await req.json().catch(() => ({})));
   // No fabricated history: forecast only runs on real analysis data sent by the client
   if (!parsed.success || !parsed.data.history || parsed.data.history.length < 2) {

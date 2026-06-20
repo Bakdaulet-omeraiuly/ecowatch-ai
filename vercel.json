@@ -4,5 +4,13 @@
       "path": "/api/alerts-push",
       "schedule": "0 8 * * *"
     }
+  ],
+  "headers": [
+    {
+      "source": "/api/alerts-push",
+      "headers": [
+        { "key": "x-cron-secret", "value": "required" }
+      ]
+    }
   ]
 }
