@@ -1,5 +1,31 @@
 import { NextResponse } from "next/server";
-import { attributePollution, type Receptor, type WindHour } from "@/lib/pollutionSource";
+import { attributePollution, type Receptor, type WindHour, type Station } from "@/lib/pollutionSource";
+
+// Нақты жердегі стансалар (Qazhydromet — WAQI/aqicn желісі). Токен болса ғана.
+// Атырау облысының шектелген аймағындағы барлық постты тартады.
+async function fetchStations(): Promise<Station[]> {
+  const token = process.env.WAQI_TOKEN;
+  if (!token) return [];
+  try {
+    const res = await fetch(
+      `https://api.waqi.info/map/bounds/?latlng=46.0,49.2,48.8,54.8&token=${token}`,
+      { next: { revalidate: 900 } }
+    );
+    const j = await res.json();
+    if (j.status !== "ok" || !Array.isArray(j.data)) return [];
+    return j.data
+      .map((s: { lat: number; lon: number; aqi: string; station?: { name?: string } }) => ({
+        lat: s.lat,
+        lng: s.lon,
+        aqi: parseInt(s.aqi, 10),
+        name: s.station?.name,
+      }))
+      .filter((s: Station) => Number.isFinite(s.aqi)); // "-" (дерексіз) постты алып тастау
+  } catch (err) {
+    console.error("WAQI stations error:", err);
+    return [];
+  }
+}
 
 // Ластану көзін анықтау (Pollution Source Detection).
 // Тірі деректер: Copernicus CAMS (SO₂/NO₂/PM) + Open-Meteo (жел бағыты/жылдамдығы).
@@ -96,14 +122,17 @@ export async function GET() {
       });
     }
 
-    const result = attributePollution(receptors, windNow, windHistory);
+    // Нақты жердегі стансалар (Qazhydromet — WAQI) — токен болса
+    const stations = await fetchStations();
+
+    const result = attributePollution(receptors, windNow, windHistory, stations);
 
     const data = {
       fetchedAt: new Date().toISOString(),
       sources: [
         "Copernicus CAMS (SO₂/NO₂/PM) — Open-Meteo Air Quality API",
         "Open-Meteo (жел бағыты/жылдамдығы)",
-        "Ашық өнеркәсіптік координаттар",
+        stations.length ? "Qazhydromet жердегі стансалары (WAQI)" : "Ашық өнеркәсіптік координаттар",
       ],
       ...result,
     };

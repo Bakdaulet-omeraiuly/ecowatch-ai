@@ -67,6 +67,14 @@ export interface Receptor {
   pm: number | null; // pm10
 }
 
+// Нақты жердегі бақылау стансасы (Qazhydromet/WAQI)
+export interface Station {
+  lat: number;
+  lng: number;
+  aqi: number; // жалпы US AQI
+  name?: string;
+}
+
 export interface WindHour {
   fromBearing: number; // жел КЕЛЕТІН бағыт (метеорологиялық), 0..360
   speed: number; // км/сағ
@@ -127,6 +135,8 @@ export interface SourceResult {
   plume: PlumeStep[];
   cone: [number, number][]; // Gaussian дисперсия конусы (GeoJSON сақина, [lng,lat])
   frames: PlumeFrame[]; // соңғы сағаттардағы желмен конустың қозғалысы (анимация)
+  stations: Station[]; // ескерілген нақты жердегі стансалар (картада көрсету)
+  groundStations: number; // елеулі сигнал берген станса саны
   method: string;
   note: string;
 }
@@ -161,10 +171,16 @@ function dominantPollutant(receptors: Receptor[]): { key: MeasuredKey; strength:
 export function attributePollution(
   receptors: Receptor[],
   windNow: { fromBearing: number; speed: number },
-  windHistory: WindHour[]
+  windHistory: WindHour[],
+  stations: Station[] = []
 ): SourceResult {
   const { key: pollutant, strength: signal } = dominantPollutant(receptors);
   const toBearing = (windNow.fromBearing + 180) % 360;
+
+  // Нақты жердегі станса сигналы (AQI 20..150 → 0..1). Датчик модель жаппаған
+  // нүктелік шыңды ұстайды — сондықтан бөлек, күшті дереккөз.
+  const stationEl = (aqi: number) => Math.max(0, Math.min(1, (aqi - 20) / 130));
+  const stationSignal = stations.length ? Math.max(0, ...stations.map((st) => stationEl(st.aqi))) : 0;
 
   // 1) КЕҢІСТІКТІК ТЕРМИН — көп-қабылдағыш триангуляция.
   // Әр қабылдағыштан жоғарылаған концентрация желдің КЕЛГЕН жағына (fromBearing)
@@ -200,17 +216,39 @@ export function attributePollution(
     }
   }
 
-  // 3) ПРОФИЛЬ СӘЙКЕСТІГІ — көз осы ластаушыны шығара ма
+  // 3) НАҚТЫ ЖЕРДЕГІ СТАНСА ТЕРМИНІ — датчик деректері (болса).
+  // Жоғары AQI көрсеткен станса: (а) желмен көзге проекцияланады,
+  // (ә) зауытқа жақын тұрса — тікелей растайды. Модельден күштірек дереккөз.
+  const ground: Record<string, number> = {};
+  for (const f of FACILITIES) ground[f.id] = 0;
+  for (const st of stations) {
+    const el = stationEl(st.aqi);
+    if (el <= 0) continue;
+    for (const f of FACILITIES) {
+      const km = haversineKm(st.lat, st.lng, f.lat, f.lng);
+      const brg = bearing(st.lat, st.lng, f.lat, f.lng);
+      const upwind = alignment(angularDelta(brg, windNow.fromBearing)) * distanceFactor(km);
+      const near = Math.max(0, 1 - km / 8); // ≤8км — тікелей растау
+      ground[f.id] += el * (upwind + 0.8 * near);
+    }
+  }
+  const hasGround = stations.length > 0 && FACILITIES.some((f) => ground[f.id] > 0);
+
   // Нормалау
   const maxSpatial = Math.max(1e-9, ...FACILITIES.map((f) => spatial[f.id]));
   const maxTemporal = Math.max(1e-9, ...FACILITIES.map((f) => temporal[f.id]));
+  const maxGround = Math.max(1e-9, ...FACILITIES.map((f) => ground[f.id]));
 
   const raw: Record<string, number> = {};
   for (const f of FACILITIES) {
     const s = spatial[f.id] / maxSpatial;
     const t = tWeight > 0 ? temporal[f.id] / maxTemporal : 0;
+    const g = ground[f.id] / maxGround;
     const profileMatch = f.profile[pollutant] ?? 0.3;
-    raw[f.id] = 0.55 * s + 0.3 * t + 0.15 * profileMatch;
+    // Нақты датчик болса — оған үлкен салмақ (0.4); болмаса — тек CAMS
+    raw[f.id] = hasGround
+      ? 0.3 * s + 0.15 * t + 0.4 * g + 0.15 * profileMatch
+      : 0.55 * s + 0.3 * t + 0.15 * profileMatch;
   }
 
   const rawSum = Math.max(1e-9, FACILITIES.reduce((a, f) => a + raw[f.id], 0));
@@ -228,14 +266,16 @@ export function attributePollution(
   }))
     .sort((a, b) => b.confidence - a.confidence);
 
-  const detected = signal >= 0.12; // ~базадан елеулі асу
+  // Модель ТЕ станса елеулі болса — анықталды (датчик модель жаппаған шыңды ұстайды)
+  const combinedSignal = Math.max(signal, stationSignal);
+  const detected = combinedSignal >= 0.12;
   const top = detected ? candidates[0] : null;
 
   return {
     detected,
     pollutant,
     pollutantLabel: POLLUTANT_LABEL[pollutant],
-    signalStrength: Math.round(signal * 100),
+    signalStrength: Math.round(combinedSignal * 100),
     wind: {
       fromBearing: Math.round(windNow.fromBearing),
       fromLabel: bearingLabel(windNow.fromBearing),
@@ -247,10 +287,16 @@ export function attributePollution(
     plume: top ? plumePath(top, toBearing) : [],
     cone: top ? plumeCone(top, toBearing, windNow.speed) : [],
     frames: top ? buildFrames(top, windHistory) : [],
-    method: "Жеңілдетілген CWT + көп-қабылдағыш триангуляция + Gaussian-plume (жергілікті масштаб)",
-    note: detected
-      ? "Сенімділік — белгілі көздер ішіндегі САЛЫСТЫРМАЛЫ ықтималдық (өлшенген факт емес, болжам)."
-      : "Ластану деңгейі төмен — көз сенімді анықталмайды. Жалған дерек көрсетілмейді.",
+    stations,
+    groundStations: hasGround ? stations.filter((st) => stationEl(st.aqi) > 0).length : 0,
+    method: hasGround
+      ? "Жеңілдетілген CWT + нақты жердегі станса (Qazhydromet) + Gaussian-plume"
+      : "Жеңілдетілген CWT + көп-қабылдағыш триангуляция + Gaussian-plume (жергілікті масштаб)",
+    note: !detected
+      ? "Ластану деңгейі төмен — көз сенімді анықталмайды. Жалған дерек көрсетілмейді."
+      : hasGround
+        ? "Нақты жердегі датчиктер ескерілді — сенімділік модельден дәлірек (салыстырмалы ықтималдық)."
+        : "Сенімділік — белгілі көздер ішіндегі САЛЫСТЫРМАЛЫ ықтималдық (өлшенген факт емес, болжам).",
   };
 }
 

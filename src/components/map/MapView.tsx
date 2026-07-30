@@ -1030,6 +1030,18 @@ export function MapView() {
               />
             </Marker>
           ))}
+        {/* Нақты жердегі стансалар (Qazhydromet) — жасыл, AQI-мен */}
+        {sourceMode &&
+          source?.stations?.map((st, i) => (
+            <Marker key={`st-${i}`} latitude={st.lat} longitude={st.lng}>
+              <div
+                className="flex items-center gap-1 rounded border border-emerald-400/60 bg-emerald-600/85 px-1 py-px text-[9px] font-bold text-white shadow"
+                title={`${st.name ?? "Станса"} · нақты датчик · AQI ${st.aqi}`}
+              >
+                <Radio className="h-2.5 w-2.5" /> {st.aqi}
+              </div>
+            </Marker>
+          ))}
         {sourceMode &&
           source?.candidates.map((c) => {
             const isTop = source.top?.id === c.id;
@@ -1623,6 +1635,15 @@ export function MapView() {
                         <span className="w-7 text-right text-neutral-400">{c.confidence}%</span>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {source.groundStations > 0 && (
+                  <div className="mt-1.5 flex items-center gap-1.5 rounded bg-emerald-500/10 p-1.5 text-[10px] text-emerald-200">
+                    <Radio className="h-3 w-3 shrink-0" />
+                    <span>
+                      {source.groundStations} {tr("нақты жердегі датчик ескерілді — дәлдік модельден жоғары")}
+                    </span>
                   </div>
                 )}
 
