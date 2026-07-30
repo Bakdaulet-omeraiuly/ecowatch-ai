@@ -147,6 +147,11 @@ function waterAdvice(level: string): string {
   return "Өзен деңгейі қалыпты — тасқын қаупі жоқ.";
 }
 
+// WAQI жердегі станса US EPA AQI шкаласын қолданады (біздің EU aqiCategory-мен бөлек)
+function usAqiColor(a: number): string {
+  return a <= 50 ? "#22c55e" : a <= 100 ? "#eab308" : a <= 150 ? "#f97316" : a <= 200 ? "#ef4444" : a <= 300 ? "#a855f7" : "#7f1d1d";
+}
+
 export function MapView() {
   const { lang, tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -342,15 +347,25 @@ export function MapView() {
   };
   // Зауыт басылғанда сол координатаның тірі ауа сапасын көрсету
   interface FacAir { aqi: number | null; pm2_5: number | null; pm10: number | null; so2: number | null; no2: number | null }
+  interface StationAir {
+    found: boolean; source?: string; station?: string; distanceKm?: number | null; time?: string | null;
+    aqi?: number | null; dominant?: string | null;
+    iaqi?: { pm25: number | null; pm10: number | null; no2: number | null; so2: number | null; o3: number | null; co: number | null };
+  }
   const [facAir, setFacAir] = useState<
-    { fac: PollutionSourceCandidate; data: FacAir | null; error: boolean } | null
+    { fac: PollutionSourceCandidate; data: FacAir | null; station: StationAir | null; error: boolean } | null
   >(null);
   const openFacilityAir = useCallback((fac: PollutionSourceCandidate) => {
-    setFacAir({ fac, data: null, error: false });
+    setFacAir({ fac, data: null, station: null, error: false });
+    // Екеуін қатар тартамыз: нақты жердегі станса (Qazhydromet/WAQI) + CAMS моделі
+    fetch(`/api/station-air?lat=${fac.lat}&lng=${fac.lng}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((st: StationAir | null) => setFacAir((cur) => (cur && cur.fac.id === fac.id ? { ...cur, station: st } : cur)))
+      .catch(() => {});
     fetch(`/api/point-air?lat=${fac.lat}&lng=${fac.lng}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => (d.error ? setFacAir({ fac, data: null, error: true }) : setFacAir({ fac, data: d, error: false })))
-      .catch(() => setFacAir({ fac, data: null, error: true }));
+      .then((d) => setFacAir((cur) => (cur && cur.fac.id === fac.id ? (d.error ? { ...cur, error: true } : { ...cur, data: d }) : cur)))
+      .catch(() => setFacAir((cur) => (cur && cur.fac.id === fac.id ? { ...cur, error: true } : cur)));
   }, []);
   // Азаматтық растау: plume конусы ішіндегі ластану хабарламаларын санау
   const sourceCorroboration = useMemo(() => {
@@ -1062,6 +1077,39 @@ export function MapView() {
               <div className="mb-1 flex items-center gap-1 text-[11px] font-semibold">
                 <Factory className="h-3 w-3 text-red-300" /> {facAir.fac.name}
               </div>
+
+              {/* Нақты ЖЕРДЕГІ станса (Qazhydromet/WAQI) — датчик дәлдігі */}
+              {facAir.station?.found && (
+                <div className="mb-1.5 rounded border border-emerald-500/40 bg-emerald-500/10 p-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1 text-[9px] font-semibold text-emerald-300">
+                      <Radio className="h-2.5 w-2.5" /> {tr("Жердегі станса")}
+                    </span>
+                    {facAir.station.aqi != null && (
+                      <span className="text-sm font-bold" style={{ color: usAqiColor(facAir.station.aqi) }}>
+                        {facAir.station.aqi} US AQI
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[9px] text-neutral-300">
+                    {facAir.station.station}
+                    {facAir.station.distanceKm != null && ` · ${facAir.station.distanceKm} ${tr("км")}`}
+                  </div>
+                  {(facAir.station.iaqi?.so2 != null || facAir.station.iaqi?.no2 != null || facAir.station.iaqi?.pm25 != null) && (
+                    <div className="mt-0.5 flex flex-wrap gap-x-3 text-[9px] text-neutral-300">
+                      {facAir.station.iaqi?.so2 != null && <span>SO₂ {facAir.station.iaqi.so2}</span>}
+                      {facAir.station.iaqi?.no2 != null && <span>NO₂ {facAir.station.iaqi.no2}</span>}
+                      {facAir.station.iaqi?.pm25 != null && <span>PM₂.₅ {facAir.station.iaqi.pm25}</span>}
+                      {facAir.station.iaqi?.pm10 != null && <span>PM₁₀ {facAir.station.iaqi.pm10}</span>}
+                    </div>
+                  )}
+                  <p className="mt-0.5 text-[8px] text-emerald-400/70">
+                    {tr("AQI индексі · нақты датчик")} · {facAir.station.source}
+                    {facAir.station.time ? ` · ${facAir.station.time.slice(11, 16)}` : ""}
+                  </p>
+                </div>
+              )}
+
               {facAir.error ? (
                 <p className="text-[10px] text-neutral-400">
                   {tr("Тірі ауа деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
@@ -1070,6 +1118,9 @@ export function MapView() {
                 <p className="text-[10px] text-neutral-400">{tr("Ауа сапасы жүктелуде…")}</p>
               ) : (
                 <>
+                  {facAir.station?.found && (
+                    <div className="mb-1 text-[9px] font-semibold text-sky-300">{tr("Модель (CAMS · 11км орташа)")}</div>
+                  )}
                   {facAir.data.aqi != null && (
                     <div
                       className="mb-1.5 flex items-center justify-between rounded px-2 py-1"
