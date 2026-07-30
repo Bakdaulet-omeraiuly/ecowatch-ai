@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
   Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame, Droplets,
+  Factory, AlertTriangle, Navigation,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -60,6 +61,7 @@ import { MosquitoIcon } from "./MosquitoIcon";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares,
+  usePollutionSource,
   type AirGridPoint, type MosquitoGridPoint,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
@@ -160,6 +162,7 @@ export function MapView() {
   const [activeLayer, setActiveLayer] = useState<LayerKey | null>(null);
   const [historyMode, setHistoryMode] = useState(false);
   const [showReports, setShowReports] = useState(true);
+  const [sourceMode, setSourceMode] = useState(false); // Ластану көзін анықтау режимі
   // Біріккен AI талдау: қосулы болғанда «нүкте» немесе «аумақ» режимінде істейді
   const [aiOn, setAiOn] = useState(false);
   const [aiTool, setAiTool] = useState<"point" | "area">("point");
@@ -278,6 +281,21 @@ export function MapView() {
   }, [activeLayer, flares]);
 
   const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
+
+  // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
+  const { source, sourceError } = usePollutionSource(sourceMode);
+  const plumeLine = useMemo(() => {
+    if (!source?.detected || !source.top || !source.plume.length) return null;
+    const coords: [number, number][] = [
+      [source.top.lng, source.top.lat],
+      ...source.plume.map((p) => [p.lng, p.lat] as [number, number]),
+    ];
+    return {
+      type: "FeatureCollection" as const,
+      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: coords } }],
+    };
+  }, [source]);
+
   const [timelapsePlaying, setTimelapsePlaying] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true); // эко қабаттар панелі (мобильде жинауға болады)
   const [gibsKey, setGibsKey] = useState<string | null>(null);
@@ -876,6 +894,52 @@ export function MapView() {
               </div>
             </Marker>
           ))}
+
+        {/* Ластану көзі режимі: plume сызығы + елді мекен + кәсіпорын маркерлері */}
+        {sourceMode && plumeLine && (
+          <Source id="plume-line" type="geojson" data={plumeLine}>
+            <Layer
+              id="plume-line-layer"
+              type="line"
+              paint={{
+                "line-color": "#f87171",
+                "line-width": 3,
+                "line-opacity": 0.7,
+                "line-dasharray": [2, 1.5],
+              }}
+            />
+          </Source>
+        )}
+        {sourceMode &&
+          source?.detected &&
+          source.plume.map((p) => (
+            <Marker key={`plume-${p.name}`} latitude={p.lat} longitude={p.lng}>
+              <div
+                className="rounded-full border border-red-300/60 bg-red-500/70"
+                style={{ width: 10 + p.relConc * 22, height: 10 + p.relConc * 22 }}
+                title={`${p.name} — ${Math.round(p.relConc * 100)}%`}
+              />
+            </Marker>
+          ))}
+        {sourceMode &&
+          source?.candidates.map((c) => {
+            const isTop = source.top?.id === c.id;
+            return (
+              <Marker key={`fac-${c.id}`} latitude={c.lat} longitude={c.lng}>
+                <div
+                  className={`flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold shadow-lg ${
+                    isTop
+                      ? "border-red-400 bg-red-500/90 text-white"
+                      : "border-white/30 bg-neutral-900/85 text-neutral-300"
+                  }`}
+                  title={c.name}
+                >
+                  <Factory className="h-3 w-3" /> {c.short}
+                  {isTop && <span className="ml-0.5">{c.confidence}%</span>}
+                </div>
+              </Marker>
+            );
+          })}
       </Map>
 
       {/* Оң жақ — NASA спутник қабаттары панелі */}
@@ -1062,6 +1126,19 @@ export function MapView() {
               </span>
             </button>
             <button
+              onClick={() => setSourceMode((v) => !v)}
+              className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                sourceMode
+                  ? "border-red-500/50 bg-red-500/15 text-red-200"
+                  : "border-transparent text-neutral-300 hover:bg-white/5"
+              }`}
+            >
+              <Factory className="h-3.5 w-3.5" /> {tr("Ластану көзі")}
+              <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
+                live
+              </span>
+            </button>
+            <button
               onClick={() => setShowReports((v) => !v)}
               className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
                 showReports
@@ -1213,6 +1290,95 @@ export function MapView() {
                 </div>
                 <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
                   {tr("Стрелка — желдің кететін бағыты. Дереккөз: Open-Meteo (ECMWF).")}
+                </p>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Ластану көзін анықтау панелі */}
+        {sourceMode && (
+          <div className="w-64 rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-red-300">
+              <Factory className="h-3 w-3" /> {tr("Ластану көзін анықтау — тірі")}
+            </div>
+            {sourceError ? (
+              <p className="text-[11px] text-neutral-400">
+                {tr("Тірі ауа/жел деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
+              </p>
+            ) : !source ? (
+              <p className="text-[11px] text-neutral-500">{tr("Талданып жатыр…")}</p>
+            ) : !source.detected ? (
+              <div className="text-[11px] text-neutral-400">
+                <div className="mb-1 flex items-center gap-1 text-emerald-300">
+                  <Wind className="h-3 w-3" /> {tr("Ластану деңгейі төмен")}
+                </div>
+                {tr("Қазір елеулі ластану байқалмайды — көз сенімді анықталмайды.")}
+                <div className="mt-1 text-[9px] text-neutral-500">
+                  {tr("Жел")}: {source.wind.fromLabel} ({source.wind.fromBearing}°) · {source.wind.speed} {tr("км/сағ")}
+                </div>
+              </div>
+            ) : (
+              <>
+                {source.top && (
+                  <div className="mb-2 rounded-md bg-red-500/10 p-2">
+                    <div className="text-[9px] uppercase tracking-wide text-neutral-500">
+                      {tr("Ықтимал ластану көзі")}
+                    </div>
+                    <div className="text-sm font-bold text-white">{source.top.name}</div>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                        <div className="h-full rounded-full bg-red-400" style={{ width: `${source.top.confidence}%` }} />
+                      </div>
+                      <span className="text-xs font-bold text-red-300">{source.top.confidence}%</span>
+                    </div>
+                    <div className="mt-0.5 text-[9px] text-neutral-500">
+                      {tr("сенімділік")} · {source.top.distanceKm} {tr("км қашықтықта")}
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-1.5 text-[10px]">
+                  <div className="rounded bg-white/5 p-1.5">
+                    <div className="flex items-center gap-1 text-neutral-500">
+                      <Navigation className="h-2.5 w-2.5" /> {tr("Жел")}
+                    </div>
+                    <div className="font-semibold text-white">
+                      {source.wind.fromLabel} · {source.wind.speed} {tr("км/сағ")}
+                    </div>
+                  </div>
+                  <div className="rounded bg-white/5 p-1.5">
+                    <div className="flex items-center gap-1 text-neutral-500">
+                      <AlertTriangle className="h-2.5 w-2.5" /> {tr("Ластаушы")}
+                    </div>
+                    <div className="font-semibold text-white">{source.pollutantLabel}</div>
+                  </div>
+                </div>
+
+                {source.plume.length > 0 && (
+                  <div className="mt-1.5 rounded bg-red-500/10 p-1.5 text-[10px] text-red-200">
+                    <div className="mb-0.5 text-[9px] text-neutral-500">{tr("Ластаушы бұлттың таралуы")}</div>
+                    {source.plume.map((p) => p.name).join(" → ")}
+                  </div>
+                )}
+
+                {source.candidates.length > 1 && (
+                  <div className="mt-1.5 space-y-0.5">
+                    <div className="text-[9px] text-neutral-500">{tr("Басқа кандидаттар")}</div>
+                    {source.candidates.slice(1, 4).map((c) => (
+                      <div key={c.id} className="flex items-center gap-1.5 text-[10px]">
+                        <span className="text-neutral-400">{c.short}</span>
+                        <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
+                          <div className="h-full rounded-full bg-neutral-500" style={{ width: `${c.confidence}%` }} />
+                        </div>
+                        <span className="w-7 text-right text-neutral-400">{c.confidence}%</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="mt-1.5 text-[9px] leading-snug text-neutral-500">
+                  {tr(source.note)} {tr("Әдіс: жеңілдетілген CWT + көп-қабылдағыш триангуляция. Дереккөз: CAMS + Open-Meteo.")}
                 </p>
               </>
             )}

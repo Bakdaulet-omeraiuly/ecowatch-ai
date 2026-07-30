@@ -139,6 +139,34 @@ export function useMosquitoGrid(enabled: boolean) {
   return { mosGrid, mosError };
 }
 
+// Pollution Source Detection (CAMS + жел → ықтимал өнеркәсіп көзі)
+export interface PollutionSourceCandidate {
+  id: string; name: string; short: string; lat: number; lng: number;
+  confidence: number; distanceKm: number; bearingFromCity: number;
+}
+export interface PollutionSourceData {
+  detected: boolean;
+  pollutantLabel: string;
+  signalStrength: number;
+  wind: { fromBearing: number; fromLabel: string; speed: number; toBearing: number };
+  candidates: PollutionSourceCandidate[];
+  top: PollutionSourceCandidate | null;
+  plume: { name: string; lat: number; lng: number; relConc: number }[];
+  note: string;
+}
+export function usePollutionSource(enabled: boolean) {
+  const [source, setSource] = useState<PollutionSourceData | null>(null);
+  const [sourceError, setSourceError] = useState(false);
+  useEffect(() => {
+    if (!enabled || source || sourceError) return;
+    fetch("/api/pollution-source")
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => (d.error ? setSourceError(true) : setSource(d)))
+      .catch(() => setSourceError(true));
+  }, [enabled, source, sourceError]);
+  return { source, sourceError };
+}
+
 // Soil dryness / land-degradation grid (Open-Meteo ECMWF)
 export function useSoilGrid(enabled: boolean) {
   const [soilGrid, setSoilGrid] = useState<SoilPoint[] | null>(null);
