@@ -159,6 +159,8 @@ export interface PollutionSourceData {
   plume: { name: string; lat: number; lng: number; relConc: number }[];
   cone: [number, number][];
   frames: PollutionFrame[];
+  stations: { lat: number; lng: number; aqi: number; name?: string }[];
+  groundStations: number;
   note: string;
 }
 export function usePollutionSource(enabled: boolean) {
