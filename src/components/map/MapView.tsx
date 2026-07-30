@@ -153,6 +153,7 @@ export function MapView() {
   const mapRef = useRef<MapRef>(null);
   const userSites = useSitesStore((s) => s.userSites);
   const addSite = useSitesStore((s) => s.addSite);
+  const addAlert = useSitesStore((s) => s.addAlert);
   const [addOpen, setAddOpen] = useState(false);
   const [addLat, setAddLat] = useState("");
   const [addLng, setAddLng] = useState("");
@@ -295,14 +296,50 @@ export function MapView() {
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: coords } }],
     };
   }, [source]);
-  // Gaussian дисперсия конусы (толтырылған полигон)
+  // Уақыт-анимация: соңғы 24 сағаттағы желмен конустың қозғалысы
+  const [sourcePlaying, setSourcePlaying] = useState(false);
+  const [sourceFrame, setSourceFrame] = useState(0);
+  useEffect(() => {
+    if (!sourcePlaying || !source?.frames?.length) return;
+    const t = setInterval(() => setSourceFrame((f) => (f + 1) % source.frames.length), 700);
+    return () => clearInterval(t);
+  }, [sourcePlaying, source]);
+  // Белсенді конус: ойнатылып жатса — кадр, әйтпесе ағымдағы
+  const activeCone = useMemo(() => {
+    if (!source?.detected) return null;
+    if (sourcePlaying && source.frames?.length) return source.frames[sourceFrame % source.frames.length]?.cone;
+    return source.cone?.length ? source.cone : null;
+  }, [source, sourcePlaying, sourceFrame]);
+  const activeFrame = sourcePlaying && source?.frames?.length ? source.frames[sourceFrame % source.frames.length] : null;
   const plumeConeGeo = useMemo(() => {
-    if (!source?.detected || !source.cone?.length) return null;
+    if (!activeCone?.length) return null;
     return {
       type: "FeatureCollection" as const,
-      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [source.cone] } }],
+      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [activeCone] } }],
     };
-  }, [source]);
+  }, [activeCone]);
+  // Газ-мұнай көздері метан шығарады → Sentinel-5P CH₄ қабатын ұсыну
+  const topEmitsMethane = !!source?.top && ["tco", "kpi", "bolashak"].includes(source.top.id);
+  // Жоғары сенімді көзді «Ескертулер» бөліміне жіберу
+  const sendSourceAlert = () => {
+    if (!source?.top) return;
+    const conf = source.top.confidence;
+    const riskLevel = conf >= 70 ? "critical" : conf >= 50 ? "high" : "medium";
+    addAlert({
+      id: `alert-source-${source.top.id}`,
+      siteId: `source-${source.top.id}`,
+      siteName: `Ластану көзі: ${source.top.name}`,
+      lat: source.top.lat,
+      lng: source.top.lng,
+      riskScore: conf,
+      riskLevel,
+      recipient: "Атырау облысының экология департаменті",
+      reason: `Ауа ластану көзі анықталды (${source.pollutantLabel}, сенімділік ${conf}%) — өнеркәсіптік эмиссия тексерілуі қажет`,
+      createdAt: new Date().toISOString(),
+      status: "sent",
+    });
+    toast.success(tr("Ескерту жіберілді — «Ескертулер» бөлімінен қараңыз"));
+  };
   // Азаматтық растау: plume конусы ішіндегі ластану хабарламаларын санау
   const sourceCorroboration = useMemo(() => {
     if (!source?.detected || !source.cone?.length) return 0;
@@ -971,16 +1008,23 @@ export function MapView() {
             const isTop = source.top?.id === c.id;
             return (
               <Marker key={`fac-${c.id}`} latitude={c.lat} longitude={c.lng}>
-                <div
-                  className={`flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold shadow-lg ${
-                    isTop
-                      ? "border-red-400 bg-red-500/90 text-white"
-                      : "border-white/30 bg-neutral-900/85 text-neutral-300"
-                  }`}
-                  title={c.name}
-                >
-                  <Factory className="h-3 w-3" /> {c.short}
-                  {isTop && <span className="ml-0.5">{c.confidence}%</span>}
+                {/* Дәл нүкте: дот координатада тұрады, жапсырма қалқып тұр (anchor ауыспайды) */}
+                <div className="relative" title={`${c.name}${c.approx ? " (жуық координата)" : ""}`}>
+                  <div
+                    className={`h-2.5 w-2.5 rounded-full border-2 shadow ${
+                      isTop ? "border-white bg-red-500" : "border-white/70 bg-neutral-600"
+                    }`}
+                  />
+                  <div
+                    className={`pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[10px] font-semibold shadow-lg ${
+                      isTop
+                        ? "border-red-400 bg-red-500/90 text-white"
+                        : "border-white/30 bg-neutral-900/85 text-neutral-300"
+                    }`}
+                  >
+                    <Factory className="h-3 w-3" /> {c.short}{c.approx ? "~" : ""}
+                    {isTop && <span className="ml-0.5">{c.confidence}%</span>}
+                  </div>
                 </div>
               </Marker>
             );
@@ -1415,6 +1459,42 @@ export function MapView() {
                     </span>
                   </div>
                 )}
+
+                {/* Уақыт-анимация басқаруы (соңғы 24 сағат желі) */}
+                {source.frames.length > 1 && (
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <button
+                      onClick={() => setSourcePlaying((v) => !v)}
+                      className="flex items-center gap-1 rounded border border-red-500/40 bg-red-500/10 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20"
+                    >
+                      {sourcePlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                      {sourcePlaying ? tr("Тоқтату") : tr("24 сағ анимация")}
+                    </button>
+                    {activeFrame && (
+                      <span className="text-[10px] font-mono text-neutral-400">
+                        {activeFrame.hour} · {activeFrame.fromLabel} {activeFrame.speed}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Әрекет батырмалары: метан қабаты + ескерту */}
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {topEmitsMethane && (
+                    <button
+                      onClick={() => { setGibsKey("ch4"); toast.info(tr("Sentinel-5P метан (CH₄) қабаты қосылды")); }}
+                      className="flex items-center gap-1 rounded border border-sky-500/40 bg-sky-500/10 px-2 py-1 text-[10px] text-sky-200 hover:bg-sky-500/20"
+                    >
+                      <Satellite className="h-3 w-3" /> {tr("Метан қабаты (CH₄)")}
+                    </button>
+                  )}
+                  <button
+                    onClick={sendSourceAlert}
+                    className="flex items-center gap-1 rounded border border-orange-500/40 bg-orange-500/10 px-2 py-1 text-[10px] text-orange-200 hover:bg-orange-500/20"
+                  >
+                    <AlertTriangle className="h-3 w-3" /> {tr("Жауапты органға жіберу")}
+                  </button>
+                </div>
 
                 {source.candidates.length > 1 && (
                   <div className="mt-1.5 space-y-0.5">

@@ -73,6 +73,17 @@ export interface WindHour {
   so2: number | null; // сол сағаттағы қалалық концентрация (уақыттық CWT үшін)
   no2: number | null;
   pm: number | null;
+  time?: string; // ISO — уақыт-анимация кадры үшін
+}
+
+// Уақыт-анимация кадры: сол сағаттағы желмен есептелген plume конусы
+export interface PlumeFrame {
+  time: string;
+  hour: string; // "14:00" — көрсету үшін
+  fromLabel: string;
+  toBearing: number;
+  speed: number;
+  cone: [number, number][];
 }
 
 // Ластаушылардың облыстық базалық деңгейі (µg/m³) — асуын өлшеу үшін
@@ -95,6 +106,7 @@ export interface SourceCandidate {
   confidence: number; // 0..100 — белгілі көздер ішіндегі салыстырмалы ықтималдық
   distanceKm: number;
   bearingFromCity: number;
+  approx?: boolean; // координата жуық
 }
 
 export interface PlumeStep {
@@ -114,6 +126,7 @@ export interface SourceResult {
   top: SourceCandidate | null;
   plume: PlumeStep[];
   cone: [number, number][]; // Gaussian дисперсия конусы (GeoJSON сақина, [lng,lat])
+  frames: PlumeFrame[]; // соңғы сағаттардағы желмен конустың қозғалысы (анимация)
   method: string;
   note: string;
 }
@@ -211,6 +224,7 @@ export function attributePollution(
     confidence: Math.round((raw[f.id] / rawSum) * 100),
     distanceKm: Math.round(haversineKm(CITY.lat, CITY.lng, f.lat, f.lng)),
     bearingFromCity: Math.round(bearing(CITY.lat, CITY.lng, f.lat, f.lng)),
+    approx: f.approx,
   }))
     .sort((a, b) => b.confidence - a.confidence);
 
@@ -232,6 +246,7 @@ export function attributePollution(
     top,
     plume: top ? plumePath(top, toBearing) : [],
     cone: top ? plumeCone(top, toBearing, windNow.speed) : [],
+    frames: top ? buildFrames(top, windHistory) : [],
     method: "Жеңілдетілген CWT + көп-қабылдағыш триангуляция + Gaussian-plume (жергілікті масштаб)",
     note: detected
       ? "Сенімділік — белгілі көздер ішіндегі САЛЫСТЫРМАЛЫ ықтималдық (өлшенген факт емес, болжам)."
@@ -262,6 +277,25 @@ export function plumePath(source: { lat: number; lng: number }, toBearing: numbe
     const da = haversineKm(source.lat, source.lng, a.lat, a.lng);
     const db = haversineKm(source.lat, source.lng, b.lat, b.lng);
     return da - db;
+  });
+}
+
+// Уақыт-анимация кадрлары: соңғы сағаттардағы НАҚТЫ желмен конустың қалай
+// қозғалғанын көрсетеді (көз тұрақты, тек жел бағыты өзгереді). Соңғы 24 сағат.
+function buildFrames(top: { lat: number; lng: number }, windHistory: WindHour[]): PlumeFrame[] {
+  const withTime = windHistory.filter((h) => h.time);
+  const recent = withTime.slice(-24);
+  return recent.map((h) => {
+    const toB = (h.fromBearing + 180) % 360;
+    const hour = h.time ? h.time.slice(11, 16) : "";
+    return {
+      time: h.time!,
+      hour,
+      fromLabel: bearingLabel(h.fromBearing),
+      toBearing: Math.round(toB),
+      speed: +h.speed.toFixed(1),
+      cone: plumeCone(top, toB, h.speed),
+    };
   });
 }
 

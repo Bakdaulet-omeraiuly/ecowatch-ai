@@ -142,10 +142,15 @@ export function useMosquitoGrid(enabled: boolean) {
 // Pollution Source Detection (CAMS + жел → ықтимал өнеркәсіп көзі)
 export interface PollutionSourceCandidate {
   id: string; name: string; short: string; lat: number; lng: number;
-  confidence: number; distanceKm: number; bearingFromCity: number;
+  confidence: number; distanceKm: number; bearingFromCity: number; approx?: boolean;
+}
+export interface PollutionFrame {
+  time: string; hour: string; fromLabel: string; toBearing: number;
+  speed: number; cone: [number, number][];
 }
 export interface PollutionSourceData {
   detected: boolean;
+  pollutant: string;
   pollutantLabel: string;
   signalStrength: number;
   wind: { fromBearing: number; fromLabel: string; speed: number; toBearing: number };
@@ -153,6 +158,7 @@ export interface PollutionSourceData {
   top: PollutionSourceCandidate | null;
   plume: { name: string; lat: number; lng: number; relConc: number }[];
   cone: [number, number][];
+  frames: PollutionFrame[];
   note: string;
 }
 export function usePollutionSource(enabled: boolean) {
