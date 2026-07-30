@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import Map, { Marker, Layer, Source, type MapRef } from "react-map-gl/mapbox";
+import Map, { Marker, Layer, Source, Popup, type MapRef } from "react-map-gl/mapbox";
 import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
 import {
@@ -62,7 +62,7 @@ import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares,
   usePollutionSource,
-  type AirGridPoint, type MosquitoGridPoint,
+  type AirGridPoint, type MosquitoGridPoint, type PollutionSourceCandidate,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
 
@@ -340,6 +340,18 @@ export function MapView() {
     });
     toast.success(tr("Ескерту жіберілді — «Ескертулер» бөлімінен қараңыз"));
   };
+  // Зауыт басылғанда сол координатаның тірі ауа сапасын көрсету
+  interface FacAir { aqi: number | null; pm2_5: number | null; pm10: number | null; so2: number | null; no2: number | null }
+  const [facAir, setFacAir] = useState<
+    { fac: PollutionSourceCandidate; data: FacAir | null; error: boolean } | null
+  >(null);
+  const openFacilityAir = useCallback((fac: PollutionSourceCandidate) => {
+    setFacAir({ fac, data: null, error: false });
+    fetch(`/api/point-air?lat=${fac.lat}&lng=${fac.lng}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => (d.error ? setFacAir({ fac, data: null, error: true }) : setFacAir({ fac, data: d, error: false })))
+      .catch(() => setFacAir({ fac, data: null, error: true }));
+  }, []);
   // Азаматтық растау: plume конусы ішіндегі ластану хабарламаларын санау
   const sourceCorroboration = useMemo(() => {
     if (!source?.detected || !source.cone?.length) return 0;
@@ -1007,11 +1019,16 @@ export function MapView() {
           source?.candidates.map((c) => {
             const isTop = source.top?.id === c.id;
             return (
-              <Marker key={`fac-${c.id}`} latitude={c.lat} longitude={c.lng}>
+              <Marker
+                key={`fac-${c.id}`}
+                latitude={c.lat}
+                longitude={c.lng}
+                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); }}
+              >
                 {/* Дәл нүкте: дот координатада тұрады, жапсырма қалқып тұр (anchor ауыспайды) */}
-                <div className="relative" title={`${c.name}${c.approx ? " (жуық координата)" : ""}`}>
+                <div className="relative cursor-pointer" title={`${c.name}${c.approx ? " (жуық координата)" : ""} — ауа сапасын көру`}>
                   <div
-                    className={`h-2.5 w-2.5 rounded-full border-2 shadow ${
+                    className={`h-2.5 w-2.5 rounded-full border-2 shadow transition-transform hover:scale-150 ${
                       isTop ? "border-white bg-red-500" : "border-white/70 bg-neutral-600"
                     }`}
                   />
@@ -1029,6 +1046,53 @@ export function MapView() {
               </Marker>
             );
           })}
+
+        {/* Зауыт басылғанда — сол координатаның тірі ауа сапасы */}
+        {sourceMode && facAir && (
+          <Popup
+            latitude={facAir.fac.lat}
+            longitude={facAir.fac.lng}
+            anchor="bottom"
+            offset={14}
+            closeOnClick={false}
+            onClose={() => setFacAir(null)}
+            className="pollution-air-popup"
+          >
+            <div className="min-w-[180px] text-neutral-100">
+              <div className="mb-1 flex items-center gap-1 text-[11px] font-semibold">
+                <Factory className="h-3 w-3 text-red-300" /> {facAir.fac.name}
+              </div>
+              {facAir.error ? (
+                <p className="text-[10px] text-neutral-400">
+                  {tr("Тірі ауа деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
+                </p>
+              ) : !facAir.data ? (
+                <p className="text-[10px] text-neutral-400">{tr("Ауа сапасы жүктелуде…")}</p>
+              ) : (
+                <>
+                  {facAir.data.aqi != null && (
+                    <div
+                      className="mb-1.5 flex items-center justify-between rounded px-2 py-1"
+                      style={{ backgroundColor: aqiCategory(facAir.data.aqi).color + "26" }}
+                    >
+                      <span className="text-[10px] text-neutral-300">EU AQI</span>
+                      <span className="text-sm font-bold" style={{ color: aqiCategory(facAir.data.aqi).color }}>
+                        {Math.round(facAir.data.aqi)} · {tr(aqiCategory(facAir.data.aqi).name)}
+                      </span>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[10px]">
+                    {facAir.data.so2 != null && <div className="flex justify-between"><span className="text-neutral-400">SO₂</span><span>{facAir.data.so2.toFixed(1)}</span></div>}
+                    {facAir.data.no2 != null && <div className="flex justify-between"><span className="text-neutral-400">NO₂</span><span>{facAir.data.no2.toFixed(1)}</span></div>}
+                    {facAir.data.pm2_5 != null && <div className="flex justify-between"><span className="text-neutral-400">PM₂.₅</span><span>{facAir.data.pm2_5.toFixed(1)}</span></div>}
+                    {facAir.data.pm10 != null && <div className="flex justify-between"><span className="text-neutral-400">PM₁₀</span><span>{facAir.data.pm10.toFixed(1)}</span></div>}
+                  </div>
+                  <p className="mt-1 text-[8px] text-neutral-500">µg/m³ · Copernicus CAMS</p>
+                </>
+              )}
+            </div>
+          </Popup>
+        )}
       </Map>
 
       {/* Оң жақ — NASA спутник қабаттары панелі */}
