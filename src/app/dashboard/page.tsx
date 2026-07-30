@@ -14,6 +14,7 @@ import { monthlyMosquitoForecast } from "@/lib/mosquito";
 import { aqiCategory } from "@/lib/airQuality";
 import type { Forecast } from "@/types/site";
 import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Droplets, Gauge, Flame } from "lucide-react";
+import { SourceComparison } from "@/components/dashboard/SourceComparison";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -281,6 +282,9 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Дереккөздерді салыстыру — CAMS моделі vs Qazhydromet датчигі */}
+      <SourceComparison />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
