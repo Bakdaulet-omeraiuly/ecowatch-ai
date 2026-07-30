@@ -113,6 +113,7 @@ export interface SourceResult {
   candidates: SourceCandidate[];
   top: SourceCandidate | null;
   plume: PlumeStep[];
+  cone: [number, number][]; // Gaussian дисперсия конусы (GeoJSON сақина, [lng,lat])
   method: string;
   note: string;
 }
@@ -230,6 +231,7 @@ export function attributePollution(
     candidates,
     top,
     plume: top ? plumePath(top, toBearing) : [],
+    cone: top ? plumeCone(top, toBearing, windNow.speed) : [],
     method: "Жеңілдетілген CWT + көп-қабылдағыш триангуляция + Gaussian-plume (жергілікті масштаб)",
     note: detected
       ? "Сенімділік — белгілі көздер ішіндегі САЛЫСТЫРМАЛЫ ықтималдық (өлшенген факт емес, болжам)."
@@ -261,6 +263,33 @@ export function plumePath(source: { lat: number; lng: number }, toBearing: numbe
     const db = haversineKm(source.lat, source.lng, b.lat, b.lng);
     return da - db;
   });
+}
+
+// Берілген нүктеден bearing бағытымен distKm қашықтықтағы нүкте (жергілікті жуықтау)
+function destPoint(lat: number, lng: number, bearingDeg: number, distKm: number): [number, number] {
+  const b = (bearingDeg * Math.PI) / 180;
+  const dLat = (distKm / 111) * Math.cos(b);
+  const dLng = (distKm / (111 * Math.cos((lat * Math.PI) / 180))) * Math.sin(b);
+  return [lng + dLng, lat + dLat]; // [lng, lat] — GeoJSON реті
+}
+
+// Алға Gaussian дисперсия конусы: көзден желмен таралу аймағы (GeoJSON сақина).
+// Жел қатты болса — конус ұзын әрі жіңішке; баяу болса — қысқа әрі жалпақ.
+export function plumeCone(
+  source: { lat: number; lng: number },
+  toBearing: number,
+  windSpeed: number
+): [number, number][] {
+  const lengthKm = Math.max(15, Math.min(45, 15 + windSpeed * 3)); // жел қатты → алысқа
+  const halfAngle = Math.max(14, 30 - windSpeed * 1.2); // жел қатты → тар конус
+  const ring: [number, number][] = [[source.lng, source.lat]];
+  const steps = 12;
+  for (let i = 0; i <= steps; i++) {
+    const ang = toBearing - halfAngle + (2 * halfAngle * i) / steps;
+    ring.push(destPoint(source.lat, source.lng, ang, lengthKm));
+  }
+  ring.push([source.lng, source.lat]); // сақинаны жабу
+  return ring;
 }
 
 export type { Facility };

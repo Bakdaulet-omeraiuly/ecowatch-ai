@@ -295,6 +295,30 @@ export function MapView() {
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: coords } }],
     };
   }, [source]);
+  // Gaussian дисперсия конусы (толтырылған полигон)
+  const plumeConeGeo = useMemo(() => {
+    if (!source?.detected || !source.cone?.length) return null;
+    return {
+      type: "FeatureCollection" as const,
+      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [source.cone] } }],
+    };
+  }, [source]);
+  // Азаматтық растау: plume конусы ішіндегі ластану хабарламаларын санау
+  const sourceCorroboration = useMemo(() => {
+    if (!source?.detected || !source.cone?.length) return 0;
+    const ring = source.cone;
+    const inside = (lng: number, lat: number) => {
+      let hit = false;
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [xi, yi] = ring[i], [xj, yj] = ring[j];
+        if ((yi > lat) !== (yj > lat) && lng < ((xj - xi) * (lat - yi)) / (yj - yi) + xi) hit = !hit;
+      }
+      return hit;
+    };
+    return photoReports.filter(
+      (s) => (s.analysis.oilPollution || s.analysis.riskScore >= 55) && inside(s.lng, s.lat)
+    ).length;
+  }, [source, photoReports]);
 
   const [timelapsePlaying, setTimelapsePlaying] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true); // эко қабаттар панелі (мобильде жинауға болады)
@@ -895,7 +919,28 @@ export function MapView() {
             </Marker>
           ))}
 
-        {/* Ластану көзі режимі: plume сызығы + елді мекен + кәсіпорын маркерлері */}
+        {/* Ластану көзі режимі: дисперсия конусы + plume сызығы + маркерлер */}
+        {sourceMode && plumeConeGeo && (
+          <Source id="plume-cone" type="geojson" data={plumeConeGeo}>
+            <Layer
+              id="plume-cone-fill"
+              type="fill"
+              paint={{ "fill-color": "#ef4444", "fill-opacity": 0.14 }}
+            />
+            <Layer
+              id="plume-cone-outline"
+              type="line"
+              paint={{ "line-color": "#f87171", "line-width": 1, "line-opacity": 0.4 }}
+            />
+          </Source>
+        )}
+        {sourceMode && source?.detected && source.top && (
+          <Marker latitude={source.top.lat} longitude={source.top.lng}>
+            <div style={{ transform: `rotate(${source.wind.toBearing}deg)` }} title="Жел бағыты">
+              <Navigation className="h-5 w-5 fill-red-400 text-red-300 drop-shadow" />
+            </div>
+          </Marker>
+        )}
         {sourceMode && plumeLine && (
           <Source id="plume-line" type="geojson" data={plumeLine}>
             <Layer
@@ -1359,6 +1404,15 @@ export function MapView() {
                   <div className="mt-1.5 rounded bg-red-500/10 p-1.5 text-[10px] text-red-200">
                     <div className="mb-0.5 text-[9px] text-neutral-500">{tr("Ластаушы бұлттың таралуы")}</div>
                     {source.plume.map((p) => p.name).join(" → ")}
+                  </div>
+                )}
+
+                {sourceCorroboration > 0 && (
+                  <div className="mt-1.5 flex items-center gap-1.5 rounded bg-amber-500/10 p-1.5 text-[10px] text-amber-200">
+                    <Camera className="h-3 w-3 shrink-0" />
+                    <span>
+                      {sourceCorroboration} {tr("азаматтық хабарлама осы бұлт аймағында — дәлел күшейеді")}
+                    </span>
                   </div>
                 )}
 
