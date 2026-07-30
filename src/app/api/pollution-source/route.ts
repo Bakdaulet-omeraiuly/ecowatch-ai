@@ -92,6 +92,7 @@ export async function GET() {
         so2: ai != null ? aSo2[ai] ?? null : null,
         no2: ai != null ? aNo2[ai] ?? null : null,
         pm: ai != null ? aPm[ai] ?? null : null,
+        time: wTimes[i],
       });
     }
 

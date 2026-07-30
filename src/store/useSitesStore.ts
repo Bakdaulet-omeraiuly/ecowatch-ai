@@ -14,6 +14,7 @@ interface SitesState {
   addSite: (site: Site) => void;
   updateSite: (site: Site) => void;
   removeSite: (site: Site) => void;
+  addAlert: (alert: Alert) => void;
   resolveAlert: (id: string) => void;
   toggleFlag: (id: string) => void;
   selectSite: (id: string | null) => void;
@@ -60,6 +61,8 @@ export const useSitesStore = create<SitesState>()(
             alerts: alert && !s.alerts.some((a) => a.id === alert.id) ? [alert, ...s.alerts] : s.alerts,
           };
         }),
+      addAlert: (alert) =>
+        set((s) => (s.alerts.some((a) => a.id === alert.id) ? s : { alerts: [alert, ...s.alerts] })),
       resolveAlert: (id) =>
         set((s) => ({
           alerts: s.alerts.map((a) => (a.id === id ? { ...a, status: "resolved" as const } : a)),
