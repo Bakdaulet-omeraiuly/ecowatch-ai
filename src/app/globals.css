@@ -24,3 +24,19 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Ластану көзі: зауыт ауа-сапасы попапы (қараңғы тема) */
+.pollution-air-popup .mapboxgl-popup-content {
+  background: rgba(23, 23, 23, 0.97);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  padding: 8px 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+.pollution-air-popup .mapboxgl-popup-close-button {
+  color: #a3a3a3;
+  font-size: 15px;
+  padding-right: 4px;
+}
+.pollution-air-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: rgba(23, 23, 23, 0.97); }
+.pollution-air-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: rgba(23, 23, 23, 0.97); }
