@@ -450,8 +450,16 @@ export function MapView() {
   }, [gibsKey, atmosAirGrid]);
 
   const [gibsPanelOpen, setGibsPanelOpen] = useState(true); // оң жақ спутник панелі
-  const [mosDay, setMosDay] = useState(0); // 0 = today … 6 = +6 days
+  // Сағаттық режим: 0..23 (әдепкі — қазіргі сағат). Иконкалар сағат сайын
+  // координата бойынша қайта шоғырланады.
+  const [mosHour, setMosHour] = useState(() => new Date().getHours());
   const [mosPlaying, setMosPlaying] = useState(false);
+  // Нақты уақыт өткен сайын әдепкі көрсетілетін сағат жаңарады (ойнатпаса)
+  useEffect(() => {
+    if (mosPlaying || activeLayer !== "mosquito") return;
+    const t = setInterval(() => setMosHour(new Date().getHours()), 60_000);
+    return () => clearInterval(t);
+  }, [mosPlaying, activeLayer]);
 
   // Timelapse: auto-advance through historical years
   useEffect(() => {
@@ -465,28 +473,28 @@ export function MapView() {
     return () => clearInterval(t);
   }, [timelapsePlaying, historyMode]);
 
-  // Animation: step through the 7 forecast days
+  // Анимация: 24 сағатты сағат сайын айналдыру
   useEffect(() => {
     if (!mosPlaying || activeLayer !== "mosquito") return;
-    const t = setInterval(() => setMosDay((d) => (d + 1) % 7), 900);
+    const t = setInterval(() => setMosHour((h) => (h + 1) % 24), 450);
     return () => clearInterval(t);
   }, [mosPlaying, activeLayer]);
 
-  // Index for the selected forecast day (falls back to current index)
-  const mosDayIndex = (p: MosquitoGridPoint) => p.days?.[mosDay]?.index ?? p.index;
-  const mosDays = mosGrid?.[0]?.days;
+  // Таңдалған сағаттың индексі (болмаса — ағымдағы)
+  const mosHourIndex = (p: MosquitoGridPoint) => p.hours?.[mosHour]?.index ?? p.index;
+  const mosHours = mosGrid?.[0]?.hours;
 
   const mosStats = useMemo(() => {
     if (!mosGrid?.length) return null;
-    const vals = mosGrid.map(mosDayIndex);
+    const vals = mosGrid.map(mosHourIndex);
     return {
       min: Math.min(...vals),
       max: Math.max(...vals),
       avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
-      hottest: mosGrid.reduce((a, b) => (mosDayIndex(b) > mosDayIndex(a) ? b : a)),
+      hottest: mosGrid.reduce((a, b) => (mosHourIndex(b) > mosHourIndex(a) ? b : a)),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mosGrid, mosDay]);
+  }, [mosGrid, mosHour]);
 
   const airStats = useMemo(() => {
     const vals = (airGrid ?? []).map(airHourAqi).filter((v): v is number => v != null);
@@ -528,7 +536,7 @@ export function MapView() {
         features: mosGrid.map((p) => ({
           type: "Feature" as const,
           geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
-          properties: { weight: Math.min(1, mosDayIndex(p) / 100) },
+          properties: { weight: Math.min(1, mosHourIndex(p) / 100) },
         })),
       };
     }
@@ -562,7 +570,7 @@ export function MapView() {
       })),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSites, activeLayer, airGrid, mosGrid, mosDay, airHour, soilGrid, wasteSites]);
+  }, [allSites, activeLayer, airGrid, mosGrid, mosHour, airHour, soilGrid, wasteSites]);
 
   // Grid layers need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito" || activeLayer === "soil";
@@ -572,11 +580,11 @@ export function MapView() {
     if (activeLayer !== "mosquito" || !mosGrid) return [];
     const swarm: { id: string; lat: number; lng: number; size: number; color: string }[] = [];
     for (const p of mosGrid) {
-      const idx = mosDayIndex(p);
+      const idx = mosHourIndex(p);
       const color = idx < 25 ? "#6ee7b7" : idx < 45 ? "#4ade80" : idx < 62 ? "#facc15" : idx < 78 ? "#fb923c" : "#ef4444";
       if (p.dense) {
         // Қала нүктесі — әрқашан дәл координатта бір иконка
-        swarm.push({ id: `${p.lat},${p.lng},${mosDay}`, lat: p.lat, lng: p.lng, size: 16, color });
+        swarm.push({ id: `${p.lat},${p.lng},${mosHour}`, lat: p.lat, lng: p.lng, size: 16, color });
       } else {
         // Аймақтық тор — кең шашыратылған 1–5 иконка
         const count = idx < 40 ? 1 : idx < 60 ? 2 : idx < 80 ? 3 : 5;
@@ -584,7 +592,7 @@ export function MapView() {
           const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
           const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
           swarm.push({
-            id: `${p.lat},${p.lng},${mosDay},${i}`,
+            id: `${p.lat},${p.lng},${mosHour},${i}`,
             lat: p.lat + a * 0.13,
             lng: p.lng + b * 0.18,
             size: 12,
@@ -595,7 +603,7 @@ export function MapView() {
     }
     return swarm;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeLayer, mosGrid, mosDay]);
+  }, [activeLayer, mosGrid, mosHour]);
 
   const analyzeAt = useCallback(
     async (lat: number, lng: number, opts?: { zoom?: number; areaKm2?: number; imageUrl?: string }) => {
@@ -1813,43 +1821,38 @@ export function MapView() {
                   </>
                 )}
 
-                {/* 7-day forecast animation */}
-                {mosDays && mosDays.length > 1 && (
+                {/* Сағаттық анимация — иконкалар сағат сайын қайта шоғырланады */}
+                {mosHours && mosHours.length > 1 && (
                   <div className="mt-2 rounded-lg bg-purple-500/10 p-2">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[10px] font-semibold text-purple-200">
-                        {mosDay === 0 ? tr("Бүгін") : `+${mosDay} ${tr("күн")}`} ·{" "}
-                        {mosDays[mosDay]?.date?.slice(5) ?? ""}
+                        {String(mosHour).padStart(2, "0")}:00 {mosHour === new Date().getHours() ? `(${tr("қазір")})` : ""}
                       </span>
                       <button
                         onClick={() => setMosPlaying((v) => !v)}
                         className="flex items-center gap-1 rounded bg-purple-500/25 px-1.5 py-0.5 text-[10px] text-purple-100 hover:bg-purple-500/40"
                       >
                         {mosPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                        {mosPlaying ? tr("Тоқтату") : tr("Ойнату")}
+                        {mosPlaying ? tr("Тоқтату") : tr("24 сағат")}
                       </button>
                     </div>
                     <input
                       type="range"
                       min={0}
-                      max={6}
+                      max={23}
                       step={1}
-                      value={mosDay}
+                      value={mosHour}
                       onChange={(e) => {
                         setMosPlaying(false);
-                        setMosDay(Number(e.target.value));
+                        setMosHour(Number(e.target.value));
                       }}
                       className="w-full accent-purple-400"
                     />
                     <div className="mt-0.5 flex justify-between text-[8px] text-neutral-500">
-                      {mosDays.map((d, i) => (
-                        <span key={i} className={i === mosDay ? "text-purple-300" : ""}>
-                          {d.date?.slice(8) ?? i}
-                        </span>
-                      ))}
+                      <span>00</span><span>06</span><span>12</span><span>18</span><span>23</span>
                     </div>
                     <p className="mt-1 text-[9px] text-neutral-400">
-                      {mosDays[mosDay]?.temp}°C · апта жаңбыры {mosDays[mosDay]?.rainMm}мм — нақты Open-Meteo болжамы
+                      {mosHours[mosHour]?.temp}°C — {tr("иконкалар осы сағаттың нақты жағдайымен шоғырланады (Open-Meteo)")}
                     </p>
                   </div>
                 )}
