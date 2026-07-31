@@ -6,11 +6,15 @@ import { attributePollution, type Receptor, type WindHour, type Station } from "
 async function fetchStations(): Promise<Station[]> {
   const token = process.env.WAQI_TOKEN;
   if (!token) return [];
+  // Timeout: WAQI баяу болса да негізгі жауапты бөгемейді (3.5с)
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 3500);
   try {
     const res = await fetch(
       `https://api.waqi.info/map/bounds/?latlng=46.0,49.2,48.8,54.8&token=${token}`,
-      { next: { revalidate: 900 } }
+      { next: { revalidate: 900 }, signal: ctrl.signal }
     );
+    if (!res.ok) return [];
     const j = await res.json();
     if (j.status !== "ok" || !Array.isArray(j.data)) return [];
     return j.data
@@ -23,7 +27,9 @@ async function fetchStations(): Promise<Station[]> {
       .filter((s: Station) => Number.isFinite(s.aqi)); // "-" (дерексіз) постты алып тастау
   } catch (err) {
     console.error("WAQI stations error:", err);
-    return [];
+    return []; // қате/timeout → станссыз жалғасады (қабат бос қалмайды)
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -63,10 +69,11 @@ export async function GET() {
     return NextResponse.json(cache.data);
   }
   try {
-    const [gRes, wRes, aRes] = await Promise.all([
+    const [gRes, wRes, aRes, stations] = await Promise.all([
       fetch(AIR_GRID_URL, { next: { revalidate: 1800 } }),
       fetch(WIND_URL, { next: { revalidate: 1800 } }),
       fetch(CITY_AIR_URL, { next: { revalidate: 1800 } }),
+      fetchStations(), // параллель — негізгі жауапты бөгемейді
     ]);
     if (!gRes.ok || !wRes.ok || !aRes.ok) {
       throw new Error(`upstream ${gRes.status}/${wRes.status}/${aRes.status}`);
@@ -108,14 +115,17 @@ export async function GET() {
     const airIdx = new Map<string, number>();
     aTimes.forEach((t, i) => airIdx.set(t, i));
 
-    // Өткен/болжам шекарасы — қазіргі уақыт
-    const nowMs = Date.now();
+    // Өткен/болжам шекарасы — қазіргі уақыт.
+    // Open-Meteo timezone=auto → жергілікті уақыт (офсетсіз). Дұрыс салыстыру
+    // үшін «қазірді» сол жергілікті уақытқа ауыстырамыз (utc_offset_seconds).
+    const offsetMs = (wind.utc_offset_seconds ?? 0) * 1000;
+    const nowLocal = Date.now() + offsetMs;
     const windHistory: WindHour[] = [];
     const forecastWind: { fromBearing: number; speed: number }[] = [];
     for (let i = 0; i < wTimes.length; i++) {
       if (wDir[i] == null) continue;
       const tMs = new Date(wTimes[i]).getTime();
-      if (tMs > nowMs) {
+      if (tMs > nowLocal) {
         // Болжам: алдағы ~4 сағат желі (dispersion forecast үшін)
         if (forecastWind.length < 4) forecastWind.push({ fromBearing: wDir[i]!, speed: wSpeed[i] ?? 0 });
         continue;
@@ -131,8 +141,6 @@ export async function GET() {
       });
     }
 
-    // Нақты жердегі стансалар (Qazhydromet — WAQI) — токен болса
-    const stations = await fetchStations();
 
     const result = attributePollution(receptors, windNow, windHistory, stations, forecastWind);
 
