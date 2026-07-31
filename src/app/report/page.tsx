@@ -13,6 +13,13 @@ import { Textarea } from "@/components/ui/textarea";
 import dynamic from "next/dynamic";
 import { useSitesStore } from "@/store/useSitesStore";
 import type { Site } from "@/types/site";
+import { REPORTS_ENABLED } from "@/lib/features";
+import { FeatureUnavailable } from "@/components/FeatureUnavailable";
+
+export default function ReportPage() {
+  if (!REPORTS_ENABLED) return <FeatureUnavailable title="Азаматтық хабарлау" />;
+  return <ReportPageInner />;
+}
 
 const LocationPicker = dynamic(
   () => import("@/components/report/LocationPicker").then((m) => m.LocationPicker),
@@ -41,7 +48,7 @@ function resizeImage(file: File, maxDim = 1024): Promise<string> {
   });
 }
 
-export default function ReportPage() {
+function ReportPageInner() {
   const { tr } = useLang();
   const router = useRouter();
   const addSite = useSitesStore((s) => s.addSite);

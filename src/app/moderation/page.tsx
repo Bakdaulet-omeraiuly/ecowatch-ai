@@ -8,6 +8,8 @@ import { useLang } from "@/lib/i18n";
 import { useSitesStore } from "@/store/useSitesStore";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { REPORTS_ENABLED } from "@/lib/features";
+import { FeatureUnavailable } from "@/components/FeatureUnavailable";
 
 interface Report {
   id: string;
@@ -54,6 +56,11 @@ function statusKey(s: string | null): keyof typeof STATUS_CFG {
 }
 
 export default function ModerationPage() {
+  if (!REPORTS_ENABLED) return <FeatureUnavailable title="Модерация" />;
+  return <ModerationPageInner />;
+}
+
+function ModerationPageInner() {
   const { tr } = useLang();
   const hideReport = useSitesStore((s) => s.hideReport);
   const [reports, setReports]   = useState<Report[]>([]);
