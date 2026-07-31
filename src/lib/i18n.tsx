@@ -99,7 +99,7 @@ const DICT = {
     "foot.tg": "Telegram бот",
     "foot.tgDesc": "Эко-маманмен сөйлесіп, мәселе жіберіңіз",
     "foot.github": "GitHub репозиторий",
-    "foot.rights": "Атырау экологиясы үшін жасалған · Хакатон жобасы",
+    "foot.rights": "Атырау экологиясы үшін жасалған",
   },
   ru: {
     "nav.map": "Карта",
@@ -192,7 +192,7 @@ const DICT = {
     "foot.tg": "Telegram-бот",
     "foot.tgDesc": "Поговорите с эко-экспертом и отправьте проблему",
     "foot.github": "GitHub репозиторий",
-    "foot.rights": "Создано для экологии Атырау · Хакатон-проект",
+    "foot.rights": "Создано для экологии Атырау",
   },
   en: {
     "nav.map": "Map",
@@ -285,7 +285,7 @@ const DICT = {
     "foot.tg": "Telegram bot",
     "foot.tgDesc": "Chat with the eco expert and send an issue",
     "foot.github": "GitHub repository",
-    "foot.rights": "Built for Atyrau's ecology · Hackathon project",
+    "foot.rights": "Built for Atyrau's ecology",
   },
 } as const;
 
