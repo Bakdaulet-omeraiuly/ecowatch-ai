@@ -172,7 +172,7 @@ export default function EcoPassportPage() {
             {tr("Бұл паспорт")} <b className="text-white print:text-black">Jaiyq</b> {tr("платформасының нақты уақыттағы ресми дереккөздерден (Copernicus CAMS, Open-Meteo, NASA FIRMS) алынған деректер негізінде автоматты жасалады. Жалған дерек қолданылмайды.")}
           </p>
           <p className="mt-1">
-            {tr("Платформа: Атырау облысы")} · jaiyq.vercel.app · {tr("Hakaton жобасы")}
+            {tr("Платформа: Атырау облысы")} · ecojaiyq.com
           </p>
         </div>
       </div>
