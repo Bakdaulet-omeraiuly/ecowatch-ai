@@ -1874,6 +1874,15 @@ export function MapView() {
                 </p>
               </>
             )}
+            <div className="my-1.5 h-px bg-white/10" />
+            <button
+              onClick={scanOil}
+              className="flex w-full items-center justify-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-2 py-1.5 text-[11px] font-semibold text-amber-200 hover:bg-amber-500/20"
+              title="Картаның ортасындағы аймақты Sentinel-1 радарымен мұнай дағына тексеру"
+            >
+              {oilScan?.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Fuel className="h-3.5 w-3.5" />}
+              {tr("Мұнай дағын сканерлеу (AI)")}
+            </button>
           </div>
         )}
 
@@ -2359,16 +2368,7 @@ export function MapView() {
         )}
       </div>
 
-      {/* Мұнай дағын сканерлеу (AI) — Sentinel-1 SAR */}
-      <button
-        onClick={scanOil}
-        className="absolute bottom-6 right-4 z-10 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-neutral-900/90 px-3 py-2 text-xs font-semibold text-amber-200 backdrop-blur hover:bg-neutral-800"
-        title="Картаның ортасындағы аймақты Sentinel-1 радарымен мұнай дағына тексеру"
-      >
-        {oilScan?.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fuel className="h-4 w-4" />}
-        {tr("Мұнай дағын сканерлеу (AI)")}
-      </button>
-
+      {/* Мұнай дағы SAR нәтижесі (батырма «Мұнай» қабатының ішінде) */}
       {oilScan && !oilScan.loading && oilScan.data && (
         <div className="absolute bottom-20 right-4 z-20 w-72 rounded-lg border border-amber-500/30 bg-neutral-900/95 p-3 backdrop-blur">
           <div className="mb-1.5 flex items-center justify-between">
