@@ -389,6 +389,22 @@ export function MapView() {
       .then((d) => setFacAir((cur) => (cur && cur.fac.id === fac.id ? (d.error ? { ...cur, error: true } : { ...cur, data: d }) : cur)))
       .catch(() => setFacAir((cur) => (cur && cur.fac.id === fac.id ? { ...cur, error: true } : cur)));
   }, []);
+
+  // Мұнай дағын сканерлеу (AI) — картаның ортасындағы аймақты Sentinel-1 SAR-мен
+  interface OilScan {
+    available?: boolean; reason?: string; error?: string; suspected?: boolean;
+    confidence?: number | null; description?: string; caveat?: string; imageUrl?: string;
+  }
+  const [oilScan, setOilScan] = useState<{ loading: boolean; data: OilScan | null } | null>(null);
+  const scanOil = useCallback(() => {
+    const c = mapRef.current?.getCenter();
+    if (!c) return;
+    setOilScan({ loading: true, data: null });
+    fetch(`/api/oil-scan?lat=${c.lat.toFixed(4)}&lng=${c.lng.toFixed(4)}`)
+      .then((r) => r.json())
+      .then((d) => setOilScan({ loading: false, data: d }))
+      .catch(() => setOilScan({ loading: false, data: { error: "Сканер қолжетімсіз" } }));
+  }, []);
   // Азаматтық растау: plume конусы ішіндегі ластану хабарламаларын санау
   const sourceCorroboration = useMemo(() => {
     if (!source?.detected || !source.cone?.length) return 0;
@@ -2344,6 +2360,49 @@ export function MapView() {
           </div>
         )}
       </div>
+
+      {/* Мұнай дағын сканерлеу (AI) — Sentinel-1 SAR */}
+      <button
+        onClick={scanOil}
+        className="absolute bottom-6 right-4 z-10 flex items-center gap-2 rounded-lg border border-amber-500/40 bg-neutral-900/90 px-3 py-2 text-xs font-semibold text-amber-200 backdrop-blur hover:bg-neutral-800"
+        title="Картаның ортасындағы аймақты Sentinel-1 радарымен мұнай дағына тексеру"
+      >
+        {oilScan?.loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Fuel className="h-4 w-4" />}
+        {tr("Мұнай дағын сканерлеу (AI)")}
+      </button>
+
+      {oilScan && !oilScan.loading && oilScan.data && (
+        <div className="absolute bottom-20 right-4 z-20 w-72 rounded-lg border border-amber-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-300">
+              <Fuel className="h-3.5 w-3.5" /> {tr("Мұнай дағы — SAR сканері")}
+            </span>
+            <button onClick={() => setOilScan(null)} className="text-neutral-500 hover:text-white"><X className="h-3.5 w-3.5" /></button>
+          </div>
+          {oilScan.data.available === false ? (
+            <p className="text-[11px] text-neutral-400">{oilScan.data.reason}</p>
+          ) : oilScan.data.error ? (
+            <p className="text-[11px] text-neutral-400">{oilScan.data.error}</p>
+          ) : (
+            <>
+              {oilScan.data.imageUrl && (
+                <img src={oilScan.data.imageUrl} alt="Sentinel-1 SAR" className="mb-2 w-full rounded border border-white/10" />
+              )}
+              <div className={`mb-1 flex items-center gap-2 text-sm font-bold ${oilScan.data.suspected ? "text-red-300" : "text-emerald-300"}`}>
+                {oilScan.data.suspected ? tr("Күдікті дақ табылды") : tr("Айқын дақ жоқ")}
+                {oilScan.data.confidence != null && (
+                  <span className="text-[11px] font-normal text-neutral-400">· {oilScan.data.confidence}%</span>
+                )}
+              </div>
+              {oilScan.data.description && <p className="text-[11px] text-neutral-200">{oilScan.data.description}</p>}
+              {oilScan.data.caveat && (
+                <p className="mt-1 rounded bg-amber-500/10 p-1.5 text-[10px] text-amber-200/90">⚠️ {oilScan.data.caveat}</p>
+              )}
+              <p className="mt-1 text-[8px] text-neutral-500">Sentinel-1 SAR · GPT-4o vision · расталған детекция емес</p>
+            </>
+          )}
+        </div>
+      )}
 
       <AnalysisDrawer site={selected} onClose={() => setSelected(null)} onUpdate={setSelected} />
     </div>
