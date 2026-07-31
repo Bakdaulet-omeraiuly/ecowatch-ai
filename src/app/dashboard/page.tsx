@@ -15,6 +15,7 @@ import { aqiCategory } from "@/lib/airQuality";
 import type { Forecast } from "@/types/site";
 import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Droplets, Gauge, Flame } from "lucide-react";
 import { SourceComparison } from "@/components/dashboard/SourceComparison";
+import { WhyButton } from "@/components/dashboard/WhyButton";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -282,6 +283,9 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* AI «Неге?» — бүгінгі ауаны тірі деректермен түсіндіру */}
+      <WhyButton />
 
       {/* Дереккөздерді салыстыру — CAMS моделі vs Qazhydromet датчигі */}
       <SourceComparison />
