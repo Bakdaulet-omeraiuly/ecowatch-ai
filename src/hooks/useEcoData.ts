@@ -159,6 +159,7 @@ export interface PollutionSourceData {
   plume: { name: string; lat: number; lng: number; relConc: number }[];
   cone: [number, number][];
   frames: PollutionFrame[];
+  forecastFrames: PollutionFrame[];
   forecast: { label: string; hoursAhead: number; lat: number; lng: number; radiusKm: number; reached: string[] }[];
   stations: { lat: number; lng: number; aqi: number; name?: string }[];
   groundStations: number;

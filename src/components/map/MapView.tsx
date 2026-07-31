@@ -313,21 +313,23 @@ export function MapView() {
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: coords } }],
     };
   }, [source]);
-  // Уақыт-анимация: соңғы 24 сағаттағы желмен конустың қозғалысы
-  const [sourcePlaying, setSourcePlaying] = useState(false);
-  const [sourceFrame, setSourceFrame] = useState(0);
+  // Екі уақыт-анимация: "past" (өткен 24сағ, нақты жел) / "forecast" (алдағы 24сағ, болжам жел)
+  const [animMode, setAnimMode] = useState<"past" | "forecast" | null>(null);
+  const [animFrame, setAnimFrame] = useState(0);
+  const animFrames = animMode === "forecast" ? source?.forecastFrames : animMode === "past" ? source?.frames : null;
   useEffect(() => {
-    if (!sourcePlaying || !source?.frames?.length) return;
-    const t = setInterval(() => setSourceFrame((f) => (f + 1) % source.frames.length), 450);
+    if (!animMode || !animFrames?.length) return;
+    const t = setInterval(() => setAnimFrame((f) => (f + 1) % animFrames.length), 450);
     return () => clearInterval(t);
-  }, [sourcePlaying, source]);
-  // Белсенді конус: ойнатылып жатса — кадр, әйтпесе ағымдағы
+  }, [animMode, animFrames]);
+  const setAnim = (m: "past" | "forecast") => { setAnimMode((cur) => (cur === m ? null : m)); setAnimFrame(0); };
+  const activeFrame = animMode && animFrames?.length ? animFrames[animFrame % animFrames.length] : null;
+  // Белсенді конус: анимация жүрсе — кадр, әйтпесе ағымдағы
   const activeCone = useMemo(() => {
     if (!source?.top) return null;
-    if (sourcePlaying && source.frames?.length) return source.frames[sourceFrame % source.frames.length]?.cone;
+    if (activeFrame) return activeFrame.cone;
     return source.cone?.length ? source.cone : null;
-  }, [source, sourcePlaying, sourceFrame]);
-  const activeFrame = sourcePlaying && source?.frames?.length ? source.frames[sourceFrame % source.frames.length] : null;
+  }, [source, activeFrame]);
   const plumeConeGeo = useMemo(() => {
     if (!activeCone?.length) return null;
     return {
@@ -1040,7 +1042,7 @@ export function MapView() {
           <Marker latitude={source.top.lat} longitude={source.top.lng}>
             <div
               className="transition-transform duration-300"
-              style={{ transform: `rotate(${sourcePlaying && activeFrame ? activeFrame.toBearing : source.wind.toBearing}deg)` }}
+              style={{ transform: `rotate(${activeFrame ? activeFrame.toBearing : source.wind.toBearing}deg)` }}
               title="Жел бағыты"
             >
               <Navigation className="h-5 w-5 fill-red-400 text-red-300 drop-shadow" />
@@ -1049,7 +1051,7 @@ export function MapView() {
         )}
         {/* Ағып тұратын «түтін» бөлшектері — желмен таралу әсері */}
         {sourceMode && source?.top && (() => {
-          const b = ((sourcePlaying && activeFrame ? activeFrame.toBearing : source.wind.toBearing) * Math.PI) / 180;
+          const b = ((activeFrame ? activeFrame.toBearing : source.wind.toBearing) * Math.PI) / 180;
           const D = 48;
           const style = { "--dx": `${Math.sin(b) * D}px`, "--dy": `${-Math.cos(b) * D}px` } as React.CSSProperties;
           return (
@@ -1658,20 +1660,35 @@ export function MapView() {
                   </div>
                 )}
 
-                {/* Уақыт-анимация басқаруы (соңғы 24 сағат желі) */}
-                {source.frames.length > 1 && (
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <button
-                      onClick={() => setSourcePlaying((v) => !v)}
-                      className="flex items-center gap-1 rounded border border-red-500/40 bg-red-500/10 px-2 py-1 text-[10px] text-red-200 hover:bg-red-500/20"
-                    >
-                      {sourcePlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                      {sourcePlaying ? tr("Тоқтату") : tr("24 сағ анимация")}
-                    </button>
+                {/* Екі уақыт-анимация: өткен 24сағ (нақты жел) + алдағы 24сағ (болжам жел) */}
+                {((source.frames?.length ?? 0) > 1 || (source.forecastFrames?.length ?? 0) > 1) && (
+                  <div className="mt-1.5 space-y-1">
+                    <div className="grid grid-cols-2 gap-1">
+                      <button
+                        onClick={() => setAnim("past")}
+                        disabled={(source.frames?.length ?? 0) < 2}
+                        className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
+                          animMode === "past" ? "border-sky-400 bg-sky-500/25 text-sky-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
+                        }`}
+                      >
+                        {animMode === "past" ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                        {tr("Өткен 24сағ")}
+                      </button>
+                      <button
+                        onClick={() => setAnim("forecast")}
+                        disabled={(source.forecastFrames?.length ?? 0) < 2}
+                        className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
+                          animMode === "forecast" ? "border-orange-400 bg-orange-500/25 text-orange-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
+                        }`}
+                      >
+                        {animMode === "forecast" ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                        {tr("Алдағы 24сағ")}
+                      </button>
+                    </div>
                     {activeFrame && (
-                      <span className="text-[10px] font-mono text-neutral-400">
-                        {activeFrame.hour} · {activeFrame.fromLabel} {activeFrame.speed}
-                      </span>
+                      <div className="text-center text-[10px] font-mono text-neutral-400">
+                        {animMode === "forecast" ? "▶" : "◀"} {activeFrame.hour} · {activeFrame.fromLabel} {activeFrame.speed} {tr("км/сағ")}
+                      </div>
                     )}
                   </div>
                 )}
