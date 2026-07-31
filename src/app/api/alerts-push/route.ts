@@ -146,7 +146,7 @@ export async function GET(req: Request) {
   const body =
     `⚠️ <b>Jaiyq — Экологиялық ескерту</b>\n\n` +
     alerts.map(a => `${a.emoji} <b>${a.type}</b>\n${a.message}`).join("\n\n─────────────\n\n") +
-    `\n\n🌐 jaiyq.vercel.app\n/болдырма — жазылудан шығу`;
+    `\n\n🌐 ecojaiyq.com\n/болдырма — жазылудан шығу`;
 
   let sent = 0;
   for (const sub of subscribers) {

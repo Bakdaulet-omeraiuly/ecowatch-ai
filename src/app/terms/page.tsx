@@ -9,7 +9,7 @@ export default function TermsPage() {
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-semibold text-white">1. Жалпы ережелер</h2>
         <p className="text-neutral-400 leading-relaxed">
-          Jaiyq платформасын (jaiyq.vercel.app) пайдалану осы Пайдалану шарттарымен келісуді білдіреді.
+          Jaiyq платформасын (ecojaiyq.com) пайдалану осы Пайдалану шарттарымен келісуді білдіреді.
           Платформа Атырау облысының экологиялық жағдайын бақылауға арналған ақпараттық қызмет ретінде ұсынылады.
         </p>
       </section>
@@ -86,7 +86,7 @@ export default function TermsPage() {
         <h2 className="mb-3 text-xl font-semibold text-white">9. Байланыс</h2>
         <p className="text-neutral-400">
           Сұрақтар бойынша: Telegram боты арқылы немесе{" "}
-          <span className="text-emerald-400">jaiyq.vercel.app</span> сайты арқылы хабарласыңыз.
+          <span className="text-emerald-400">ecojaiyq.com</span> сайты арқылы хабарласыңыз.
         </p>
       </section>
     </main>

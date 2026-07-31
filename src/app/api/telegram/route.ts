@@ -84,7 +84,7 @@ export async function notifyModerator(opts: {
     (features.length ? `⚠️ Анықталған: ${features.slice(0, 3).join(", ")}\n` : "") +
     (description ? `\n💬 Азамат жазғаны: <i>${description.slice(0, 250)}</i>\n` : "") +
     `\n📋 Ұсыным: ${recommendation}\n` +
-    `🌐 <a href="https://jaiyq.vercel.app/moderation">Веб-панельде ашу</a>\n` +
+    `🌐 <a href="https://ecojaiyq.com/moderation">Веб-панельде ашу</a>\n` +
     `\n🆔 <code>${reportId}</code>`;
 
   const reply_markup = {
@@ -110,16 +110,19 @@ export async function notifyModerator(opts: {
 
 async function fetchLiveContext(): Promise<string> {
   try {
-    const [airRes, metRes] = await Promise.all([
-      fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=47.1167&longitude=51.9014&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,european_aqi", { cache: "no-store" }),
-      fetch("https://api.open-meteo.com/v1/forecast?latitude=47.1167&longitude=51.9014&current=temperature_2m,relative_humidity_2m,wind_speed_10m&daily=precipitation_sum&past_days=7&forecast_days=1&timezone=auto", { cache: "no-store" }),
+    const [airRes, metRes, water] = await Promise.all([
+      fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=47.1167&longitude=51.9014&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi", { cache: "no-store" }),
+      fetch("https://api.open-meteo.com/v1/forecast?latitude=47.1167&longitude=51.9014&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m&daily=precipitation_sum&past_days=7&forecast_days=1&timezone=auto", { cache: "no-store" }),
+      fetchWater(),
     ]);
     const air = airRes.ok ? await airRes.json() : null;
     const met = metRes.ok  ? await metRes.json()  : null;
     const rain7 = (met?.daily?.precipitation_sum ?? []).reduce((a: number, x: number) => a + (x ?? 0), 0);
+    const wd = met?.current?.wind_direction_10m;
     return [
-      air ? `Ауа сапасы (Copernicus CAMS, қазір): EU AQI=${air.current?.european_aqi}, PM2.5=${air.current?.pm2_5} мкг/м³, NO₂=${air.current?.nitrogen_dioxide}, SO₂=${air.current?.sulphur_dioxide}.` : "",
-      met ? `Ауа райы (Open-Meteo): ${met.current?.temperature_2m}°C, ылғалдылық ${met.current?.relative_humidity_2m}%, жел ${met.current?.wind_speed_10m} км/сағ, соңғы 7 күндегі жауын-шашын ${rain7.toFixed(1)} мм.` : "",
+      air ? `Ауа сапасы (Copernicus CAMS, қазір): EU AQI=${air.current?.european_aqi}, PM2.5=${air.current?.pm2_5} мкг/м³, PM10=${air.current?.pm10}, NO₂=${air.current?.nitrogen_dioxide}, SO₂=${air.current?.sulphur_dioxide}, O₃=${air.current?.ozone}.` : "",
+      met ? `Ауа райы (Open-Meteo): ${met.current?.temperature_2m}°C, ылғалдылық ${met.current?.relative_humidity_2m}%, жел ${wd != null ? windDir(wd) + " жақтан " : ""}${met.current?.wind_speed_10m} км/сағ, соңғы 7 күндегі жауын-шашын ${rain7.toFixed(1)} мм.` : "",
+      water ? `Жайық өзенінің ағыны (GloFAS): ${Math.round(water.flow)} м³/с.` : "",
     ].filter(Boolean).join(" ");
   } catch {
     return "";
@@ -140,7 +143,7 @@ const ECO_EXPERT_SYSTEM = `Сен Атырау облысының тәжіриб
 — Жауап қазақ тілінде, анық, 2–4 сөйлем болсын
 — Берілген тірі деректерді (ауа сапасы, температура) жауапта қолдан
 — Білмейтін жағдайда "нақты деректер жоқ, ресми органға жүгін" де
-— Азаматты фото хабарлама жіберуге бағытта: jaiyq.vercel.app/report`;
+— Тірі карта, AI талдау мен ластану көзін көру үшін бағытта: ecojaiyq.com`;
 
 async function expertReply(userText: string, liveCtx: string): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
@@ -189,10 +192,32 @@ async function forwardToModerator(citizenChatId: number, fromUsername: string, q
 
 async function fetchAir() {
   try {
-    const r = await fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=47.1167&longitude=51.9014&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,european_aqi", { cache: "no-store" });
+    const r = await fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=47.1167&longitude=51.9014&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,european_aqi", { cache: "no-store" });
     if (!r.ok) return null;
-    const d = await r.json();
-    return { aqi: d.current?.european_aqi ?? null, pm25: d.current?.pm2_5 ?? null, pm10: d.current?.pm10 ?? null, no2: d.current?.nitrogen_dioxide ?? null };
+    const c = (await r.json()).current ?? {};
+    return { aqi: c.european_aqi ?? null, pm25: c.pm2_5 ?? null, pm10: c.pm10 ?? null, no2: c.nitrogen_dioxide ?? null, so2: c.sulphur_dioxide ?? null, o3: c.ozone ?? null, dust: c.dust ?? null };
+  } catch { return null; }
+}
+
+const COMPASS = ["С", "СШ", "Ш", "ОШ", "О", "ОБ", "Б", "СБ"];
+function windDir(deg: number): string { return COMPASS[Math.round(deg / 45) % 8]; }
+
+async function fetchWind() {
+  try {
+    const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=47.1167&longitude=51.9014&current=wind_speed_10m,wind_direction_10m&timezone=auto", { cache: "no-store" });
+    if (!r.ok) return null;
+    const c = (await r.json()).current ?? {};
+    return { speed: c.wind_speed_10m ?? null, dir: c.wind_direction_10m ?? null };
+  } catch { return null; }
+}
+
+// Жайық өзенінің ағыны — GloFAS (Copernicus), нақты дерек
+async function fetchWater() {
+  try {
+    const r = await fetch("https://flood-api.open-meteo.com/v1/flood?latitude=47.1167&longitude=51.9014&daily=river_discharge&forecast_days=1", { cache: "no-store" });
+    if (!r.ok) return null;
+    const flow = (await r.json()).daily?.river_discharge?.[0] ?? null;
+    return flow == null ? null : { flow };
   } catch { return null; }
 }
 
@@ -296,11 +321,12 @@ export async function POST(req: Request) {
       `🌿 <b>Jaiyq — Атырау экологиялық мониторингі</b>\n\n` +
       `Сізге қандай көмек керек?\n\n` +
       `/ауа — Атырау қаласының қазіргі ауа сапасы\n` +
+      `/су — Жайық өзенінің ағын деңгейі\n` +
       `/маса — Маса белсенділігінің индексі\n` +
       `/жазыл — Ескерту хабарламаларына жазылу\n` +
       `/болдырма — Жазылудан шығу\n\n` +
       `Немесе экология туралы кез келген сұрағыңызды жазыңыз — маман жауап береді.\n\n` +
-      `📸 Ластану байқасаңыз: jaiyq.vercel.app/report`
+      `🗺 Тірі карта, AI талдау және ластану көзі: ecojaiyq.com`
     );
     return NextResponse.json({ ok: true });
   }
@@ -342,18 +368,25 @@ export async function POST(req: Request) {
 
   // ── /ауа ──
   if (text === "/ауа" || text === "/air") {
-    const air = await fetchAir();
+    const [air, wind] = await Promise.all([fetchAir(), fetchWind()]);
     if (!air) {
       await sendMessage(chatId, "Ауа сапасы деректері қазір қолжетімсіз. Кейінірек қайталап көріңіз.");
     } else {
-      const lbl = (air.aqi ?? 0) > 80 ? "🔴 Өте жаман" : (air.aqi ?? 0) > 50 ? "🟠 Нашар" : (air.aqi ?? 0) > 25 ? "🟡 Қанағаттанарлық" : "🟢 Жақсы";
+      const aqi = air.aqi ?? 0;
+      const lbl = aqi > 80 ? "🔴 Өте жаман" : aqi > 50 ? "🟠 Нашар" : aqi > 25 ? "🟡 Қанағаттанарлық" : "🟢 Жақсы";
+      const advice = aqi > 80 ? "Сыртта болмаған жөн, терезені жабыңыз."
+        : aqi > 50 ? "Сезімтал топтарға (балалар, астматиктер) сыртта аз болу ұсынылады."
+        : aqi > 25 ? "Ұзақ ауыр дене жүктемесінен сақ болыңыз."
+        : "Ауа таза — сыртта еркін болуға болады.";
       await sendMessage(chatId,
         `🌬 <b>Атырау қаласы — ауа сапасы</b>\n\n` +
         `EU AQI: <b>${air.aqi ?? "—"}</b> — ${lbl}\n` +
-        `PM2.5: ${air.pm25 ?? "—"} мкг/м³\n` +
-        `PM10:  ${air.pm10 ?? "—"} мкг/м³\n` +
-        `NO₂:   ${air.no2 ?? "—"} мкг/м³\n\n` +
-        `Дереккөз: Copernicus CAMS · нақты уақыт`
+        `PM2.5: ${air.pm25 ?? "—"} · PM10: ${air.pm10 ?? "—"} мкг/м³\n` +
+        `NO₂: ${air.no2 ?? "—"} · SO₂: ${air.so2 ?? "—"} · O₃: ${air.o3 ?? "—"} мкг/м³\n` +
+        (air.dust != null ? `Шаң: ${air.dust} мкг/м³\n` : "") +
+        (wind?.dir != null ? `Жел: ${windDir(wind.dir)} жақтан, ${wind.speed} км/сағ\n` : "") +
+        `\n💡 ${advice}\n\n` +
+        `Дереккөз: Copernicus CAMS + Open-Meteo · нақты уақыт`
       );
     }
     return NextResponse.json({ ok: true });
@@ -378,6 +411,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   }
 
+  // ── /су (Жайық өзенінің ағыны) ──
+  if (text === "/су" || text === "/water") {
+    const w = await fetchWater();
+    if (!w) {
+      await sendMessage(chatId, "Су деректері қазір қолжетімсіз. Кейінірек қайталап көріңіз.");
+    } else {
+      const lvl = w.flow > 900 ? "🔴 Жоғары — тасқын қаупі" : w.flow > 450 ? "🟡 Орташа — бақылауда" : "🟢 Қалыпты";
+      await sendMessage(chatId,
+        `🌊 <b>Жайық (Орал) өзені — ағын деңгейі</b>\n\n` +
+        `Ағын: <b>${Math.round(w.flow)} м³/с</b> — ${lvl}\n\n` +
+        `Өзен ағыны — су деңгейі мен тасқын қаупінің нақты көрсеткіші.\n` +
+        `Дереккөз: GloFAS (Copernicus) · нақты уақыт`
+      );
+    }
+    return NextResponse.json({ ok: true });
+  }
+
   // ── Free text → ecology expert ──
   const liveCtx = await fetchLiveContext();
   const answer  = await expertReply(rawText, liveCtx);
@@ -397,7 +447,7 @@ export async function GET() {
       setup: [
         "1. TELEGRAM_BOT_TOKEN — @BotFather арқылы алынған токен",
         "2. TELEGRAM_MODERATOR_CHAT_ID — модератордың немесе топтың chat_id",
-        "3. Вебхук: POST https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://jaiyq.vercel.app/api/telegram",
+        "3. Вебхук: POST https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://ecojaiyq.com/api/telegram",
       ],
     });
   }
