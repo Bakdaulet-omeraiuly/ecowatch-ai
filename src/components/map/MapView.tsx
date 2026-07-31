@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
+import { plumeCone } from "@/lib/pollutionSource";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
@@ -164,6 +165,15 @@ function fcCircle(lat: number, lng: number, radiusKm: number): [number, number][
   return ring;
 }
 
+// Нүктені желмен алға жылжыту (advection) — болжам footprint орталығы үшін
+function advect(lat: number, lng: number, toBearing: number, speedKmh: number, hours: number): [number, number] {
+  const dist = speedKmh * hours; // км
+  const b = (toBearing * Math.PI) / 180;
+  const dLat = (dist / 111) * Math.cos(b);
+  const dLng = (dist / (111 * Math.cos((lat * Math.PI) / 180))) * Math.sin(b);
+  return [lat + dLat, lng + dLng];
+}
+
 export function MapView() {
   const { lang, tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -302,8 +312,12 @@ export function MapView() {
 
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
   const { source, sourceError } = usePollutionSource(sourceMode);
+  // Анимациялар ТЕК басылған зауыт үшін шығады (кез келген зауыт)
+  const [selectedFac, setSelectedFac] = useState<PollutionSourceCandidate | null>(null);
+  const isTopSelected = !!selectedFac && selectedFac.id === source?.top?.id;
   const plumeLine = useMemo(() => {
-    if (!source?.top || !source.plume.length) return null;
+    // Елді мекен жолы — тек анықталған көз (top) басылғанда
+    if (!isTopSelected || !source?.top || !source.plume.length) return null;
     const coords: [number, number][] = [
       [source.top.lng, source.top.lat],
       ...source.plume.map((p) => [p.lng, p.lat] as [number, number]),
@@ -312,7 +326,7 @@ export function MapView() {
       type: "FeatureCollection" as const,
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: coords } }],
     };
-  }, [source]);
+  }, [source, isTopSelected]);
   // Екі уақыт-анимация: "past" (өткен 24сағ, нақты жел) / "forecast" (алдағы 24сағ, болжам жел)
   const [animMode, setAnimMode] = useState<"past" | "forecast" | null>(null);
   const [animFrame, setAnimFrame] = useState(0);
@@ -324,12 +338,13 @@ export function MapView() {
   }, [animMode, animFrames]);
   const setAnim = (m: "past" | "forecast") => { setAnimMode((cur) => (cur === m ? null : m)); setAnimFrame(0); };
   const activeFrame = animMode && animFrames?.length ? animFrames[animFrame % animFrames.length] : null;
-  // Белсенді конус: анимация жүрсе — кадр, әйтпесе ағымдағы
+  // Белсенді конус — БАСЫЛҒАН зауыт үшін, ағымдағы (немесе анимация кадры) желмен
   const activeCone = useMemo(() => {
-    if (!source?.top) return null;
-    if (activeFrame) return activeFrame.cone;
-    return source.cone?.length ? source.cone : null;
-  }, [source, activeFrame]);
+    if (!selectedFac || !source) return null;
+    const toB = activeFrame ? activeFrame.toBearing : source.wind.toBearing;
+    const spd = activeFrame ? activeFrame.speed : source.wind.speed;
+    return plumeCone({ lat: selectedFac.lat, lng: selectedFac.lng }, toB, spd);
+  }, [selectedFac, source, activeFrame]);
   const plumeConeGeo = useMemo(() => {
     if (!activeCone?.length) return null;
     return {
@@ -340,13 +355,15 @@ export function MapView() {
   // Дисперсия болжамы: таңдалған көкжиек (30мин/1сағ/3сағ) footprint шеңбері
   const [fcStep, setFcStep] = useState<number | null>(null);
   const forecastGeo = useMemo(() => {
-    if (fcStep == null || !source?.forecast?.[fcStep]) return null;
+    if (fcStep == null || !selectedFac || !source?.forecast?.[fcStep]) return null;
     const f = source.forecast[fcStep];
+    // Болжам орталығын БАСЫЛҒАН зауыттан желмен жылжытамыз
+    const [lat, lng] = advect(selectedFac.lat, selectedFac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
     return {
       type: "FeatureCollection" as const,
-      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [fcCircle(f.lat, f.lng, f.radiusKm)] } }],
+      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [fcCircle(lat, lng, f.radiusKm)] } }],
     };
-  }, [fcStep, source]);
+  }, [fcStep, selectedFac, source]);
   // Газ-мұнай көздері метан шығарады → Sentinel-5P CH₄ қабатын ұсыну
   const topEmitsMethane = !!source?.top && ["tco", "kpi", "bolashak"].includes(source.top.id);
   // Жоғары сенімді көзді «Ескертулер» бөліміне жіберу
@@ -592,36 +609,11 @@ export function MapView() {
     for (const p of mosGrid) {
       const idx = mosHourIndex(p);
       const color = idx < 25 ? "#6ee7b7" : idx < 45 ? "#4ade80" : idx < 62 ? "#facc15" : idx < 78 ? "#fb923c" : "#ef4444";
-      if (p.dense) {
-        // Қала ауданы — иконка САНЫ FPEB индексіне қарай (қауіп жоғары → қалың топ).
-        // Аудан айналасында тығыз шашырайды (~0.7 км), координата бойынша шоғырланады.
-        const count = idx < 12 ? 0 : Math.min(8, Math.round(idx / 12));
-        for (let i = 0; i < count; i++) {
-          const a = Math.sin(p.lat * 97 + p.lng * 57 + i * 17);
-          const b = Math.cos(p.lat * 61 + p.lng * 83 + i * 23);
-          swarm.push({
-            id: `${p.lat},${p.lng},${i}`,
-            lat: p.lat + a * 0.006,
-            lng: p.lng + b * 0.008,
-            size: i === 0 ? 15 : 12,
-            color,
-          });
-        }
-      } else {
-        // Аймақтық тор — кең шашыратылған, саны индекске сай
-        const count = idx < 20 ? 0 : idx < 40 ? 1 : idx < 60 ? 2 : idx < 80 ? 4 : 6;
-        for (let i = 0; i < count; i++) {
-          const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
-          const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
-          swarm.push({
-            id: `${p.lat},${p.lng},r${i}`,
-            lat: p.lat + a * 0.13,
-            lng: p.lng + b * 0.18,
-            size: 12,
-            color,
-          });
-        }
-      }
+      // Бір ЕСЕПТЕЛГЕН координата = бір иконка (шашыратылмаған, шынайы).
+      // Өлшемі FPEB индексіне сай (қауіп жоғары → үлкенірек). Төмен индекс — жасырын.
+      if (idx < 12) continue;
+      const size = Math.round(9 + (idx / 100) * 15); // 9..24
+      swarm.push({ id: `${p.lat},${p.lng}`, lat: p.lat, lng: p.lng, size, color });
     }
     return swarm;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1076,8 +1068,8 @@ export function MapView() {
             />
           </Source>
         )}
-        {sourceMode && source?.top && (
-          <Marker latitude={source.top.lat} longitude={source.top.lng}>
+        {sourceMode && selectedFac && source && (
+          <Marker latitude={selectedFac.lat} longitude={selectedFac.lng}>
             <div
               className="transition-transform duration-300"
               style={{ transform: `rotate(${activeFrame ? activeFrame.toBearing : source.wind.toBearing}deg)` }}
@@ -1087,13 +1079,13 @@ export function MapView() {
             </div>
           </Marker>
         )}
-        {/* Ағып тұратын «түтін» бөлшектері — желмен таралу әсері */}
-        {sourceMode && source?.top && (() => {
+        {/* Ағып тұратын «түтін» бөлшектері — БАСЫЛҒАН зауыттан желмен */}
+        {sourceMode && selectedFac && source && (() => {
           const b = ((activeFrame ? activeFrame.toBearing : source.wind.toBearing) * Math.PI) / 180;
           const D = 48;
           const style = { "--dx": `${Math.sin(b) * D}px`, "--dy": `${-Math.cos(b) * D}px` } as React.CSSProperties;
           return (
-            <Marker latitude={source.top.lat} longitude={source.top.lng}>
+            <Marker latitude={selectedFac.lat} longitude={selectedFac.lng}>
               <div className="pointer-events-none relative" style={style}>
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <span key={i} className="plume-particle" style={{ animationDelay: `${i * 0.5}s` }} />
@@ -1103,19 +1095,23 @@ export function MapView() {
           );
         })()}
         {/* Дисперсия болжамы: бұлттың болашақ орны (footprint + орталық) */}
-        {sourceMode && forecastGeo && fcStep != null && source?.forecast?.[fcStep] && (
-          <>
-            <Source id="fc-footprint" type="geojson" data={forecastGeo}>
-              <Layer id="fc-fill" type="fill" paint={{ "fill-color": "#fb923c", "fill-opacity": 0.2 }} />
-              <Layer id="fc-outline" type="line" paint={{ "line-color": "#fb923c", "line-width": 2, "line-dasharray": [2, 1.5] }} />
-            </Source>
-            <Marker latitude={source.forecast[fcStep].lat} longitude={source.forecast[fcStep].lng}>
-              <div className="rounded-full border border-orange-300 bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">
-                +{source.forecast[fcStep].label}
-              </div>
-            </Marker>
-          </>
-        )}
+        {sourceMode && forecastGeo && fcStep != null && selectedFac && source?.forecast?.[fcStep] && (() => {
+          const f = source.forecast[fcStep];
+          const [la, ln] = advect(selectedFac.lat, selectedFac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
+          return (
+            <>
+              <Source id="fc-footprint" type="geojson" data={forecastGeo}>
+                <Layer id="fc-fill" type="fill" paint={{ "fill-color": "#fb923c", "fill-opacity": 0.2 }} />
+                <Layer id="fc-outline" type="line" paint={{ "line-color": "#fb923c", "line-width": 2, "line-dasharray": [2, 1.5] }} />
+              </Source>
+              <Marker latitude={la} longitude={ln}>
+                <div className="rounded-full border border-orange-300 bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">
+                  +{f.label}
+                </div>
+              </Marker>
+            </>
+          );
+        })()}
         {sourceMode && plumeLine && (
           <Source id="plume-line" type="geojson" data={plumeLine}>
             <Layer
@@ -1131,8 +1127,8 @@ export function MapView() {
           </Source>
         )}
         {sourceMode &&
-          source?.top &&
-          source.plume.map((p) => (
+          isTopSelected &&
+          source?.plume.map((p) => (
             <Marker key={`plume-${p.name}`} latitude={p.lat} longitude={p.lng}>
               <div
                 className="rounded-full border border-red-300/60 bg-red-500/70"
@@ -1161,7 +1157,7 @@ export function MapView() {
                 key={`fac-${c.id}`}
                 latitude={c.lat}
                 longitude={c.lng}
-                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); }}
+                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); setSelectedFac(c); }}
               >
                 {/* Дәл нүкте: дот координатада тұрады, жапсырма қалқып тұр (anchor ауыспайды) */}
                 <div className="relative cursor-pointer" title={`${c.name}${c.approx ? " (жуық координата)" : ""} — ауа сапасын көру`}>
@@ -1193,7 +1189,7 @@ export function MapView() {
             anchor="bottom"
             offset={14}
             closeOnClick={false}
-            onClose={() => setFacAir(null)}
+            onClose={() => { setFacAir(null); setSelectedFac(null); }}
             className="pollution-air-popup"
           >
             <div className="min-w-[180px] text-neutral-100">
