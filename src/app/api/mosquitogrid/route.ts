@@ -189,6 +189,7 @@ const URL =
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
   `&current=relative_humidity_2m,soil_moisture_0_to_1cm` +
+  `&hourly=temperature_2m,relative_humidity_2m,precipitation,soil_moisture_0_to_1cm` +
   `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum` +
   `&past_days=7&forecast_days=7&timezone=auto`;
 
@@ -235,6 +236,13 @@ export async function GET() {
         latitude: number;
         longitude: number;
         current?: { relative_humidity_2m?: number; soil_moisture_0_to_1cm?: number };
+        hourly?: {
+          time?: string[];
+          temperature_2m?: (number | null)[];
+          relative_humidity_2m?: (number | null)[];
+          precipitation?: (number | null)[];
+          soil_moisture_0_to_1cm?: (number | null)[];
+        };
         daily?: {
           time?: string[];
           temperature_2m_max?: (number | null)[];
@@ -286,6 +294,30 @@ export async function GET() {
           return { date: times[i] ?? "", ...calc };
         });
 
+        // САҒАТТЫҚ индекс — бүгінгі 24 сағат (past_days=7 → бүгін 00:00 = offset 168).
+        // Температура тәуліктік ырғағы (түн салқын+ылғал → жоғары) иконка шоғырын
+        // сағат сайын жылжытады. Жаңбыр/тасқын/қала — тұрақты контекст.
+        const hTime = d.hourly?.time ?? [];
+        const hTemp = d.hourly?.temperature_2m ?? [];
+        const hRh = d.hourly?.relative_humidity_2m ?? [];
+        const hSoil = d.hourly?.soil_moisture_0_to_1cm ?? [];
+        const HSTART = 7 * 24; // бүгін 00:00
+        const dayRain = days[0].rainMm;
+        const hours = Array.from({ length: 24 }, (_, h) => {
+          const i = HSTART + h;
+          const t = hTemp[i] ?? days[0].temp;
+          const hrh = hRh[i] ?? rh;
+          const hsoil = hSoil[i] ?? soil;
+          const drivers =
+            0.4 * flood +
+            0.25 * rainFactor(dayRain) +
+            0.15 * humidityFactor(hrh) +
+            0.2 * soilFactor(hsoil);
+          const base = 100 * tempSuitability(t) * (0.45 + 0.55 * drivers);
+          const amplified = base * (1 + 0.55 * urban + 0.8 * flood);
+          return { time: hTime[i] ?? "", index: Math.round(Math.min(100, amplified)), temp: +t.toFixed(1) };
+        });
+
         return {
           lat: meta.lat ?? d.latitude,   // нақты координата (Open-Meteo snap емес)
           lng: meta.lng ?? d.longitude,
@@ -298,6 +330,7 @@ export async function GET() {
           humidity: rh,
           weekRainMm: days[0].rainMm,
           days,
+          hours,
         };
       }
     );

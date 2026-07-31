@@ -68,6 +68,7 @@ export interface MosquitoGridPoint {
   humidity: number;
   weekRainMm: number;
   days?: MosquitoDay[];
+  hours?: { time: string; index: number; temp: number }[];
   dense?: boolean;
   name?: string;
 }
