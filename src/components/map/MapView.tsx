@@ -312,11 +312,14 @@ export function MapView() {
 
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
   const { source, sourceError } = usePollutionSource(sourceMode);
-  // Анимациялар ТЕК басылған зауыт үшін шығады (кез келген зауыт)
-  const [selectedFac, setSelectedFac] = useState<PollutionSourceCandidate | null>(null);
-  const isTopSelected = !!selectedFac && selectedFac.id === source?.top?.id;
+  // Анимациялар БАСЫЛҒАН зауыт(тар) үшін — БІРНЕШЕ зауытты қатар таңдауға болады
+  const [selectedFacs, setSelectedFacs] = useState<PollutionSourceCandidate[]>([]);
+  const isSel = (id: string) => selectedFacs.some((f) => f.id === id);
+  const toggleFac = (c: PollutionSourceCandidate) =>
+    setSelectedFacs((p) => (p.some((f) => f.id === c.id) ? p.filter((f) => f.id !== c.id) : [...p, c]));
+  const isTopSelected = !!source?.top && isSel(source.top.id);
   const plumeLine = useMemo(() => {
-    // Елді мекен жолы — тек анықталған көз (top) басылғанда
+    // Елді мекен жолы — тек анықталған көз (top) таңдалғанда
     if (!isTopSelected || !source?.top || !source.plume.length) return null;
     const coords: [number, number][] = [
       [source.top.lng, source.top.lat],
@@ -338,32 +341,31 @@ export function MapView() {
   }, [animMode, animFrames]);
   const setAnim = (m: "past" | "forecast") => { setAnimMode((cur) => (cur === m ? null : m)); setAnimFrame(0); };
   const activeFrame = animMode && animFrames?.length ? animFrames[animFrame % animFrames.length] : null;
-  // Белсенді конус — БАСЫЛҒАН зауыт үшін, ағымдағы (немесе анимация кадры) желмен
-  const activeCone = useMemo(() => {
-    if (!selectedFac || !source) return null;
+  // Белсенді конустар — БАРЛЫҚ таңдалған зауыттар үшін (MultiPolygon)
+  const plumeConeGeo = useMemo(() => {
+    if (!selectedFacs.length || !source) return null;
     const toB = activeFrame ? activeFrame.toBearing : source.wind.toBearing;
     const spd = activeFrame ? activeFrame.speed : source.wind.speed;
-    return plumeCone({ lat: selectedFac.lat, lng: selectedFac.lng }, toB, spd);
-  }, [selectedFac, source, activeFrame]);
-  const plumeConeGeo = useMemo(() => {
-    if (!activeCone?.length) return null;
+    const polys = selectedFacs.map((f) => [plumeCone({ lat: f.lat, lng: f.lng }, toB, spd)]);
     return {
       type: "FeatureCollection" as const,
-      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [activeCone] } }],
+      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "MultiPolygon" as const, coordinates: polys } }],
     };
-  }, [activeCone]);
-  // Дисперсия болжамы: таңдалған көкжиек (30мин/1сағ/3сағ) footprint шеңбері
+  }, [selectedFacs, source, activeFrame]);
+  // Дисперсия болжамы: таңдалған көкжиек (30мин/1сағ/3сағ) — барлық таңдалған зауытқа
   const [fcStep, setFcStep] = useState<number | null>(null);
   const forecastGeo = useMemo(() => {
-    if (fcStep == null || !selectedFac || !source?.forecast?.[fcStep]) return null;
+    if (fcStep == null || !selectedFacs.length || !source?.forecast?.[fcStep]) return null;
     const f = source.forecast[fcStep];
-    // Болжам орталығын БАСЫЛҒАН зауыттан желмен жылжытамыз
-    const [lat, lng] = advect(selectedFac.lat, selectedFac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
+    const polys = selectedFacs.map((fac) => {
+      const [lat, lng] = advect(fac.lat, fac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
+      return [fcCircle(lat, lng, f.radiusKm)];
+    });
     return {
       type: "FeatureCollection" as const,
-      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [fcCircle(lat, lng, f.radiusKm)] } }],
+      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "MultiPolygon" as const, coordinates: polys } }],
     };
-  }, [fcStep, selectedFac, source]);
+  }, [fcStep, selectedFacs, source]);
   // Газ-мұнай көздері метан шығарады → Sentinel-5P CH₄ қабатын ұсыну
   const topEmitsMethane = !!source?.top && ["tco", "kpi", "bolashak"].includes(source.top.id);
   // Жоғары сенімді көзді «Ескертулер» бөліміне жіберу
@@ -1069,8 +1071,9 @@ export function MapView() {
             />
           </Source>
         )}
-        {sourceMode && selectedFac && source && (
-          <Marker latitude={selectedFac.lat} longitude={selectedFac.lng}>
+        {/* Жел стрелкалары — әр таңдалған зауытта */}
+        {sourceMode && source && selectedFacs.map((fac) => (
+          <Marker key={`arw-${fac.id}`} latitude={fac.lat} longitude={fac.lng}>
             <div
               className="transition-transform duration-300"
               style={{ transform: `rotate(${activeFrame ? activeFrame.toBearing : source.wind.toBearing}deg)` }}
@@ -1079,14 +1082,14 @@ export function MapView() {
               <Navigation className="h-5 w-5 fill-red-400 text-red-300 drop-shadow" />
             </div>
           </Marker>
-        )}
-        {/* Ағып тұратын «түтін» бөлшектері — БАСЫЛҒАН зауыттан желмен */}
-        {sourceMode && selectedFac && source && (() => {
+        ))}
+        {/* Ағып тұратын «түтін» бөлшектері — әр таңдалған зауыттан желмен */}
+        {sourceMode && source && selectedFacs.map((fac) => {
           const b = ((activeFrame ? activeFrame.toBearing : source.wind.toBearing) * Math.PI) / 180;
           const D = 48;
           const style = { "--dx": `${Math.sin(b) * D}px`, "--dy": `${-Math.cos(b) * D}px` } as React.CSSProperties;
           return (
-            <Marker latitude={selectedFac.lat} longitude={selectedFac.lng}>
+            <Marker key={`prt-${fac.id}`} latitude={fac.lat} longitude={fac.lng}>
               <div className="pointer-events-none relative" style={style}>
                 {[0, 1, 2, 3, 4, 5].map((i) => (
                   <span key={i} className="plume-particle" style={{ animationDelay: `${i * 0.5}s` }} />
@@ -1094,25 +1097,27 @@ export function MapView() {
               </div>
             </Marker>
           );
-        })()}
-        {/* Дисперсия болжамы: бұлттың болашақ орны (footprint + орталық) */}
-        {sourceMode && forecastGeo && fcStep != null && selectedFac && source?.forecast?.[fcStep] && (() => {
-          const f = source.forecast[fcStep];
-          const [la, ln] = advect(selectedFac.lat, selectedFac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
-          return (
-            <>
-              <Source id="fc-footprint" type="geojson" data={forecastGeo}>
-                <Layer id="fc-fill" type="fill" paint={{ "fill-color": "#fb923c", "fill-opacity": 0.2 }} />
-                <Layer id="fc-outline" type="line" paint={{ "line-color": "#fb923c", "line-width": 2, "line-dasharray": [2, 1.5] }} />
-              </Source>
-              <Marker latitude={la} longitude={ln}>
-                <div className="rounded-full border border-orange-300 bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">
-                  +{f.label}
-                </div>
-              </Marker>
-            </>
-          );
-        })()}
+        })}
+        {/* Дисперсия болжамы: болашақ орны (footprint + әр зауыт орталығы) */}
+        {sourceMode && forecastGeo && fcStep != null && selectedFacs.length > 0 && source?.forecast?.[fcStep] && (
+          <>
+            <Source id="fc-footprint" type="geojson" data={forecastGeo}>
+              <Layer id="fc-fill" type="fill" paint={{ "fill-color": "#fb923c", "fill-opacity": 0.2 }} />
+              <Layer id="fc-outline" type="line" paint={{ "line-color": "#fb923c", "line-width": 2, "line-dasharray": [2, 1.5] }} />
+            </Source>
+            {selectedFacs.map((fac) => {
+              const f = source.forecast[fcStep];
+              const [la, ln] = advect(fac.lat, fac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
+              return (
+                <Marker key={`fc-${fac.id}`} latitude={la} longitude={ln}>
+                  <div className="rounded-full border border-orange-300 bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">
+                    +{f.label}
+                  </div>
+                </Marker>
+              );
+            })}
+          </>
+        )}
         {sourceMode && plumeLine && (
           <Source id="plume-line" type="geojson" data={plumeLine}>
             <Layer
@@ -1153,23 +1158,26 @@ export function MapView() {
         {sourceMode &&
           source?.candidates.map((c) => {
             const isTop = source.top?.id === c.id;
+            const sel = isSel(c.id);
             return (
               <Marker
                 key={`fac-${c.id}`}
                 latitude={c.lat}
                 longitude={c.lng}
-                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); setSelectedFac(c); }}
+                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); toggleFac(c); }}
               >
                 {/* Дәл нүкте: дот координатада тұрады, жапсырма қалқып тұр (anchor ауыспайды) */}
-                <div className="relative cursor-pointer" title={`${c.name}${c.approx ? " (жуық координата)" : ""} — ауа сапасын көру`}>
+                <div className="relative cursor-pointer" title={`${c.name}${c.approx ? " (жуық координата)" : ""} — басу: анимация қосу/өшіру`}>
                   <div
                     className={`h-2.5 w-2.5 rounded-full border-2 shadow transition-transform hover:scale-150 ${
-                      isTop ? "border-white bg-red-500" : "border-white/70 bg-neutral-600"
+                      sel ? "border-amber-300 bg-amber-400 scale-125" : isTop ? "border-white bg-red-500" : "border-white/70 bg-neutral-600"
                     }`}
                   />
                   <div
                     className={`pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[10px] font-semibold shadow-lg ${
-                      isTop
+                      sel
+                        ? "border-amber-400 bg-amber-500/90 text-white"
+                        : isTop
                         ? "border-red-400 bg-red-500/90 text-white"
                         : "border-white/30 bg-neutral-900/85 text-neutral-300"
                     }`}
@@ -1419,7 +1427,7 @@ export function MapView() {
               onClick={() => {
                 const next = !sourceMode;
                 setSourceMode(next);
-                if (!next) { setSelectedFac(null); setFacAir(null); setAnimMode(null); setFcStep(null); } // қабат өшсе — анимация тазаланады
+                if (!next) { setSelectedFacs([]); setFacAir(null); setAnimMode(null); setFcStep(null); } // қабат өшсе — анимация тазаланады
               }}
               className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-xs font-semibold transition-colors ${
                 sourceMode
@@ -1702,15 +1710,29 @@ export function MapView() {
                 {/* Екі уақыт-анимация: өткен 24сағ (нақты жел) + алдағы 24сағ (болжам жел) */}
                 {((source.frames?.length ?? 0) > 1 || (source.forecastFrames?.length ?? 0) > 1) && (
                   <div className="mt-1.5 space-y-1">
-                    <div className="text-[9px] text-neutral-400">
-                      {selectedFac
-                        ? <><Factory className="mb-0.5 inline h-2.5 w-2.5 text-red-300" /> {selectedFac.short} — {tr("анимация")}</>
-                        : tr("Зауытты басып, анимацияны қосыңыз")}
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="text-[9px] text-neutral-400">
+                        {selectedFacs.length
+                          ? <><Factory className="mb-0.5 inline h-2.5 w-2.5 text-amber-300" /> {selectedFacs.length} {tr("зауыт таңдалды")}</>
+                          : tr("Зауыт(тар)ды басып таңдаңыз")}
+                      </span>
+                      <span className="flex gap-1">
+                        <button
+                          onClick={() => setSelectedFacs(source.candidates)}
+                          className="rounded border border-amber-500/40 bg-amber-500/10 px-1.5 py-px text-[9px] text-amber-200 hover:bg-amber-500/20"
+                        >{tr("Барлығы")}</button>
+                        {selectedFacs.length > 0 && (
+                          <button
+                            onClick={() => setSelectedFacs([])}
+                            className="rounded border border-white/15 px-1.5 py-px text-[9px] text-neutral-300 hover:bg-white/5"
+                          >{tr("Тазалау")}</button>
+                        )}
+                      </span>
                     </div>
                     <div className="grid grid-cols-2 gap-1">
                       <button
                         onClick={() => setAnim("past")}
-                        disabled={(source.frames?.length ?? 0) < 2 || !selectedFac}
+                        disabled={(source.frames?.length ?? 0) < 2 || !selectedFacs.length}
                         className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
                           animMode === "past" ? "border-sky-400 bg-sky-500/25 text-sky-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
                         }`}
@@ -1720,7 +1742,7 @@ export function MapView() {
                       </button>
                       <button
                         onClick={() => setAnim("forecast")}
-                        disabled={(source.forecastFrames?.length ?? 0) < 2 || !selectedFac}
+                        disabled={(source.forecastFrames?.length ?? 0) < 2 || !selectedFacs.length}
                         className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
                           animMode === "forecast" ? "border-orange-400 bg-orange-500/25 text-orange-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
                         }`}
