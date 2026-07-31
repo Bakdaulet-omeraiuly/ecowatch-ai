@@ -442,7 +442,8 @@ export function MapView() {
   }, [source, photoReports]);
 
   const [timelapsePlaying, setTimelapsePlaying] = useState(false);
-  const [panelOpen, setPanelOpen] = useState(true); // эко қабаттар панелі (мобильде жинауға болады)
+  // Мобильде панельдер әдепкіде ЖИНАЛҒАН (картаны жаппау үшін); десктопта ашық
+  const [panelOpen, setPanelOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 768);
   const [gibsKey, setGibsKey] = useState<string | null>(null);
 
   // Атмосфера газ қабаты белсенді болса CAMS деректерін жүктеу
@@ -466,7 +467,7 @@ export function MapView() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gibsKey, atmosAirGrid]);
 
-  const [gibsPanelOpen, setGibsPanelOpen] = useState(true); // оң жақ спутник панелі
+  const [gibsPanelOpen, setGibsPanelOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 1024); // оң жақ спутник панелі — мобильде жиналған
   // Сағаттық режим: 0..23 (әдепкі — қазіргі сағат). Иконкалар сағат сайын
   // координата бойынша қайта шоғырланады.
   const [mosHour, setMosHour] = useState(() => new Date().getHours());
@@ -1189,7 +1190,7 @@ export function MapView() {
             anchor="bottom"
             offset={14}
             closeOnClick={false}
-            onClose={() => { setFacAir(null); setSelectedFac(null); }}
+            onClose={() => setFacAir(null)}
             className="pollution-air-popup"
           >
             <div className="min-w-[180px] text-neutral-100">
