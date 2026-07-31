@@ -50,7 +50,7 @@ const AIR_GRID_URL =
 const WIND_URL =
   `https://api.open-meteo.com/v1/forecast?latitude=${CITY.lat}&longitude=${CITY.lng}` +
   `&current=wind_speed_10m,wind_direction_10m` +
-  `&hourly=wind_speed_10m,wind_direction_10m&past_days=2&forecast_days=0&timezone=auto`;
+  `&hourly=wind_speed_10m,wind_direction_10m&past_days=2&forecast_days=1&timezone=auto`;
 
 const CITY_AIR_URL =
   `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${CITY.lat}&longitude=${CITY.lng}` +
@@ -108,9 +108,18 @@ export async function GET() {
     const airIdx = new Map<string, number>();
     aTimes.forEach((t, i) => airIdx.set(t, i));
 
+    // Өткен/болжам шекарасы — қазіргі уақыт
+    const nowMs = Date.now();
     const windHistory: WindHour[] = [];
+    const forecastWind: { fromBearing: number; speed: number }[] = [];
     for (let i = 0; i < wTimes.length; i++) {
       if (wDir[i] == null) continue;
+      const tMs = new Date(wTimes[i]).getTime();
+      if (tMs > nowMs) {
+        // Болжам: алдағы ~4 сағат желі (dispersion forecast үшін)
+        if (forecastWind.length < 4) forecastWind.push({ fromBearing: wDir[i]!, speed: wSpeed[i] ?? 0 });
+        continue;
+      }
       const ai = airIdx.get(wTimes[i]);
       windHistory.push({
         fromBearing: wDir[i]!,
@@ -125,7 +134,7 @@ export async function GET() {
     // Нақты жердегі стансалар (Qazhydromet — WAQI) — токен болса
     const stations = await fetchStations();
 
-    const result = attributePollution(receptors, windNow, windHistory, stations);
+    const result = attributePollution(receptors, windNow, windHistory, stations, forecastWind);
 
     const data = {
       fetchedAt: new Date().toISOString(),
