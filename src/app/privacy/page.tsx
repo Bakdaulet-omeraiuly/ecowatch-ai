@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-semibold text-white">1. Жалпы ақпарат</h2>
         <p className="text-neutral-400 leading-relaxed">
-          Jaiyq платформасы (jaiyq.vercel.app) Атырау облысының экологиялық мониторингіне арналған.
+          Jaiyq платформасы (ecojaiyq.com) Атырау облысының экологиялық мониторингіне арналған.
           Біз пайдаланушылардың жеке деректерін қорғауды маңызды міндет деп санаймыз және
           Қазақстан Республикасының «Дербес деректер және оларды қорғау туралы» Заңына (№94-V) сай жұмыс істейміз.
         </p>
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
         <p className="text-neutral-400 leading-relaxed">
           Азаматтық хабарламалар Supabase (АҚШ, AWS eu-central-1) серверінде сақталады.
           Telegram жазылым деректері модератор жойғанға дейін сақталады.
-          Пайдаланушы өз деректерін жою туралы өтініш жібере алады: <span className="text-emerald-400">jaiyq.vercel.app/report</span> бетіндегі байланыс арқылы.
+          Пайдаланушы өз деректерін жою туралы өтініш жібере алады: <span className="text-emerald-400">ecojaiyq.com/report</span> бетіндегі байланыс арқылы.
         </p>
       </section>
 
@@ -60,7 +60,7 @@ export default function PrivacyPage() {
         <h2 className="mb-3 text-xl font-semibold text-white">6. Байланыс</h2>
         <p className="text-neutral-400">
           Деректеріңізге қатысты сұрақтар бойынша: Telegram боты арқылы немесе
-          <span className="text-emerald-400"> jaiyq.vercel.app</span> сайтындағы байланыс формасы арқылы хабарласыңыз.
+          <span className="text-emerald-400"> ecojaiyq.com</span> сайтындағы байланыс формасы арқылы хабарласыңыз.
         </p>
       </section>
 
