@@ -593,16 +593,28 @@ export function MapView() {
       const idx = mosHourIndex(p);
       const color = idx < 25 ? "#6ee7b7" : idx < 45 ? "#4ade80" : idx < 62 ? "#facc15" : idx < 78 ? "#fb923c" : "#ef4444";
       if (p.dense) {
-        // Қала нүктесі — әрқашан дәл координатта бір иконка
-        swarm.push({ id: `${p.lat},${p.lng},${mosHour}`, lat: p.lat, lng: p.lng, size: 16, color });
+        // Қала ауданы — иконка САНЫ FPEB индексіне қарай (қауіп жоғары → қалың топ).
+        // Аудан айналасында тығыз шашырайды (~0.7 км), координата бойынша шоғырланады.
+        const count = idx < 12 ? 0 : Math.min(8, Math.round(idx / 12));
+        for (let i = 0; i < count; i++) {
+          const a = Math.sin(p.lat * 97 + p.lng * 57 + i * 17);
+          const b = Math.cos(p.lat * 61 + p.lng * 83 + i * 23);
+          swarm.push({
+            id: `${p.lat},${p.lng},${i}`,
+            lat: p.lat + a * 0.006,
+            lng: p.lng + b * 0.008,
+            size: i === 0 ? 15 : 12,
+            color,
+          });
+        }
       } else {
-        // Аймақтық тор — кең шашыратылған 1–5 иконка
-        const count = idx < 40 ? 1 : idx < 60 ? 2 : idx < 80 ? 3 : 5;
+        // Аймақтық тор — кең шашыратылған, саны индекске сай
+        const count = idx < 20 ? 0 : idx < 40 ? 1 : idx < 60 ? 2 : idx < 80 ? 4 : 6;
         for (let i = 0; i < count; i++) {
           const a = Math.sin(p.lat * 91 + p.lng * 47 + i * 13);
           const b = Math.cos(p.lat * 53 + p.lng * 71 + i * 29);
           swarm.push({
-            id: `${p.lat},${p.lng},${mosHour},${i}`,
+            id: `${p.lat},${p.lng},r${i}`,
             lat: p.lat + a * 0.13,
             lng: p.lng + b * 0.18,
             size: 12,
