@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import Map, { Marker, Layer, Source, Popup, type MapRef } from "react-map-gl/mapbox";
+import Map, { Marker, Layer, Source, Popup, AttributionControl, type MapRef } from "react-map-gl/mapbox";
 import type { MapLayerMouseEvent } from "mapbox-gl";
 import { toast } from "sonner";
 import {
@@ -782,7 +782,10 @@ export function MapView() {
         }
         onClick={handleClick}
         cursor={analyzing ? "wait" : aiOn ? "crosshair" : "grab"}
+        attributionControl={false}
       >
+        {/* Атрибуция — compact (кішкентай ⓘ). Лицензия бойынша міндетті, бірақ жинақы. */}
+        <AttributionControl compact position="bottom-right" />
         {/* Real historical Sentinel-2 mosaic for the selected year */}
         {historyMode && year && (
           <Source
