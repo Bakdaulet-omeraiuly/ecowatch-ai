@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { allow } from "@/lib/ratelimit";
 
 // AI «Неге?» — бүгін ауа неге осындай екенін тірі деректермен түсіндіреді.
 // Барлық САНДАР нақты (Open-Meteo + CAMS). GPT тек сол сандарды сөзбен түсіндіреді,
@@ -18,7 +19,10 @@ const BASE = { no2: 12, so2: 5, pm2_5: 10, pm10: 20 };
 
 interface Factor { label: string; detail: string; severity: "ok" | "warn" | "bad" }
 
-export async function GET() {
+export async function GET(req: Request) {
+  if (!(await allow(req, "why"))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   try {
     const [wRes, aRes] = await Promise.all([
       fetch(W_URL, { next: { revalidate: 1800 } }),

@@ -5,6 +5,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingReportButton } from "@/components/layout/FloatingReportButton";
+import { DisclaimerBanner } from "@/components/layout/DisclaimerBanner";
 import { Toaster } from "@/components/ui/sonner";
 import { PWARegister } from "@/components/layout/PWARegister";
 import { LanguageProvider } from "@/lib/i18n";
@@ -45,7 +46,10 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-neutral-950 text-neutral-100">
         <LanguageProvider>
           <Navbar />
-          <main className="flex-1 pt-14">{children}</main>
+          <main className="flex-1 pt-14">
+            <DisclaimerBanner />
+            {children}
+          </main>
           <Footer />
           <FloatingReportButton />
           <Toaster position="top-center" richColors />

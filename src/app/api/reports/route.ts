@@ -10,6 +10,7 @@ import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { AnalysisResult } from "@/types/site";
 import { REPORT_MODERATION_SYSTEM, REPORT_ANALYSIS_SYSTEM } from "@/lib/prompts";
 import { notifyModerator } from "@/app/api/telegram/route";
+import { REPORTS_ENABLED } from "@/lib/features";
 
 // Shared citizen reports: stored in Supabase so every user sees them.
 // On submit: AI moderation (is this a real ecological issue?) + combined
@@ -52,6 +53,12 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  if (!REPORTS_ENABLED) {
+    return NextResponse.json(
+      { error: "Азаматтық хабарлау уақытша қолжетімсіз." },
+      { status: 503 }
+    );
+  }
   if (!(await allow(req))) {
     return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
   }

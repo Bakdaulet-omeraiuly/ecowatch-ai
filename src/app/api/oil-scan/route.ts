@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { allow } from "@/lib/ratelimit";
 
 // Мұнай дағын АНЫҚТАУ (AI-көмекші) — Sentinel-1 SAR + GPT-4o vision.
 // SAR-да тегіс су мен мұнай дағы КҮҢГІРТ көрінеді. Нақты операциялық
@@ -33,6 +34,9 @@ function evaluatePixel(s) {
 }`;
 
 export async function GET(req: Request) {
+  if (!(await allow(req, "oil-scan"))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   const { searchParams } = new URL(req.url);
   const lat = parseFloat(searchParams.get("lat") ?? "");
   const lng = parseFloat(searchParams.get("lng") ?? "");

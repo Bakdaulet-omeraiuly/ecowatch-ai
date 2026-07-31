@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Camera } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { REPORTS_ENABLED } from "@/lib/features";
 
 /* Кез келген беттен бір рет басып мәселе хабарлауға арналған
    тұрақты (floating) батырма. Хабарлау мен карта бетінде жасырылады
@@ -14,6 +15,7 @@ export function FloatingReportButton() {
   const pathname = usePathname();
   const { t } = useLang();
 
+  if (!REPORTS_ENABLED) return null;
   if (HIDE_ON.includes(pathname)) return null;
 
   return (
