@@ -1361,6 +1361,21 @@ export function MapView() {
             {tr("Эко қабаттар")}
           </div>
           <div className="flex flex-col gap-1">
+            {/* Негізгі мүмкіндік — ең басында, көрнекті */}
+            <button
+              onClick={() => setSourceMode((v) => !v)}
+              className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-xs font-semibold transition-colors ${
+                sourceMode
+                  ? "border-red-500/60 bg-red-500/25 text-red-100"
+                  : "border-red-500/40 bg-red-500/10 text-red-200 hover:bg-red-500/20"
+              }`}
+            >
+              <Factory className="h-4 w-4" /> {tr("Ластану көзі")}
+              <span className="ml-auto rounded bg-emerald-500/20 px-1 py-px text-[8px] uppercase text-emerald-300">
+                live
+              </span>
+            </button>
+            <div className="my-0.5 h-px bg-white/10" />
             {LAYERS.map((l) => {
               const Icon = LAYER_ICONS[l.key];
               return (
@@ -1394,19 +1409,6 @@ export function MapView() {
               <Sparkles className="h-3.5 w-3.5" /> {tr("AI талдау")}
               <span className={`ml-auto rounded px-1 py-px text-[8px] uppercase ${aiOn ? "bg-violet-500/20 text-violet-300" : "bg-white/10 text-neutral-400"}`}>
                 {aiOn ? tr("қосулы") : tr("өшулі")}
-              </span>
-            </button>
-            <button
-              onClick={() => setSourceMode((v) => !v)}
-              className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
-                sourceMode
-                  ? "border-red-500/50 bg-red-500/15 text-red-200"
-                  : "border-transparent text-neutral-300 hover:bg-white/5"
-              }`}
-            >
-              <Factory className="h-3.5 w-3.5" /> {tr("Ластану көзі")}
-              <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
-                live
               </span>
             </button>
             <button
