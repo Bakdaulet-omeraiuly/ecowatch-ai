@@ -16,6 +16,7 @@ import type { Forecast } from "@/types/site";
 import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Droplets, Gauge, Flame } from "lucide-react";
 import { SourceComparison } from "@/components/dashboard/SourceComparison";
 import { WhyButton } from "@/components/dashboard/WhyButton";
+import { WaterTrend } from "@/components/dashboard/WaterTrend";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -289,6 +290,9 @@ export default function DashboardPage() {
 
       {/* Дереккөздерді салыстыру — CAMS моделі vs Qazhydromet датчигі */}
       <SourceComparison />
+
+      {/* Су деңгейінің өзгерісі — Жайық өзені 2020→қазір (GloFAS) */}
+      <WaterTrend />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
