@@ -286,7 +286,9 @@ export function attributePollution(
   // Модель ТЕ станса елеулі болса — анықталды (датчик модель жаппаған шыңды ұстайды)
   const combinedSignal = Math.max(signal, stationSignal);
   const detected = combinedSignal >= 0.12;
-  const top = detected ? candidates[0] : null;
+  // top әрқашан ең ықтимал көз (ластану төмен болса — жел бойынша ықтимал бағыт).
+  // Осылай конус/анимация/болжам үнемі көрінеді; detected тек нақты оқиғаны белгілейді.
+  const top = candidates[0] ?? null;
 
   return {
     detected,

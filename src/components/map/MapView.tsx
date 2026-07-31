@@ -303,7 +303,7 @@ export function MapView() {
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
   const { source, sourceError } = usePollutionSource(sourceMode);
   const plumeLine = useMemo(() => {
-    if (!source?.detected || !source.top || !source.plume.length) return null;
+    if (!source?.top || !source.plume.length) return null;
     const coords: [number, number][] = [
       [source.top.lng, source.top.lat],
       ...source.plume.map((p) => [p.lng, p.lat] as [number, number]),
@@ -323,7 +323,7 @@ export function MapView() {
   }, [sourcePlaying, source]);
   // Белсенді конус: ойнатылып жатса — кадр, әйтпесе ағымдағы
   const activeCone = useMemo(() => {
-    if (!source?.detected) return null;
+    if (!source?.top) return null;
     if (sourcePlaying && source.frames?.length) return source.frames[sourceFrame % source.frames.length]?.cone;
     return source.cone?.length ? source.cone : null;
   }, [source, sourcePlaying, sourceFrame]);
@@ -407,7 +407,7 @@ export function MapView() {
   }, []);
   // Азаматтық растау: plume конусы ішіндегі ластану хабарламаларын санау
   const sourceCorroboration = useMemo(() => {
-    if (!source?.detected || !source.cone?.length) return 0;
+    if (!source?.top || !source.cone?.length) return 0;
     const ring = source.cone;
     const inside = (lng: number, lat: number) => {
       let hit = false;
@@ -1036,7 +1036,7 @@ export function MapView() {
             />
           </Source>
         )}
-        {sourceMode && source?.detected && source.top && (
+        {sourceMode && source?.top && (
           <Marker latitude={source.top.lat} longitude={source.top.lng}>
             <div
               className="transition-transform duration-300"
@@ -1048,7 +1048,7 @@ export function MapView() {
           </Marker>
         )}
         {/* Ағып тұратын «түтін» бөлшектері — желмен таралу әсері */}
-        {sourceMode && source?.detected && source.top && (() => {
+        {sourceMode && source?.top && (() => {
           const b = ((sourcePlaying && activeFrame ? activeFrame.toBearing : source.wind.toBearing) * Math.PI) / 180;
           const D = 48;
           const style = { "--dx": `${Math.sin(b) * D}px`, "--dy": `${-Math.cos(b) * D}px` } as React.CSSProperties;
@@ -1091,7 +1091,7 @@ export function MapView() {
           </Source>
         )}
         {sourceMode &&
-          source?.detected &&
+          source?.top &&
           source.plume.map((p) => (
             <Marker key={`plume-${p.name}`} latitude={p.lat} longitude={p.lng}>
               <div
@@ -1587,7 +1587,7 @@ export function MapView() {
 
         {/* Ластану көзін анықтау панелі */}
         {sourceMode && (
-          <div className="w-64 rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-52 rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-red-300">
               <Factory className="h-3 w-3" /> {tr("Ластану көзін анықтау — тірі")}
             </div>
@@ -1597,32 +1597,30 @@ export function MapView() {
               </p>
             ) : !source ? (
               <p className="text-[11px] text-neutral-500">{tr("Талданып жатыр…")}</p>
-            ) : !source.detected ? (
-              <div className="text-[11px] text-neutral-400">
-                <div className="mb-1 flex items-center gap-1 text-emerald-300">
-                  <Wind className="h-3 w-3" /> {tr("Ластану деңгейі төмен")}
-                </div>
-                {tr("Қазір елеулі ластану байқалмайды — көз сенімді анықталмайды.")}
-                <div className="mt-1 text-[9px] text-neutral-500">
-                  {tr("Жел")}: {source.wind.fromLabel} ({source.wind.fromBearing}°) · {source.wind.speed} {tr("км/сағ")}
-                </div>
-              </div>
             ) : (
               <>
+                {!source.detected && (
+                  <div className="mb-2 rounded-md bg-white/5 p-1.5 text-[10px] leading-snug text-neutral-300">
+                    <span className="text-emerald-300">●</span>{" "}
+                    {tr("Ластану төмен — төмендегісі ағымдағы жел бойынша ЫҚТИМАЛ таралу (белсенді оқиға емес).")}
+                  </div>
+                )}
                 {source.top && (
                   <div className="mb-2 rounded-md bg-red-500/10 p-2">
                     <div className="text-[9px] uppercase tracking-wide text-neutral-500">
-                      {tr("Ықтимал ластану көзі")}
+                      {source.detected ? tr("Ықтимал ластану көзі") : tr("Жел бойынша ықтимал бағыт")}
                     </div>
                     <div className="text-sm font-bold text-white">{source.top.name}</div>
-                    <div className="mt-1 flex items-center gap-1.5">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
-                        <div className="h-full rounded-full bg-red-400" style={{ width: `${source.top.confidence}%` }} />
+                    {source.detected && (
+                      <div className="mt-1 flex items-center gap-1.5">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10">
+                          <div className="h-full rounded-full bg-red-400" style={{ width: `${source.top.confidence}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-red-300">{source.top.confidence}%</span>
                       </div>
-                      <span className="text-xs font-bold text-red-300">{source.top.confidence}%</span>
-                    </div>
+                    )}
                     <div className="mt-0.5 text-[9px] text-neutral-500">
-                      {tr("сенімділік")} · {source.top.distanceKm} {tr("км қашықтықта")}
+                      {source.detected ? `${tr("сенімділік")} · ` : ""}{source.top.distanceKm} {tr("км қашықтықта")}
                     </div>
                   </div>
                 )}
