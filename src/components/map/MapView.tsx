@@ -1189,7 +1189,7 @@ export function MapView() {
             anchor="bottom"
             offset={14}
             closeOnClick={false}
-            onClose={() => { setFacAir(null); setSelectedFac(null); }}
+            onClose={() => setFacAir(null)}
             className="pollution-air-popup"
           >
             <div className="min-w-[180px] text-neutral-100">
@@ -1415,7 +1415,11 @@ export function MapView() {
           <div className="flex flex-col gap-1">
             {/* Негізгі мүмкіндік — ең басында, көрнекті */}
             <button
-              onClick={() => setSourceMode((v) => !v)}
+              onClick={() => {
+                const next = !sourceMode;
+                setSourceMode(next);
+                if (!next) { setSelectedFac(null); setFacAir(null); setAnimMode(null); setFcStep(null); } // қабат өшсе — анимация тазаланады
+              }}
               className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-xs font-semibold transition-colors ${
                 sourceMode
                   ? "border-red-500/60 bg-red-500/25 text-red-100"
@@ -1697,10 +1701,15 @@ export function MapView() {
                 {/* Екі уақыт-анимация: өткен 24сағ (нақты жел) + алдағы 24сағ (болжам жел) */}
                 {((source.frames?.length ?? 0) > 1 || (source.forecastFrames?.length ?? 0) > 1) && (
                   <div className="mt-1.5 space-y-1">
+                    <div className="text-[9px] text-neutral-400">
+                      {selectedFac
+                        ? <><Factory className="mb-0.5 inline h-2.5 w-2.5 text-red-300" /> {selectedFac.short} — {tr("анимация")}</>
+                        : tr("Зауытты басып, анимацияны қосыңыз")}
+                    </div>
                     <div className="grid grid-cols-2 gap-1">
                       <button
                         onClick={() => setAnim("past")}
-                        disabled={(source.frames?.length ?? 0) < 2}
+                        disabled={(source.frames?.length ?? 0) < 2 || !selectedFac}
                         className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
                           animMode === "past" ? "border-sky-400 bg-sky-500/25 text-sky-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
                         }`}
@@ -1710,7 +1719,7 @@ export function MapView() {
                       </button>
                       <button
                         onClick={() => setAnim("forecast")}
-                        disabled={(source.forecastFrames?.length ?? 0) < 2}
+                        disabled={(source.forecastFrames?.length ?? 0) < 2 || !selectedFac}
                         className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
                           animMode === "forecast" ? "border-orange-400 bg-orange-500/25 text-orange-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
                         }`}
