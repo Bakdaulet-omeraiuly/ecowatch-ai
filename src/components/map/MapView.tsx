@@ -496,6 +496,16 @@ export function MapView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mosGrid, mosHour]);
 
+  // Қала аудандары бойынша рейтинг — осы сағаттағы FPEB индексі, ретімен
+  const mosDistricts = useMemo(() => {
+    if (!mosGrid?.length) return [];
+    return mosGrid
+      .filter((p) => p.dense && p.name)
+      .map((p) => ({ name: p.name as string, index: mosHourIndex(p) }))
+      .sort((a, b) => b.index - a.index);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mosGrid, mosHour]);
+
   const airStats = useMemo(() => {
     const vals = (airGrid ?? []).map(airHourAqi).filter((v): v is number => v != null);
     if (!vals.length) return null;
@@ -925,10 +935,15 @@ export function MapView() {
           </Marker>
         ))}
 
-        {/* Live mosquito swarm — icon density follows the real suitability index */}
-        {mosquitoSwarm.map((m) => (
+        {/* Тірі маса swarm — тығыздық FPEB индексіне сай, әр иконка дірілдеп қозғалады */}
+        {mosquitoSwarm.map((m, i) => (
           <Marker key={m.id} latitude={m.lat} longitude={m.lng}>
-            <MosquitoIcon size={m.size} style={{ color: m.color, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }} />
+            <span
+              className="mos-flit"
+              style={{ animationDelay: `${(i % 12) * 0.18}s`, animationDuration: `${2.2 + (i % 5) * 0.35}s` }}
+            >
+              <MosquitoIcon size={m.size} style={{ color: m.color, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }} />
+            </span>
           </Marker>
         ))}
 
@@ -1819,6 +1834,33 @@ export function MapView() {
                       💡 {tr(mosquitoAdvice(mosStats.avg))}
                     </div>
                   </>
+                )}
+
+                {/* Қала аудандары бойынша рейтинг — осы сағаттағы FPEB индексі */}
+                {mosDistricts.length > 0 && (
+                  <div className="mt-2 rounded-lg bg-white/5 p-2">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="text-[9px] font-semibold uppercase tracking-wide text-purple-300">
+                        {tr("Аудандар бойынша")} · {String(mosHour).padStart(2, "0")}:00
+                      </span>
+                      <span className="text-[8px] text-neutral-500">{mosDistricts.length} {tr("аудан")}</span>
+                    </div>
+                    <div className="max-h-40 space-y-0.5 overflow-y-auto pr-0.5">
+                      {mosDistricts.slice(0, 12).map((d, i) => {
+                        const c = d.index >= 70 ? "#f87171" : d.index >= 45 ? "#fbbf24" : d.index >= 20 ? "#a3e635" : "#34d399";
+                        return (
+                          <div key={d.name} className="flex items-center gap-1.5 text-[10px]">
+                            <span className="w-3 text-right text-neutral-500">{i + 1}</span>
+                            <span className="flex-1 truncate text-neutral-300">{d.name}</span>
+                            <div className="h-1 w-10 overflow-hidden rounded-full bg-white/10">
+                              <div className="h-full rounded-full" style={{ width: `${d.index}%`, background: c }} />
+                            </div>
+                            <span className="w-5 text-right font-mono font-bold" style={{ color: c }}>{d.index}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
 
                 {/* Сағаттық анимация — иконкалар сағат сайын қайта шоғырланады */}

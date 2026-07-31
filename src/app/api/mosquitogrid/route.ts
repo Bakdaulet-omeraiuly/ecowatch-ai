@@ -218,6 +218,32 @@ function soilFactor(soilMoisture: number | null): number {
   return Math.max(0, Math.min(1, soilMoisture / 0.4));
 }
 
+// ── JAIYQ-MRI · FPEB ядросы (Flood-Pulse Egg-Bank, қос түр) ──────────────────
+// Тасқын-импульс жұмыртқа банкін жарады → дернәсіл → ересек. Aedes caspius
+// (тасқын-су) мен Culex modestus (тұрақты-су) бөлек, айлық динамикалық салмақпен.
+const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
+// Жұмыртқа банкі дайындығы (Aedes floodwater фенологиясы: мамырдан шыңы)
+const EGG_READY = [0.05, 0.05, 0.12, 0.45, 0.9, 1.0, 0.95, 0.8, 0.5, 0.2, 0.07, 0.05];
+// Динамикалық салмақ: көктем → Aedes (су), жаз ортасы → Culex (WNV)
+const AEDES_W = [0.2, 0.2, 0.4, 0.85, 0.9, 0.85, 0.7, 0.5, 0.4, 0.3, 0.2, 0.2];
+const CULEX_W = [0.1, 0.1, 0.15, 0.3, 0.5, 0.7, 0.9, 0.95, 0.7, 0.4, 0.15, 0.1];
+
+function fpebIndex(o: {
+  t: number; rh: number; soil: number | null; rain: number;
+  flood: number; urban: number; month: number;
+}): number {
+  const phiT = tempSuitability(o.t); // температура гейті (Mordecai)
+  if (phiT <= 0) return 0;
+  const egg = EGG_READY[o.month];
+  const hatch = clamp01(0.5 * o.flood + 0.3 * soilFactor(o.soil) + 0.2 * rainFactor(o.rain)); // тасқын-импульс
+  const hydro = clamp01(0.6 * soilFactor(o.soil) + 0.4 * o.flood); // гидропериод (тірі қалу)
+  const aedes = egg * hatch * hydro; // тасқын-су Aedes ересек индексі
+  const culex = clamp01(0.5 * o.flood + 0.5 * o.urban) * humidityFactor(o.rh); // тұрақты-су Culex
+  const species = clamp01(AEDES_W[o.month] * aedes + CULEX_W[o.month] * culex);
+  const amplified = 100 * phiT * (0.15 + 0.85 * species) * (1 + 0.4 * o.urban + 0.5 * o.flood);
+  return Math.round(Math.min(100, amplified));
+}
+
 let cache: { at: number; data: unknown } | null = null;
 
 export async function GET() {
@@ -229,6 +255,7 @@ export async function GET() {
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
+    const month = new Date().getMonth(); // FPEB айлық фенология салмағы үшін
 
     const grid = list.map(
       (
@@ -270,18 +297,8 @@ export async function GET() {
           // rolling 7-day rain ending on day i (standing-water buildup)
           let rain = 0;
           for (let k = Math.max(0, i - 6); k <= i; k++) rain += precip[k] ?? 0;
-          // Floodplain/wetland is the dominant breeding driver here, then rain,
-          // humidity, soil. Temperature gates everything (no dev below ~15°C).
-          const drivers =
-            0.4 * flood +
-            0.25 * rainFactor(rain) +
-            0.15 * humidityFactor(rh) +
-            0.2 * soilFactor(soil);
-          const base = 100 * tempSuitability(t) * (0.45 + 0.55 * drivers);
-          // multiplicative amplification: cities AND floodplain both intensify
-          const amplified = base * (1 + 0.55 * urban + 0.8 * flood);
           return {
-            index: Math.round(Math.min(100, amplified)),
+            index: fpebIndex({ t, rh, soil, rain, flood, urban, month }),
             temp: +t.toFixed(1),
             rainMm: +rain.toFixed(1),
           };
@@ -308,14 +325,11 @@ export async function GET() {
           const t = hTemp[i] ?? days[0].temp;
           const hrh = hRh[i] ?? rh;
           const hsoil = hSoil[i] ?? soil;
-          const drivers =
-            0.4 * flood +
-            0.25 * rainFactor(dayRain) +
-            0.15 * humidityFactor(hrh) +
-            0.2 * soilFactor(hsoil);
-          const base = 100 * tempSuitability(t) * (0.45 + 0.55 * drivers);
-          const amplified = base * (1 + 0.55 * urban + 0.8 * flood);
-          return { time: hTime[i] ?? "", index: Math.round(Math.min(100, amplified)), temp: +t.toFixed(1) };
+          return {
+            time: hTime[i] ?? "",
+            index: fpebIndex({ t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month }),
+            temp: +t.toFixed(1),
+          };
         });
 
         return {
@@ -337,7 +351,7 @@ export async function GET() {
 
     const data = {
       fetchedAt: new Date().toISOString(),
-      source: "Open-Meteo (live weather) · Mordecai 2017 thermal suitability + urban amplification",
+      source: "JAIYQ-MRI · FPEB (Flood-Pulse Egg-Bank) · Open-Meteo (live) + Mordecai термиялық гейт + қос түр (Aedes/Culex)",
       grid,
     };
     cache = { at: Date.now(), data };
