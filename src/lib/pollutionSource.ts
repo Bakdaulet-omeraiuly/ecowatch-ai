@@ -137,6 +137,7 @@ export interface DispersionStep {
 export interface ForecastWind {
   fromBearing: number;
   speed: number; // км/сағ
+  time?: string; // ISO — алдағы 24сағ анимациясы үшін
 }
 
 export interface SourceResult {
@@ -149,7 +150,8 @@ export interface SourceResult {
   top: SourceCandidate | null;
   plume: PlumeStep[];
   cone: [number, number][]; // Gaussian дисперсия конусы (GeoJSON сақина, [lng,lat])
-  frames: PlumeFrame[]; // соңғы сағаттардағы желмен конустың қозғалысы (анимация)
+  frames: PlumeFrame[]; // ӨТКЕН 24 сағаттағы нақты желмен конус (анимация)
+  forecastFrames: PlumeFrame[]; // АЛДАҒЫ 24 сағаттағы болжам желмен конус (анимация)
   forecast: DispersionStep[]; // бұлттың алдағы 30мин/1сағ/3сағ болжамды орны
   stations: Station[]; // ескерілген нақты жердегі стансалар (картада көрсету)
   groundStations: number; // елеулі сигнал берген станса саны
@@ -306,6 +308,7 @@ export function attributePollution(
     plume: top ? plumePath(top, toBearing) : [],
     cone: top ? plumeCone(top, toBearing, windNow.speed) : [],
     frames: top ? buildFrames(top, windHistory) : [],
+    forecastFrames: top ? buildForecastFrames(top, forecastWind) : [],
     forecast: top ? dispersionForecast(top, forecastWind, windNow) : [],
     stations,
     groundStations: hasGround ? stations.filter((st) => stationEl(st.aqi) > 0).length : 0,
@@ -361,6 +364,23 @@ function buildFrames(top: { lat: number; lng: number }, windHistory: WindHour[])
       toBearing: Math.round(toB),
       speed: +h.speed.toFixed(1),
       cone: plumeCone(top, toB, h.speed),
+    };
+  });
+}
+
+// АЛДАҒЫ 24 сағаттағы БОЛЖАМ желмен конустың қозғалысы (анимация).
+// Жел деректері нақты (Open-Meteo болжам). Көз тұрақты, жел бағыты өзгереді.
+function buildForecastFrames(top: { lat: number; lng: number }, forecastWind: ForecastWind[]): PlumeFrame[] {
+  return forecastWind.slice(0, 24).map((w) => {
+    const toB = (w.fromBearing + 180) % 360;
+    const hour = w.time ? w.time.slice(11, 16) : "";
+    return {
+      time: w.time ?? "",
+      hour,
+      fromLabel: bearingLabel(w.fromBearing),
+      toBearing: Math.round(toB),
+      speed: +w.speed.toFixed(1),
+      cone: plumeCone(top, toB, w.speed),
     };
   });
 }

@@ -56,7 +56,7 @@ const AIR_GRID_URL =
 const WIND_URL =
   `https://api.open-meteo.com/v1/forecast?latitude=${CITY.lat}&longitude=${CITY.lng}` +
   `&current=wind_speed_10m,wind_direction_10m` +
-  `&hourly=wind_speed_10m,wind_direction_10m&past_days=2&forecast_days=1&timezone=auto`;
+  `&hourly=wind_speed_10m,wind_direction_10m&past_days=2&forecast_days=2&timezone=auto`;
 
 const CITY_AIR_URL =
   `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${CITY.lat}&longitude=${CITY.lng}` +
@@ -121,13 +121,13 @@ export async function GET() {
     const offsetMs = (wind.utc_offset_seconds ?? 0) * 1000;
     const nowLocal = Date.now() + offsetMs;
     const windHistory: WindHour[] = [];
-    const forecastWind: { fromBearing: number; speed: number }[] = [];
+    const forecastWind: { fromBearing: number; speed: number; time: string }[] = [];
     for (let i = 0; i < wTimes.length; i++) {
       if (wDir[i] == null) continue;
       const tMs = new Date(wTimes[i]).getTime();
       if (tMs > nowLocal) {
-        // Болжам: алдағы ~4 сағат желі (dispersion forecast үшін)
-        if (forecastWind.length < 4) forecastWind.push({ fromBearing: wDir[i]!, speed: wSpeed[i] ?? 0 });
+        // Болжам: алдағы 24 сағат желі (алдағы 24сағ анимация + dispersion forecast)
+        if (forecastWind.length < 24) forecastWind.push({ fromBearing: wDir[i]!, speed: wSpeed[i] ?? 0, time: wTimes[i] });
         continue;
       }
       const ai = airIdx.get(wTimes[i]);
