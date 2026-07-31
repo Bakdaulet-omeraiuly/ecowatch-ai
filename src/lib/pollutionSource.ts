@@ -124,6 +124,21 @@ export interface PlumeStep {
   relConc: number; // 0..1 салыстырмалы концентрация (алыстаған сайын кемиді)
 }
 
+// Болжам қадамы: бұлт N сағаттан кейін қай жерде болады (болжам желімен)
+export interface DispersionStep {
+  label: string; // "30 мин", "1 сағ", "3 сағ"
+  hoursAhead: number;
+  lat: number; // бұлт орталығының болжамды орны
+  lng: number;
+  radiusKm: number; // диффузиямен өскен footprint радиусы
+  reached: string[]; // осы уақытта жететін елді мекендер
+}
+
+export interface ForecastWind {
+  fromBearing: number;
+  speed: number; // км/сағ
+}
+
 export interface SourceResult {
   detected: boolean; // елеулі ластану бар ма (әйтпесе көз анықталмайды)
   pollutant: PollutantKey;
@@ -135,6 +150,7 @@ export interface SourceResult {
   plume: PlumeStep[];
   cone: [number, number][]; // Gaussian дисперсия конусы (GeoJSON сақина, [lng,lat])
   frames: PlumeFrame[]; // соңғы сағаттардағы желмен конустың қозғалысы (анимация)
+  forecast: DispersionStep[]; // бұлттың алдағы 30мин/1сағ/3сағ болжамды орны
   stations: Station[]; // ескерілген нақты жердегі стансалар (картада көрсету)
   groundStations: number; // елеулі сигнал берген станса саны
   method: string;
@@ -172,7 +188,8 @@ export function attributePollution(
   receptors: Receptor[],
   windNow: { fromBearing: number; speed: number },
   windHistory: WindHour[],
-  stations: Station[] = []
+  stations: Station[] = [],
+  forecastWind: ForecastWind[] = []
 ): SourceResult {
   const { key: pollutant, strength: signal } = dominantPollutant(receptors);
   const toBearing = (windNow.fromBearing + 180) % 360;
@@ -287,6 +304,7 @@ export function attributePollution(
     plume: top ? plumePath(top, toBearing) : [],
     cone: top ? plumeCone(top, toBearing, windNow.speed) : [],
     frames: top ? buildFrames(top, windHistory) : [],
+    forecast: top ? dispersionForecast(top, forecastWind, windNow) : [],
     stations,
     groundStations: hasGround ? stations.filter((st) => stationEl(st.aqi) > 0).length : 0,
     method: hasGround
@@ -351,6 +369,42 @@ function destPoint(lat: number, lng: number, bearingDeg: number, distKm: number)
   const dLat = (distKm / 111) * Math.cos(b);
   const dLng = (distKm / (111 * Math.cos((lat * Math.PI) / 180))) * Math.sin(b);
   return [lng + dLng, lat + dLat]; // [lng, lat] — GeoJSON реті
+}
+
+// ДИСПЕРСИЯ БОЛЖАМЫ: бұлт алдағы 30мин/1сағ/3сағ-та қай жерде болады.
+// Қазір шыққан ауа бөлігін БОЛЖАМ желімен алға жылжытамыз (advection),
+// диффузиямен footprint радиусын өсіреміз. Жел деректері нақты (Open-Meteo болжам).
+function dispersionForecast(
+  origin: { lat: number; lng: number },
+  forecastWind: ForecastWind[],
+  windNow: { fromBearing: number; speed: number }
+): DispersionStep[] {
+  // Болжам желі жоқ болса — ағымдағы желмен тұрақты деп есептейміз
+  const winds = forecastWind.length ? forecastWind : [windNow, windNow, windNow];
+  const horizons: { label: string; h: number }[] = [
+    { label: "30 мин", h: 0.5 },
+    { label: "1 сағ", h: 1 },
+    { label: "3 сағ", h: 3 },
+  ];
+
+  return horizons.map(({ label, h }) => {
+    // Желді сағат бойынша интегралдап, бұлт орталығының орнын табамыз
+    let lat = origin.lat, lng = origin.lng, remaining = h;
+    for (let i = 0; i < winds.length && remaining > 0; i++) {
+      const w = winds[Math.min(i, winds.length - 1)];
+      const dt = Math.min(1, remaining);
+      const to = (w.fromBearing + 180) % 360;
+      [lng, lat] = destPoint(lat, lng, to, w.speed * dt);
+      remaining -= dt;
+    }
+    // Диффузия: footprint уақытпен өседі (~√t сипатты, жеңілдетілген сызықты)
+    const radiusKm = +(2 + 1.6 * h).toFixed(1);
+    // Осы уақытта footprint ішіне түсетін елді мекендер
+    const reached = PLACES
+      .filter((p) => haversineKm(lat, lng, p.lat, p.lng) <= radiusKm)
+      .map((p) => p.name);
+    return { label, hoursAhead: h, lat: +lat.toFixed(4), lng: +lng.toFixed(4), radiusKm, reached };
+  });
 }
 
 // Алға Gaussian дисперсия конусы: көзден желмен таралу аймағы (GeoJSON сақина).

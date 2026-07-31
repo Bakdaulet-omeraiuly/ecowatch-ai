@@ -152,6 +152,18 @@ function usAqiColor(a: number): string {
   return a <= 50 ? "#22c55e" : a <= 100 ? "#eab308" : a <= 150 ? "#f97316" : a <= 200 ? "#ef4444" : a <= 300 ? "#a855f7" : "#7f1d1d";
 }
 
+// Болжам footprint шеңберін GeoJSON сақина ретінде жасау
+function fcCircle(lat: number, lng: number, radiusKm: number): [number, number][] {
+  const ring: [number, number][] = [];
+  for (let i = 0; i <= 32; i++) {
+    const a = (i / 32) * 2 * Math.PI;
+    const dLat = (radiusKm / 111) * Math.cos(a);
+    const dLng = (radiusKm / (111 * Math.cos((lat * Math.PI) / 180))) * Math.sin(a);
+    ring.push([lng + dLng, lat + dLat]);
+  }
+  return ring;
+}
+
 export function MapView() {
   const { lang, tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -323,6 +335,16 @@ export function MapView() {
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [activeCone] } }],
     };
   }, [activeCone]);
+  // Дисперсия болжамы: таңдалған көкжиек (30мин/1сағ/3сағ) footprint шеңбері
+  const [fcStep, setFcStep] = useState<number | null>(null);
+  const forecastGeo = useMemo(() => {
+    if (fcStep == null || !source?.forecast?.[fcStep]) return null;
+    const f = source.forecast[fcStep];
+    return {
+      type: "FeatureCollection" as const,
+      features: [{ type: "Feature" as const, properties: {}, geometry: { type: "Polygon" as const, coordinates: [fcCircle(f.lat, f.lng, f.radiusKm)] } }],
+    };
+  }, [fcStep, source]);
   // Газ-мұнай көздері метан шығарады → Sentinel-5P CH₄ қабатын ұсыну
   const topEmitsMethane = !!source?.top && ["tco", "kpi", "bolashak"].includes(source.top.id);
   // Жоғары сенімді көзді «Ескертулер» бөліміне жіберу
@@ -1005,6 +1027,20 @@ export function MapView() {
             </div>
           </Marker>
         )}
+        {/* Дисперсия болжамы: бұлттың болашақ орны (footprint + орталық) */}
+        {sourceMode && forecastGeo && fcStep != null && source?.forecast?.[fcStep] && (
+          <>
+            <Source id="fc-footprint" type="geojson" data={forecastGeo}>
+              <Layer id="fc-fill" type="fill" paint={{ "fill-color": "#fb923c", "fill-opacity": 0.2 }} />
+              <Layer id="fc-outline" type="line" paint={{ "line-color": "#fb923c", "line-width": 2, "line-dasharray": [2, 1.5] }} />
+            </Source>
+            <Marker latitude={source.forecast[fcStep].lat} longitude={source.forecast[fcStep].lng}>
+              <div className="rounded-full border border-orange-300 bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">
+                +{source.forecast[fcStep].label}
+              </div>
+            </Marker>
+          </>
+        )}
         {sourceMode && plumeLine && (
           <Source id="plume-line" type="geojson" data={plumeLine}>
             <Layer
@@ -1601,6 +1637,37 @@ export function MapView() {
                       <span className="text-[10px] font-mono text-neutral-400">
                         {activeFrame.hour} · {activeFrame.fromLabel} {activeFrame.speed}
                       </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Дисперсия БОЛЖАМЫ — бұлт қайда жетеді (болжам желі) */}
+                {source.forecast.length > 0 && (
+                  <div className="mt-1.5 rounded bg-orange-500/10 p-1.5">
+                    <div className="mb-1 flex items-center gap-1 text-[9px] font-semibold text-orange-300">
+                      <Navigation className="h-2.5 w-2.5" /> {tr("Болжам: бұлт қайда жетеді")}
+                    </div>
+                    <div className="flex gap-1">
+                      {source.forecast.map((f, i) => (
+                        <button
+                          key={f.label}
+                          onClick={() => setFcStep((cur) => (cur === i ? null : i))}
+                          className={`flex-1 rounded border px-1 py-1 text-[10px] transition-colors ${
+                            fcStep === i
+                              ? "border-orange-400 bg-orange-500/25 text-orange-100"
+                              : "border-white/10 text-neutral-300 hover:bg-white/5"
+                          }`}
+                        >
+                          +{f.label}
+                        </button>
+                      ))}
+                    </div>
+                    {fcStep != null && source.forecast[fcStep] && (
+                      <div className="mt-1 text-[10px] text-orange-200">
+                        {source.forecast[fcStep].reached.length > 0
+                          ? `${tr("Жетеді")}: ${source.forecast[fcStep].reached.join(", ")}`
+                          : tr("Қала сыртына шығады — елді мекен ілінбейді")}
+                      </div>
                     )}
                   </div>
                 )}
