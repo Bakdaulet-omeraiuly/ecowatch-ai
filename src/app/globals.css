@@ -40,3 +40,20 @@ body {
 }
 .pollution-air-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: rgba(23, 23, 23, 0.97); }
 .pollution-air-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: rgba(23, 23, 23, 0.97); }
+
+/* Ластану көзі: көзден ағып тұратын «түтін» бөлшектері (желмен) */
+.plume-particle {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.75), rgba(248, 113, 113, 0));
+  animation: plume-drift 3s linear infinite;
+}
+@keyframes plume-drift {
+  0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+  15% { opacity: 0.8; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1.7); opacity: 0; }
+}

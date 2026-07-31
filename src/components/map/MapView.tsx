@@ -318,7 +318,7 @@ export function MapView() {
   const [sourceFrame, setSourceFrame] = useState(0);
   useEffect(() => {
     if (!sourcePlaying || !source?.frames?.length) return;
-    const t = setInterval(() => setSourceFrame((f) => (f + 1) % source.frames.length), 700);
+    const t = setInterval(() => setSourceFrame((f) => (f + 1) % source.frames.length), 450);
     return () => clearInterval(t);
   }, [sourcePlaying, source]);
   // Белсенді конус: ойнатылып жатса — кадр, әйтпесе ағымдағы
@@ -1022,11 +1022,30 @@ export function MapView() {
         )}
         {sourceMode && source?.detected && source.top && (
           <Marker latitude={source.top.lat} longitude={source.top.lng}>
-            <div style={{ transform: `rotate(${source.wind.toBearing}deg)` }} title="Жел бағыты">
+            <div
+              className="transition-transform duration-300"
+              style={{ transform: `rotate(${sourcePlaying && activeFrame ? activeFrame.toBearing : source.wind.toBearing}deg)` }}
+              title="Жел бағыты"
+            >
               <Navigation className="h-5 w-5 fill-red-400 text-red-300 drop-shadow" />
             </div>
           </Marker>
         )}
+        {/* Ағып тұратын «түтін» бөлшектері — желмен таралу әсері */}
+        {sourceMode && source?.detected && source.top && (() => {
+          const b = ((sourcePlaying && activeFrame ? activeFrame.toBearing : source.wind.toBearing) * Math.PI) / 180;
+          const D = 48;
+          const style = { "--dx": `${Math.sin(b) * D}px`, "--dy": `${-Math.cos(b) * D}px` } as React.CSSProperties;
+          return (
+            <Marker latitude={source.top.lat} longitude={source.top.lng}>
+              <div className="pointer-events-none relative" style={style}>
+                {[0, 1, 2, 3, 4, 5].map((i) => (
+                  <span key={i} className="plume-particle" style={{ animationDelay: `${i * 0.5}s` }} />
+                ))}
+              </div>
+            </Marker>
+          );
+        })()}
         {/* Дисперсия болжамы: бұлттың болашақ орны (footprint + орталық) */}
         {sourceMode && forecastGeo && fcStep != null && source?.forecast?.[fcStep] && (
           <>
@@ -1642,13 +1661,13 @@ export function MapView() {
                 )}
 
                 {/* Дисперсия БОЛЖАМЫ — бұлт қайда жетеді (болжам желі) */}
-                {source.forecast.length > 0 && (
+                {(source.forecast?.length ?? 0) > 0 && (
                   <div className="mt-1.5 rounded bg-orange-500/10 p-1.5">
                     <div className="mb-1 flex items-center gap-1 text-[9px] font-semibold text-orange-300">
                       <Navigation className="h-2.5 w-2.5" /> {tr("Болжам: бұлт қайда жетеді")}
                     </div>
                     <div className="flex gap-1">
-                      {source.forecast.map((f, i) => (
+                      {(source.forecast ?? []).map((f, i) => (
                         <button
                           key={f.label}
                           onClick={() => setFcStep((cur) => (cur === i ? null : i))}
