@@ -1,166 +1,18 @@
 "use client";
 
+import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 import { TierBadge, TierLegend, type Tier } from "@/components/ui/TierBadge";
+import { INDICATORS, SECTIONS } from "@/data/indicatorRegistry";
 
-// Әдістеме мен валидация күйі.
+// ӘДІСТЕМЕ ЖӘНЕ ВАЛИДАЦИЯ КҮЙІ
 //
-// Бұл беттің мақсаты — әр көрсеткіштің қайдан келетінін, қалай есептелетінін
-// және НЕ ТЕКСЕРІЛМЕГЕНІН ашық жазу. Валидация бағаны әдейі көбіне «жоқ» деп
-// тұр: Атырауда жердегі бақылау деректері бізде жоқ. Оны жасыру — жалған
-// сенімділік беру болар еді.
-
-interface Item {
-  name: string;
-  tier: Tier;
-  source: string;
-  method: string;
-  refresh: string;
-  validation: string;
-  validated: boolean;
-  limits: string[];
-}
-
-const ITEMS: Item[] = [
-  {
-    name: "Су басқан аумақ (км²)",
-    tier: "measurement",
-    source: "Copernicus Sentinel-1 GRD (IW, VV, GAMMA0_TERRAIN)",
-    method:
-      "Радарда тегіс су айнадай шағылысып қайтпайды. VV gamma0 −16 дБ-дан төмен пиксельдер су " +
-      "деп саналады. «Су басқан аумақ» = ағымдағы су − күзгі төмен су кезеңіндегі су.",
-    refresh: "6 сағат сайын (спутник өтуі ~6 күн)",
-    validation: "Жердегі өлшеммен салыстырылмаған",
-    validated: false,
-    limits: [
-      "Құрғақ сор мен тақыр да радарда күңгірт — тірек кезеңмен салыстыру олардың басым бөлігін жояды, бірақ ылғал сор «су» болып саналуы мүмкін",
-      "Қатты желде су беті бұдырланып, аудан кем бағаланады",
-      "Бақылау аймақтары — тікбұрышты терезелер, әкімшілік шекара емес",
-    ],
-  },
-  {
-    name: "Спектрлік индекстер (NDVI, NDWI, NDMI, NDBI)",
-    tier: "measurement",
-    source: "Copernicus Sentinel-2 L2A (Sentinel Hub Statistical API)",
-    method: "Стандартты нормаланған айырма индекстері, соңғы бұлтсыз кадр бойынша.",
-    refresh: "Сұраныс бойынша (нүкте таңдалғанда)",
-    validation: "Формулалар стандартты, бірақ жергілікті калибрлеу жасалмаған",
-    validated: false,
-    limits: [
-      "Бұлт маскасы жетілмеген кадрларда мән бұрмалануы мүмкін",
-      "Индекс — сандық көрсеткіш, оны экологиялық диагноз ретінде оқуға болмайды",
-    ],
-  },
-  {
-    name: "Жылу аномалиялары (факел / өрт)",
-    tier: "measurement",
-    source: "NASA FIRMS · VIIRS SNPP NRT",
-    method: "Спутниктің инфрақызыл арнасындағы жылу аномалиясының тікелей детекциясы.",
-    refresh: "Күніне бірнеше рет, соңғы 2 тәулік",
-    validation: "NASA-ның өз алгоритмі валидацияланған; біз оны өзгертпейміз",
-    validated: true,
-    limits: [
-      "Газ факелін дала өртінен АЖЫРАТПАЙДЫ — екеуі де жылу аномалиясы",
-      "FRP — жылу қуаты, ластану мөлшері емес",
-      "Бұлт детекцияға кедергі келтіреді",
-    ],
-  },
-  {
-    name: "Ауа сапасы (12 ластаушы)",
-    tier: "model",
-    source: "Copernicus CAMS (Open-Meteo арқылы)",
-    method: "Жаһандық атмосфералық химия моделінің реанализі мен болжамы.",
-    refresh: "Сағат сайын",
-    validation: "Жер бетіндегі Qazhydromet станциясымен салыстыру дашбордта бар",
-    validated: false,
-    limits: [
-      "Тор қадамы ~40 км — қала ішіндегі айырма толық көрінбейді",
-      "Модель шығысы, станция өлшемі емес",
-    ],
-  },
-  {
-    name: "Ластану көзін анықтау",
-    tier: "model",
-    source: "CAMS + Open-Meteo жел + WAQI станциялары",
-    method:
-      "Жел бағыты бойынша кері траектория (оңайлатылған CWT) + Гаусс шлейфі. Нәтиже — " +
-      "ЫҚТИМАЛ көз, сенімділік пайызымен.",
-    refresh: "Сағат сайын",
-    validation: "Жоқ — нақты шығарынды өлшемі бізде жоқ",
-    validated: false,
-    limits: [
-      "Кәсіпорынның нақты шығарынды мөлшері белгісіз — тек орналасуы мен жел ескеріледі",
-      "Бірнеше көз қатар жұмыс істесе, олардың үлесі ажыратылмайды",
-    ],
-  },
-  {
-    name: "JAIYQ-ML — 11 күндік ауа болжамы",
-    tier: "model",
-    source: "CAMS реанализінде оқытылған, ECMWF болжамымен жүргізіледі",
-    method:
-      "Градиенттік бустинг маусымдық климатологиядан ауытқуды болжайды. Апта сайын " +
-      "GitHub Actions-та нақты деректе қайта оқытылады.",
-    refresh: "Болжам сағат сайын, модель апта сайын",
-    validation:
-      "Хронологиялық тексеру жиынында өлшенеді. Қазіргі шеберлік талапқа (≥5%) жетпеді",
-    validated: false,
-    limits: [
-      "Дәлдігі жеткіліксіз болғандықтан сайтта КӨРСЕТІЛМЕЙДІ (автоматты қақпа)",
-      "CAMS реанализінде оқытылған — станция өлшемін емес, CAMS мінезін жалғастырады",
-    ],
-  },
-  {
-    name: "JAIYQ-MRI — маса тәуекел индексі",
-    tier: "model",
-    source: "Open-Meteo (температура, ылғал, жауын)",
-    method:
-      "Mordecai 2017 термиялық қолайлылық қисығы + су режимі (flood-pulse egg-bank). " +
-      "Екі түр: Aedes caspius (тасқын суы) және Culex modestus (тұрақты су).",
-    refresh: "Сағат сайын",
-    validation: "Жоқ — Атырауда тұзақ (trap) деректері жинақталмаған",
-    validated: false,
-    limits: [
-      "Климаттық ҚОЛАЙЛЫЛЫҚ индексі, маса санының өлшемі емес",
-      "Салыстыру үшін жарайды (қай жер қауіптірек), абсолют сан ретінде емес",
-    ],
-  },
-  {
-    name: "Өрт қаупі (FWI)",
-    tier: "model",
-    source: "Open-Meteo (ECMWF) метеорологиясы",
-    method: "Van Wagner 1987 Canadian Forest Fire Weather Index System.",
-    refresh: "Күн сайын",
-    validation: "Әдістеме халықаралық деңгейде валидацияланған, Қазақстанға бейімделмеген",
-    validated: false,
-    limits: [
-      "Ауа райына негізделген ҚАУІП көрсеткіші — өрттің бар-жоғы емес",
-      "Канада ормандары үшін жасалған; дала/шөл өсімдігіне толық сәйкес келмейді",
-    ],
-  },
-  {
-    name: "Құрғақшылық (SPI-3)",
-    tier: "model",
-    source: "Open-Meteo ERA5 архиві (ECMWF)",
-    method: "McKee 1993 Standardized Precipitation Index — 3 айлық жауын көп жылдық таралумен салыстырылады.",
-    refresh: "Күн сайын",
-    validation: "Стандартты әдіс (ДМҰ ұсынған)",
-    validated: true,
-    limits: ["Тек жауынға негізделген — температура мен буланудың әсері ескерілмейді"],
-  },
-  {
-    name: "AI спутник талдауы / агент / «Неге?»",
-    tier: "ai",
-    source: "OpenAI GPT-4o (спутник суреті + тірі деректер)",
-    method: "Тіл моделі суретті және сандық деректерді оқып, мәтінді қорытынды жазады.",
-    refresh: "Сұраныс бойынша",
-    validation: "ЖОҚ — тексерілмеген",
-    validated: false,
-    limits: [
-      "Ресми есепке негіз бола АЛМАЙДЫ — тек назар аудару үшін",
-      "Кіріс — Mapbox RGB тайлы: түсірілім күні белгісіз, спектр каналдары жоқ",
-      "Модель қолжетімсіз болса нәтиже көрсетілмейді — ойдан талдау жасалмайды",
-    ],
-  },
-];
+// Көрсеткіштер тізімі `src/data/indicatorRegistry.ts` файлынан оқылады —
+// эко-паспортпен ОРТАҚ дереккөз. Екі жерде бөлек жазсақ, олар уақыт өте
+// ажырап кетер еді.
+//
+// Бұл беттің мақсаты — не тексерілмегенін ашық жазу. Валидация бағаны
+// көбіне «жоқ» деп тұр: Атырауда жердегі бақылау деректері бізде жоқ.
 
 const WATER = [
   {
@@ -194,6 +46,8 @@ const WATER = [
 ];
 
 export default function MethodologyPage() {
+  const validated = INDICATORS.filter((i) => i.validated).length;
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-12 text-neutral-200">
       <h1 className="mb-2 text-3xl font-bold text-emerald-400">Әдістеме және валидация</h1>
@@ -204,48 +58,97 @@ export default function MethodologyPage() {
         сенімділік беру болар еді.
       </p>
 
+      <div className="mb-8 flex flex-wrap gap-2 text-[12px]">
+        <Link
+          href="/eco-passport"
+          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-300 transition hover:bg-emerald-500/20"
+        >
+          Толық эко-паспортты ашу (формулалармен) →
+        </Link>
+      </div>
+
       <div className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4">
         <h2 className="mb-2 text-sm font-semibold text-white">Сенімділік деңгейлері</h2>
         <TierLegend className="!text-[11px]" />
+        <p className="mt-3 text-[11px] text-neutral-400">
+          Барлығы <span className="text-white">{INDICATORS.length}</span> көрсеткіш, оның{" "}
+          <span className="text-white">{validated}</span>-і валидацияланған.
+        </p>
       </div>
 
-      <section className="mb-12">
-        <h2 className="mb-4 text-xl font-semibold text-white">Көрсеткіштер</h2>
-        <div className="space-y-3">
-          {ITEMS.map((it) => (
-            <div key={it.name} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <TierBadge tier={it.tier} />
-                <h3 className="text-sm font-semibold text-white">{it.name}</h3>
-                <span
-                  className={`ml-auto rounded-full border px-2 py-0.5 text-[10px] ${
-                    it.validated
-                      ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
-                      : "border-amber-400/30 bg-amber-500/10 text-amber-200"
-                  }`}
-                >
-                  {it.validated ? "валидацияланған" : "валидацияланбаған"}
-                </span>
-              </div>
-              <dl className="grid gap-x-6 gap-y-1 text-[11px] leading-relaxed sm:grid-cols-[max-content_1fr]">
-                <dt className="text-neutral-500">Дереккөз</dt>
-                <dd className="text-neutral-300">{it.source}</dd>
-                <dt className="text-neutral-500">Әдіс</dt>
-                <dd className="text-neutral-300">{it.method}</dd>
-                <dt className="text-neutral-500">Жаңару</dt>
-                <dd className="text-neutral-300">{it.refresh}</dd>
-                <dt className="text-neutral-500">Валидация</dt>
-                <dd className="text-neutral-300">{it.validation}</dd>
-              </dl>
-              <ul className="mt-2 space-y-0.5 border-t border-white/10 pt-2 text-[11px] text-amber-200/70">
-                {it.limits.map((l, i) => (
-                  <li key={i}>⚠ {l}</li>
-                ))}
-              </ul>
+      {SECTIONS.map((section) => {
+        const items = INDICATORS.filter((i) => i.section === section);
+        if (!items.length) return null;
+        return (
+          <section key={section} className="mb-10">
+            <h2 className="mb-3 text-xl font-semibold text-white">{section}</h2>
+            <div className="space-y-3">
+              {items.map((it) => (
+                <div key={it.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <TierBadge tier={it.tier} />
+                    <h3 className="text-sm font-semibold text-white">{it.name}</h3>
+                    <span
+                      className={`ml-auto rounded-full border px-2 py-0.5 text-[10px] ${
+                        it.validated
+                          ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
+                          : "border-amber-400/30 bg-amber-500/10 text-amber-200"
+                      }`}
+                    >
+                      {it.validated ? "валидацияланған" : "валидацияланбаған"}
+                    </span>
+                  </div>
+
+                  <p className="mb-2 text-[11px] leading-relaxed text-neutral-300">{it.what}</p>
+
+                  {it.formula && (
+                    <div className="mb-2 overflow-x-auto rounded-md border border-white/10 bg-black/30 px-2.5 py-1.5 font-mono text-[11px] text-emerald-200">
+                      {it.formula}
+                    </div>
+                  )}
+
+                  <dl className="grid gap-x-6 gap-y-1 text-[11px] leading-relaxed sm:grid-cols-[max-content_1fr]">
+                    <dt className="text-neutral-500">Аспап / модель</dt>
+                    <dd className="text-neutral-300">{it.instrument}</dd>
+                    <dt className="text-neutral-500">Ажыратымдылық</dt>
+                    <dd className="text-neutral-300">
+                      {it.spatial} · {it.temporal} · кідіріс {it.latency}
+                    </dd>
+                    <dt className="text-neutral-500">Дереккөз құжаты</dt>
+                    <dd className="space-y-0.5">
+                      {it.sources.map((s, i) =>
+                        s.url ? (
+                          <a
+                            key={i}
+                            href={s.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block text-sky-300 underline-offset-2 hover:underline"
+                          >
+                            {s.label} <ExternalLink className="inline h-2.5 w-2.5" />
+                          </a>
+                        ) : (
+                          <span key={i} className="block text-neutral-300">
+                            {s.label}
+                          </span>
+                        )
+                      )}
+                    </dd>
+                    <dt className="text-neutral-500">Валидация</dt>
+                    <dd className="text-neutral-300">{it.validationNote}</dd>
+                  </dl>
+
+                  <ul className="mt-2 space-y-0.5 border-t border-white/10 pt-2 text-[11px] text-amber-200/70">
+                    {it.limits.map((l, i) => (
+                      <li key={i}>⚠ {l}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </section>
+        );
+      })}
 
       <section className="mb-12">
         <h2 className="mb-2 text-xl font-semibold text-white">Су туралы төрт көрсеткіш</h2>
@@ -292,6 +195,7 @@ export default function MethodologyPage() {
           <li>AI кілті жоқ немесе шақыру сәтсіз → талдау көрсетілмейді (бұрын ойдан жасалатын)</li>
           <li>Спутник өтуі жоқ → сол аймақ «өлшенбеді» болып қалады</li>
           <li>Модель дәлдігі талапқа жетпесе → болжам автоматты түрде жасырылады</li>
+          <li>Эко-паспортта жалпы «эко-балл» жоқ — түрлі бірліктегі шаманы қосу негізсіз</li>
         </ul>
       </section>
 
@@ -302,9 +206,7 @@ export default function MethodologyPage() {
             Qazhydromet станцияларының тарихи деректерін жинай бастау — сонда модельдерді нақты
             өлшеммен салыстыруға болады
           </li>
-          <li>
-            Су басқан аумақты нақты тасқын кезеңіндегі жердегі есептермен салыстыру
-          </li>
+          <li>Су басқан аумақты нақты тасқын кезеңіндегі жердегі есептермен салыстыру</li>
           <li>Маса тұзақтарының деректерін алу — MRI индексін валидациялаудың жалғыз жолы</li>
         </ol>
       </section>
