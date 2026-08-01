@@ -53,6 +53,10 @@ WX_VARS = [
     "wind_gusts_10m",
     "boundary_layer_height",
     "temperature_850hPa",
+    # Адвекция / синоптикалық режим — алыстан келетін шаң ағыны үшін
+    "wind_speed_850hPa",
+    "wind_direction_850hPa",
+    "geopotential_height_500hPa",
 ]
 
 # --- Модель гиперпараметрлері --------------------------------------------

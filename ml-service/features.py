@@ -25,7 +25,16 @@ FEATURE_NAMES = [
     "inversion",  # t850 − t2m: оң мән = инверсия (ластану қақпаны)
     "vent",       # желдету индексі = blh × wspd / 1000
     "precip24",   # соңғы 24 сағаттағы жауын қосындысы (шаю әсері)
+    "precip72",   # соңғы 72 сағаттағы жауын (топырақ ылғалы → шаң көтерілуі)
     "wspd24",     # соңғы 24 сағаттағы орташа жел (тоқырау көрсеткіші)
+    "wspd48",     # соңғы 48 сағаттағы орташа жел (ұзақ тоқырау)
+    "blh24",      # соңғы 24 сағаттағы орташа шекаралық қабат
+    # Адвекция — алыстан келетін шаң/ластану ағыны. Атырау үшін маңызды:
+    # шаң Каспий маңы мен шөлдерден 850 гПа деңгейінде тасымалданады.
+    "w850_spd",   # 850 гПа жел жылдамдығы
+    "w850_sin",   # 850 гПа жел бағыты — синус
+    "w850_cos",   # 850 гПа жел бағыты — косинус
+    "gh500",      # 500 гПа геопотенциал биіктігі (синоптикалық режим)
     "hour_sin",
     "hour_cos",
     "doy_sin",
@@ -44,9 +53,12 @@ RAW_KEYS = [
     "wind_gusts_10m",
     "boundary_layer_height",
     "temperature_850hPa",
+    "wind_speed_850hPa",
+    "wind_direction_850hPa",
+    "geopotential_height_500hPa",
 ]
 
-WINDOW = 24  # rolling терезесі, сағат
+WINDOW = 72  # ең ұзын rolling терезесі, сағат
 
 
 def _forward_fill(rows: list[dict]) -> list[dict]:
@@ -85,18 +97,22 @@ def build_features(rows: list[dict]) -> tuple[list[list[float]], list[str]]:
 
     precip_win: list[float] = []
     wspd_win: list[float] = []
+    blh_win: list[float] = []
 
     for r in clean:
         precip_win.append(r["precipitation"])
         wspd_win.append(r["wind_speed_10m"])
+        blh_win.append(r["boundary_layer_height"])
         if len(precip_win) > WINDOW:
             precip_win.pop(0)
             wspd_win.pop(0)
+            blh_win.pop(0)
         if len(precip_win) < WINDOW:
             continue
 
         hour, doy = _parse_hour(r["time"])
         wdir_rad = math.radians(r["wind_direction_10m"])
+        w850_rad = math.radians(r["wind_direction_850hPa"])
         t2m = r["temperature_2m"]
         t850 = r["temperature_850hPa"]
         blh = r["boundary_layer_height"]
@@ -117,8 +133,15 @@ def build_features(rows: list[dict]) -> tuple[list[list[float]], list[str]]:
             t850,
             t850 - t2m,
             blh * wspd / 1000.0,
+            sum(precip_win[-24:]),
             sum(precip_win),
-            sum(wspd_win) / WINDOW,
+            sum(wspd_win[-24:]) / 24.0,
+            sum(wspd_win[-48:]) / 48.0,
+            sum(blh_win[-24:]) / 24.0,
+            r["wind_speed_850hPa"],
+            math.sin(w850_rad),
+            math.cos(w850_rad),
+            r["geopotential_height_500hPa"],
             math.sin(2 * math.pi * hour / 24.0),
             math.cos(2 * math.pi * hour / 24.0),
             math.sin(2 * math.pi * doy / 365.25),

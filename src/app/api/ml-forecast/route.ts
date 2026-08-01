@@ -15,13 +15,16 @@ import { isTrained, model, predict } from "@/lib/ml/gbt";
 export const revalidate = 3600;
 
 const FORECAST_DAYS = 11;
+// Белгілердегі ең ұзын rolling терезесі 72 сағат — сондықтан кемінде
+// 3 күндік өткен дерек қоса сұралады, әйтпесе бүгінгі сағаттар түсіп қалады.
+const PAST_DAYS = Math.ceil(WINDOW / 24) + 1;
 
 const WX_URL =
   `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${model.trained ? model.location.lat : 47.1167}` +
   `&longitude=${model.trained ? model.location.lng : 51.8833}` +
   `&hourly=${RAW_KEYS.join(",")}` +
-  `&past_days=2&forecast_days=${FORECAST_DAYS}&timezone=UTC`;
+  `&past_days=${PAST_DAYS}&forecast_days=${FORECAST_DAYS}&timezone=UTC`;
 
 const CAMS_URL =
   `https://air-quality-api.open-meteo.com/v1/air-quality` +
