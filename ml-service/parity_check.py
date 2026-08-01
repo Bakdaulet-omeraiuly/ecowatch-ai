@@ -20,18 +20,24 @@ import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+import climatology  # noqa: E402
 from features import build_features  # noqa: E402
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-TS_FEATURES = os.path.abspath(os.path.join(HERE, "..", "src", "lib", "ml", "features.ts"))
+ML_DIR = os.path.abspath(os.path.join(HERE, "..", "src", "lib", "ml"))
+TS_FEATURES = os.path.join(ML_DIR, "features.ts")
+TS_CLIM = os.path.join(ML_DIR, "climatology.ts")
 TOLERANCE = 1e-9
 
 RUNNER = """
 import { buildFeatures } from "./features.ts";
+import { climValue } from "./climatology.ts";
 import { readFileSync, writeFileSync } from "node:fs";
 const rows = JSON.parse(readFileSync("rows.json", "utf8"));
 const { X, times } = buildFeatures(rows);
-writeFileSync("ts.json", JSON.stringify({ X, times }));
+const { clim, climTimes } = JSON.parse(readFileSync("clim.json", "utf8"));
+const climOut = climTimes.map((t) => climValue(clim, t));
+writeFileSync("ts.json", JSON.stringify({ X, times, climOut }));
 """
 
 
@@ -70,10 +76,25 @@ def main() -> int:
     rows = make_rows()
     X_py, t_py = build_features(rows)
 
+    # Климатология: әдейі кейбір (ай, сағат) жиынын сирек қылып, барлық үш
+    # шегіну тармағын (month-hour → month → overall) тексереміз.
+    random.seed(3)
+    clim_times = [
+        f"2025-{m:02d}-1{d}T{h:02d}:00"
+        for m in (1, 3, 7, 12) for d in (0, 5) for h in (0, 6, 13, 23)
+    ]
+    clim_vals = [random.uniform(5, 90) for _ in clim_times]
+    clim = climatology.build(clim_times * 30, clim_vals * 30)  # кейбірі MIN_COUNT-тан асады
+    probe_times = clim_times + ["2025-02-14T09:00", "2025-11-03T17:00"]
+    clim_py = [climatology.value(clim, t) for t in probe_times]
+
     with tempfile.TemporaryDirectory() as tmp:
         shutil.copy(TS_FEATURES, os.path.join(tmp, "features.ts"))
+        shutil.copy(TS_CLIM, os.path.join(tmp, "climatology.ts"))
         with open(os.path.join(tmp, "rows.json"), "w") as fh:
             json.dump(rows, fh)
+        with open(os.path.join(tmp, "clim.json"), "w") as fh:
+            json.dump({"clim": clim, "climTimes": probe_times}, fh)
         with open(os.path.join(tmp, "run.ts"), "w") as fh:
             fh.write(RUNNER)
 
@@ -103,12 +124,24 @@ def main() -> int:
             if d > worst:
                 worst, where = d, f"жол {i}, белгі {j}"
 
-    print(f"Салыстырылды: {len(X_py)} жол × {len(X_py[0])} белгі")
-    print(f"Ең үлкен айырма: {worst:.3e} ({where or '—'})")
+    print(f"Белгілер: {len(X_py)} жол × {len(X_py[0])}")
+    print(f"  ең үлкен айырма: {worst:.3e} ({where or '—'})")
     if worst > TOLERANCE:
         print("❌ features.py мен features.ts АЖЫРАП КЕТКЕН — болжам бұрмаланады")
         return 1
-    print("✅ Python ↔ TypeScript белгілері бірдей")
+
+    clim_ts = ts["climOut"]
+    if len(clim_ts) != len(clim_py):
+        print(f"❌ Климатология ұзындығы сәйкес емес: py={len(clim_py)} ts={len(clim_ts)}")
+        return 1
+    cworst = max((abs(a - b) for a, b in zip(clim_py, clim_ts)), default=0.0)
+    print(f"Климатология: {len(clim_py)} нүкте")
+    print(f"  ең үлкен айырма: {cworst:.3e}")
+    if cworst > TOLERANCE:
+        print("❌ climatology.py мен climatology.ts АЖЫРАП КЕТКЕН")
+        return 1
+
+    print("✅ Python ↔ TypeScript толық сәйкес (белгілер + климатология)")
     return 0
 
 

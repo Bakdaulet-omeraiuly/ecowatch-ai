@@ -18,6 +18,7 @@ import math
 
 import numpy as np
 
+import climatology
 from features import FEATURE_NAMES, build_features
 from model import GradientBoosting
 
@@ -42,7 +43,9 @@ def main() -> int:
     X = rng.normal(size=(n, d))
     y = 3 * np.sin(X[:, 0]) + 2 * X[:, 1] * X[:, 2] - X[:, 3] ** 2 + rng.normal(scale=0.3, size=n)
 
-    gb = GradientBoosting(n_trees=60, learning_rate=0.1, max_depth=4, min_samples_leaf=20, n_bins=32)
+    gb = GradientBoosting(
+        n_trees=60, learning_rate=0.1, max_depth=4, min_samples_leaf=20, n_bins=32, l2=1.0
+    )
     gb.fit(X, y, verbose=False)
 
     pred = gb.predict(X)
@@ -78,6 +81,24 @@ def main() -> int:
     assert math.isclose(F[0][15], 12.0, rel_tol=1e-9), "wspd24 қате"
     assert math.isclose(F[0][13], 800 * 12 / 1000, rel_tol=1e-9), "vent қате"
     print(f"4) Белгілер OK — {len(F)} жол × {len(F[0])} белгі")
+
+    # 5) Ерте тоқтату: валидацияда пайдасы жоқ шуды үйренуге жол бермеуі керек
+    Xn = rng.normal(size=(1500, 4))
+    yn = rng.normal(size=1500)  # белгілермен ЕШҚАНДАЙ байланысы жоқ таза шу
+    gbn = GradientBoosting(
+        n_trees=200, learning_rate=0.1, max_depth=4, min_samples_leaf=20, n_bins=32, patience=15
+    )
+    gbn.fit(Xn[:1100], yn[:1100], Xn[1100:], yn[1100:], verbose=False)
+    print(f"5) Шуда ерте тоқтату: {gbn.stopped_at} ағаш қалды (200-дің ішінен)")
+    assert gbn.stopped_at is not None and gbn.stopped_at < 40, "ерте тоқтату жұмыс істемеді"
+
+    # 6) Климатология: шегіну тәртібі (ай-сағат → ай → жалпы)
+    times = [f"2025-06-1{i % 5}T{i % 24:02d}:00" for i in range(600)]
+    vals = [20 + (i % 24) for i in range(600)]
+    clim = climatology.build(times, vals)
+    assert climatology.value(clim, "2025-06-10T05:00") == clim["byMonthHour"]["6-5"]
+    assert climatology.value(clim, "2025-09-01T05:00") == clim["overall"], "жалпыға шегіну қате"
+    print(f"6) Климатология OK — {len(clim['byMonthHour'])} (ай,сағат) торабы")
 
     print("\n✅ Барлық тексеру сәтті")
     return 0
