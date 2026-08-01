@@ -1,0 +1,61 @@
+name: JAIYQ-ML қайта оқыту
+
+# Модель апта сайын нақты CAMS/ERA5 деректерінде автоматты қайта оқытылады.
+# Дерек көзі қолжетімсіз болса — жұмыс сәтсіз аяқталады да, ескі модель
+# өзгеріссіз қалады. Ойдан модель ешқашан коммит етілмейді.
+
+on:
+  schedule:
+    - cron: "17 3 * * 0" # әр жексенбі 03:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ml-retrain
+  cancel-in-progress: false
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # Node 22 керек: parity_check.py TypeScript нұсқасын
+      # `node --experimental-strip-types` арқылы жүргізеді.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Тәуелділіктер
+        run: pip install -r ml-service/requirements.txt
+
+      - name: Өзін-өзі тексеру
+        working-directory: ml-service
+        run: python selftest.py
+
+      - name: Python ↔ TypeScript сәйкестігі
+        working-directory: ml-service
+        run: python parity_check.py
+
+      - name: Оқыту (нақты CAMS + ERA5)
+        working-directory: ml-service
+        run: python train.py
+
+      - name: Өзгерісті коммиттеу
+        run: |
+          if git diff --quiet -- src/data/models/aqi-model.json ml-service/report.md; then
+            echo "Модель өзгерген жоқ — коммит керек емес"
+            exit 0
+          fi
+          git config user.name "jaiyq-ml-bot"
+          git config user.email "noreply@anthropic.com"
+          git add src/data/models/aqi-model.json ml-service/report.md
+          git commit -m "JAIYQ-ML: модельді нақты CAMS/ERA5 деректерінде қайта оқыту"
+          git push origin HEAD:${GITHUB_REF_NAME}
