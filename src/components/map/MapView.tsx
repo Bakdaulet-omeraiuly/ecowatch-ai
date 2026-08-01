@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
   Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame, Droplets,
-  Factory, AlertTriangle, Navigation,
+  Factory, AlertTriangle, Navigation, BarChart3, FileText, Scale, BookOpen,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -176,6 +176,14 @@ function advect(lat: number, lng: number, toBearing: number, speedKmh: number, h
   const dLng = (dist / (111 * Math.cos((lat * Math.PI) / 180))) * Math.sin(b);
   return [lat + dLat, lng + dLng];
 }
+
+// Панельдің екінші бөлімі — қабат емес, бөлек беттер.
+const SERVICES: { href: string; label: string; icon: React.ElementType }[] = [
+  { href: "/dashboard", label: "Дашборд", icon: BarChart3 },
+  { href: "/eco-passport", label: "Эко-паспорт", icon: FileText },
+  { href: "/legislation", label: "Заңнама", icon: Scale },
+  { href: "/methodology", label: "Әдістеме", icon: BookOpen },
+];
 
 // Карта қабатының кілті → эко-қабат тізіліміндегі кілт (src/data/ecoLayers.ts).
 // "waste" тізілімде жоқ: азаматтық хабарламалар өшірулі, өз алдына дереккөзі жоқ.
@@ -1553,6 +1561,22 @@ export function MapView() {
                 {photoReports.length}
               </span>
             </button>
+
+            {/* ───────────── ҚЫЗМЕТТЕР ───────────── */}
+            <div className="mt-1.5 border-t border-white/10 pt-1.5">
+              <div className="px-1 pb-1 text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
+                {tr("Қызметтер")}
+              </div>
+              {SERVICES.map((sv) => (
+                <a
+                  key={sv.href}
+                  href={sv.href}
+                  className="flex items-center gap-2 rounded-md border border-transparent px-2.5 py-1.5 text-xs text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
+                >
+                  <sv.icon className="h-3.5 w-3.5 text-neutral-400" /> {tr(sv.label)}
+                </a>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -2498,11 +2522,11 @@ export function MapView() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+      {/* Іздеу — карта үстінде, ортада */}
+      <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2">
         <MapSearch
-          onSelect={(lng, lat) =>
-            mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 1200 })
+          onSelect={(lng, lat, _label, zoom) =>
+            mapRef.current?.flyTo({ center: [lng, lat], zoom: zoom ?? 14, duration: 1200 })
           }
         />
       </div>
