@@ -62,6 +62,19 @@ Supabase (ортақ хабарламалар).
   сілтемесі + норма салыстыруы; PDF-ке басып шығаруға дайын
 - `src/app/methodology` — әдістеме + валидация күйі (тізілімнен оқиды)
 - `src/app/api/export` — эколог есебі үшін CSV (`?dataset=air|mosquito|fire|drought|flares`)
+- `src/data/legalNorms.ts` — ⚖️ ЗАҢНАМА ТІЗІЛІМІ: ҚР ДСМ-70, Эко кодекс, ӘҚБтК,
+  WHO 2021, EU 2008/50/EC. Әр норманың РАСТАУ КҮЙІ бар — расталмаған шек
+  бойынша «заң бұзылды» деген тұжырым ШЫҒАРЫЛМАЙДЫ
+- `src/lib/compliance.ts` — норма салыстыру қозғалтқышы; `/api/compliance`
+- `src/data/ecoLayers.ts` — 9 эко қабаттың тізілімі (дерек, норма, уақыт қатары)
+- `src/app/api/layer/[key]` — қабаттың толық кескіні: ағымдағы + өткен 24 сағ +
+  алдағы 24 сағ + заңнама. ⚠️ AI ЖОҚ (`aiIncluded: false`)
+- `src/app/api/layer-ai` — қабаттың AI талдауы БӨЛЕК эндпоинтте
+- `src/components/map/LayerDrawer.tsx` — 4 қойынды: деректер/заңнама/AI/тарих
+- `src/app/api/events` + `EventFeed` — оқиғалар таспасы (нақты дерек нүктелері)
+- `src/app/object/[id]` + `api/object/[id]` — ОБЪЕКТ КАРТАСЫ: заңға сәйкестік,
+  дәлелдер тізбегі, спутник Timeline, PDF есеп
+- `src/app/legislation` — заңнама актілері мен норма тізілімі
 - `src/components/ui/TierBadge.tsx` — 🛰 өлшем / 📊 модель / 🤖 AI белгілері
 - `src/lib/cdse.ts` — Copernicus OAuth (ортақ, көшірме жасама)
 - `docs/` — PRD, архитектура, роадмап

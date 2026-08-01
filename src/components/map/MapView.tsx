@@ -1240,6 +1240,14 @@ export function MapView() {
                 <Factory className="h-3 w-3 text-red-300" /> {facAir.fac.name}
               </div>
 
+              {/* Объект картасы — прокуратура/эколог үшін толық құжат */}
+              <a
+                href={`/object/${facAir.fac.id}`}
+                className="mb-1.5 block rounded border border-sky-400/40 bg-sky-500/10 px-1.5 py-1 text-center text-[10px] font-medium text-sky-200 transition hover:bg-sky-500/20"
+              >
+                {tr("Объект картасы")} — {tr("заңнама, дәлелдер, спутник тарихы")} →
+              </a>
+
               {/* Нақты ЖЕРДЕГІ станса (Qazhydromet/WAQI) — датчик дәлдігі */}
               {facAir.station?.found && (
                 <div className="mb-1.5 rounded border border-emerald-500/40 bg-emerald-500/10 p-1.5">
