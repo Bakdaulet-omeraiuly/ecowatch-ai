@@ -2,27 +2,7 @@
 // спектрлік индекстер (NDVI, NDWI, NDMI, NDBI). Бұл — «ML» (классикалық
 // қашықтан зондтау) нәтижесі, GPT-4o Vision-ға қосымша. Жалған дерек жоқ.
 
-const TOKEN_URL =
-  "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token";
-const STATS_URL = "https://sh.dataspace.copernicus.eu/api/v1/statistics";
-
-let tokenCache: { token: string; exp: number } | null = null;
-
-async function getToken(): Promise<string | null> {
-  const id = process.env.SENTINELHUB_CLIENT_ID;
-  const secret = process.env.SENTINELHUB_CLIENT_SECRET;
-  if (!id || !secret) return null;
-  if (tokenCache && Date.now() < tokenCache.exp) return tokenCache.token;
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "client_credentials", client_id: id, client_secret: secret }),
-  });
-  if (!res.ok) return null;
-  const j = await res.json();
-  tokenCache = { token: j.access_token, exp: Date.now() + (j.expires_in - 120) * 1000 };
-  return tokenCache.token;
-}
+import { SH_STATS_URL, cdseTokenOrNull } from "./cdse";
 
 const EVALSCRIPT = `//VERSION=3
 function setup(){return{input:[{bands:["B03","B04","B08","B11","dataMask"]}],output:[{id:"ndvi",bands:1,sampleType:"FLOAT32"},{id:"ndwi",bands:1,sampleType:"FLOAT32"},{id:"ndmi",bands:1,sampleType:"FLOAT32"},{id:"ndbi",bands:1,sampleType:"FLOAT32"},{id:"dataMask",bands:1}]};}
@@ -34,7 +14,7 @@ export interface MlIndices {
 }
 
 export async function computeIndices(lat: number, lng: number, areaKm2?: number): Promise<MlIndices | null> {
-  const token = await getToken();
+  const token = await cdseTokenOrNull();
   if (!token) return null;
 
   // Аумаққа сай шаршы (км) → градус. Әдепкі ~1 км.
@@ -64,7 +44,7 @@ export async function computeIndices(lat: number, lng: number, areaKm2?: number)
   };
 
   try {
-    const res2 = await fetch(STATS_URL, {
+    const res2 = await fetch(SH_STATS_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),

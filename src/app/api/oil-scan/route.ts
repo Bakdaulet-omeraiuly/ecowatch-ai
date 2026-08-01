@@ -1,28 +1,13 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { allow } from "@/lib/ratelimit";
+import { cdseToken, hasCdseKeys } from "@/lib/cdse";
 
 // Мұнай дағын АНЫҚТАУ (AI-көмекші) — Sentinel-1 SAR + GPT-4o vision.
 // SAR-да тегіс су мен мұнай дағы КҮҢГІРТ көрінеді. Нақты операциялық
 // классификатор үйретілген ML моделін керек етеді — бізде ол жоқ. Сондықтан
 // бұл РАСТАЛҒАН детекция ЕМЕС: GPT күдікті қара дақтарды белгілеп, сенімсіздігін
 // ашық айтады. Дереккөз (SAR суреті) нақты, қорытынды — болжам.
-
-const CLIENT_ID = process.env.SENTINELHUB_CLIENT_ID;
-const CLIENT_SECRET = process.env.SENTINELHUB_CLIENT_SECRET;
-
-async function getToken(): Promise<string> {
-  const res = await fetch(
-    "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`,
-    }
-  );
-  const d = await res.json();
-  return d.access_token;
-}
 
 // Sentinel-1 VV дБ сұр-шкала (қара = тегіс су / ықтимал мұнай)
 const EVALSCRIPT = `//VERSION=3
@@ -43,7 +28,7 @@ export async function GET(req: Request) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return NextResponse.json({ error: "Жарамсыз координата" }, { status: 400 });
   }
-  if (!CLIENT_ID || !CLIENT_SECRET) {
+  if (!hasCdseKeys()) {
     return NextResponse.json({ available: false, reason: "Sentinel Hub кілттері бапталмаған" });
   }
   const apiKey = process.env.OPENAI_API_KEY;
@@ -55,7 +40,7 @@ export async function GET(req: Request) {
   const bbox = [lng - half, lat - half, lng + half, lat + half];
 
   try {
-    const token = await getToken();
+    const token = await cdseToken();
     const body = {
       input: {
         bounds: { bbox, properties: { crs: "http://www.opengis.net/def/crs/EPSG/0/4326" } },

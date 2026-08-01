@@ -68,38 +68,6 @@ function liveText(live: Awaited<ReturnType<typeof fetchLive>>): string {
   ].join(" ");
 }
 
-function mockAgent(lat: number, lng: number, live: Awaited<ReturnType<typeof fetchLive>>): AnalysisResult {
-  const aqi = live?.europeanAqi ?? 30;
-  const no2 = live?.no2 ?? 5;
-  const near = Math.abs(lat - 47.1) < 0.08 && Math.abs(lng - 51.96) < 0.08;
-  const score = Math.min(100, Math.round((near ? 60 : 35) + aqi / 3 + no2 / 4));
-  return {
-    isAgent: true,
-    riskScore: score,
-    confidence: 68,
-    riskLevel: scoreToLevel(score),
-    oilPollution: near,
-    illegalDumping: score > 45,
-    landDegradation: score > 55,
-    standingWater: (live?.weekRainMm ?? 0) > 5,
-    detectedFeatures: [
-      "Спутник суретіндегі визуалды белгілер",
-      `Ауа сапасы AQI=${aqi}`,
-      ...(no2 > 10 ? ["NO₂ деңгейі жоғары — өнеркәсіптік шығарынды белгісі"] : []),
-    ],
-    recommendation:
-      score >= 55
-        ? "Көп дереккөз жоғары тәуекелді растайды — далалық тексеру ұсынылады."
-        : "Тәуекел орташа — мониторингте ұстау жеткілікті.",
-    summary: "AI агент спутник суреті мен тірі ауа/климат деректерін біріктіріп бағалады.",
-    agentSources: [
-      { source: "Mapbox спутник суреті", finding: "Аумақтың визуалды жағдайы талданды." },
-      { source: "Copernicus CAMS (ауа сапасы)", finding: `EU AQI=${aqi}, NO₂=${no2} µg/m³.` },
-      { source: "Open-Meteo (ауа райы)", finding: `Жаңбыр ${live?.weekRainMm ?? 0}мм, ${live?.temperature ?? "?"}°C.` },
-    ],
-  };
-}
-
 export async function POST(req: Request) {
   if (!(await allow(req))) {
     return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
@@ -113,7 +81,18 @@ export async function POST(req: Request) {
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ analysis: mockAgent(lat, lng, live), imageUrl, live, mri, mock: true });
+    return NextResponse.json(
+      {
+        error: "AI агент қолжетімсіз — кілт бапталмаған",
+        detail:
+          "Ойдан бағалау жасалмайды. Тірі деректер (CAMS ауа сапасы, Open-Meteo " +
+          "ауа райы, JAIYQ-MRI маса индексі) төменде — олар нақты әрі AI-сыз да жұмыс істейді.",
+        imageUrl,
+        live,
+        mri,
+      },
+      { status: 503 }
+    );
   }
 
   try {
@@ -141,12 +120,38 @@ export async function POST(req: Request) {
     });
     const raw = JSON.parse(completion.choices[0].message.content ?? "{}");
     const sp = resultSchema.safeParse(raw);
-    if (!sp.success) { console.error("Agent schema:", sp.error.message); return NextResponse.json({ analysis: mockAgent(lat, lng, live), imageUrl, live, mri, mock: true }); }
+    if (!sp.success) {
+      console.error("Agent schema:", sp.error.message);
+      return NextResponse.json(
+      {
+        error: "AI жауабы күтілген пішінде емес — нәтиже көрсетілмейді",
+        detail:
+          "Ойдан бағалау жасалмайды. Тірі деректер (CAMS ауа сапасы, Open-Meteo " +
+          "ауа райы, JAIYQ-MRI маса индексі) төменде — олар нақты әрі AI-сыз да жұмыс істейді.",
+        imageUrl,
+        live,
+        mri,
+      },
+      { status: 502 }
+      );
+    }
     const result = sp.data;
     const analysis: AnalysisResult = { ...result, riskLevel: scoreToLevel(result.riskScore), isAgent: true };
     return NextResponse.json({ analysis, imageUrl, live, mri, mock: false });
   } catch (err) {
     console.error("Agent error:", err);
-    return NextResponse.json({ analysis: mockAgent(lat, lng, live), imageUrl, live, mri, mock: true });
+    // ЖАЛҒАН ДЕРЕККЕ ШЕГІНУ ЖОҚ — жобаның басты қағидасы.
+    return NextResponse.json(
+      {
+        error: "AI агент уақытша қолжетімсіз",
+        detail:
+          "Ойдан бағалау жасалмайды. Тірі деректер (CAMS ауа сапасы, Open-Meteo " +
+          "ауа райы, JAIYQ-MRI маса индексі) төменде — олар нақты әрі AI-сыз да жұмыс істейді.",
+        imageUrl,
+        live,
+        mri,
+      },
+      { status: 503 }
+    );
   }
 }

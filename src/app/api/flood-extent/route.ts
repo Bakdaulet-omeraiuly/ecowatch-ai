@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
+import { csvHeaders, toCsv, withProvenance, type Cell } from "@/lib/csv";
 import { FLOOD_ZONES, zoneAreaKm2 } from "@/data/floodZones";
+import { cdseToken, hasCdseKeys } from "@/lib/cdse";
 import {
   MIN_COVERAGE, RES_M, THRESHOLD_DB,
-  baselineWindow, fetchDailyWater, getToken, median, pixelAreaKm2,
+  baselineWindow, fetchDailyWater, median, pixelAreaKm2,
   type DayStat,
 } from "@/lib/floodSar";
 
@@ -20,9 +22,6 @@ import {
 // `?format=csv` — Excel/есеп үшін.
 
 export const revalidate = 21600; // 6 сағат (S1 қайталау кезеңі ~6 күн)
-
-const CLIENT_ID = process.env.SENTINELHUB_CLIENT_ID;
-const CLIENT_SECRET = process.env.SENTINELHUB_CLIENT_SECRET;
 
 const CURRENT_WINDOW_DAYS = 14; // соңғы қайталау кезеңін қамтиды
 
@@ -53,7 +52,7 @@ function pickLatest(days: DayStat[]): DayStat | null {
 let cache: { at: number; data: unknown } | null = null;
 
 export async function GET(req: Request) {
-  if (!CLIENT_ID || !CLIENT_SECRET) {
+  if (!hasCdseKeys()) {
     return NextResponse.json(
       { error: "Copernicus кілттері бапталмаған — жалған дерек көрсетілмейді" },
       { status: 503 }
@@ -67,7 +66,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const token = await getToken(CLIENT_ID, CLIENT_SECRET);
+    const token = await cdseToken();
     const now = new Date();
     const curTo = iso(now);
     const curFrom = iso(new Date(now.getTime() - CURRENT_WINDOW_DAYS * 86400_000));
@@ -213,39 +212,33 @@ const STATUS_KZ: Record<ZoneResult["status"], string> = {
 };
 
 function csvResponse(d: ApiShape): NextResponse {
-  const esc = (v: unknown) => {
-    const s = v == null ? "" : String(v);
-    return /[",;\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-  };
-  type Cell = string | number | null | undefined;
-  const rows: Cell[][] = [
-    ["Аймақ", "Өлшеу күні", "Аймақ ауданы км2", "Бақыланған км2", "Жалпы су км2",
-      "Тірек су км2", "Су басқан км2", "Аймақтан %", "Қамту", "Күй"],
-    ...d.zones.map((z) => [
-      z.name, z.latestDate ?? "", z.zoneAreaKm2, z.observedKm2 ?? "", z.waterKm2 ?? "",
-      z.baselineKm2 ?? "", z.floodedKm2 ?? "", z.floodedPctOfZone ?? "",
-      z.coverage ?? "", STATUS_KZ[z.status],
-    ]),
-    [],
-    ["ЖИЫНТЫҚ", "", "", "", d.totals.waterKm2, d.totals.baselineKm2, d.totals.floodedKm2, "", "", ""],
-    [],
-    ["Дереккөз", d.source],
-    ["Әдіс", d.method.summary],
-    ["Табалдырық дБ", d.method.thresholdDb],
-    ["Ажыратымдылық м", d.method.resolutionM],
-    ["Ағымдағы кезең", `${d.method.currentWindow.from} … ${d.method.currentWindow.to}`],
-    ["Тірек кезең", d.method.baselineWindow.label],
-    ["Жүктелген", d.fetchedAt],
-    [],
-    ["ЕСКЕРТУЛЕР"],
-    ...d.caveats.map((c) => [c]),
-  ];
-  // BOM — Excel кириллицаны дұрыс оқуы үшін
-  const csv = "﻿" + rows.map((r) => r.map(esc).join(";")).join("\r\n");
-  return new NextResponse(csv, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="jaiyq-su-tasqyny-${d.fetchedAt.slice(0, 10)}.csv"`,
-    },
+  const rows: Cell[][] = withProvenance(
+    [
+      ["Аймақ", "Өлшеу күні", "Аймақ ауданы км2", "Бақыланған км2", "Жалпы су км2",
+        "Тірек су км2", "Су басқан км2", "Аймақтан %", "Қамту", "Күй"],
+      ...d.zones.map((z) => [
+        z.name, z.latestDate ?? "", z.zoneAreaKm2, z.observedKm2 ?? "", z.waterKm2 ?? "",
+        z.baselineKm2 ?? "", z.floodedKm2 ?? "", z.floodedPctOfZone ?? "",
+        z.coverage ?? "", STATUS_KZ[z.status],
+      ]),
+      [],
+      ["ЖИЫНТЫҚ", "", "", "", d.totals.waterKm2, d.totals.baselineKm2, d.totals.floodedKm2, "", "", ""],
+      [],
+      ["Табалдырық, дБ", d.method.thresholdDb],
+      ["Ажыратымдылық, м", d.method.resolutionM],
+      ["Ағымдағы кезең", `${d.method.currentWindow.from} … ${d.method.currentWindow.to}`],
+      ["Тірек кезең", d.method.baselineWindow.label],
+    ],
+    {
+      dataset: "Су басқан аумақ — Sentinel-1 SAR",
+      tier: "Өлшем",
+      source: d.source,
+      fetchedAt: d.fetchedAt,
+      method: `${d.method.summary} ${d.method.deltaExplanation}`,
+      caveats: d.caveats,
+    }
+  );
+  return new NextResponse(toCsv(rows), {
+    headers: csvHeaders(`jaiyq-su-tasqyny-${d.fetchedAt.slice(0, 10)}.csv`),
   });
 }

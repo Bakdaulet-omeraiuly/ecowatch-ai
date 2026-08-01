@@ -1,28 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { cdseToken } from "@/lib/cdse";
 
 // Sentinel-5P/TROPOMI тайл прокси (Process API)
 // Tile z/x/y → EPSG:3857 bbox → Sentinel Hub → PNG жауап
-
-const CLIENT_ID = process.env.SENTINELHUB_CLIENT_ID!;
-const CLIENT_SECRET = process.env.SENTINELHUB_CLIENT_SECRET!;
-
-let tokenCache: { token: string; exp: number } | null = null;
-
-async function getToken(): Promise<string> {
-  if (tokenCache && Date.now() < tokenCache.exp - 30_000) return tokenCache.token;
-  const res = await fetch(
-    "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`,
-    }
-  );
-  const d = await res.json();
-  tokenCache = { token: d.access_token, exp: Date.now() + d.expires_in * 1000 };
-  return tokenCache.token;
-}
 
 // XYZ тайл координаттарын EPSG:3857 bbox-ке түрлендіру
 function tileToBbox(z: number, x: number, y: number) {
@@ -146,7 +127,7 @@ export async function GET(
   const [minX, minY, maxX, maxY] = tileToBbox(zi, xi, yi);
 
   try {
-    const token = await getToken();
+    const token = await cdseToken();
 
     const body = {
       input: {

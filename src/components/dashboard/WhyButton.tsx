@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sparkles, Loader2, Wind, Thermometer, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
+import { TierBadge } from "@/components/ui/TierBadge";
 
 interface Factor { label: string; detail: string; severity: "ok" | "warn" | "bad" }
 interface WhyData { verdict: string; aqi: number | null; summary: string; factors: Factor[] }

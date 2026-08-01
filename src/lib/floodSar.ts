@@ -16,32 +16,11 @@
 // күңгірт беттер екеуінде де бар болғандықтан өзара жойылады, ал қалғаны —
 // шынымен жаңа су.
 
+import { SH_STATS_URL } from "./cdse";
+
 export const THRESHOLD_DB = -16; // VV gamma0, ашық су үшін операциялық шама
 export const RES_M = 120; // EPSG:3857 бірлігі (метр) — есептеу қадамы
 export const MIN_COVERAGE = 0.6; // жарамды пиксель үлесі осыдан төмен болса — қабылданбайды
-
-const TOKEN_URL =
-  "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token";
-const STATS_URL = "https://sh.dataspace.copernicus.eu/api/v1/statistics";
-
-let tokenCache: { token: string; exp: number } | null = null;
-
-export async function getToken(clientId: string, clientSecret: string): Promise<string> {
-  if (tokenCache && Date.now() < tokenCache.exp - 30_000) return tokenCache.token;
-  const res = await fetch(TOKEN_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "client_credentials",
-      client_id: clientId,
-      client_secret: clientSecret,
-    }).toString(),
-  });
-  if (!res.ok) throw new Error(`CDSE token ${res.status}`);
-  const d = (await res.json()) as { access_token: string; expires_in: number };
-  tokenCache = { token: d.access_token, exp: Date.now() + d.expires_in * 1000 };
-  return tokenCache.token;
-}
 
 const EVALSCRIPT = `//VERSION=3
 function setup() {
@@ -131,7 +110,7 @@ export async function fetchDailyWater(
     },
   };
 
-  const res = await fetch(STATS_URL, {
+  const res = await fetch(SH_STATS_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
     body: JSON.stringify(body),

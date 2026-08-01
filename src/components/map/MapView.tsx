@@ -645,8 +645,15 @@ export function MapView() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ lat, lng, lang }),
           });
-          if (!res.ok) throw new Error();
           const data = await res.json();
+          if (!res.ok) {
+            // Жалған дерек көрсетілмейді — себебін нақты айтамыз
+            toast.error(tr(data.error ?? "AI агент қолжетімсіз"), {
+              description: data.detail ? tr(data.detail) : undefined,
+              duration: 8000,
+            });
+            return;
+          }
           const site: Site = {
             id: `agent-${Date.now()}`,
             lat,
@@ -664,9 +671,7 @@ export function MapView() {
           };
           addSite(site);
           setSelected(site);
-          toast.success(
-            data.mock ? "AI агент бағалауы дайын (демо режимі)" : "🤖 AI агент көп дереккөзді бағалауы дайын!"
-          );
+          toast.success(tr("🤖 AI агент көп дереккөзді бағалауы дайын!"));
         } else {
           toast.info(
             viewYear
@@ -678,8 +683,14 @@ export function MapView() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ mode: "satellite", lat, lng, imageryYear: viewYear, zoom: opts?.zoom, areaKm2: opts?.areaKm2, lang }),
           });
-          if (!res.ok) throw new Error("API қатесі");
           const data = await res.json();
+          if (!res.ok) {
+            toast.error(tr(data.error ?? "AI талдауы қолжетімсіз"), {
+              description: data.detail ? tr(data.detail) : undefined,
+              duration: 8000,
+            });
+            return;
+          }
           const site: Site = {
             id: `user-${Date.now()}`,
             lat,
@@ -698,7 +709,7 @@ export function MapView() {
           };
           addSite(site);
           setSelected(site);
-          toast.success(data.mock ? tr("Талдау дайын (демо режимі — API кілті жоқ)") : tr("AI талдауы дайын!"));
+          toast.success(tr("AI талдауы дайын!"));
           if (data.analysis.riskScore >= 55) {
             toast.warning(tr("⚠️ Жоғары тәуекел! Жауапты органға хабарлама автоматты жіберілді"), {
               description: tr("Толығырақ: «Ескертулер» бөлімінде"),
