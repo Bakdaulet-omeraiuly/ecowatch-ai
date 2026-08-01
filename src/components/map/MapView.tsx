@@ -2170,8 +2170,23 @@ export function MapView() {
                     </div>
                   ))}
                 </div>
-                <div className="mb-1.5 text-[10px] font-medium text-neutral-300">
-                  {tr(airElem.label)}{airElem.unit ? ` · ${airElem.unit}` : ""}
+                <div className="mb-1.5 flex items-center justify-between gap-1">
+                  <span className="text-[10px] font-medium text-neutral-300">
+                    {tr(airElem.label)}{airElem.unit ? ` · ${airElem.unit}` : ""}
+                  </span>
+                  {airElem.s5p && (
+                    <button
+                      onClick={() => setGibsKey((k) => (k === airElem.s5p ? null : airElem.s5p!))}
+                      title="Sentinel-5P спутрик растрын қосу/өшіру"
+                      className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-[9px] font-semibold transition-colors ${
+                        gibsKey === airElem.s5p
+                          ? "border-indigo-400 bg-indigo-500/30 text-indigo-100"
+                          : "border-indigo-500/40 bg-indigo-500/10 text-indigo-200 hover:bg-indigo-500/20"
+                      }`}
+                    >
+                      <Satellite className="h-2.5 w-2.5" /> {gibsKey === airElem.s5p ? tr("Спутрик қосулы") : tr("Спутрик")}
+                    </button>
+                  )}
                 </div>
 
                 {airStats && airElem.key !== "aqi" && (

@@ -10,6 +10,7 @@ export interface AtmosElement {
   category: "Индекс" | "Негізгі ластаушылар" | "Қосымша газдар" | "Аэрозоль / басқа";
   maxRef: number;
   ramp: [string, string, string, string];
+  s5p?: string; // Sentinel-5P спутрик тайл кілті (болса — спутрик көрінісі қосуға болады)
 }
 
 const RAMP: [string, string, string, string] = [
@@ -21,16 +22,16 @@ export const ATMOS_ELEMENTS: AtmosElement[] = [
 
   { key: "pm2_5", short: "PM₂.₅", label: "Ұсақ шаң (2.5 мкм)", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 75, ramp: RAMP },
   { key: "pm10",  short: "PM₁₀",  label: "Ірі шаң (10 мкм)", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP },
-  { key: "no2",   short: "NO₂",   label: "Азот диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP },
-  { key: "so2",   short: "SO₂",   label: "Күкірт диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP },
+  { key: "no2",   short: "NO₂",   label: "Азот диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP, s5p: "no2" },
+  { key: "so2",   short: "SO₂",   label: "Күкірт диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP, s5p: "so2" },
   { key: "ozone", short: "O₃",    label: "Озон", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 160, ramp: RAMP },
-  { key: "co",    short: "CO",    label: "Көміртек тотығы", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 4000, ramp: RAMP },
+  { key: "co",    short: "CO",    label: "Көміртек тотығы", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 4000, ramp: RAMP, s5p: "co" },
 
   { key: "nh3",   short: "NH₃",   label: "Аммиак", unit: "µg/m³", category: "Қосымша газдар", maxRef: 30, ramp: RAMP },
-  { key: "ch4",   short: "CH₄",   label: "Метан", unit: "µg/m³", category: "Қосымша газдар", maxRef: 2200, ramp: RAMP },
+  { key: "ch4",   short: "CH₄",   label: "Метан", unit: "µg/m³", category: "Қосымша газдар", maxRef: 2200, ramp: RAMP, s5p: "ch4" },
 
   { key: "dust",  short: "Шаң",   label: "Шөл шаңы", unit: "µg/m³", category: "Аэрозоль / басқа", maxRef: 120, ramp: RAMP },
-  { key: "aod",   short: "AOD",   label: "Аэрозоль оптикалық тығыздығы", unit: "", category: "Аэрозоль / басқа", maxRef: 1, ramp: RAMP },
+  { key: "aod",   short: "AOD",   label: "Аэрозоль оптикалық тығыздығы", unit: "", category: "Аэрозоль / басқа", maxRef: 1, ramp: RAMP, s5p: "aod" },
   { key: "uv",    short: "UV",    label: "Ультракүлгін индексі", unit: "", category: "Аэрозоль / басқа", maxRef: 11, ramp: RAMP },
 ];
 
