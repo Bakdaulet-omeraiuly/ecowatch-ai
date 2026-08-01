@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { cn } from "@/lib/utils";
 import { JaiyqLogo } from "@/components/layout/JaiyqLogo";
 import { useLang } from "@/lib/i18n";
+import { RegionPicker } from "@/components/layout/RegionPicker";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -38,6 +39,8 @@ export function Navbar() {
     { href: "/compare", label: t("nav.compare") },
     { href: "/report", label: t("nav.report") },
     { href: "/moderation", label: t("nav.moderation") },
+    { href: "/caspian", label: "Каспий" },
+    { href: "/legislation", label: "Заңнама" },
     { href: "/eco-passport", label: t("nav.passport") },
     { href: "/alerts", label: t("nav.alerts") },
   ];
@@ -78,6 +81,11 @@ export function Navbar() {
             </Link>
           ))}
         </nav>
+
+        {/* Аймақ таңдағыш — жүйе енді тек Атырауға арналмаған */}
+        <div className="shrink-0">
+          <RegionPicker compact />
+        </div>
 
         {/* Тіл ауыстырғыш KZ / RU / EN — әрқашан оң жақта */}
         <div className="flex shrink-0 items-center overflow-hidden rounded-md border border-white/10">
