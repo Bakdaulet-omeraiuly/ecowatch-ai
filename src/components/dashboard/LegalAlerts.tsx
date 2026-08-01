@@ -39,6 +39,21 @@ interface Result {
   fetchedAt?: string;
 }
 
+interface SummationComponent {
+  id: string; name: string; value: number | null; limit: number | null;
+  ratio: number | null; normVerified: boolean; missingReason?: string;
+}
+interface SummationGroupResult {
+  groupNo: number; components: SummationComponent[]; complete: boolean;
+  sum: number | null; allNormsVerified: boolean; excludedByDominance: boolean;
+  dominanceNote?: string; level: ComplianceLevel; summary: string;
+}
+interface Summation {
+  computable: number; violations: number; groups: SummationGroupResult[];
+  source: { act: string; amendment: string; registration: string; url: string; formula: string; dominanceRule: string };
+  explain: string;
+}
+
 interface Data {
   fetchedAt: string;
   checkedCount: number;
@@ -48,6 +63,7 @@ interface Data {
   preliminary: number;
   approaching: number;
   results: Result[];
+  summation: Summation;
 }
 
 const ORDER: Record<ComplianceLevel, number> = {
@@ -212,6 +228,87 @@ export function LegalAlerts() {
                 </div>
               ))}
             </div>
+
+            {/* ЖИНАҚТАЛУ ӘСЕРІ — ҚР ДСМ-70, 3-кесте */}
+            {data.summation && (
+              <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-2.5">
+                <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-neutral-100">
+                    {tr("Жинақталу әсері")}
+                  </span>
+                  <code className="rounded bg-white/5 px-1 py-px text-[10px] text-emerald-200">
+                    {data.summation.source.formula}
+                  </code>
+                  {data.summation.violations > 0 && (
+                    <span className="rounded-full border border-red-400/40 bg-red-500/15 px-1.5 py-0.5 text-[9px] font-semibold text-red-200">
+                      {data.summation.violations} {tr("бұзушылық")}
+                    </span>
+                  )}
+                </div>
+                <p className="mb-1.5 text-[10px] leading-relaxed text-neutral-400">
+                  {data.summation.explain}
+                </p>
+
+                <div className="space-y-1">
+                  {data.summation.groups
+                    .filter((g) => g.complete)
+                    .map((g) => (
+                      <div key={g.groupNo} className="rounded border border-white/10 bg-white/[0.02] px-2 py-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className={`rounded border px-1 py-px text-[9px] ${LEVEL_COLOR[g.level]}`}>
+                            {tr(LEVEL_KZ[g.level])}
+                          </span>
+                          <span className="text-[10px] text-neutral-400">
+                            {tr("топ")} №{g.groupNo}
+                          </span>
+                          <span className="ml-auto text-[12px] font-bold text-white">
+                            Σ = {g.sum}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-neutral-400">
+                          {g.components.map((c) => (
+                            <span key={c.id}>
+                              {c.name.split(" ")[0]}{" "}
+                              <span className="text-neutral-200">
+                                {c.ratio != null ? c.ratio.toFixed(2) : "—"}
+                              </span>
+                              {!c.normVerified && <span className="text-amber-300/80"> ⚠</span>}
+                            </span>
+                          ))}
+                        </div>
+                        <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">{g.summary}</p>
+                        {g.dominanceNote && (
+                          <p className="mt-0.5 text-[10px] leading-relaxed text-sky-200/70">
+                            ℹ {g.dominanceNote}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                </div>
+
+                {data.summation.computable === 0 && (
+                  <p className="text-[10px] leading-relaxed text-neutral-500">
+                    {tr(
+                      "Толық есептелетін топ жоқ — кестедегі топтардың көбі жүйеде " +
+                      "өлшенбейтін заттарды қамтиды (күкіртсутек, фенол, формальдегид). " +
+                      "Олар үшін жер бетіндегі зертханалық өлшем қажет."
+                    )}
+                  </p>
+                )}
+
+                <p className="mt-1.5 border-t border-white/10 pt-1.5 text-[9px] leading-relaxed text-neutral-500">
+                  {data.summation.source.act} · {data.summation.source.amendment} ·{" "}
+                  <a
+                    href={data.summation.source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sky-300/80 underline-offset-2 hover:underline"
+                  >
+                    {data.summation.source.registration}
+                  </a>
+                </p>
+              </div>
+            )}
 
             <p className="mt-3 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-amber-200/70">
               ⚖ {data.results[0]?.disclaimer}

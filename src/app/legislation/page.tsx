@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ExternalLink, Scale, AlertTriangle } from "lucide-react";
 import { ACTS, AVERAGING_KZ, LEGAL_DISCLAIMER, NORMS } from "@/data/legalNorms";
+import { SUBSTANCES, SUMMATION_GROUPS, SUMMATION_SOURCE } from "@/data/summationGroups";
 import { INDICATORS } from "@/data/indicatorRegistry";
 
 // ЗАҢНАМА — қолданыстағы актілер мен норма тізілімі.
@@ -176,6 +177,85 @@ export default function LegislationPage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* Жинақталу әсері — 2025 ж. № 10 бұйрықпен енгізілген 3-кесте */}
+      <section className="mb-10">
+        <h2 className="mb-1 text-xl font-semibold text-white">Жинақталу (суммация) әсері</h2>
+        <p className="mb-3 text-[12px] leading-relaxed text-neutral-400">
+          {SUMMATION_SOURCE.act} — {SUMMATION_SOURCE.amendment}.
+        </p>
+
+        <div className="mb-3 rounded-xl border border-emerald-400/25 bg-emerald-500/[0.06] p-4">
+          <div className="mb-1 font-mono text-lg text-emerald-200">{SUMMATION_SOURCE.formula}</div>
+          <p className="text-[12px] leading-relaxed text-emerald-100/85">
+            Cᵢ — атмосфералық ауадағы заттың нақты шоғырлануы, ШРКᵢ — сол заттың рұқсат
+            етілген шекті шоғырлануы. Жинақталу әсері бар заттар бірге болғанда, олардың
+            қатынастарының қосындысы <b>1-ден аспауға тиіс</b>.
+          </p>
+          <p className="mt-2 text-[12px] leading-relaxed text-white">
+            Бұл нені білдіреді: әр зат <b>жеке-жеке норма шегінде</b> тұрып, бірге алғанда
+            норманы <b>бұзуы мүмкін</b>. Мысалы NO₂ = 0,6 ШРК және SO₂ = 0,6 ШРК — екеуі де
+            «жасыл», ал қосындысы 1,2 &gt; 1 → бұзушылық.
+          </p>
+        </div>
+
+        <div className="mb-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+          <div className="mb-1 text-[11px] font-semibold text-neutral-200">Ерекшелік ережесі</div>
+          <p className="text-[11px] leading-relaxed text-neutral-400">
+            {SUMMATION_SOURCE.dominanceRule}
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] text-left text-[11px]">
+            <thead className="text-neutral-400">
+              <tr className="border-b border-white/10">
+                <th className="py-2 pr-3 font-medium">№</th>
+                <th className="py-2 pr-3 font-medium">Топ құрамы</th>
+                <th className="py-2 font-medium">Жүйеде есептеледі ме</th>
+              </tr>
+            </thead>
+            <tbody>
+              {SUMMATION_GROUPS.map((g) => {
+                const measured = g.substances.filter((id) => SUBSTANCES[id].measured);
+                const missing = g.substances.filter((id) => !SUBSTANCES[id].measured);
+                const full = missing.length === 0 && g.mode !== "independent";
+                return (
+                  <tr key={g.no} className="border-b border-white/5 last:border-0">
+                    <td className="py-2 pr-3 text-neutral-500">{g.no}</td>
+                    <td className="py-2 pr-3 text-neutral-200">
+                      {g.substances.map((id) => SUBSTANCES[id].name).join(" + ")}
+                      {g.modeNote && (
+                        <span className="block text-[10px] text-neutral-500">{g.modeNote}</span>
+                      )}
+                    </td>
+                    <td className="py-2">
+                      {full ? (
+                        <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-200">
+                          иә — {measured.length} компонент
+                        </span>
+                      ) : (
+                        <span
+                          className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] text-neutral-400"
+                          title={missing.map((id) => SUBSTANCES[id].name).join(", ")}
+                        >
+                          жоқ — {missing.length} зат өлшенбейді
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
+          Толық кестеде 59 топ бар. Мұнда жүйеде кемінде бір заты өлшенетіндері
+          келтірілген — қалғандары (акрил қышқылы, фурфурол, ванадий аэрозольдері т.б.)
+          үшін жер бетіндегі зертханалық өлшем қажет.
+        </p>
       </section>
 
       <section className="mb-10">

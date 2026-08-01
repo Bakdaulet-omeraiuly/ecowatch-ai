@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { INDICATORS, resolvePath } from "@/data/indicatorRegistry";
 import { normsFor } from "@/data/legalNorms";
 import { aggregate, checkCompliance, type ComplianceResult } from "@/lib/compliance";
+import { evaluateAllGroups } from "@/lib/summation";
+import type { SubstanceId } from "@/data/summationGroups";
 
 // ЗАҢНАМАЛЫҚ СӘЙКЕСТІК — тірі деректі ҚР/WHO/EU нормаларымен салыстыру.
 //
@@ -60,6 +62,19 @@ export async function GET(req: Request) {
 
   const agg = aggregate(results);
 
+  // ЖИНАҚТАЛУ ӘСЕРІ — ҚР ДСМ-70, 3-кесте (2025 ж. № 10 бұйрықпен енгізілген).
+  // Әр зат жеке норма шегінде тұрса да, қосындысы 1-ден аспауы керек.
+  const byId = new Map(results.map((r) => [r.indicatorId, r.value]));
+  const substanceValues: Partial<Record<SubstanceId, number | null>> = {
+    no2: byId.get("no2") ?? null,
+    so2: byId.get("so2") ?? null,
+    co: byId.get("co") ?? null,
+    ozone: byId.get("ozone") ?? null,
+    pm25: byId.get("pm25") ?? null,
+    pm10: byId.get("pm10") ?? null,
+  };
+  const summation = evaluateAllGroups(substanceValues);
+
   const data = {
     fetchedAt: new Date().toISOString(),
     checkedCount: results.length,
@@ -70,6 +85,16 @@ export async function GET(req: Request) {
     preliminary: results.filter((r) => r.worst === "exceeded-unverified").length,
     approaching: results.filter((r) => r.worst === "approaching").length,
     results,
+    summation: {
+      computable: summation.computable,
+      violations: summation.violations,
+      groups: summation.results,
+      source: summation.source,
+      explain:
+        "Жинақталу әсері: бірнеше зат бірге әсер еткенде, олардың ШРК-ға " +
+        "қатынастарының қосындысы 1-ден аспауы керек. Әр зат жеке-жеке норма " +
+        "шегінде тұрып, қосындысы норманы бұзуы мүмкін.",
+    },
     note:
       "Норма тізілімі: src/data/legalNorms.ts. Бастапқы құқықтық актіден " +
       "расталмаған шек бойынша заңдық тұжырым шығарылмайды.",
