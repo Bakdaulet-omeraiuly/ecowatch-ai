@@ -21,6 +21,7 @@ import { MlForecast } from "@/components/dashboard/MlForecast";
 import { FloodExtent } from "@/components/dashboard/FloodExtent";
 import { ExportPanel } from "@/components/dashboard/ExportPanel";
 import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
+import { EventFeed } from "@/components/dashboard/EventFeed";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -291,6 +292,9 @@ export default function DashboardPage() {
 
       {/* Заңнамалық сәйкестік — ҚР/WHO/EU нормаларынан асу (ең жоғарыда) */}
       <LegalAlerts />
+
+      {/* Оқиғалар таспасы — нақты дерек нүктелері, уақыт бойынша */}
+      <EventFeed limit={12} />
 
       {/* AI «Неге?» — бүгінгі ауаны тірі деректермен түсіндіру */}
       <WhyButton />
