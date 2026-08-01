@@ -5,6 +5,7 @@ import { Radio, Satellite, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { aqiCategory } from "@/lib/airQuality";
 import { useLang } from "@/lib/i18n";
+import { TierBadge } from "@/components/ui/TierBadge";
 
 // Атырау қаласы бойынша ЕКІ дереккөзді қатар салыстыру:
 //  • CAMS моделі (біздің, ~11км орташа)  • Qazhydromet нақты жердегі датчигі
@@ -46,6 +47,7 @@ export function SourceComparison() {
     <Card className="border-white/10 bg-white/[0.03]">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm text-white">
+          <TierBadge tier="model" />
           {tr("Дереккөздерді салыстыру — Атырау")}
         </CardTitle>
         <p className="text-[11px] text-neutral-400">

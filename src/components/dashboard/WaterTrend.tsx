@@ -5,6 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 import { Waves, Loader2, TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
+import { TierBadge } from "@/components/ui/TierBadge";
 
 interface Trend {
   river: string; unit: string; changePct: number; trend: string;
@@ -32,6 +33,7 @@ export function WaterTrend() {
     <Card className="border-teal-500/20 bg-teal-500/[0.04]">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm text-white">
+          <TierBadge tier="model" />
           <Waves className="h-4 w-4 text-teal-400" />
           {tr("Су деңгейінің өзгерісі — Жайық өзені (2020→қазір)")}
         </CardTitle>

@@ -19,6 +19,7 @@ import { WhyButton } from "@/components/dashboard/WhyButton";
 import { WaterTrend } from "@/components/dashboard/WaterTrend";
 import { MlForecast } from "@/components/dashboard/MlForecast";
 import { FloodExtent } from "@/components/dashboard/FloodExtent";
+import { ExportPanel } from "@/components/dashboard/ExportPanel";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -148,7 +149,7 @@ export default function DashboardPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ history: riskHistory }),
     })
-      .then((r) => r.json())
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) =>
         setForecast({
           trend: d.forecast.trend,
@@ -295,6 +296,9 @@ export default function DashboardPage() {
 
       {/* Су басқан аумақ — Sentinel-1 радарымен ӨЛШЕНГЕН км² */}
       <FloodExtent />
+
+      {/* Эколог есебі үшін CSV экспорт + сенімділік деңгейлерінің легендасы */}
+      <ExportPanel />
 
       {/* Су деңгейінің өзгерісі — Жайық өзені 2020→қазір (GloFAS) */}
       <WaterTrend />

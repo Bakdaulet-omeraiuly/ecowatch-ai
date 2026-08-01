@@ -52,96 +52,6 @@ const resultSchema = z.object({
   verificationNotes: z.string().optional(),
 });
 
-// Deterministic fallback when no API key — keyed off coordinates so the demo
-// stays consistent: oil zones near Tengiz/refinery score high, river zones
-// get standing water, etc.
-function mockAnalysis(lat: number, lng: number, mode: string): AnalysisResult {
-  const nearTengiz = Math.abs(lat - 46.2) < 0.4 && Math.abs(lng - 53.3) < 0.5;
-  const nearRefinery = Math.abs(lat - 47.1) < 0.06 && Math.abs(lng - 51.96) < 0.06;
-  const nearRiver = Math.abs(lng - 51.9) < 0.15 && lat > 46.9 && lat < 47.8;
-  const seedNoise = Math.abs(Math.sin(lat * 7919 + lng * 104729));
-  let score: number;
-  if (nearTengiz || nearRefinery) score = 75 + Math.round(seedNoise * 20);
-  else if (nearRiver) score = 40 + Math.round(seedNoise * 30);
-  else score = 15 + Math.round(seedNoise * 45);
-  const oil = nearTengiz || nearRefinery;
-  const water = nearRiver || seedNoise > 0.7;
-  const ndvi = Math.max(0.05, 0.6 - score / 200);
-  const evidence = [
-    ...(oil
-      ? [{
-          sign: "Мұнай ластануы",
-          evidence: `Беткейде аномальды шағылысу аймақтары; NDBI прокси ${(0.3 + seedNoise * 0.3).toFixed(2)}`,
-          confidence: 70 + Math.round(seedNoise * 20),
-          prediction: "Шара қолданылмаса, дақ 2-3 ай ішінде ~20%-ға кеңеюі мүмкін.",
-        }]
-      : []),
-    ...(score > 55
-      ? [{
-          sign: "Жер деградациясы",
-          evidence: `NDVI прокси-индексі ${ndvi.toFixed(2)} — өсімдік жамылғысы айтарлықтай әлсіреген`,
-          confidence: 65 + Math.round(seedNoise * 20),
-          prediction: "Келесі маусымда топырақ эрозиясы ~15%-ға артуы ықтимал.",
-        }]
-      : []),
-    ...(water
-      ? [{
-          sign: "Тұрған су (маса ошағы)",
-          evidence: `NDWI прокси ${(0.4 + seedNoise * 0.3).toFixed(2)} — тегіс су беттері анықталды`,
-          confidence: 75,
-          prediction: "Мамыр-шілде аралығында маса белсенділігі пик деңгейге жетеді.",
-        }]
-      : []),
-  ];
-  return {
-    science: {
-      ndvi: +ndvi.toFixed(2),
-      ndbi: +(oil || score > 50 ? 0.35 + seedNoise * 0.3 : 0.1 + seedNoise * 0.15).toFixed(2),
-      ndwi: +(water ? 0.45 + seedNoise * 0.3 : 0.08 + seedNoise * 0.1).toFixed(2),
-      areaM2: Math.round((2000 + seedNoise * 38000) / 100) * 100,
-      changeDynamics:
-        score > 55
-          ? "Өткен айдағы бағалаумен салыстырғанда ластану аумағы ~8-12%-ға ұлғайған (болжалды)"
-          : "Өткен кезеңмен салыстырғанда айтарлықтай өзгеріс байқалмайды",
-      nearbyInfrastructure: [
-        ...(nearRefinery ? ["Мұнай өңдеу зауыты (~1 км)"] : []),
-        ...(nearRiver ? ["Жайық өзені (<2 км)", "Тұрғын аудандар (~3 км)"] : []),
-        ...(nearTengiz ? ["Кен орны инфрақұрылымы (~2 км)", "Технологиялық жолдар"] : []),
-        ...(!nearRefinery && !nearRiver && !nearTengiz ? ["Далалық жолдар"] : []),
-      ],
-      textureNote:
-        score > 55
-          ? "Хаотикалық пішінді, ландшафттан түсі өзгеше аймақтар — техногендік әсердің белгісі"
-          : "Текстура біркелкі, табиғи ландшафтқа сәйкес",
-      evidence,
-    },
-    riskScore: score,
-    confidence: 60 + Math.round(seedNoise * 25),
-    riskLevel: scoreToLevel(score),
-    oilPollution: oil,
-    illegalDumping: !oil && score > 40,
-    landDegradation: score > 55,
-    standingWater: water,
-    detectedFeatures: [
-      ...(oil ? ["Мұнай дақтарына ұқсас қара аймақтар", "Топырақ түсінің өзгеруі"] : []),
-      ...(!oil && score > 40 ? ["Кездейсоқ объекттер кластері", "Кіреберіс жол іздері"] : []),
-      ...(water ? ["Тұрған су айдындары"] : []),
-      ...(score <= 40 && !water ? ["Айтарлықтай ауытқу байқалмады"] : []),
-    ],
-    recommendation:
-      score >= 55
-        ? "Жедел далалық тексеру ұсынылады. Жергілікті экология департаментіне хабарлау қажет."
-        : "Кезекті мониторинг аясында бақылауда ұстау жеткілікті.",
-    summary:
-      score >= 55
-        ? "Аумақта экологиялық бұзылу белгілері анықталды — назар аудару қажет."
-        : "Аумақ салыстырмалы түрде таза, елеулі бұзылулар байқалмады.",
-    ...(mode === "combined"
-      ? { verificationStatus: (score >= 50 ? "confirmed" : "unconfirmed") as "confirmed" | "unconfirmed", verificationNotes: "Демо режимі: спутник деректері шартты түрде салыстырылды." }
-      : {}),
-  };
-}
-
 export async function POST(req: Request) {
   if (!(await allow(req))) {
     return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
@@ -157,7 +67,16 @@ export async function POST(req: Request) {
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ analysis: mockAnalysis(lat, lng, mode), imageUrl, mock: true });
+    return NextResponse.json(
+      {
+        error: "AI баяндамасы қолжетімсіз — кілт бапталмаған",
+        detail:
+          "Ойдан талдау жасалмайды. Нақты Sentinel-2 өлшемдері (NDVI/NDWI/NDMI/NDBI) " +
+          "бөлек қолжетімді — /api/indices.",
+        imageUrl,
+      },
+      { status: 503 }
+    );
   }
 
   try {
@@ -201,13 +120,32 @@ export async function POST(req: Request) {
     const parsedResult = resultSchema.safeParse(raw);
     if (!parsedResult.success) {
       console.error("Analyze schema mismatch:", parsedResult.error.message);
-      return NextResponse.json({ analysis: mockAnalysis(lat, lng, mode), imageUrl, mock: true });
+      return NextResponse.json(
+        {
+          error: "AI жауабы күтілген пішінде емес — нәтиже көрсетілмейді",
+          detail: "Жарамсыз жауапты «талдау» ретінде ұсынбаймыз. Қайталап көріңіз.",
+          imageUrl,
+        },
+        { status: 502 }
+      );
     }
     const analysis: AnalysisResult = { ...parsedResult.data, riskLevel: scoreToLevel(parsedResult.data.riskScore) };
     return NextResponse.json({ analysis, imageUrl, mock: false });
   } catch (err) {
     console.error("Analyze error:", err);
-    // Graceful degradation: fall back to mock so the demo never hard-fails
-    return NextResponse.json({ analysis: mockAnalysis(lat, lng, mode), imageUrl, mock: true });
+    // ЖАЛҒАН ДЕРЕККЕ ШЕГІНУ ЖОҚ. Бұрын мұнда ойдан жасалған талдау
+    // қайтарылатын («демо ешқашан құламасын» деп) — ол синустан шыққан
+    // санды «NDVI» мен «сенімділік 78%» етіп көрсететін де, нақтысымен
+    // бірге сақталатын. Жобаның басты қағидасы оған тыйым салады.
+    return NextResponse.json(
+      {
+        error: "AI талдауы уақытша қолжетімсіз",
+        detail:
+          "Ойдан талдау жасалмайды. Осы нүктенің нақты спутник өлшемдерін " +
+          "«ML индекстері» бөлімінен көруге болады (Sentinel-2).",
+        imageUrl,
+      },
+      { status: 503 }
+    );
   }
 }

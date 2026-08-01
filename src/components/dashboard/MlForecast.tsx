@@ -7,6 +7,7 @@ import {
 import { BrainCircuit, Loader2, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
+import { TierBadge } from "@/components/ui/TierBadge";
 
 interface Metrics { mae: number; rmse: number; r2: number | null }
 interface MlData {
@@ -53,6 +54,7 @@ export function MlForecast() {
     <Card className="border-violet-500/20 bg-violet-500/[0.04]">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm text-white">
+          <TierBadge tier="model" />
           <BrainCircuit className="h-4 w-4 text-violet-400" />
           {tr("JAIYQ-ML — 11 күндік ауа сапасы болжамы")}
           <button

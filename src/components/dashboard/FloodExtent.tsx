@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Waves, Loader2, Download, Info, Satellite } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
+import { TierBadge } from "@/components/ui/TierBadge";
 
 interface Zone {
   id: string; name: string; note: string;
@@ -62,6 +63,7 @@ export function FloodExtent() {
     <Card className="border-sky-500/20 bg-sky-500/[0.04]">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm text-white">
+          <TierBadge tier="measurement" />
           <Waves className="h-4 w-4 text-sky-400" />
           {tr("Су басқан аумақ — Sentinel-1 радары")}
           <button

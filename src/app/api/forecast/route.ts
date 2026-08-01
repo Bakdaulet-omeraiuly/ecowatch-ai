@@ -16,32 +16,6 @@ const forecastSchema = z.object({
   outlook: z.string(),
 });
 
-function mockForecast(history: { month: string; score: number }[]) {
-  const last = history[history.length - 1]?.score ?? 50;
-  const slope =
-    history.length > 1 ? (last - history[0].score) / (history.length - 1) : 1;
-  const lastMonth = history[history.length - 1]?.month ?? "2026-06";
-  const [y, m] = lastMonth.split("-").map(Number);
-  const projectedScores = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(y, m - 1 + i + 1);
-    return {
-      month: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
-      score: Math.round(Math.min(100, Math.max(0, last + slope * (i + 1)))),
-    };
-  });
-  return {
-    trend: slope > 1 ? ("degrading" as const) : slope < -1 ? ("improving" as const) : ("stable" as const),
-    projectedScores,
-    drivers: [
-      "Мұнай өндіру белсенділігінің сақталуы",
-      "Көктемгі тасқын маусымы (мамыр–шілде)",
-      "Қоқыс шығару инфрақұрылымының жетіспеуі",
-    ],
-    outlook:
-      "Ағымдағы тренд сақталса, алдағы 6 айда аймақтық тәуекел деңгейі біртіндеп өседі. Жоғары тәуекелді нүктелерде жедел шара қолдану таралуды баяулатады.",
-  };
-}
-
 export async function POST(req: Request) {
   if (!(await allow(req))) {
     return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
@@ -57,7 +31,19 @@ export async function POST(req: Request) {
   const history = parsed.data.history;
 
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return NextResponse.json({ forecast: mockForecast(history), mock: true });
+  if (!apiKey) {
+    return (
+    NextResponse.json(
+      {
+        error: "AI болжамы қолжетімсіз — кілт бапталмаған",
+        detail:
+          "Ойдан болжам жасалмайды. Ауа сапасының 11 күндік сандық болжамы " +
+          "JAIYQ-ML модулінде бөлек беріледі (/api/ml-forecast).",
+      },
+      { status: 503 }
+    )
+    );
+  }
 
   try {
     const openai = new OpenAI({ apiKey });
@@ -77,11 +63,36 @@ export async function POST(req: Request) {
       ],
     });
     const fp = forecastSchema.safeParse(JSON.parse(completion.choices[0].message.content ?? "{}"));
-    if (!fp.success) { console.error("Forecast schema:", fp.error.message); return NextResponse.json({ forecast: mockForecast(history), mock: true }); }
+    if (!fp.success) {
+      console.error("Forecast schema:", fp.error.message);
+      return (
+    NextResponse.json(
+      {
+        error: "AI жауабы күтілген пішінде емес — болжам көрсетілмейді",
+        detail:
+          "Ойдан болжам жасалмайды. Ауа сапасының 11 күндік сандық болжамы " +
+          "JAIYQ-ML модулінде бөлек беріледі (/api/ml-forecast).",
+      },
+      { status: 502 }
+    )
+      );
+    }
     const forecast = fp.data;
     return NextResponse.json({ forecast, mock: false });
   } catch (err) {
     console.error("Forecast error:", err);
-    return NextResponse.json({ forecast: mockForecast(history), mock: true });
+    // ЖАЛҒАН ДЕРЕККЕ ШЕГІНУ ЖОҚ — бұрын мұнда сызықтық экстраполяция
+    // «AI болжамы» болып қайтарылатын.
+    return (
+    NextResponse.json(
+      {
+        error: "AI болжамы уақытша қолжетімсіз",
+        detail:
+          "Ойдан болжам жасалмайды. Ауа сапасының 11 күндік сандық болжамы " +
+          "JAIYQ-ML модулінде бөлек беріледі (/api/ml-forecast).",
+      },
+      { status: 503 }
+    )
+    );
   }
 }
