@@ -71,8 +71,20 @@ export const LEVEL_COLOR: Record<ComplianceLevel, string> = {
 /** Нормаға жақындау шегі — шектің 80%-ы. */
 const APPROACHING = 0.8;
 
-export function checkCompliance(indicatorId: string, value: number | null): ComplianceResult {
-  const norms = normsFor(indicatorId);
+/**
+ * @param jurisdiction Аймақтың мемлекеті. ҚР нормативтері ТЕК Қазақстанда
+ *   қолданылады — Баку, Астрахань, Түрікменбашы үшін ҚР ШРК-мен салыстыру
+ *   заңсыз әрі мағынасыз болар еді. ҚР-дан тыс жерде тек WHO эталоны
+ *   қолданылады (заңдық күші жоқ, бірақ жаһандық денсаулық нұсқаулығы).
+ */
+export function checkCompliance(
+  indicatorId: string,
+  value: number | null,
+  jurisdiction: "KZ" | "OTHER" = "KZ"
+): ComplianceResult {
+  const all = normsFor(indicatorId);
+  // ҚР-дан тыс аймақта ұлттық нормативтер алынып тасталады
+  const norms = jurisdiction === "KZ" ? all : all.filter((n) => ACTS[n.actId].jurisdiction !== "KZ");
 
   if (value == null || !norms.length) {
     return {
@@ -81,7 +93,12 @@ export function checkCompliance(indicatorId: string, value: number | null): Comp
       checks: [],
       worst: "unknown",
       kzViolation: false,
-      summary: value == null ? "Дерек жоқ — бағалау жүргізілмеді" : "Бұл көрсеткіш үшін норма тізілімде жоқ",
+      summary:
+        value == null
+          ? "Дерек жоқ — бағалау жүргізілмеді"
+          : jurisdiction !== "KZ"
+            ? "Бұл ел үшін тізілімде норматив жоқ — ҚР ШРК қолданылмайды"
+            : "Бұл көрсеткіш үшін норма тізілімде жоқ",
       disclaimer: LEGAL_DISCLAIMER,
     };
   }
@@ -113,9 +130,9 @@ export function checkCompliance(indicatorId: string, value: number | null): Comp
     "ok"
   );
 
-  const kzViolation = checks.some(
-    (c) => c.level === "exceeded" && c.act.jurisdiction === "KZ"
-  );
+  const kzViolation =
+    jurisdiction === "KZ" &&
+    checks.some((c) => c.level === "exceeded" && c.act.jurisdiction === "KZ");
 
   return {
     indicatorId,

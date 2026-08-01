@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/lib/i18n";
 import { HeroBackground } from "@/components/layout/HeroBackground";
+import { RegionPicker } from "@/components/layout/RegionPicker";
 
 interface Article {
   title: string;
@@ -141,6 +142,9 @@ export default function Home() {
             <Leaf className="h-3.5 w-3.5" /> {t("hero.badge")}
           </div>
           <h1 className="text-6xl font-bold tracking-tight text-white sm:text-8xl">Jaiyq</h1>
+          <div className="mt-3 flex justify-center">
+            <RegionPicker />
+          </div>
           <p className="mt-2 text-sm font-semibold uppercase tracking-[0.3em] text-emerald-400">{t("hero.sub")}</p>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-neutral-300 sm:text-lg">{t("hero.desc")}</p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
