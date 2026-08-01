@@ -18,6 +18,7 @@ import { SourceComparison } from "@/components/dashboard/SourceComparison";
 import { WhyButton } from "@/components/dashboard/WhyButton";
 import { WaterTrend } from "@/components/dashboard/WaterTrend";
 import { MlForecast } from "@/components/dashboard/MlForecast";
+import { FloodExtent } from "@/components/dashboard/FloodExtent";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -291,6 +292,9 @@ export default function DashboardPage() {
 
       {/* Дереккөздерді салыстыру — CAMS моделі vs Qazhydromet датчигі */}
       <SourceComparison />
+
+      {/* Су басқан аумақ — Sentinel-1 радарымен ӨЛШЕНГЕН км² */}
+      <FloodExtent />
 
       {/* Су деңгейінің өзгерісі — Жайық өзені 2020→қазір (GloFAS) */}
       <WaterTrend />
