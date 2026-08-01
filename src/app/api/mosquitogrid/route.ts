@@ -349,9 +349,18 @@ export async function GET() {
       }
     );
 
+    // Облыс бойынша орташа — эко-паспортқа жиынтық көрсеткіш ретінде керек
+    const idx = grid.map((g) => g.index).filter((v): v is number => Number.isFinite(v));
+    const avgIndex = idx.length
+      ? Math.round(idx.reduce((a, b) => a + b, 0) / idx.length)
+      : null;
+
     const data = {
       fetchedAt: new Date().toISOString(),
       source: "JAIYQ-MRI · FPEB (Flood-Pulse Egg-Bank) · Open-Meteo (live) + Mordecai термиялық гейт + қос түр (Aedes/Culex)",
+      avgIndex,
+      maxIndex: idx.length ? Math.max(...idx) : null,
+      gridPoints: grid.length,
       grid,
     };
     cache = { at: Date.now(), data };
