@@ -52,6 +52,13 @@ const resultSchema = z.object({
   verificationNotes: z.string().optional(),
 });
 
+/** Mapbox static суретінің шамамен ені (м) — 1024 px, экватор бойынша,
+ *  47° ендікте cos φ түзетуімен. Промптта масштабты түсіндіру үшін. */
+function approxWidthM(zoom: number, px = 1024, lat = 47): number {
+  const metersPerPx = (156543.03392 * Math.cos((lat * Math.PI) / 180)) / 2 ** zoom;
+  return Math.round((metersPerPx * px) / 10) * 10;
+}
+
 export async function POST(req: Request) {
   if (!(await allow(req))) {
     return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
@@ -81,18 +88,54 @@ export async function POST(req: Request) {
 
   try {
     const openai = new OpenAI({ apiKey });
-    const images: { type: "image_url"; image_url: { url: string } }[] = [];
+    const images: { type: "image_url"; image_url: { url: string; detail: "high" } }[] = [];
+    // Суреттердің сипаттамасы — промптта дәйексөз ретінде қолданылады
+    const shots: string[] = [];
+    const addShot = (url: string, label: string) => {
+      images.push({ type: "image_url", image_url: { url, detail: "high" } });
+      shots.push(`${images.length}-сурет: ${label}`);
+    };
+
     if (mode === "photo" || mode === "combined") {
       if (!photo) return NextResponse.json({ error: "Фото жоқ" }, { status: 400 });
-      images.push({ type: "image_url", image_url: { url: photo } });
+      addShot(photo, "азаматтың жердегі фотосы");
     }
+
     if (mode === "satellite" || mode === "combined") {
-      images.push({ type: "image_url", image_url: { url: imageUrl } });
+      const baseZoom = zoom ?? 15;
+      if (imageryYear) {
+        // Тарихи режим: сол жылғы кадр + бүгінгі кадр → өзгерісті салыстыру
+        addShot(imageUrl, `${imageryYear} ж. Sentinel-2 мозаикасы, шолу масштабы`);
+        addShot(
+          satelliteImageUrl(lat, lng, baseZoom),
+          `бүгінгі көрініс, zoom ${baseZoom} (~${approxWidthM(baseZoom)} м)`
+        );
+      } else {
+        // ЕКІ МАСШТАБ: кең — контекст үшін, тар — деталь үшін.
+        // Бір суретпен талдау бұрын ең әлсіз жері еді: не контекст жоқ,
+        // не деталь көрінбейтін.
+        const wide = Math.max(11, baseZoom - 2);
+        const tight = Math.min(18, baseZoom + 2);
+        addShot(
+          satelliteImageUrl(lat, lng, wide),
+          `шолу, zoom ${wide} (~${approxWidthM(wide)} м) — инфрақұрылым мен ландшафт контексті`
+        );
+        addShot(
+          satelliteImageUrl(lat, lng, tight),
+          `деталь, zoom ${tight} (~${approxWidthM(tight)} м) — текстура мен шекара`
+        );
+        // Өткен жылмен салыстыру — өзгерісті көру үшін
+        const prevYear = new Date().getFullYear() - 2;
+        addShot(
+          historicalImageUrl(lat, lng, prevYear),
+          `${prevYear} ж. Sentinel-2 мозаикасы — өзгерісті салыстыру үшін`
+        );
+      }
     }
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      max_tokens: 1800,
+      max_tokens: 2400,
       response_format: { type: "json_object" },
       messages: [
         { role: "system", content: ANALYZE_SYSTEM + langDirective(lang) },
@@ -103,11 +146,13 @@ export async function POST(req: Request) {
               type: "text",
               text:
                 (imageryYear
-                  ? `НАЗАР АУДАР: спутник суреті ${imageryYear} жылғы Sentinel-2 мозаикасы — талдау сол жылғы жағдайды сипаттайды. `
+                  ? `НАЗАР АУДАР: 1-сурет ${imageryYear} жылғы, 2-сурет бүгінгі. Екеуін салыстырып, ӨЗГЕРІСТІ анықта. `
                   : "") +
                 (areaKm2
                   ? `Бұл — пайдаланушы картада сызған шамамен ${areaKm2.toFixed(2)} км² аумақ. Тек осы аумаққа қатысты талдау жаса. `
                   : "") +
+                `КООРДИНАТА: ${lat.toFixed(5)}, ${lng.toFixed(5)}\n` +
+                `БЕРІЛГЕН СУРЕТТЕР:\n${shots.map((x) => "· " + x).join("\n")}\n\n` +
                 analyzeUserPrompt(mode),
             },
             ...images,
