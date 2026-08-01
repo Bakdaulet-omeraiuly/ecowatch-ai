@@ -2,6 +2,9 @@
 // Оқыту `ml-service/` ішінде Python-мен жүреді; мұнда тек шығару (inference).
 
 import raw from "@/data/models/aqi-model.json";
+import { climValue, type Climatology } from "./climatology";
+
+export type { Climatology };
 
 export interface TreeSpec {
   f: number[]; // белгі индексі (жапырақ болса −1)
@@ -20,19 +23,27 @@ export interface Metrics {
 export interface TargetSpec {
   base: number;
   learningRate: number;
+  nTrees: number;
+  stoppedAt: number | null;
   trees: TreeSpec[];
-  metrics: { model: Metrics; seasonalBaseline: Metrics; skill: number | null };
+  climatology: Climatology;
+  metrics: { model: Metrics; climatologyBaseline: Metrics; skill: number | null };
+  usable: boolean;
   testSamples: number;
 }
 
 export interface TrainedModel {
   trained: true;
+  /** Модель климатологияны MIN_SKILL шамасынан артық жеңді ме.
+   *  false болса — сайт болжам көрсетпейді (жалған дәлдік болмауы үшін). */
+  usable: boolean;
   name: string;
   version: string;
   generatedAt: string;
   location: { name: string; lat: number; lng: number };
   trainPeriod: { start: string; end: string; hours: number };
   testFraction: number;
+  minSkill: number;
   features: string[];
   targets: Record<string, TargetSpec>;
   source: string;
@@ -65,8 +76,16 @@ function walk(tree: TreeSpec, x: number[]): number {
   return tree.v[node] ?? 0;
 }
 
-export function predict(spec: TargetSpec, x: number[]): number {
+export { climValue };
+
+/** Климатологиядан ауытқу (residual) — ағаштар осыны болжайды. */
+export function predictResidual(spec: TargetSpec, x: number[]): number {
   let out = spec.base;
   for (const tree of spec.trees) out += spec.learningRate * walk(tree, x);
   return out;
+}
+
+/** Толық болжам = климатология + модель ауытқуы. */
+export function predict(spec: TargetSpec, x: number[], time: string): number {
+  return climValue(spec.climatology, time) + predictResidual(spec, x);
 }

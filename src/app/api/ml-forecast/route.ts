@@ -59,6 +59,27 @@ export async function GET() {
     );
   }
 
+  // Модель маусымдық климатологияны жеткілікті жеңе алмаса — көрсетпейміз.
+  // Климатологиядан артық ештеңе білмейтін нәрсені «AI болжам» деп ұсыну
+  // жалған дәлдік болар еді.
+  if (!model.usable) {
+    const skills = Object.entries(model.targets)
+      .map(([k, s]) => `${k}: ${s.metrics.skill}`)
+      .join(", ");
+    return NextResponse.json(
+      {
+        error:
+          "Модель маусымдық орташадан айтарлықтай артық дәлдік көрсете алмады — " +
+          "жалған дәлдікпен болжам ұсынылмайды",
+        detail:
+          `Талап етілетін шеберлік ≥ ${model.minSkill}. Нақты нәтиже — ${skills}. ` +
+          "Модель апта сайын қайта оқытылады; дәлдік талапқа жеткенде болжам автоматты қосылады.",
+        trainedAt: model.generatedAt,
+      },
+      { status: 503 }
+    );
+  }
+
   if (cache && Date.now() - cache.at < 3600_000) {
     return NextResponse.json(cache.data);
   }
@@ -119,8 +140,8 @@ export async function GET() {
       const c = cams.get(t);
       hours.push({
         time: t,
-        aqi: Math.max(0, Math.round(predict(aqiSpec, X[i]))),
-        pm2_5: Math.max(0, Math.round(predict(pmSpec, X[i]) * 10) / 10),
+        aqi: Math.max(0, Math.round(predict(aqiSpec, X[i], t))),
+        pm2_5: Math.max(0, Math.round(predict(pmSpec, X[i], t) * 10) / 10),
         camsAqi: c?.aqi ?? null,
         camsPm25: c?.pm25 ?? null,
         beyondCams: !camsLast || t > camsLast,
@@ -153,6 +174,7 @@ export async function GET() {
         trainedAt: model.generatedAt,
         trainPeriod: model.trainPeriod,
         features: model.features.length,
+        trees: { european_aqi: aqiSpec.nTrees, pm2_5: pmSpec.nTrees },
         metrics: {
           european_aqi: aqiSpec.metrics,
           pm2_5: pmSpec.metrics,

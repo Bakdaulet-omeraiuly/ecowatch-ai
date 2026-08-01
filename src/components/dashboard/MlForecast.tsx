@@ -14,7 +14,8 @@ interface MlData {
     name: string; version: string; trainedAt: string;
     trainPeriod: { start: string; end: string; hours: number };
     features: number;
-    metrics: Record<string, { model: Metrics; seasonalBaseline: Metrics; skill: number | null }>;
+    trees: Record<string, number>;
+    metrics: Record<string, { model: Metrics; climatologyBaseline: Metrics; skill: number | null }>;
   };
   camsHorizonEnd: string | null;
   camsAvailable: boolean;
@@ -31,15 +32,17 @@ const fmtDay = (iso: string) => {
 export function MlForecast() {
   const { tr } = useLang();
   const [data, setData] = useState<MlData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ msg: string; detail?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     fetch("/api/ml-forecast")
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => (ok ? setData(d) : setError(d.error ?? "Қолжетімсіз")))
-      .catch(() => setError("Қолжетімсіз"))
+      .then(({ ok, d }) =>
+        ok ? setData(d) : setError({ msg: d.error ?? "Қолжетімсіз", detail: d.detail })
+      )
+      .catch(() => setError({ msg: "Қолжетімсіз" }))
       .finally(() => setLoading(false));
   }, []);
 
@@ -70,14 +73,20 @@ export function MlForecast() {
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>
         ) : error || !data ? (
-          <p className="py-4 text-sm text-neutral-400">{tr(error ?? "Қолжетімсіз")}</p>
+          <div className="space-y-2 py-3">
+            <p className="text-sm text-neutral-300">{tr(error?.msg ?? "Қолжетімсіз")}</p>
+            {error?.detail && (
+              <p className="text-[11px] leading-relaxed text-neutral-500">{error.detail}</p>
+            )}
+          </div>
         ) : (
           <>
             {showInfo && (
               <div className="mb-3 space-y-1 rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] leading-relaxed text-neutral-300">
                 <p>
                   <span className="text-neutral-400">{tr("Модель")}:</span>{" "}
-                  {data.model.name} v{data.model.version} · {data.model.features} {tr("белгі")}
+                  {data.model.name} v{data.model.version} · {data.model.features} {tr("белгі")} ·{" "}
+                  {data.model.trees["european_aqi"]} {tr("ағаш")}
                 </p>
                 <p>
                   <span className="text-neutral-400">{tr("Оқыту кезеңі")}:</span>{" "}
@@ -87,11 +96,10 @@ export function MlForecast() {
                 {aqiMetrics && (
                   <p>
                     <span className="text-neutral-400">{tr("Дәлдік (тексеру жиыны)")}:</span>{" "}
-                    MAE {aqiMetrics.model.mae} · R² {aqiMetrics.model.r2 ?? "—"} ·{" "}
-                    {tr("маусымдық базалықтан")}{" "}
-                    {aqiMetrics.skill != null
-                      ? `${Math.round(aqiMetrics.skill * 100)}% ${tr("жақсы")}`
-                      : "—"}
+                    MAE {aqiMetrics.model.mae} (
+                    {tr("маусымдық климатология")} {aqiMetrics.climatologyBaseline.mae}) ·{" "}
+                    {tr("шеберлік")}{" "}
+                    {aqiMetrics.skill != null ? `+${Math.round(aqiMetrics.skill * 100)}%` : "—"}
                   </p>
                 )}
                 <p className="text-amber-300/80">⚠ {tr(data.disclaimer)}</p>
