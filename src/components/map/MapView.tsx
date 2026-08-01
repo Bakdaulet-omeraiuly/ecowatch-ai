@@ -14,6 +14,7 @@ import { RISK_COLORS } from "@/lib/risk";
 import { plumeCone } from "@/lib/pollutionSource";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
+import { ATMOS_ELEMENTS, ATMOS_CATEGORIES, type AtmosElement } from "@/data/atmosElements";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
 import { MapSearch } from "./MapSearch";
@@ -242,6 +243,10 @@ export function MapView() {
 
   const airHourAqi = (p: AirGridPoint) => p.hourly?.[airHour]?.aqi ?? p.aqi;
   const airHours = airGrid?.[0]?.hourly;
+  // Атмосфера элементі — қай нақты газ/бөлшек көрсетілсін (әдепкі: AQI)
+  const [airElem, setAirElem] = useState<AtmosElement>(ATMOS_ELEMENTS[0]);
+  const elemVal = (p: AirGridPoint): number | null =>
+    airElem.key === "aqi" ? airHourAqi(p) : ((p[airElem.key] as number | null | undefined) ?? null);
 
   const { soilGrid, soilMeta, soilError } = useSoilGrid(activeLayer === "soil");
 
@@ -527,21 +532,22 @@ export function MapView() {
   }, [mosGrid, mosHour]);
 
   const airStats = useMemo(() => {
-    const vals = (airGrid ?? []).map(airHourAqi).filter((v): v is number => v != null);
+    const vals = (airGrid ?? []).map(elemVal).filter((v): v is number => v != null);
     if (!vals.length) return null;
-    // city districts ranked by AQI (best → worst)
+    const rnd = (v: number) => (airElem.maxRef >= 500 ? Math.round(v) : +v.toFixed(airElem.maxRef <= 2 ? 2 : 1));
+    // city districts ranked by the selected element (best → worst)
     const districts = (airGrid ?? [])
-      .filter((p) => p.dense && airHourAqi(p) != null)
-      .map((p) => ({ name: p.name ?? "?", aqi: airHourAqi(p)! }))
+      .filter((p) => p.dense && elemVal(p) != null)
+      .map((p) => ({ name: p.name ?? "?", aqi: rnd(elemVal(p)!) }))
       .sort((a, b) => a.aqi - b.aqi);
     return {
-      min: Math.min(...vals),
-      max: Math.max(...vals),
-      avg: Math.round(vals.reduce((a, b) => a + b, 0) / vals.length),
+      min: rnd(Math.min(...vals)),
+      max: rnd(Math.max(...vals)),
+      avg: rnd(vals.reduce((a, b) => a + b, 0) / vals.length),
       districts,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [airGrid, airHour]);
+  }, [airGrid, airHour, airElem]);
 
   const heatmapData = useMemo(() => {
     if (!activeLayer) return null;
@@ -551,11 +557,11 @@ export function MapView() {
       return {
         type: "FeatureCollection" as const,
         features: airGrid
-          .filter((p) => airHourAqi(p) != null)
+          .filter((p) => elemVal(p) != null)
           .map((p) => ({
             type: "Feature" as const,
             geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] },
-            properties: { weight: Math.min(1, (airHourAqi(p) ?? 0) / 100) },
+            properties: { weight: Math.min(1, (elemVal(p) ?? 0) / airElem.maxRef) },
           })),
       };
     }
@@ -600,7 +606,7 @@ export function MapView() {
       })),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSites, activeLayer, airGrid, mosGrid, mosHour, airHour, soilGrid, wasteSites]);
+  }, [allSites, activeLayer, airGrid, mosGrid, mosHour, airHour, airElem, soilGrid, wasteSites]);
 
   // Grid layers need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito" || activeLayer === "soil";
@@ -2140,7 +2146,53 @@ export function MapView() {
               <p className="text-[11px] text-neutral-500">{tr("Жүктелуде…")}</p>
             ) : (
               <>
-                {airStats && (() => {
+                {/* Атмосфера элементі таңдағышы — айналдырылатын, категорияға бөлінген */}
+                <div className="mb-2 max-h-28 space-y-1 overflow-y-auto rounded-md bg-white/5 p-1.5">
+                  {ATMOS_CATEGORIES.map((cat) => (
+                    <div key={cat}>
+                      <div className="mb-0.5 text-[8px] uppercase tracking-wide text-neutral-500">{tr(cat)}</div>
+                      <div className="flex flex-wrap gap-1">
+                        {ATMOS_ELEMENTS.filter((e) => e.category === cat).map((e) => (
+                          <button
+                            key={e.key}
+                            onClick={() => setAirElem(e)}
+                            title={e.label}
+                            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                              airElem.key === e.key
+                                ? "border border-sky-400 bg-sky-500/30 text-sky-100"
+                                : "border border-transparent bg-white/5 text-neutral-300 hover:bg-white/10"
+                            }`}
+                          >
+                            {e.short}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mb-1.5 text-[10px] font-medium text-neutral-300">
+                  {tr(airElem.label)}{airElem.unit ? ` · ${airElem.unit}` : ""}
+                </div>
+
+                {airStats && airElem.key !== "aqi" && (
+                  <>
+                    <div className="mb-2 rounded-lg bg-white/5 p-2 text-center">
+                      <div className="text-2xl font-bold text-sky-300">{airStats.avg}</div>
+                      <div className="text-[9px] text-neutral-400">
+                        {tr("облыс бойынша орташа")} {airElem.unit}
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-[9px] text-neutral-500">
+                      <span>мин {airStats.min}</span>
+                      <span>макс {airStats.max}</span>
+                    </div>
+                    <p className="mt-1.5 text-[8px] leading-snug text-neutral-500">
+                      {tr("Нақты дерек: Copernicus CAMS · Open-Meteo · тор бойынша")}
+                    </p>
+                  </>
+                )}
+
+                {airStats && airElem.key === "aqi" && (() => {
                   const cat = aqiCategory(airStats.avg);
                   return (
                     <>
@@ -2200,8 +2252,8 @@ export function MapView() {
                   </div>
                 )}
 
-                {/* 24h forecast animation */}
-                {airHours && airHours.length > 1 && (
+                {/* 24 сағаттық анимация — тек AQI-де (сағаттық дерек сол үшін) */}
+                {airElem.key === "aqi" && airHours && airHours.length > 1 && (
                   <div className="mt-2 rounded-lg bg-sky-500/10 p-2">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[10px] font-semibold text-sky-200">
