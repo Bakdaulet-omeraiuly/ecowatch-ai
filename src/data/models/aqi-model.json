@@ -1,0 +1,5 @@
+{
+  "trained": false,
+  "name": "JAIYQ-ML",
+  "note": "Модель әлі оқытылмаған. ml-service/train.py іске қосылғанда (немесе .github/workflows/ml-retrain.yml апта сайын жүргенде) осы файл нақты CAMS/ERA5 деректерінде оқытылған модельмен алмастырылады. Оған дейін /api/ml-forecast жалған дерек қайтармайды."
+}

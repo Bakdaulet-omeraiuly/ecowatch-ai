@@ -17,6 +17,7 @@ import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Drop
 import { SourceComparison } from "@/components/dashboard/SourceComparison";
 import { WhyButton } from "@/components/dashboard/WhyButton";
 import { WaterTrend } from "@/components/dashboard/WaterTrend";
+import { MlForecast } from "@/components/dashboard/MlForecast";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -293,6 +294,9 @@ export default function DashboardPage() {
 
       {/* Су деңгейінің өзгерісі — Жайық өзені 2020→қазір (GloFAS) */}
       <WaterTrend />
+
+      {/* JAIYQ-ML — CAMS шегінен әрі созылған 11 күндік ауа болжамы */}
+      <MlForecast />
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
