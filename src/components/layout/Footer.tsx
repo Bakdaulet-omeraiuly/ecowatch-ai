@@ -113,6 +113,7 @@ export function Footer() {
           <p>© Copernicus Service Information · Contains modified Copernicus Climate Change Service information · NASA Public Domain · ESA Sentinel-2 Open Access</p>
           <p>
             © {new Date().getFullYear()} Jaiyq · {t("foot.rights")} ·{" "}
+            <Link href="/legislation" className="hover:text-neutral-400 underline underline-offset-2">Заңнама</Link>{" "}·{" "}
             <Link href="/methodology" className="hover:text-neutral-400 underline underline-offset-2">Әдістеме және валидация</Link>{" "}·{" "}
             <Link href="/privacy" className="hover:text-neutral-400 underline underline-offset-2">Құпиялық саясаты</Link>{" "}·{" "}
             <Link href="/terms" className="hover:text-neutral-400 underline underline-offset-2">Пайдалану шарттары</Link>
