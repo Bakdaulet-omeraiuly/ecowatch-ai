@@ -8,7 +8,9 @@
 export const FEATURE_NAMES = [
   "t2m", "rh", "dew", "psfc", "precip", "cloud", "wspd", "wgust",
   "wdir_sin", "wdir_cos", "blh", "t850", "inversion", "vent",
-  "precip24", "wspd24", "hour_sin", "hour_cos", "doy_sin", "doy_cos",
+  "precip24", "precip72", "wspd24", "wspd48", "blh24",
+  "w850_spd", "w850_sin", "w850_cos", "gh500",
+  "hour_sin", "hour_cos", "doy_sin", "doy_cos",
 ] as const;
 
 export const RAW_KEYS = [
@@ -23,12 +25,17 @@ export const RAW_KEYS = [
   "wind_gusts_10m",
   "boundary_layer_height",
   "temperature_850hPa",
+  "wind_speed_850hPa",
+  "wind_direction_850hPa",
+  "geopotential_height_500hPa",
 ] as const;
 
 export type RawKey = (typeof RAW_KEYS)[number];
 export type RawRow = { time: string } & Partial<Record<RawKey, number | null>>;
 
-export const WINDOW = 24;
+/** Ең ұзын rolling терезесі (сағат). Болжам API-ы кемінде осынша өткен
+ *  сағатты қоса сұрауы керек — әйтпесе алғашқы сағаттар түсіп қалады. */
+export const WINDOW = 72;
 
 function toUtc(t: string): Date {
   // Open-Meteo `timezone=UTC` кезінде "2025-06-01T13:00" түрінде қайтарады
@@ -65,14 +72,18 @@ export function buildFeatures(rows: RawRow[]): { X: number[][]; times: string[] 
   const times: string[] = [];
   const precipWin: number[] = [];
   const wspdWin: number[] = [];
+  const blhWin: number[] = [];
+  const sum = (a: number[]) => a.reduce((x, y) => x + y, 0);
 
   for (const row of clean) {
     const v = row.v;
     precipWin.push(v.precipitation);
     wspdWin.push(v.wind_speed_10m);
+    blhWin.push(v.boundary_layer_height);
     if (precipWin.length > WINDOW) {
       precipWin.shift();
       wspdWin.shift();
+      blhWin.shift();
     }
     if (precipWin.length < WINDOW) continue;
 
@@ -80,6 +91,7 @@ export function buildFeatures(rows: RawRow[]): { X: number[][]; times: string[] 
     const hour = d.getUTCHours();
     const doy = dayOfYear(d);
     const wdir = (v.wind_direction_10m * Math.PI) / 180;
+    const w850 = (v.wind_direction_850hPa * Math.PI) / 180;
     const t2m = v.temperature_2m;
     const t850 = v.temperature_850hPa;
     const blh = v.boundary_layer_height;
@@ -100,8 +112,15 @@ export function buildFeatures(rows: RawRow[]): { X: number[][]; times: string[] 
       t850,
       t850 - t2m,
       (blh * wspd) / 1000,
-      precipWin.reduce((a, b) => a + b, 0),
-      wspdWin.reduce((a, b) => a + b, 0) / WINDOW,
+      sum(precipWin.slice(-24)),
+      sum(precipWin),
+      sum(wspdWin.slice(-24)) / 24,
+      sum(wspdWin.slice(-48)) / 48,
+      sum(blhWin.slice(-24)) / 24,
+      v.wind_speed_850hPa,
+      Math.sin(w850),
+      Math.cos(w850),
+      v.geopotential_height_500hPa,
       Math.sin((2 * Math.PI * hour) / 24),
       Math.cos((2 * Math.PI * hour) / 24),
       Math.sin((2 * Math.PI * doy) / 365.25),

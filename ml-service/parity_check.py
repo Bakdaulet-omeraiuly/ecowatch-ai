@@ -41,7 +41,7 @@ writeFileSync("ts.json", JSON.stringify({ X, times, climOut }));
 """
 
 
-def make_rows(n: int = 120) -> list[dict]:
+def make_rows(n: int = 220) -> list[dict]:
     """Синтетикалық кіріс — ТЕК екі іске асырудың сәйкестігін тексеру үшін.
     Бұл сандар модельге де, сайтқа да ешқашан түспейді."""
     random.seed(11)
@@ -60,6 +60,9 @@ def make_rows(n: int = 120) -> list[dict]:
             "wind_gusts_10m": round(random.uniform(0, 90), 2),
             "boundary_layer_height": round(random.uniform(50, 2500), 1),
             "temperature_850hPa": round(random.uniform(-25, 30), 2),
+            "wind_speed_850hPa": round(random.uniform(0, 90), 2),
+            "wind_direction_850hPa": round(random.uniform(0, 360), 1),
+            "geopotential_height_500hPa": round(random.uniform(5100, 5900), 1),
         })
     # forward-fill тармағын да тексеру үшін бірнеше бос мән
     rows[0]["cloud_cover"] = None

@@ -65,21 +65,30 @@ def main() -> int:
     print(f"3) JSON көлемі={len(s) / 1024:.0f} КБ")
 
     # Белгілер құрастыруы
+    n_rows = 80
     rows = []
-    for i in range(30):
+    for i in range(n_rows):
         rows.append({
-            "time": f"2025-06-01T{i % 24:02d}:00",
+            "time": f"2025-06-{1 + i // 24:02d}T{i % 24:02d}:00",
             "temperature_2m": 20 + i, "relative_humidity_2m": 40, "dew_point_2m": 5,
             "surface_pressure": 1010, "precipitation": 0.1, "cloud_cover": 20,
             "wind_speed_10m": 12, "wind_direction_10m": 90, "wind_gusts_10m": 20,
             "boundary_layer_height": 800, "temperature_850hPa": 15,
+            "wind_speed_850hPa": 30, "wind_direction_850hPa": 270,
+            "geopotential_height_500hPa": 5600,
         })
     F, times = build_features(rows)
-    assert len(F) == 30 - 24 + 1, f"rolling терезесі қате: {len(F)}"
+    idx = {name: i for i, name in enumerate(FEATURE_NAMES)}
+    assert len(F) == n_rows - 72 + 1, f"rolling терезесі қате: {len(F)}"
     assert len(F[0]) == len(FEATURE_NAMES), "белгі саны сәйкес емес"
-    assert math.isclose(F[0][14], 0.1 * 24, rel_tol=1e-9), "precip24 қате"
-    assert math.isclose(F[0][15], 12.0, rel_tol=1e-9), "wspd24 қате"
-    assert math.isclose(F[0][13], 800 * 12 / 1000, rel_tol=1e-9), "vent қате"
+    assert math.isclose(F[0][idx["precip24"]], 0.1 * 24, rel_tol=1e-9), "precip24 қате"
+    assert math.isclose(F[0][idx["precip72"]], 0.1 * 72, rel_tol=1e-9), "precip72 қате"
+    assert math.isclose(F[0][idx["wspd24"]], 12.0, rel_tol=1e-9), "wspd24 қате"
+    assert math.isclose(F[0][idx["wspd48"]], 12.0, rel_tol=1e-9), "wspd48 қате"
+    assert math.isclose(F[0][idx["blh24"]], 800.0, rel_tol=1e-9), "blh24 қате"
+    assert math.isclose(F[0][idx["vent"]], 800 * 12 / 1000, rel_tol=1e-9), "vent қате"
+    assert math.isclose(F[0][idx["w850_spd"]], 30.0, rel_tol=1e-9), "w850_spd қате"
+    assert math.isclose(F[0][idx["gh500"]], 5600.0, rel_tol=1e-9), "gh500 қате"
     print(f"4) Белгілер OK — {len(F)} жол × {len(F[0])} белгі")
 
     # 5) Ерте тоқтату: валидацияда пайдасы жоқ шуды үйренуге жол бермеуі керек
