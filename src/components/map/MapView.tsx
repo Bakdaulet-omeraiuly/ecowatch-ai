@@ -67,6 +67,8 @@ import {
   type AirGridPoint, type MosquitoGridPoint, type PollutionSourceCandidate,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
+import { LayerDrawer } from "@/components/map/LayerDrawer";
+import type { LayerKey as DrawerKey } from "@/data/ecoLayers";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
 
@@ -175,6 +177,19 @@ function advect(lat: number, lng: number, toBearing: number, speedKmh: number, h
   return [lat + dLat, lng + dLng];
 }
 
+// Карта қабатының кілті → эко-қабат тізіліміндегі кілт (src/data/ecoLayers.ts).
+// "waste" тізілімде жоқ: азаматтық хабарламалар өшірулі, өз алдына дереккөзі жоқ.
+const DRAWER_KEYS: Partial<Record<LayerKey, DrawerKey>> = {
+  air: "air",
+  water: "water",
+  soil: "soil",
+  oil: "oil",
+  fire: "fire",
+  drought: "drought",
+  wind: "wind",
+  mosquito: "mosquito",
+};
+
 export function MapView() {
   const { lang, tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -189,6 +204,8 @@ export function MapView() {
   const [analyzing, setAnalyzing] = useState(false);
   const [mapStyle, setMapStyle] = useState<"satellite" | "streets">("satellite");
   const [activeLayer, setActiveLayer] = useState<LayerKey | null>(null);
+  // Қабат Drawer — 4 қойынды: нақты деректер / заңнама / AI / тарих
+  const [drawerLayer, setDrawerLayer] = useState<DrawerKey | null>(null);
   const [historyMode, setHistoryMode] = useState(false);
   const [showReports, setShowReports] = useState(true);
   const [sourceMode, setSourceMode] = useState(false); // Ластану көзін анықтау режимі
@@ -1456,6 +1473,16 @@ export function MapView() {
               <span className="ml-auto rounded bg-emerald-500/20 px-1 py-px text-[8px] uppercase text-emerald-300">
                 live
               </span>
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => { e.stopPropagation(); setDrawerLayer("source"); }}
+                onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setDrawerLayer("source"); } }}
+                title={tr("Толық мәлімет: деректер, заңнама, AI талдауы")}
+                className="rounded border border-white/20 px-1 py-px text-[8px] text-red-200/80 transition hover:border-white/50 hover:text-white"
+              >
+                ⓘ
+              </span>
             </button>
             <div className="my-0.5 h-px bg-white/10" />
             {LAYERS.map((l) => {
@@ -1474,6 +1501,18 @@ export function MapView() {
                   {l.key !== "waste" && (
                     <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
+                    </span>
+                  )}
+                  {DRAWER_KEYS[l.key] && (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => { e.stopPropagation(); setDrawerLayer(DRAWER_KEYS[l.key]!); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setDrawerLayer(DRAWER_KEYS[l.key]!); } }}
+                      title={tr("Толық мәлімет: деректер, заңнама, AI талдауы")}
+                      className="rounded border border-white/15 px-1 py-px text-[8px] text-neutral-400 transition hover:border-white/40 hover:text-white"
+                    >
+                      ⓘ
                     </span>
                   )}
                 </button>
@@ -2586,6 +2625,11 @@ export function MapView() {
       )}
 
       <AnalysisDrawer site={selected} onClose={() => setSelected(null)} onUpdate={setSelected} />
+
+      {/* Қабат Drawer — 4 қойынды: деректер / заңнама / AI / тарих */}
+      {drawerLayer && (
+        <LayerDrawer key={drawerLayer} layerKey={drawerLayer} onClose={() => setDrawerLayer(null)} />
+      )}
     </div>
   );
 }
