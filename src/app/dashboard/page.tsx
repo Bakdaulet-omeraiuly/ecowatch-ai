@@ -20,6 +20,7 @@ import { WaterTrend } from "@/components/dashboard/WaterTrend";
 import { MlForecast } from "@/components/dashboard/MlForecast";
 import { FloodExtent } from "@/components/dashboard/FloodExtent";
 import { ExportPanel } from "@/components/dashboard/ExportPanel";
+import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -287,6 +288,9 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Заңнамалық сәйкестік — ҚР/WHO/EU нормаларынан асу (ең жоғарыда) */}
+      <LegalAlerts />
 
       {/* AI «Неге?» — бүгінгі ауаны тірі деректермен түсіндіру */}
       <WhyButton />
