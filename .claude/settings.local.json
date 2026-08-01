@@ -10,7 +10,10 @@
       "mcp__visualize__read_me",
       "mcp__visualize__show_widget",
       "Skill(code-review)",
-      "Skill(code-review:*)"
+      "Skill(code-review:*)",
+      "Bash(mkdir -p eo-service)",
+      "Bash(cp /root/.claude/uploads/584fa2b1-73dc-5f54-a363-a0540d5930e1/b8fbdeb6-app.py eo-service/app.py)",
+      "Bash(cp /root/.claude/uploads/584fa2b1-73dc-5f54-a363-a0540d5930e1/8433616f-requirements.txt eo-service/requirements.txt)"
     ]
   }
 }

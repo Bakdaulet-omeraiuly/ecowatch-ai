@@ -35,10 +35,14 @@ Supabase (ортақ хабарламалар).
 - `src/app/api/environment`, `api/airgrid`, `api/mosquitogrid` — тірі деректер
 - `src/app/api/articles` — ғылыми мақалалар (RSS + AI аударма)
 - `src/app/api/forecast` — AI болжам
+- `src/app/api/flood-extent` — Sentinel-1 SAR: су басқан аумақ км² (өлшем,
+  болжам емес); `?format=csv` — эколог есебі үшін. Әдіс: `src/lib/floodSar.ts`
 - `src/app/api/ml-forecast` — JAIYQ-ML: 11 күндік ауа болжамы (CAMS шегінен әрі)
 - `ml-service/` — Python оқыту құбыры (numpy GBT); апта сайын GitHub Actions
   арқылы нақты CAMS/ERA5 деректерінде қайта оқытылады. ⚠️ `ml-service/features.py`
   мен `src/lib/ml/features.ts` ӘРҚАШАН бірдей болуы керек (`parity_check.py` тексереді)
+- `eo-service/` — ЖЕРГІЛІКТІ зерттеу құралы (Qwen2-VL remote-sensing).
+  ⚠️ Өнімге қосылмаған әрі қосылмайды — себебі README-де жазылған
 - `src/lib/` — mapbox, mosquito (MRI индексі), risk, alerts, supabase утилиталары
 - `src/data/historyFactors.ts` — эко қабаттар анықтамасы
 - `docs/` — PRD, архитектура, роадмап

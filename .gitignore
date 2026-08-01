@@ -42,6 +42,8 @@ next-env.d.ts
 
 # ml-service (Python)
 ml-service/data/
+venv/
+eo-service/venv/
 **/__pycache__/
 *.pyc
 .venv/
