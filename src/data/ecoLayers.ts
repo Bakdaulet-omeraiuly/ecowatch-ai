@@ -202,7 +202,9 @@ export const ECO_LAYERS: EcoLayer[] = [
     emoji: "📍",
     accent: "rose",
     what:
-      "Жел бағыты бойынша кері траектория — ластанудың ЫҚТИМАЛ өнеркәсіптік көзі",
+      "Жел бағыты бойынша кері траектория — ластанудың ЫҚТИМАЛ өнеркәсіптік көзі. " +
+      "Таралу конусы Pasquill–Gifford орнықтылық класымен есептеледі; ені = " +
+      "физикалық жайылу (2σy) + жел бағытының ауытқуы.",
     currentEndpoint: "/api/pollution-source",
     seriesApi: "weather",
     vars: [
@@ -212,7 +214,11 @@ export const ECO_LAYERS: EcoLayer[] = [
     indicatorIds: [],
     aiContext:
       "Жел бағытының өзгеруі және оның ықтимал ластану көзін анықтауға әсері",
-    sources: ["Copernicus CAMS", "ECMWF жел", "WAQI жер бетіндегі станциялар"],
+    sources: [
+      "Copernicus CAMS",
+      "ECMWF жел өрісі (тордың әр нүктесінде) + күн радиациясы, бұлттылық",
+      "WAQI жер бетіндегі станциялар",
+    ],
   },
 ];
 

@@ -418,7 +418,14 @@ export function MapView() {
     if (!selectedFacs.length || !source) return null;
     const toB = activeFrame ? activeFrame.toBearing : source.wind.toBearing;
     const spd = activeFrame ? activeFrame.speed : source.wind.speed;
-    const polys = selectedFacs.map((f) => [plumeCone({ lat: f.lat, lng: f.lng }, toB, spd)]);
+    // Геометрия серверден: орнықтылық класы мен жел бағытының ауытқуы.
+    // Клиентте қайта есептелмейді — әйтпесе конус сервердегіден өзгеше болады.
+    const geo = {
+      stability: source.stability.cls,
+      windMs: source.wind.speed / 3.6,
+      dirSigma: source.stability.windDirSigma,
+    };
+    const polys = selectedFacs.map((f) => [plumeCone({ lat: f.lat, lng: f.lng }, toB, spd, geo)]);
     return {
       type: "FeatureCollection" as const,
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "MultiPolygon" as const, coordinates: polys } }],
@@ -429,9 +436,18 @@ export function MapView() {
   const forecastGeo = useMemo(() => {
     if (fcStep == null || !selectedFacs.length || !source?.forecast?.[fcStep]) return null;
     const f = source.forecast[fcStep];
+    // ⚠️ Сервер бұлтты САҒАТТЫҚ БОЛЖАМ желімен жылжытады (жел бұрылуын
+    // ескереді) әрі «Жетеді: …» тізімін сол орынға қарап жасайды.
+    // Бұрын клиент оны елемей, ағымдағы желмен тұрақты деп қайта
+    // есептейтін — жел бұрылғанда карта мен мәтін 20 км-ге дейін
+    // алшақтайтын, ал шеңбер радиусы небәрі 7 км. Енді сервердің
+    // координатасы тікелей қолданылады.
     const polys = selectedFacs.map((fac) => {
-      const [lat, lng] = advect(fac.lat, fac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
-      return [fcCircle(lat, lng, f.radiusKm)];
+      // Топ көзден басқа зауыт таңдалса — сервердің ЫҒЫСУЫН сол зауытқа
+      // қолданамыз (бағыт пен жол бірдей, тек бастауы басқа)
+      const dLat = f.lat - (source.top?.lat ?? fac.lat);
+      const dLng = f.lng - (source.top?.lng ?? fac.lng);
+      return [fcCircle(fac.lat + dLat, fac.lng + dLng, f.radiusKm)];
     });
     return {
       type: "FeatureCollection" as const,
@@ -1179,17 +1195,30 @@ export function MapView() {
           ))}
 
         {/* Ластану көзі режимі: дисперсия конусы + plume сызығы + маркерлер */}
+        {/* Конус түсі оқиғаның бар-жоғын білдіреді:
+            ҚЫЗЫЛ — ластану анықталды (detected)
+            СҰР   — ластану жоқ, бұл тек «жел осылай тұрса» деген БАҒЫТ.
+            Бұрын екеуі де қызыл болатын: аты аталған зауыттан қызыл шлейф
+            сызу оқиға жоқ кезде де беделдік/құқықтық тәуекел тудыратын. */}
         {sourceMode && plumeConeGeo && (
           <Source id="plume-cone" type="geojson" data={plumeConeGeo}>
             <Layer
               id="plume-cone-fill"
               type="fill"
-              paint={{ "fill-color": "#ef4444", "fill-opacity": 0.14 }}
+              paint={{
+                "fill-color": source?.detected ? "#ef4444" : "#94a3b8",
+                "fill-opacity": source?.detected ? 0.14 : 0.07,
+              }}
             />
             <Layer
               id="plume-cone-outline"
               type="line"
-              paint={{ "line-color": "#f87171", "line-width": 1, "line-opacity": 0.4 }}
+              paint={{
+                "line-color": source?.detected ? "#f87171" : "#94a3b8",
+                "line-width": 1,
+                "line-opacity": source?.detected ? 0.4 : 0.3,
+                "line-dasharray": source?.detected ? [1, 0] : [3, 2],
+              }}
             />
           </Source>
         )}
@@ -1229,7 +1258,9 @@ export function MapView() {
             </Source>
             {selectedFacs.map((fac) => {
               const f = source.forecast[fcStep];
-              const [la, ln] = advect(fac.lat, fac.lng, source.wind.toBearing, source.wind.speed, f.hoursAhead);
+              // Сервердің есептеген орны (сағаттық болжам желімен)
+              const la = fac.lat + (f.lat - (source.top?.lat ?? fac.lat));
+              const ln = fac.lng + (f.lng - (source.top?.lng ?? fac.lng));
               return (
                 <Marker key={`fc-${fac.id}`} latitude={la} longitude={ln}>
                   <div className="rounded-full border border-orange-300 bg-orange-500/90 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-lg">
@@ -1835,7 +1866,8 @@ export function MapView() {
                 {!source.detected && (
                   <div className="mb-2 rounded-md bg-white/5 p-1.5 text-[10px] leading-snug text-neutral-300">
                     <span className="text-emerald-300">●</span>{" "}
-                    {tr("Ластану төмен — төмендегісі ағымдағы жел бойынша ЫҚТИМАЛ таралу (белсенді оқиға емес).")}
+                    {tr("Ластану төмен — төмендегісі ағымдағы жел бойынша ЫҚТИМАЛ таралу (белсенді оқиға емес). Картадағы конус СҰР үзік сызықпен салынған.")}{" "}
+                    {tr("Сигнал нөл болғанда «ең ықтимал көз» тек кәсіпорын профилінен шығады — нақты дәлел емес.")}
                   </div>
                 )}
                 {source.top && (
@@ -1936,11 +1968,53 @@ export function MapView() {
                       </button>
                     </div>
                     {activeFrame && (
-                      <div className="text-center text-[10px] font-mono text-neutral-400">
-                        {animMode === "forecast" ? "▶" : "◀"} {activeFrame.hour} · {activeFrame.fromLabel} {activeFrame.speed} {tr("км/сағ")}
-                      </div>
+                      <>
+                        <div className="text-center text-[10px] font-mono text-neutral-400">
+                          {animMode === "forecast" ? "▶" : "◀"} {activeFrame.hour} · {activeFrame.fromLabel} {activeFrame.speed} {tr("км/сағ")}
+                        </div>
+                        {/* Анимация — траектория ЕМЕС. Әр кадр сол сағаттағы
+                            желмен есептелген тұрақты күй конусы. */}
+                        <p className="mt-0.5 text-[9px] leading-snug text-neutral-500">
+                          ⚠ {tr("Әр кадр — сол сағаттағы желмен есептелген конус, бұлттың жүрген жолы ЕМЕС.")}
+                        </p>
+                      </>
                     )}
                   </div>
+                )}
+
+                {/* АТМОСФЕРАЛЫҚ ОРНЫҚТЫЛЫҚ — конустың пішінін БЕЛГІЛЕЙТІН фактор.
+                    Бұрын мүлдем ескерілмейтін: конус ені тек жел жылдамдығынан
+                    шығатын, сондықтан физикалық шлейфтен 3–5 есе кең болатын. */}
+                {source.stability && (
+                  <div className="mt-1.5 rounded bg-white/5 p-1.5">
+                    <div className="mb-0.5 flex items-center gap-1">
+                      <span className="text-[9px] font-semibold uppercase tracking-wide text-neutral-400">
+                        {tr("Атмосфера орнықтылығы")}
+                      </span>
+                      <span className="ml-auto rounded bg-sky-500/20 px-1 py-px font-mono text-[10px] font-bold text-sky-200">
+                        {source.stability.cls}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-neutral-200">{source.stability.label}</div>
+                    <p className="mt-0.5 text-[9px] leading-snug text-neutral-400">
+                      {source.stability.note}
+                    </p>
+                    <div className="mt-1 border-t border-white/5 pt-1 text-[9px] leading-snug text-neutral-500">
+                      {tr("Конустың жарты бұрышы")}:{" "}
+                      <span className="text-neutral-300">{source.stability.coneAngle.total.toFixed(1)}°</span>{" "}
+                      = {source.stability.coneAngle.physical}° {tr("физикалық жайылу")} +{" "}
+                      {source.stability.coneAngle.wind}° {tr("жел бағытының ауытқуы")}
+                      <br />
+                      {tr("Ұзындығы")}: {source.stability.plumeLengthKm} {tr("км")}
+                    </div>
+                  </div>
+                )}
+
+                {/* ЖЕЛ ӨРІСІ — тор бойынша бір нүктелік пе, әлде жергілікті ме */}
+                {source.windField && (
+                  <p className="mt-1 rounded bg-white/5 p-1.5 text-[9px] leading-snug text-neutral-400">
+                    🌬 {source.windField.note}
+                  </p>
                 )}
 
                 {/* Дисперсия БОЛЖАМЫ — бұлт қайда жетеді (болжам желі) */}
@@ -1971,6 +2045,17 @@ export function MapView() {
                           : tr("Қала сыртына шығады — елді мекен ілінбейді")}
                       </div>
                     )}
+                    {/* ЕКІ МОДЕЛЬДІҢ АЙЫРМАСЫ — бұрын түсіндірілмейтін,
+                        сондықтан конус пен шеңбер әртүрлі бағыт көрсеткенде
+                        қайсысы дұрыс екені белгісіз болатын */}
+                    <p className="mt-1 border-t border-white/10 pt-1 text-[9px] leading-snug text-neutral-500">
+                      {tr("Конус пен шеңбер — ЕКІ ТҮРЛІ модель.")}{" "}
+                      <span className="text-neutral-400">{tr("Конус")}</span>:{" "}
+                      {tr("«жел осылай тұрса, бұлт мына секторға кетеді» (тұрақты күй).")}{" "}
+                      <span className="text-neutral-400">{tr("Шеңбер")}</span>:{" "}
+                      {tr("«дәл қазір шыққан ауа N сағаттан кейін мына жерде» (сағаттық болжам желімен жылжытылған).")}{" "}
+                      {tr("Жел бұрылса екеуі әртүрлі бағыт көрсетеді — бұл қате емес.")}
+                    </p>
                   </div>
                 )}
 

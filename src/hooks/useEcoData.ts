@@ -216,6 +216,18 @@ export interface PollutionSourceData {
   forecast: { label: string; hoursAhead: number; lat: number; lng: number; radiusKm: number; reached: string[] }[];
   stations: { lat: number; lng: number; aqi: number; name?: string }[];
   groundStations: number;
+  /** Атмосфералық орнықтылық — конустың пішінін белгілейді */
+  stability: {
+    cls: "A" | "B" | "C" | "D" | "E" | "F";
+    label: string;
+    note: string;
+    windDirSigma: number;
+    coneAngle: { total: number; physical: number; wind: number };
+    plumeLengthKm: number;
+  };
+  /** Жел өрісі тор бойынша қаншалық жергілікті */
+  windField: { localPoints: number; totalReceptors: number; note: string };
+  method: string;
   note: string;
 }
 export function usePollutionSource(enabled: boolean) {
