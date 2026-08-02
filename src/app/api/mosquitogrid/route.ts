@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { type GridPoint } from "@/lib/regionGrid";
 import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 import { ATYRAU_DISTRICTS } from "@/data/atyrauDistricts";
+import { fetchFloodPulse, pulseAt } from "@/lib/floodPulse";
 
 // Live mosquito environmental-suitability grid for the Atyrau region.
 // Methodology: climate-driven suitability (the approach used by WHO/ECDC/VECTRI
@@ -97,7 +98,11 @@ function distToPolylineKm(lat: number, lng: number, path: [number, number][]): n
   return min;
 }
 
-// 0..1 floodplain/wetland factor
+// 0..1 БЕЙІМДІЛІК (susceptibility) — «қай жер су басуға бейім».
+//
+// ⚠️ Бұл — географиялық тұрақты шама, «бүгін су басты ма» ЕМЕС.
+// Су басу оқиғасы бөлек өлшенеді: src/lib/floodPulse.ts (Sentinel-1 + GloFAS).
+// Модельдегі нақты `flood` = бейімділік × импульс.
 function floodplainFactor(lat: number, lng: number): number {
   // proximity to the river/floodplain (within ~20 km)
   const riverKm = distToPolylineKm(lat, lng, ZHAIYK_PATH);
@@ -184,7 +189,14 @@ export async function GET(req: Request) {
   const hit = cache.get(region.id);
   if (hit && Date.now() - hit.at < 3600_000) return NextResponse.json(hit.data);
   try {
-    const res = await fetch(SRC_URL(points), { next: { revalidate: 3600 } });
+    // L1 — ТАСҚЫН ИМПУЛЬСІ. Метеорологиямен қатар сұралады, сондықтан
+    // қосымша кідіріс бермейді. Қолжетімсіз болса `value: null` қайтады
+    // да, модель әлсіретілген режимде жұмыс істеп, ол ашық жазылады.
+    const origin = new URL(req.url).origin;
+    const [res, pulse] = await Promise.all([
+      fetch(SRC_URL(points), { next: { revalidate: 3600 } }),
+      fetchFloodPulse(origin, region.id),
+    ]);
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
@@ -216,7 +228,11 @@ export async function GET(req: Request) {
         const rh = d.current?.relative_humidity_2m ?? 0;
         const soil = d.current?.soil_moisture_0_to_1cm ?? null;
         const urban = urbanFactor(d.latitude, d.longitude);
-        const flood = floodplainFactor(d.latitude, d.longitude);
+        // Бейімділік × өлшенген импульс. Импульс жоқ болса — бейімділік
+        // жалғыз қалады (ескі мінез-құлық), бұл жауапта белгіленеді.
+        const susceptibility = floodplainFactor(d.latitude, d.longitude);
+        const pulseHere = pulseAt(pulse, d.latitude, d.longitude);
+        const flood = pulseHere == null ? susceptibility : susceptibility * pulseHere;
 
         const times = d.daily?.time ?? [];
         const tmax = d.daily?.temperature_2m_max ?? [];
@@ -272,6 +288,10 @@ export async function GET(req: Request) {
           name: meta.name,
           urban: +urban.toFixed(2),
           flood: +flood.toFixed(2),
+          // Екеуін бөлек береміз — «бейім, бірақ бүгін құрғақ» пен
+          // «бейім әрі су басқан» айырмасы UI-де көрінуі үшін
+          floodSusceptibility: +susceptibility.toFixed(2),
+          floodPulse: pulseHere == null ? null : +pulseHere.toFixed(2),
           index: days[0].index, // today (back-compat)
           temperature: days[0].temp,
           humidity: rh,
@@ -296,6 +316,16 @@ export async function GET(req: Request) {
       amplificationNote:
         "Жайық жайылмасы мен елді мекендер тізілімі қолданылды " +
         "(қалалық + гидрологиялық күшейту).",
+      // L1 — тасқын импульсі (Sentinel-1 SAR + GloFAS)
+      floodSignal: {
+        available: pulse.value != null,
+        value: pulse.value,
+        source: pulse.source,
+        sarZonesOk: pulse.sarZonesOk,
+        sarPctMax: pulse.sarPct,
+        glofasRatio: pulse.glofasRatio,
+        note: pulse.note,
+      },
       avgIndex,
       maxIndex: idx.length ? Math.max(...idx) : null,
       gridPoints: grid.length,

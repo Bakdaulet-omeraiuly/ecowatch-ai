@@ -46,6 +46,27 @@ interface Props {
   inline?: boolean;
 }
 
+/**
+ * ҚЫСҚА АНЫҚТАМА — ӘРҚАШАН КӨРІНІП ТҰРАДЫ.
+ *
+ * Толық мәлімет (формула, аспап, норма, шектеу) ⓘ батырмасының астында
+ * қалады, ал «бұл сан не?» деген сұраққа жауап жасырылмайды.
+ */
+export function IndicatorSummary({ id, className = "" }: { id: string; className?: string }) {
+  const ind = INDICATORS.find((i) => i.id === id);
+  const extra = EXTRA[id];
+  const text = ind?.what ?? extra?.what;
+  if (!text) return null;
+  return (
+    <p className={`text-[10px] leading-snug text-neutral-500 ${className}`}>{text}</p>
+  );
+}
+
+/** Көрсеткіштің аты — тізілімнен (UI-дегі қысқа жазумен сәйкессіздік болмауы үшін) */
+export function indicatorName(id: string): string | null {
+  return INDICATORS.find((i) => i.id === id)?.name ?? EXTRA[id]?.name ?? null;
+}
+
 export function IndicatorHelp({ id, inline }: Props) {
   const { tr } = useLang();
   const [open, setOpen] = useState(false);

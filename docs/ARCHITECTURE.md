@@ -1,253 +1,278 @@
-# EcoWatch AI — System Architecture
+# Jaiyq — жүйе архитектурасы
 
-## High-Level Overview
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Browser (Client)                      │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌───────────────┐  │
-│  │  Mapbox GL   │  │  React UI    │  │   Recharts    │  │
-│  │  (map view)  │  │  shadcn/ui   │  │  (dashboard)  │  │
-│  └──────┬───────┘  └──────┬───────┘  └───────────────┘  │
-│         │                 │                               │
-│         └────────┬────────┘                               │
-│                  │                                        │
-│         Next.js App Router (pages + layout)               │
-│                  │                                        │
-└──────────────────┼────────────────────────────────────────┘
-                   │ fetch / Server Actions
-┌──────────────────┼────────────────────────────────────────┐
-│            Next.js API Routes (Edge-compatible)           │
-│                                                           │
-│  POST /api/analyze   ──►  OpenAI Vision API              │
-│  GET  /api/sites     ──►  Static seed data (JSON)        │
-│  POST /api/report    ──►  In-memory / localStorage       │
-└───────────────────────────────────────────────────────────┘
-```
+> **Бұл файл не үшін керек.** Жоба үлкейген сайын «бұл қалай жұмыс істейді
+> еді?» деген сұрақ жиілейді. Мұнда жүйенің НАҚТЫ күйі жазылады: не іске
+> асқан, не әлі жоспарда, нені бұзуға болмайды.
+>
+> ⚠️ Кодты өзгерткен сайын осы файл да жаңарады. Ескірген құжат —
+> жоқ құжаттан жаман: ол адастырады.
+>
+> Ескі нұсқасы (EcoWatch AI, ағылшынша) осы файлдың орнында тұрған еді —
+> ол жүйенің бұрынғы, мүлдем басқа күйін сипаттайтын, сондықтан ауыстырылды.
 
 ---
 
-## Component Architecture
+## 1. БҰЗУҒА БОЛМАЙТЫН ЕРЕЖЕЛЕР
 
-```
-app/
-├── layout.tsx                  Root layout (fonts, providers)
-├── page.tsx                    Home → redirects to /map
-│
-├── map/
-│   └── page.tsx                Main map experience
-│
-├── dashboard/
-│   └── page.tsx                Analytics & stats
-│
-└── api/
-    ├── analyze/route.ts        AI analysis endpoint
-    ├── sites/route.ts          Seed sites data
-    └── report/route.ts         Community reports
+Бұлар — жобаның негізі. Кез келген өзгеріс осыларды бұзбауы керек.
 
-components/
-├── map/
-│   ├── MapContainer.tsx        Mapbox GL wrapper
-│   ├── SiteMarker.tsx          Individual map pin
-│   ├── MarkerCluster.tsx       Cluster logic
-│   └── LocationPicker.tsx      Click-to-select overlay
-│
-├── analysis/
-│   ├── AnalysisDrawer.tsx      Slide-in report panel
-│   ├── RiskGauge.tsx           Radial score visualization
-│   ├── FindingsList.tsx        AI findings breakdown
-│   └── SatellitePreview.tsx    Image thumbnail
-│
-├── dashboard/
-│   ├── StatsCards.tsx          Summary KPI cards
-│   ├── TrendChart.tsx          Recharts line chart
-│   ├── RiskDistribution.tsx    Recharts bar chart
-│   └── ActivityFeed.tsx        Recent analyses list
-│
-├── dashboard-charts/
-│   ├── IssueBreakdown.tsx      Donut: oil/dumping/degradation
-│   ├── DistrictComparison.tsx  Horizontal bars per district
-│   ├── AirQualityChart.tsx     AQI over time + WHO line
-│   └── RiverQualityChart.tsx   Zhaiyk pollution index
-│
-├── report/
-│   ├── PhotoUpload.tsx         Drag & drop + mobile camera capture
-│   ├── GeoLocator.tsx          Browser GPS + manual map-pick fallback
-│   ├── ReportForm.tsx          Community submission form
-│   ├── VerificationBadge.tsx   confirmed / unconfirmed / contradicted
-│   └── SiteHistory.tsx         Past analyses list
-│
-└── ui/                         shadcn/ui components (auto-generated)
-```
+### 1.1 Жалған дерек ЖАСАЛМАЙДЫ
 
----
+Дереккөз қолжетімсіз болса — **503 + себебі**. Mock-қа шегіну жоқ.
+Бұл ешқандай жағдайда бұзылмайды, «демо құламасын» деген де себеп емес.
 
-## Analysis Modes
+**Бос орын ≠ бәрі тыныш.** Дерек жоқ болса, ол АШЫҚ жазылады
+(`unavailable`, `moduleMissing`, `missingModules`). Иконканың немесе
+жолдың жай ғана жоқтығы «мәселе жоқ» деп оқылмауы керек.
 
-The platform supports three analysis modes through a single endpoint
-(`POST /api/analyze` with `mode: "satellite" | "photo" | "combined"`):
+### 1.2 Өлшемнің болмауы — судың/ластанудың болмауы емес
 
-### Mode 1 — Satellite (top-down screening)
+Спутник өтуі болмаған терезеде мән **нөл деп алынбайды**. Ол «белгісіз»
+болып қалады да, басқа дереккөзге шегінеді. Мысалы `lib/floodPulse.ts`:
+SAR `status ≠ "ok"` болса, сол терезе GloFAS-пен есептеледі.
 
-```
-1. User clicks map → coordinates captured (lat, lng, zoom)
-2. MapContainer calls /api/analyze with { mode: "satellite", lat, lng }
-3. API route:
-   a. Constructs Mapbox Static Image URL for that location
-   b. Sends image URL + satellite-specific prompt to OpenAI Vision (gpt-4o)
-   c. Parses structured JSON response
-   d. Returns: { riskScore, confidence, features[], recommendation, imageUrl }
-4. AnalysisDrawer opens with animation (Framer Motion)
-5. Site is saved to localStorage history
-6. Map marker added at coordinates, colored by risk level (🛰 style)
-```
+### 1.3 Үш деңгей белгісі
 
-### Mode 2 — Citizen Photo (ground-level report)
+Әр сан үшеуінің бірі: 🛰 **өлшем** · 📊 **модель** · 🤖 **AI**.
+UI-де `TierBadge`, тізілімде `tier`. AI саны өлшеммен араласпайды.
 
-```
-1. User uploads/captures a photo (drag & drop, or <input capture="environment">
-   on mobile — opens camera directly)
-2. Browser Geolocation API auto-fills coordinates (manual map-pick fallback)
-3. Photo sent as base64 directly to /api/analyze { mode: "photo", image, lat, lng }
-   — no file storage server needed; only a thumbnail kept in localStorage
-4. Ground-level prompt: waste type, estimated volume, oil spill vs household
-   waste classification, hazard level
-5. Map marker added with citizen-report style (📸)
-```
+### 1.4 Эко қабаттарда AI ЖОҚ
 
-### Mode 3 — Combined (cross-verification) ⭐
+`/api/layer/[key]` → `aiIncluded: false`. AI бөлек эндпоинтте
+(`/api/layer-ai`), бөлек қойындыда, бөлек батырмамен.
 
-```
-1. Triggered automatically after a citizen photo report
-2. API fetches the satellite tile for the same coordinates
-3. BOTH images sent in a single GPT-4o Vision request (multi-image input)
-4. Cross-verification prompt: does the satellite view corroborate the
-   ground-level evidence?
-5. Returns verificationStatus: "confirmed" | "unconfirmed" | "contradicted"
-6. Confirmed sites get a distinct ✅ marker and elevated priority
-```
+### 1.5 Расталмаған норма бойынша «заң бұзылды» деп айтылмайды
+
+`legalNorms.ts` → әр норманың `status`. `needs-primary-check` болса
+деңгей `exceeded-unverified` → «алдын ала белгі», заңдық тұжырым емес.
+
+### 1.6 ҚР нормативтері тек Қазақстанда
+
+`checkCompliance(id, value, jurisdiction)`. ҚР-дан тыс аймақта ҚР актілері
+сүзіліп тасталады, тек WHO эталоны қалады. `kzViolation` тек ҚР-да `true`
+бола алады.
+
+### 1.7 Тізілімсіз аймақта модуль «жоқ» деп көрсетіледі
+
+Атыраудың дерегі басқа қалаға **ешқашан** телінбейді. `hasModule()`
+тексереді, `moduleUnavailable()` себебін қайтарады.
+
+### 1.8 Спутник/модель дерегі — сот дәлелі емес
+
+Тексеру тағайындауға негіз болады, бірақ жердегі аспаптық өлшемсіз
+әкімшілік іс қозғауға жарамайды. `LEGAL_DISCLAIMER` барлық жерде.
+
+### 1.9 Шкала бір ғана жерде анықталады
+
+Түс/деңгей шекаралары екі жерде жазылса — олар міндетті түрде алшақтайды.
+Панельдегі аңыз есептеу функциясынан оқиды: `AQI_CATEGORIES`,
+`fireDangerClass`, `droughtClass`, `MOS_LEVELS`.
 
 ---
 
-## AI Prompt Design
+## 2. ТІЗІЛІМДЕР — жалғыз шындық көзі
 
-Three separate prompts, one per mode. All share the same system context:
+Жаңа нәрсе қосқанда **тек осы файлдарға** жазылады, беттер өзі жаңарады.
 
-**System prompt (shared):**
-> You are an environmental monitoring AI for the Atyrau region of Kazakhstan — an oil-producing area on the Caspian Sea coast, crossed by the Zhaiyk (Ural) river. You analyze imagery for oil pollution, illegal dumping, and land degradation. Respond only with valid JSON.
-
-**Satellite prompt:**
-> Analyze this satellite image. Return JSON: { "riskScore": 0-100, "confidence": 0-100, "riskLevel": "low|medium|high|critical", "oilPollution": boolean, "illegalDumping": boolean, "landDegradation": boolean, "detectedFeatures": string[], "vegetationDamage": boolean, "accessRoutes": boolean, "recommendation": string, "summary": string }
-
-**Ground photo prompt:**
-> Analyze this ground-level photo taken by a citizen. Classify the issue. Return JSON: { "riskScore", "confidence", "riskLevel", "issueType": "oil_spill|household_waste|construction_waste|industrial|land_degradation|other", "estimatedScale": "small|medium|large", "hazardous": boolean, "detectedFeatures": string[], "recommendation", "summary" }
-
-**Cross-verification prompt (2 images):**
-> Image 1 is a citizen ground-level photo; image 2 is the satellite view of the same coordinates. Does the satellite view corroborate the ground evidence? Return JSON: { ...all satellite fields, "verificationStatus": "confirmed|unconfirmed|contradicted", "verificationNotes": string }
-
----
-
-## Ecosystem Forecasting Engine
-
-No ML training needed — forecasting is done with GPT-4o reasoning over
-structured data, which is realistic for an MVP and demos well:
-
-```
-1. Input: site's analysis history + district seed trends (ecologyStats.ts)
-2. POST /api/forecast { siteId | district }
-3. Prompt: "Given these risk scores over time and regional context
-   (oil industry, Caspian coast, flood seasons), project the 6–12 month
-   trajectory. Return JSON: { projectedScores: [{month, score}],
-   trend: 'improving|stable|degrading', drivers: string[],
-   outlook: string, urgentSites: string[] }"
-4. Dashboard renders solid line (history) + dashed line (forecast)
-```
-
-## Mosquito Risk Module
-
-The breeding-site signal (stagnant water) is satellite-visible, so it reuses
-the existing pipeline with an extended prompt:
-
-```
-Satellite prompt additions:
-  "standingWater": boolean, "waterBodies": string[],
-  "floodplainIndicators": boolean, "drainageBlocked": boolean
-
-Mosquito Risk Index (computed in lib/mosquito.ts, no extra AI call):
-  MRI = 40·standingWater + 20·floodplainProximity(lat,lng)
-      + 25·seasonFactor(month)   // May–Jul flood season = 1.0
-      + 15·tempFactor(month)     // from seeded climate table
-
-Map: separate 🦟 heatmap layer (toggle), weighted by MRI
-Dashboard: seasonal activity chart (12 months, peak warnings)
-Citizen reports: "mosquito breeding site" tag feeds MRI for that cell
-```
-
-## Analytics Module (Regional Ecology Dashboard)
-
-A dedicated `/dashboard` section presenting Atyrau region ecology at a glance.
-Data sources: live user analyses (Zustand store) + seeded historical dataset
-(`src/data/ecologyStats.ts`) for charts that need time depth.
-
-| Block | Visualization | Source |
+| Файл | Не сақталады | Кім оқиды |
 |---|---|---|
-| KPI cards | Total analyzed, high-risk sites, confirmed reports, avg risk score | Live store |
-| Risk trend | Recharts area chart — analyses & avg risk per day | Live + seed |
-| Risk distribution | Bar chart by risk level | Live store |
-| Issue breakdown | Donut chart — oil / dumping / degradation share | Live + seed |
-| District comparison | Horizontal bars — Atyrau city, Tengiz, Kulsary, Inderbor, Makat | Seed |
-| Air quality (AQI) | Line chart, monthly, with WHO threshold line | Seed (realistic mock) |
-| Zhaiyk river quality | Line chart — pollution index over time | Seed (realistic mock) |
-| Verification funnel | Reported → AI-analyzed → confirmed → flagged for inspection | Live store |
-| Heatmap layer | Mapbox heatmap of risk density (toggle on map page) | Live + seed |
+| `src/data/indicatorRegistry.ts` | 14 көрсеткіш: формула, есептеу тізбегі, аспап, дереккөз құжаты, норма, шектеу, валидация күйі | `/eco-passport`, `/methodology`, `IndicatorHelp`, `/api/layer`, `/api/compliance` |
+| `src/data/legalNorms.ts` | ҚР ДСМ-70, Эко кодекс, ӘҚБтК, WHO 2021, EU 2008/50/EC + **әр норманың растау күйі** | `lib/compliance.ts`, `/legislation` |
+| `src/data/summationGroups.ts` | ҚР ДСМ-70 1-қосымша 3-кестесі: жинақталу топтары | `lib/summation.ts`, `/api/compliance` |
+| `src/data/regions.ts` | 10 аймақ + **модуль қолжетімділігі** (`hasModule`, `missingModules`) | бүкіл жүйе |
+| `src/data/ecoLayers.ts` | 9 эко қабат: дереккөз, норма, уақыт қатары, «неге қатар жоқ» себебі | `/api/layer/[key]`, `LayerDrawer` |
+| `src/data/atyrauDistricts.ts` | Атыраудың 65 нүктелік тізілімі (маса индексі үшін) | `/api/mosquitogrid` |
+| `src/data/riverPoints.ts` | GloFAS арна нүктелері | `/api/flood`, `/api/water-trend` |
+| `src/data/floodZones.ts` | Sentinel-1 бақылау терезелері (6 аймақ) | `/api/flood-extent`, `lib/floodPulse.ts` |
+| `src/data/facilities.ts` | Кәсіпорындардың тексерілген координаттары | `/api/object/[id]`, `/api/pollution-source` |
+| `src/data/places.ts` | Карта іздеуінің өз тізілімі | `MapSearch` |
 
 ---
 
-## State Management
+## 3. МОДЕЛЬДЕР — іске асқан vs жоспарда
 
-- **Global state:** Zustand store
-  - `sites[]` — all analyzed + seeded sites
-  - `selectedSite` — currently open in drawer
-  - `isAnalyzing` — loading state
-  - `reportedSites[]` — community submissions
+### 3.1 JAIYQ-MRI (маса тәуекел индексі)
 
-- **Persistence:** `localStorage` via Zustand persist middleware
+**Файл:** `src/app/api/mosquitogrid/route.ts` + `src/lib/floodPulse.ts`
+**Тізілім:** `indicatorRegistry.ts` → `mri` · **Аймақ:** тек Атырау
 
-- **No external database** for MVP — all data is client-side or seeded JSON
+Жоба құжаты (артефакт) 7 қабатты сипаттайды. Кодтағы нақты күй:
+
+| Қабат | Күйі | Түсініктеме |
+|---|---|---|
+| **L1** Гидро-мекен | ✅ **іске асқан** | Sentinel-1 SAR (`/api/flood-extent`) + GloFAS (`/api/flood`) → `floodPulse.ts`. `flood = бейімділік × импульс` |
+| **L1** Каспий деңгейі `M_casp` | ❌ жоспарда | Дереккөз жалғанбаған |
+| **L2** FPEB ядросы | ⚠️ жеңілдетілген | `fpebIndex()` — алгебралық түр. Дифференциалдық теңдеулер (`dE/dt`), Аррениус `τ(T)`, өлім `μ` — жоқ. Жұмыртқа банкі 12 санды айлық кесте |
+| **L3** Температура гейті | ⚠️ жеңілдетілген | Mordecai 2017 **тәсіліне негізделген**, олардың Brière функциясы емес — квадрат теңдеу |
+| **L4** Culex тармағы | ⚠️ дөрекі | Бар, бірақ қамыс (NDVI) мен каналдар ескерілмейді |
+| **L5** ML (LSTM/GRU + RF/SHAP) | ❌ жоспарда | Код жоқ |
+| **L6** Bayesian белгісіздік | ❌ жоспарда | Нүктелік сан беріледі, интервал жоқ |
+| **L7** Digital twin + assimilation | ❌ жоспарда | Күй сақталмайды, әр есептеу нөлден басталады |
+| Гидропериод (су неше күн тұрды) | ❌ жоспарда | Топырақ ылғалы прокси ретінде |
+
+**Валидация:** `validated: false`. Тұзақ (trap) деректері ешбір аймақта
+жоқ, сондықтан модель тексерілмеген. Салыстыру үшін жарайды (қай жер
+қауіптірек), абсолют сан ретінде емес.
+
+**⚠️ Тор өлшемі:** Атырауда **90 нүкте** (облыстық 5×5 = 25 + қаланың 65).
+Бір рет 37-ге дейін азайып кеткен — MRI-дің бүкіл мәні қала ІШІНДЕГІ
+айырмада, оны сирек тор жасырып жібереді. Open-Meteo шегі — 100 координата.
+
+**⚠️ Екі түрлі MRI формуласы бар** (әлі біріктірілмеген):
+`fpebIndex` (карта, эко-паспорт) және `lib/mosquito.ts → mosquitoRiskIndex`
+(фото-хабарламалар, AI агент, дашбордтағы маусымдық график). Екеуі бір жер
+үшін әртүрлі сан береді.
+
+### 3.2 JAIYQ-ML (11 күндік ауа болжамы)
+
+**Файл:** `ml-service/` (Python оқыту) + `src/lib/ml/` (TS қолдану)
+**Эндпоинт:** `/api/ml-forecast` · **Аймақ:** тек Атырау
+
+numpy-мен жазылған histogram gradient boosting. GitHub Actions апта сайын
+нақты CAMS/ERA5 деректерінде қайта оқытады.
+
+**⚠️ САПА ШЕГІ:** модель климатологиядан ≥5% артық дәлдік көрсетпесе,
+`model.usable = false` → эндпоинт **503** қайтарады. Нәтижелер тарихы:
+v1.0 −0.7%, v1.1 +2.3%, v1.2 +4.3% — үшеуі де шектен төмен, сондықтан
+модель әлі **жасырулы**. Бұл әдейі: дәлдігі жоқ нәрсені «AI болжам» деп
+ұсыну жалған дәлдік болар еді.
+
+**⚠️ Паритет:** `ml-service/features.py` мен `src/lib/ml/features.ts`
+ӘРҚАШАН бірдей болуы керек. `parity_check.py` тексереді (шек 1e-9).
+
+### 3.3 Басқа есептеулер
+
+| Не | Файл | Күйі |
+|---|---|---|
+| FWI (өрт қаупі) | `lib/fwi.ts`, `/api/fire` | Van Wagner 1987 стандарты — валидацияланған |
+| SPI-3 (құрғақшылық) | `lib/spi.ts`, `/api/drought` | McKee 1993 / WMO-1090 — валидацияланған |
+| Су басқан аумақ | `lib/floodSar.ts` | Sentinel-1 VV < −16 дБ, тірек кезеңмен салыстыру. **Өлшем** |
+| Ластану көзі | `lib/pollutionSource.ts` | Жел бойынша кері траектория. Тек Атырау |
+| Жинақталу әсері | `lib/summation.ts` | ҚР ДСМ-70 3-кестесі, Σ(Cᵢ/ШРКᵢ) ≤ 1 |
+
+### 3.4 eo-service (Qwen2-VL)
+
+`eo-service/` — **ЖЕРГІЛІКТІ зерттеу құралы**. Өнімге қосылмаған әрі
+қосылмайды, себебі README-де жазылған. Шатастырмау керек.
 
 ---
 
-## Key Dependencies
+## 4. АЙМАҚТАР МЕН МОДУЛЬДЕР
 
-| Package | Purpose |
-|---|---|
-| `next` 15 | Framework, API routes, SSR |
-| `mapbox-gl` | Interactive satellite map |
-| `react-map-gl` | React wrapper for Mapbox |
-| `openai` | Vision API calls (server-side) |
-| `zustand` | Client state management |
-| `framer-motion` | UI animations |
-| `recharts` | Dashboard charts |
-| `shadcn/ui` | UI component library |
-| `tailwindcss` | Styling |
-| `zod` | API response validation |
+10 аймақ: ҚР (Атырау, Ақтау, Алматы, Астана) + Каспий жағалауы
+(Баку, Сумқайыт, Астрахань, Махачкала, Түрікменбашы, Энзели).
+
+**Жаһандық модульдер** (кез келген қалада жұмыс істейді, жаһандық
+дереккөзге сүйенеді): ауа, ауа райы, өрт, құрғақшылық, жел, топырақ,
+жылу аномалиялары, климат.
+
+**Тізілім қажет ететін модульдер** (қазір тек Атырауда): маса индексі,
+өзен ағыны, су басқан аумақ, ластану көзі, JAIYQ-ML, объект карталары.
+
+Жаңа қалаға модуль қосу тәртібі:
+1. Тиісті тізілімді толтыру (нүктелер / терезелер / кәсіпорындар)
+2. `regions.ts` → сол аймақтың `extraModules` тізіміне қосу
+3. Басқа ештеңе керек емес — UI мен эндпоинттер өзі жаңарады
 
 ---
 
-## Environment Variables
+## 5. ДЕРЕККӨЗДЕР (бәрі шынайы, тегін)
 
-```env
-NEXT_PUBLIC_MAPBOX_TOKEN=pk.xxx
-OPENAI_API_KEY=sk-xxx
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+| Дерек | Көзі | Кідіріс |
+|---|---|---|
+| Ауа сапасы | Copernicus CAMS (Open-Meteo арқылы) | ~1 сағат |
+| Ауа райы / болжам | ECMWF (Open-Meteo) | ~1 сағат |
+| Архив / климатология | ERA5 (Open-Meteo archive) | ~5 тәулік |
+| Өзен ағыны | GloFAS (Open-Meteo Flood) | ~1 тәулік |
+| Су басқан аумақ | Sentinel-1 SAR (CDSE / Sentinel Hub) | ~1–6 тәулік |
+| Жылу аномалиялары | NASA FIRMS · VIIRS SNPP | ~3 сағат |
+| Спутник суреттері | Mapbox, Sentinel-2/EOX, NASA MODIS | — |
+| Климат проекциясы | CMIP6 HighResMIP (Open-Meteo Climate) | — |
+| Жер бетіндегі станциялар | WAQI (токен болса) | ~1 сағат |
+| Мақалалар | ScienceDaily, Phys.org RSS | — |
+
+Кілттер `.env.local`-да (GitHub-та ЖОҚ, Vercel-де бар):
+`OPENAI_API_KEY`, `NEXT_PUBLIC_MAPBOX_TOKEN`, `NEXT_PUBLIC_SUPABASE_URL`,
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`, CDSE кілттері, `WAQI_TOKEN`.
+
+---
+
+## 6. ЭНДПОИНТТЕР
+
+**Тірі деректер (аймаққа тәуелді):**
+`/api/environment` · `/api/airgrid` · `/api/windgrid` · `/api/soilgrid` ·
+`/api/mosquitogrid` · `/api/fire` · `/api/drought` · `/api/flares` ·
+`/api/climate` · `/api/water` · `/api/point-air` · `/api/station-air`
+
+**Атырауға арналған (тізілім қажет):**
+`/api/flood` · `/api/water-trend` · `/api/flood-extent` ·
+`/api/pollution-source` · `/api/ml-forecast` · `/api/object/[id]`
+
+**Қабаттар мен заңнама:**
+`/api/layer/[key]` (AI ЖОҚ) · `/api/layer-ai` (AI бөлек) ·
+`/api/compliance` · `/api/events` · `/api/export` (CSV)
+
+**AI:** `/api/analyze` (спутник Vision) · `/api/agent` (көп дереккөз) ·
+`/api/why` · `/api/forecast` · `/api/recommend` · `/api/translate` ·
+`/api/moderation/[id]`
+
+**Азаматтық:** `/api/reports` (Supabase + AI модерация) · `/api/alert`
+
+---
+
+## 7. ӨЗГЕРІС ЕНГІЗУ ТӘРТІБІ
+
+1. **Тізілім бар ма?** — жаңа көрсеткіш/норма/аймақ болса, алдымен тиісті
+   `src/data/*.ts` файлына жазу. UI-ды қолмен түзетуге тырыспау.
+2. **Тор/нүкте санын өзгертпес бұрын** — қанша нүкте бар екенін санау.
+   Open-Meteo бір сұранысқа 100 координата қабылдайды.
+3. **Ортақ функцияға көшірмес бұрын** — сол жердегі арнайы тізілім
+   жоғалып кетпейтінін тексеру (маса торы осылай 90→37 болып кеткен).
+4. `npx tsc --noEmit` → таза
+5. `npm run build` → таза
+6. `npx eslint src --ext .ts,.tsx` → қате саны артпауы керек
+7. Коммит → **PR → main-ге қосу**. Vercel тек `main`-нен деплой жасайды:
+   тармақта қалған жұмыс сайтта КӨРІНБЕЙДІ.
+
+## 8. ІСКЕ ҚОСУ
+
+```bash
+export NVM_DIR="$HOME/.nvm" && . "$NVM_DIR/nvm.sh"   # nvm арқылы болса
+npm run dev        # әзірлеу
+npm run build      # тексеру
 ```
 
+Деплой: GitHub `main` → Vercel автоматты. Қолмен: `vercel deploy --prod`.
+Repo: github.com/Bakdaulet-omeraiuly/ecowatch-ai
+
 ---
 
-## Security Considerations
+## 9. ШЕШІМДЕР ЖУРНАЛЫ
 
-- OpenAI API key is server-side only (API route, never exposed to client)
-- Mapbox public token is scoped to the domain
-- No user data is persisted server-side — all local storage
-- Input coordinates are validated with Zod before API calls
+Неге осылай жасалғанын кейін ұмытпау үшін.
+
+- **ML моделі жасырулы тұр** — сапа шегі (5%) алдымен жазылды, содан кейін
+  ғана модель оқытылды. Сан әдемі шыққанша баптау емес, шыншыл нәтиже.
+- **Mock-қа шегіну алынып тасталды** — `analyze`, `agent`, `forecast`
+  эндпоинттерінде бұрын жалған деректі көрсету болған. Аудит кезінде
+  жойылды; бұл — жобаның ең маңызды тұтастық түзетуі.
+- **Маса — тізілім модулі** — JAIYQ-MRI Атыраудың нүктелік тізіліміне
+  сүйенеді. Онсыз шыққан сан JAIYQ-MRI емес, тек климаттық жуықтау болар
+  еді, сондықтан басқа қалада «жоқ» деп көрсетіледі.
+- **Тасқын импульсі (L1) бөлінді** — бұрын `flood` айнымалысы тек өзенге
+  дейінгі қашықтық болатын: сәуірде де, қаңтарда да бірдей сан. Ол
+  «қай жер бейім» дегенді көрсетеді, «бүгін су басты ма» дегенді емес.
+  Енді екеуі бөлек: `flood = бейімділік × өлшенген импульс`.
+- **35-топтағы заңдық қате** — жинақталу тобында өлшенбейтін серіктес зат
+  (қорғасын оксиді) тізімге кірмей қалып, топ бір заттан тұратын болған.
+  Сонда SO₂ жеке өзі асқанда «жинақталу бұзушылығы» деген **қате заңдық
+  қорытынды** шығатын. Өлшенбейтін заттар да тізілімде тұруы ШАРТ.
+- **Түс шкаласы бір жерден** — маса иконкасының түсі мен аудандар
+  рейтингінің түсі бөлек жазылған еді, олар алшақтап кететін. Енді екеуі
+  де `MOS_LEVELS` тізілімінен оқиды. Сол себепті `LayerIndexNote` те
+  шекараларды қайта жазбай, `fireDangerClass`/`droughtClass`/
+  `AQI_CATEGORIES` функцияларынан оқиды.
+- **`const URL = ...` жазуға болмайды** — жаһандық `URL` конструкторын
+  көлеңкелеп, `new URL(req.url)` бұзылады. Барлық жерде `SRC_URL`.
+- **Эффект ішінде синхронды `setState` жоқ** — оның орнына `loadedFor`
+  үлгісі немесе `key` арқылы қайта құру (lint ережесі).

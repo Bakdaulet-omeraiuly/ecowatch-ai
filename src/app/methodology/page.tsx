@@ -107,6 +107,22 @@ export default function MethodologyPage() {
                     </div>
                   )}
 
+                  {/* ЕСЕПТЕУ ТІЗБЕГІ — формула мен нәтиженің арасындағы
+                      әр қадам. Әдістеме бетінің ең негізгі бөлігі: эколог
+                      санның қалай шыққанын қайталай алуы керек. */}
+                  {it.steps.length > 0 && (
+                    <ol className="mb-2 space-y-0.5 rounded-md border border-white/10 bg-white/[0.02] px-3 py-2 text-[11px] leading-relaxed text-neutral-300">
+                      {it.steps.map((st, i) => (
+                        <li key={i} className="flex gap-2">
+                          <span className="shrink-0 font-mono text-[10px] text-neutral-500">
+                            {i + 1}.
+                          </span>
+                          <span>{st}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+
                   <dl className="grid gap-x-6 gap-y-1 text-[11px] leading-relaxed sm:grid-cols-[max-content_1fr]">
                     <dt className="text-neutral-500">Аспап / модель</dt>
                     <dd className="text-neutral-300">{it.instrument}</dd>

@@ -17,9 +17,11 @@ const ORDER: ComplianceLevel[] = [
   "ok", "approaching", "exceeded", "exceeded-unverified", "unknown",
 ];
 
-export function LevelLegend({ compact }: { compact?: boolean }) {
+export function LevelLegend({
+  compact, defaultOpen,
+}: { compact?: boolean; defaultOpen?: boolean }) {
   const { tr } = useLang();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen ?? false);
 
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.02]">

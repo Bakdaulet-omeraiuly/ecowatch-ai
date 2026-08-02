@@ -24,7 +24,7 @@ import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
 import { EventFeed } from "@/components/dashboard/EventFeed";
 import { useRegion } from "@/store/useRegionStore";
 import { MissingModulesNote } from "@/components/ui/ModuleMissing";
-import { IndicatorHelp } from "@/components/ui/IndicatorHelp";
+import { IndicatorHelp, IndicatorSummary, indicatorName } from "@/components/ui/IndicatorHelp";
 import { LevelLegend } from "@/components/ui/LevelLegend";
 import { missingModules } from "@/data/regions";
 
@@ -89,6 +89,10 @@ interface WaterData {
 }
 
 // WHO 2021 guideline: PM2.5 daily mean 15 µg/m³
+// Тірі көрсеткіштер тақтасында тұратын индикаторлар — анықтамалары
+// төменде толық тізіммен көрсетіледі (плитка ішіне сыймайды)
+const LIVE_INDICATORS = ["aqi", "pm25", "pm10", "no2", "so2", "temperature", "wind", "humidity"];
+
 const WHO_PM25_DAILY = 15;
 
 const tooltipStyle = {
@@ -292,8 +296,29 @@ export default function DashboardPage() {
                   </div>
                 );
               })()}
+              {/* КӨРСЕТКІШТЕР НЕНІ БІЛДІРЕДІ — плиткалар кішкентай
+                  болғандықтан анықтамалар осында, толық тізіммен тұрады */}
+              <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-neutral-400">
+                  {tr("Көрсеткіштер нені білдіреді")}
+                </div>
+                <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                  {LIVE_INDICATORS.map((id) => (
+                    <div key={id}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-medium text-neutral-200">
+                          {indicatorName(id) ?? id}
+                        </span>
+                        <IndicatorHelp id={id} />
+                      </div>
+                      <IndicatorSummary id={id} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="mt-2.5">
-                <LevelLegend />
+                <LevelLegend defaultOpen />
               </div>
               <p className="mt-2 text-[10px] text-neutral-500">
                 Соңғы жаңару: {new Date(env.fetchedAt).toLocaleString("kk-KZ")} ·{" "}

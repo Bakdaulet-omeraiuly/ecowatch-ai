@@ -9,8 +9,8 @@ import {
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
-import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
-import { IndicatorHelp } from "@/components/ui/IndicatorHelp";
+import { LEVEL_COLOR, LEVEL_KZ, LEVEL_MEANING, type ComplianceLevel } from "@/lib/compliance";
+import { IndicatorHelp, IndicatorSummary } from "@/components/ui/IndicatorHelp";
 import { LevelLegend } from "@/components/ui/LevelLegend";
 import type { LayerKey, SeriesVar } from "@/data/ecoLayers";
 
@@ -223,6 +223,20 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
         <span className="text-[10px] text-neutral-400">{tr("AI қолданылмаған")}</span>
       </div>
 
+      {/* ҚАБАТ НЕНІ БІЛДІРЕДІ — тақырыптағы жазу екі жолға қиылады,
+          сондықтан толық мәтін осында тұрады */}
+      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+        <div className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
+          {tr("Бұл қабат нені көрсетеді")}
+        </div>
+        <p className="text-[11px] leading-relaxed text-neutral-300">{data.what}</p>
+        {data.sources.length > 0 && (
+          <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[10px] leading-snug text-neutral-500">
+            {tr("Дереккөз")}: {data.sources.join(" · ")}
+          </p>
+        )}
+      </div>
+
       {/* Модуль бұл аймақта жоқ — БОС қалдырмаймыз, себебін жазамыз */}
       {data.moduleMissing && (
         <div className="space-y-1.5 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
@@ -245,20 +259,29 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
           {data.compliance.results.map((r) => (
             <div
               key={r.indicatorId}
-              className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
+              className="rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
             >
-              <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-300">{r.name}</span>
-              <span className="text-[13px] font-semibold text-white">
-                {r.value == null ? "—" : r.value}
-                <span className="ml-0.5 text-[9px] font-normal text-neutral-400">{r.unit}</span>
-              </span>
-              <span className={`shrink-0 rounded border px-1 py-0.5 text-[9px] ${LEVEL_COLOR[r.worst]}`}>
-                {tr(LEVEL_KZ[r.worst])}
-              </span>
-              <IndicatorHelp id={r.indicatorId} />
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-300">{r.name}</span>
+                <span className="text-[13px] font-semibold text-white">
+                  {r.value == null ? "—" : r.value}
+                  <span className="ml-0.5 text-[9px] font-normal text-neutral-400">{r.unit}</span>
+                </span>
+                <span className={`shrink-0 rounded border px-1 py-0.5 text-[9px] ${LEVEL_COLOR[r.worst]}`}>
+                  {tr(LEVEL_KZ[r.worst])}
+                </span>
+                <IndicatorHelp id={r.indicatorId} />
+              </div>
+              {/* Көрсеткіштің мағынасы — жасырылмайды */}
+              <IndicatorSummary id={r.indicatorId} className="mt-0.5" />
+              {/* Осы деңгей нақты нені білдіреді */}
+              <p className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-snug text-neutral-400">
+                <span className="text-neutral-500">{tr(LEVEL_KZ[r.worst])}</span> —{" "}
+                {LEVEL_MEANING[r.worst].full}
+              </p>
             </div>
           ))}
-          <LevelLegend />
+          <LevelLegend defaultOpen />
         </div>
       )}
 
