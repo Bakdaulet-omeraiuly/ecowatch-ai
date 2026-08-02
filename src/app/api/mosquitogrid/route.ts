@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { type GridPoint } from "@/lib/regionGrid";
 import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 import { ATYRAU_DISTRICTS } from "@/data/atyrauDistricts";
-import { fetchFloodPulse, hydroDaysAt, pulseAt } from "@/lib/floodPulse";
+import { fetchFloodPulse, hydroDaysAt, pulseAt, reedAt } from "@/lib/floodPulse";
 
 // Live mosquito environmental-suitability grid for the Atyrau region.
 // Methodology: climate-driven suitability (the approach used by WHO/ECDC/VECTRI
@@ -182,6 +182,8 @@ function fpebIndex(o: {
   flood: number; urban: number; month: number;
   /** Су кемінде қанша күн тұрды (SAR өлшемі). null — өлшенбеген */
   hydroDays: number | null;
+  /** Қамыс мекенінің қолайлылығы 0..1 (S2 NDVI). null — өлшенбеген */
+  reed: number | null;
 }): number {
   const phiT = tempSuitability(o.t); // температура гейті (Mordecai)
   if (phiT <= 0) return 0;
@@ -200,7 +202,19 @@ function fpebIndex(o: {
       ? hydroProxy
       : Math.max(clamp01(o.hydroDays / tauDays(o.t)), 0.5 * hydroProxy);
   const aedes = egg * hatch * hydro; // тасқын-су Aedes ересек индексі
-  const culex = clamp01(0.5 * o.flood + 0.5 * o.urban) * humidityFactor(o.rh); // тұрақты-су Culex
+  // CULEX ТАРМАҒЫ (тұрақты су, WNV тасымалдаушысы).
+  //
+  // Модель құжаты бойынша Culex modestus үшін ЕҢ КҮШТІ мекен предикторы —
+  // қамыс алқаптары. Ол Sentinel-2 NDVI-мен өлшенген болса, басты салмақ
+  // соған беріледі; өлшенбесе бұрынғы прокси (су + қала дренажы) қалады.
+  //
+  // ⚠️ Салмақтар әдебиетке негізделген, жергілікті есеппен калибрленбеген —
+  // басқа параметрлер сияқты (tizilim: indicatorRegistry → mri).
+  const culexHabitat =
+    o.reed == null
+      ? clamp01(0.5 * o.flood + 0.5 * o.urban)
+      : clamp01(0.55 * o.reed + 0.3 * o.flood + 0.15 * o.urban);
+  const culex = culexHabitat * humidityFactor(o.rh);
   const species = clamp01(AEDES_W[o.month] * aedes + CULEX_W[o.month] * culex);
   const amplified = 100 * phiT * (0.15 + 0.85 * species) * (1 + 0.4 * o.urban + 0.5 * o.flood);
   return Math.round(Math.min(100, amplified));
@@ -267,6 +281,8 @@ export async function GET(req: Request) {
         const flood = pulseHere == null ? susceptibility : susceptibility * pulseHere;
         // Гидропериод тек өлшенген бақылау терезесінде болады
         const hydroDays = hydroDaysAt(pulse, d.latitude, d.longitude);
+        // Қамыс мекені — Culex тармағының басты предикторы
+        const reed = reedAt(pulse, d.latitude, d.longitude);
 
         const times = d.daily?.time ?? [];
         const tmax = d.daily?.temperature_2m_max ?? [];
@@ -281,7 +297,7 @@ export async function GET(req: Request) {
           let rain = 0;
           for (let k = Math.max(0, i - 6); k <= i; k++) rain += precip[k] ?? 0;
           return {
-            index: fpebIndex({ t, rh, soil, rain, flood, urban, month, hydroDays }),
+            index: fpebIndex({ t, rh, soil, rain, flood, urban, month, hydroDays, reed }),
             temp: +t.toFixed(1),
             rainMm: +rain.toFixed(1),
           };
@@ -310,7 +326,7 @@ export async function GET(req: Request) {
           const hsoil = hSoil[i] ?? soil;
           return {
             time: hTime[i] ?? "",
-            index: fpebIndex({ t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month, hydroDays }),
+            index: fpebIndex({ t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month, hydroDays, reed }),
             temp: +t.toFixed(1),
           };
         });
@@ -328,6 +344,8 @@ export async function GET(req: Request) {
           floodPulse: pulseHere == null ? null : +pulseHere.toFixed(2),
           /** Су кемінде қанша күн тұрды (SAR). null — өлшенбеген */
           hydroperiodDays: hydroDays,
+          /** Қамыс мекені 0..1 (S2 NDVI). null — өлшенбеген */
+          reedHabitat: reed,
           index: days[0].index, // today (back-compat)
           temperature: days[0].temp,
           humidity: rh,
@@ -365,6 +383,11 @@ export async function GET(req: Request) {
           pulse.byZone.map((z) => z.hydroDays).filter((d): d is number => d != null).length
             ? Math.max(...pulse.byZone.map((z) => z.hydroDays ?? 0))
             : null,
+        /** Қамыс мекені өлшенген терезелер саны және ең тығызы */
+        reedZonesOk: pulse.reedZonesOk,
+        reedMax: pulse.habitat.length
+          ? Math.max(...pulse.habitat.map((h) => h.reed ?? 0))
+          : null,
         note: pulse.note,
       },
       avgIndex,

@@ -2094,6 +2094,17 @@ export function MapView() {
                             </span>
                           </div>
                         )}
+                        {mosFlood.reedMax != null && (
+                          <div className="mt-1 flex items-center gap-1.5 rounded bg-white/5 px-1.5 py-1">
+                            <span className="text-[9px] text-neutral-400">{tr("Қамыс мекені")}:</span>
+                            <span className="text-[10px] font-semibold text-emerald-200">
+                              {Math.round(mosFlood.reedMax * 100)}%
+                            </span>
+                            <span className="ml-auto text-[8px] text-neutral-500">
+                              Culex · S2 NDVI
+                            </span>
+                          </div>
+                        )}
                         <p className="mt-1 text-[9px] leading-snug text-neutral-400">{mosFlood.note}</p>
                       </div>
                     )}

@@ -585,6 +585,11 @@ export default function DashboardPage() {
                           {tr("гидропериод")} ≥ {mosMeta.flood.hydroperiodDaysMax} {tr("күн")}
                         </span>
                       )}
+                      {mosMeta.flood.reedMax != null && (
+                        <span className="rounded border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-200">
+                          {tr("қамыс мекені")} {Math.round(mosMeta.flood.reedMax * 100)}%
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-400">
                       {mosMeta.flood.note}

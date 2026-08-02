@@ -83,7 +83,7 @@ UI-де `TierBadge`, тізілімде `tier`. AI саны өлшеммен а�
 | `src/data/ecoLayers.ts` | 9 эко қабат: дереккөз, норма, уақыт қатары, «неге қатар жоқ» себебі | `/api/layer/[key]`, `LayerDrawer` |
 | `src/data/atyrauDistricts.ts` | Атыраудың 65 нүктелік тізілімі (маса индексі үшін) | `/api/mosquitogrid` |
 | `src/data/riverPoints.ts` | GloFAS арна нүктелері | `/api/flood`, `/api/water-trend` |
-| `src/data/floodZones.ts` | Sentinel-1 бақылау терезелері (6 аймақ) | `/api/flood-extent`, `lib/floodPulse.ts` |
+| `src/data/floodZones.ts` | Бақылау терезелері (6 аймақ) — SAR су, гидропериод ЖӘНЕ қамыс мекені үшін ортақ | `/api/flood-extent`, `/api/reed-habitat`, `lib/floodPulse.ts` |
 | `src/data/facilities.ts` | Кәсіпорындардың тексерілген координаттары | `/api/object/[id]`, `/api/pollution-source` |
 | `src/data/places.ts` | Карта іздеуінің өз тізілімі | `MapSearch` |
 
@@ -104,7 +104,7 @@ UI-де `TierBadge`, тізілімде `tier`. AI саны өлшеммен а�
 | **L1** Каспий деңгейі `M_casp` | ❌ жоспарда | Дереккөз жалғанбаған |
 | **L2** FPEB ядросы | ⚠️ жеңілдетілген | `fpebIndex()` — алгебралық түр. Дифференциалдық теңдеулер (`dE/dt`), Аррениус `τ(T)`, өлім `μ` — жоқ. Жұмыртқа банкі 12 санды айлық кесте |
 | **L3** Температура гейті | ⚠️ жеңілдетілген | Mordecai 2017 **тәсіліне негізделген**, олардың Brière функциясы емес — квадрат теңдеу |
-| **L4** Culex тармағы | ⚠️ дөрекі | Бар, бірақ қамыс (NDVI) мен каналдар ескерілмейді |
+| **L4** Culex тармағы | ✅ **іске асқан** | Қамыс мекені 🛰 Sentinel-2 NDVI-мен өлшенеді (`lib/reedHabitat.ts`, `/api/reed-habitat`). Каналдар әлі жоқ |
 | **L5** ML (LSTM/GRU + RF/SHAP) | ❌ жоспарда | Код жоқ |
 | **L6** Bayesian белгісіздік | ❌ жоспарда | Нүктелік сан беріледі, интервал жоқ |
 | **L7** Digital twin + assimilation | ❌ жоспарда | Күй сақталмайды, әр есептеу нөлден басталады |
@@ -205,7 +205,7 @@ v1.0 −0.7%, v1.1 +2.3%, v1.2 +4.3% — үшеуі де шектен төмен
 `/api/climate` · `/api/water` · `/api/point-air` · `/api/station-air`
 
 **Атырауға арналған (тізілім қажет):**
-`/api/flood` · `/api/water-trend` · `/api/flood-extent` ·
+`/api/flood` · `/api/water-trend` · `/api/flood-extent` · `/api/reed-habitat` ·
 `/api/pollution-source` · `/api/ml-forecast` · `/api/object/[id]`
 
 **Қабаттар мен заңнама:**
@@ -263,6 +263,10 @@ Repo: github.com/Bakdaulet-omeraiuly/ecowatch-ai
   бұрын `monthlyMosquitoForecast` (ескі, бөлек формула) қолданатын, сондықтан
   бір жер үшін картадан басқа сан көрсететін. Енді екеуі де
   `/api/mosquitogrid` → `fpebIndex`.
+- **Қамыс мекені (L4) өлшенеді** — Culex modestus үшін ең күшті предиктор
+  қамыс алқабы, ал кодта оның орнына «қалаға жақындық» тұрған. Енді
+  Sentinel-2 NDVI-мен өлшенеді. Терезелер SAR-мен ОРТАҚ, сондықтан су мен
+  мекен бір торда сәйкеседі.
 - **Тасқын импульсі (L1) бөлінді** — бұрын `flood` айнымалысы тек өзенге
   дейінгі қашықтық болатын: сәуірде де, қаңтарда да бірдей сан. Ол
   «қай жер бейім» дегенді көрсетеді, «бүгін су басты ма» дегенді емес.

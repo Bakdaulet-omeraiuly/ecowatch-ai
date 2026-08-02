@@ -74,6 +74,9 @@ export interface FloodSignal {
   glofasRatio: number | null;
   /** Су кемінде қанша күн тұрды — ең ұзағы (SAR өлшемі) */
   hydroperiodDaysMax: number | null;
+  /** Қамыс мекені өлшенген терезелер саны және ең тығызы (S2 NDVI) */
+  reedZonesOk: number;
+  reedMax: number | null;
   note: string;
 }
 export interface MosquitoGridPoint {
@@ -86,6 +89,8 @@ export interface MosquitoGridPoint {
   floodPulse?: number | null;
   /** Су кемінде қанша күн тұрды (SAR). null — өлшенбеген */
   hydroperiodDays?: number | null;
+  /** Қамыс мекені 0..1 (S2 NDVI). null — өлшенбеген */
+  reedHabitat?: number | null;
   temperature: number;
   humidity: number;
   weekRainMm: number;
