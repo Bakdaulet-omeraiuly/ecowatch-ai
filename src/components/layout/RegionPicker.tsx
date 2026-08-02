@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { MapPin, ChevronDown, Check, Waves } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useRegionStore } from "@/store/useRegionStore";
-import { COUNTRY_FLAG, REGIONS, getRegion } from "@/data/regions";
+import { COUNTRY_FLAG, MODULE_KZ, REGIONS, getRegion, missingModules } from "@/data/regions";
 
 // АЙМАҚ ТАҢДАҒЫШ — навигация жолағында.
 //
@@ -14,7 +14,8 @@ import { COUNTRY_FLAG, REGIONS, getRegion } from "@/data/regions";
 //     ҚОЛДАНЫЛМАЙДЫ (әр елдің өз нормасы бар, бізде олар жоқ)
 //
 // Қолдау деңгейі әр жолда ашық жазылады — пайдаланушы қандай дерек бар
-// екенін алдын ала біледі.
+// екенін алдын ала біледі. Аймақта ЖОҚ модульдер де сол жерде тізіледі:
+// таңдағаннан кейін бос блок көріп таңданбауы үшін.
 
 export function RegionPicker({ compact }: { compact?: boolean }) {
   const { tr } = useLang();
@@ -111,6 +112,7 @@ function Row({
   onPick: () => void;
   tr: (s: string) => string;
 }) {
+  const missing = missingModules(region);
   return (
     <button
       onClick={onPick}
@@ -135,6 +137,11 @@ function Row({
           )}
         </span>
         <span className="mt-0.5 hidden truncate text-[10px] text-neutral-500 sm:block">{region.pressure}</span>
+        {missing.length > 0 && (
+          <span className="mt-0.5 block text-[9px] leading-snug text-neutral-500">
+            {tr("жоқ")}: {missing.map((m) => MODULE_KZ[m]).join(", ")}
+          </span>
+        )}
       </span>
     </button>
   );

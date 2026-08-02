@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { csvHeaders, toCsv, withProvenance, type Cell } from "@/lib/csv";
 import { FLOOD_ZONES, zoneAreaKm2 } from "@/data/floodZones";
+import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 import { cdseToken, hasCdseKeys } from "@/lib/cdse";
 import {
   MIN_COVERAGE, RES_M, THRESHOLD_DB,
@@ -52,6 +53,15 @@ function pickLatest(days: DayStat[]): DayStat | null {
 let cache: { at: number; data: unknown } | null = null;
 
 export async function GET(req: Request) {
+  const params = new URL(req.url).searchParams;
+
+  // Бақылау терезелері (FLOOD_ZONES) тек Атырау үшін анықталған. Басқа
+  // қалада сол терезелерді өлшеу — БАСҚА жердің суын сол қалаға телу.
+  const region = getRegion(params.get("region"));
+  if (!hasModule(region, "floodExtent")) {
+    return NextResponse.json(moduleUnavailable(region, "floodExtent"));
+  }
+
   if (!hasCdseKeys()) {
     return NextResponse.json(
       { error: "Copernicus кілттері бапталмаған — жалған дерек көрсетілмейді" },
@@ -59,7 +69,7 @@ export async function GET(req: Request) {
     );
   }
 
-  const wantCsv = new URL(req.url).searchParams.get("format") === "csv";
+  const wantCsv = params.get("format") === "csv";
 
   if (cache && Date.now() - cache.at < revalidate * 1000) {
     return wantCsv ? csvResponse(cache.data as ApiShape) : NextResponse.json(cache.data);

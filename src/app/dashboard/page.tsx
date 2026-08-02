@@ -23,6 +23,8 @@ import { ExportPanel } from "@/components/dashboard/ExportPanel";
 import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
 import { EventFeed } from "@/components/dashboard/EventFeed";
 import { useRegion } from "@/store/useRegionStore";
+import { MissingModulesNote } from "@/components/ui/ModuleMissing";
+import { missingModules } from "@/data/regions";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -295,6 +297,10 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Бұл қалада ҚАНДАЙ модуль жоқ — алдын ала ашық жазылады, сонда
+          төмендегі бос блоктар «бәрі тыныш» деп оқылмайды */}
+      <MissingModulesNote region={region} modules={missingModules(region)} />
 
       {/* Заңнамалық сәйкестік — ҚР/WHO/EU нормаларынан асу (ең жоғарыда) */}
       <LegalAlerts />

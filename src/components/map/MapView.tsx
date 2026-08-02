@@ -70,6 +70,8 @@ import type { Site, AnalysisResult } from "@/types/site";
 import { LayerDrawer } from "@/components/map/LayerDrawer";
 import type { LayerKey as DrawerKey } from "@/data/ecoLayers";
 import { useRegion } from "@/store/useRegionStore";
+import { ModuleMissing } from "@/components/ui/ModuleMissing";
+import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
 
@@ -199,6 +201,14 @@ const DRAWER_KEYS: Partial<Record<LayerKey, DrawerKey>> = {
   mosquito: "mosquito",
 };
 
+// Қабат → аймақтық ТІЗІЛІМ қажет ететін модуль.
+// Мұнда жоқ қабаттар жаһандық дереккөзге сүйенеді (CAMS, ERA5, VIIRS) әрі
+// кез келген қалада жұмыс істейді. Ал «Су» қабаты GloFAS арна нүктелерін
+// талап етеді — тізілімсіз аймақта «жоқ» деп көрсетіледі.
+const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
+  water: "riverFlow",
+};
+
 export function MapView() {
   const { lang, tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -288,7 +298,7 @@ export function MapView() {
 
   const { soilGrid, soilMeta, soilError } = useSoilGrid(activeLayer === "soil");
 
-  const { flood, floodError } = useFlood(activeLayer === "water");
+  const { flood, river, floodError, floodMissing } = useFlood(activeLayer === "water");
 
   const { flares, flaresError } = useFlares(activeLayer === "oil");
 
@@ -354,7 +364,7 @@ export function MapView() {
   const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
 
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
-  const { source, sourceError } = usePollutionSource(sourceMode);
+  const { source, sourceError, sourceMissing } = usePollutionSource(sourceMode);
   // Анимациялар БАСЫЛҒАН зауыт(тар) үшін — БІРНЕШЕ зауытты қатар таңдауға болады
   const [selectedFacs, setSelectedFacs] = useState<PollutionSourceCandidate[]>([]);
   const isSel = (id: string) => selectedFacs.some((f) => f.id === id);
@@ -1516,6 +1526,10 @@ export function MapView() {
             <div className="my-0.5 h-px bg-white/10" />
             {LAYERS.map((l) => {
               const Icon = LAYER_ICONS[l.key];
+              // Аймақтық тізілім қажет ететін қабат — тізілім жоқ болса
+              // «live» емес, «жоқ» деп белгіленеді (жалған дерек жоқ)
+              const needsRegistry = LAYER_MODULE[l.key];
+              const off = needsRegistry ? !hasModule(region, needsRegistry) : false;
               return (
                 <button
                   key={l.key}
@@ -1527,11 +1541,18 @@ export function MapView() {
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" /> {tr(l.label)}
-                  {l.key !== "waste" && (
+                  {off ? (
+                    <span
+                      title={MODULE_REASON[needsRegistry!]}
+                      className="ml-auto rounded bg-white/10 px-1 py-px text-[8px] uppercase text-neutral-400"
+                    >
+                      {tr("жоқ")}
+                    </span>
+                  ) : l.key !== "waste" ? (
                     <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
                     </span>
-                  )}
+                  ) : null}
                   {DRAWER_KEYS[l.key] && (
                     <span
                       role="button"
@@ -1741,7 +1762,9 @@ export function MapView() {
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-red-300">
               <Factory className="h-3 w-3" /> {tr("Ластану көзін анықтау — тірі")}
             </div>
-            {sourceError ? (
+            {sourceMissing ? (
+              <ModuleMissing module="pollutionSource" region={region} compact />
+            ) : sourceError ? (
               <p className="text-[11px] text-neutral-400">
                 {tr("Тірі ауа/жел деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
               </p>
@@ -2179,9 +2202,12 @@ export function MapView() {
         {activeLayer === "water" && (
           <div className="w-56 rounded-lg border border-teal-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-teal-300">
-              <Radio className="h-3 w-3 animate-pulse" /> {tr("Жайық өзені — тірі ағын")}
+              {!floodMissing && <Radio className="h-3 w-3 animate-pulse" />}
+              {river ? `${river} — ${tr("тірі ағын")}` : tr("Өзен ағыны")}
             </div>
-            {floodError ? (
+            {floodMissing ? (
+              <ModuleMissing module="riverFlow" region={region} compact />
+            ) : floodError ? (
               <p className="text-[11px] text-neutral-400">{tr("Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}</p>
             ) : !flood ? (
               <p className="text-[11px] text-neutral-500">{tr("Жүктелуде…")}</p>
@@ -2190,7 +2216,8 @@ export function MapView() {
             ) : (
               <>
                 {(() => {
-                  const aty = flood.find((p) => p.name.includes("Атырау")) ?? flood[0];
+                  // Қала тұсындағы нүкте — тізілімде қала атымен белгіленген
+                  const aty = flood.find((p) => p.name.includes(region.name)) ?? flood[0];
                   return (
                     <div
                       className="rounded-lg p-2 text-center"
@@ -2203,7 +2230,7 @@ export function MapView() {
                         {aty.level}
                       </div>
                       <div className="text-[9px] text-neutral-400">
-                        {tr("Атырау тұсы · тренд")}: {aty.trend}
+                        {aty.name} · {tr("тренд")}: {aty.trend}
                       </div>
                       <div className="mt-1.5 rounded-md bg-white/10 p-1.5 text-[10px] leading-snug text-neutral-100">
                         💡 {tr(waterAdvice(aty.level))}

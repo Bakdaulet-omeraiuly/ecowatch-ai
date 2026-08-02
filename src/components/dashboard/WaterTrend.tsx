@@ -6,6 +6,9 @@ import { Waves, Loader2, TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
+import { ModuleMissing } from "@/components/ui/ModuleMissing";
+import { hasModule } from "@/data/regions";
+import { useRegion } from "@/store/useRegionStore";
 
 interface Trend {
   river: string; unit: string; changePct: number; trend: string;
@@ -14,17 +17,27 @@ interface Trend {
 
 export function WaterTrend() {
   const { tr } = useLang();
+  const region = useRegion();
   const [data, setData] = useState<Trend | null>(null);
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true);
+  // Өзен нүктелерінің тізілімі жоқ аймақ — басқа өзеннің трендісі жарамсыз
+  const missing = !hasModule(region, "riverFlow");
+  // Қай аймақ үшін жүктелді — «жүктелуде» күйі осыдан шығарылады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const loading = !missing && loadedFor !== region.id;
 
   useEffect(() => {
-    fetch("/api/water-trend")
+    if (missing || loadedFor === region.id) return;
+    fetch(`/api/water-trend?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => (d.error ? setError(true) : setData(d)))
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
+      .then((d) => {
+        if (d.error) { setData(null); setError(true); return; }
+        setData(d);
+        setError(false);
+      })
+      .catch(() => { setData(null); setError(true); })
+      .finally(() => setLoadedFor(region.id));
+  }, [region.id, missing, loadedFor]);
 
   const TrendIcon = data?.trend === "азайды" ? TrendingDown : data?.trend === "артты" ? TrendingUp : Minus;
   const trendCls = data?.trend === "азайды" ? "text-red-300" : data?.trend === "артты" ? "text-sky-300" : "text-neutral-300";
@@ -35,14 +48,16 @@ export function WaterTrend() {
         <CardTitle className="flex items-center gap-2 text-sm text-white">
           <TierBadge tier="model" />
           <Waves className="h-4 w-4 text-teal-400" />
-          {tr("Су деңгейінің өзгерісі — Жайық өзені (2020→қазір)")}
+          {data ? `${tr("Су деңгейінің өзгерісі")} — ${data.river} (2020→${tr("қазір")})` : tr("Су деңгейінің өзгерісі — өзен ағыны")}
         </CardTitle>
         <p className="text-[11px] text-neutral-400">
           {tr("Жылдық орташа өзен ағыны — GloFAS (Copernicus)")}
         </p>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {missing ? (
+          <ModuleMissing module="riverFlow" region={region} />
+        ) : loading ? (
           <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { attributePollution, type Receptor, type WindHour, type Station } from "@/lib/pollutionSource";
+import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 
 // Нақты жердегі стансалар (Qazhydromet — WAQI/aqicn желісі). Токен болса ғана.
 // Атырау облысының шектелген аймағындағы барлық постты тартады.
@@ -64,7 +65,15 @@ const CITY_AIR_URL =
 
 let cache: { at: number; data: unknown } | null = null;
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Ластану көзін анықтау кәсіпорындардың ТЕКСЕРІЛГЕН координаттарына
+  // сүйенеді (src/data/facilities.ts — қазір тек Атырау). Тізілімсіз
+  // аймақта «көз» көрсету — жалған айыптау болар еді.
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  if (!hasModule(region, "pollutionSource")) {
+    return NextResponse.json(moduleUnavailable(region, "pollutionSource"));
+  }
+
   if (cache && Date.now() - cache.at < 1800_000) {
     return NextResponse.json(cache.data);
   }

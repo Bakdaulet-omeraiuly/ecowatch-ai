@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { LAYER_BY_KEY, SERIES_BASE, type EcoLayer } from "@/data/ecoLayers";
 import { INDICATORS, resolvePath } from "@/data/indicatorRegistry";
 import { checkCompliance, aggregate, type ComplianceResult } from "@/lib/compliance";
-import { getRegion } from "@/data/regions";
+import { getRegion, hasModule, MODULE_REASON, type Region } from "@/data/regions";
 
 // БІР ЭКО ҚАБАТТЫҢ ТОЛЫҚ КЕСКІНІ.
 //
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
   try {
     const [current, series] = await Promise.all([
       fetchCurrent(origin, layer, region.id),
-      fetchSeries(layer, LAT, LNG),
+      fetchSeries(layer, region, LAT, LNG),
     ]);
 
     // --- Заңнамалық сәйкестік ---
@@ -85,6 +85,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
 
       current: current.ok ? current.data : null,
       currentError: current.ok ? null : current.error,
+      // Модуль бұл аймақта жоқ болса — БАСҚА қаланың саны алынбайды.
+      // UI «жоқ» деп көрсетеді, себебі осы жерде жазылады.
+      moduleMissing: current.missing ?? null,
 
       series: series.available
         ? {
@@ -135,6 +138,18 @@ async function fetchCurrent(origin: string, layer: EcoLayer, regionId: string) {
     const res = await fetch(`${origin}${layer.currentEndpoint}${q}region=${regionId}`, { cache: "no-store" });
     const data = res.ok ? await res.json() : null;
 
+    // Эндпоинт «бұл аймақта модуль жоқ» деп қайтарса (200 + available:false)
+    // — оны дерек деп қабылдамаймыз.
+    const body = data as { available?: boolean; error?: string; reason?: string } | null;
+    if (body && body.available === false) {
+      return {
+        ok: false as const,
+        error: body.error ?? "модуль қолжетімсіз",
+        missing: { error: body.error ?? "", reason: body.reason ?? "" },
+        extra,
+      };
+    }
+
     // Қабатта басқа эндпоинттегі көрсеткіштер де болса — соларды да аламыз
     const others = new Set(
       layer.indicatorIds
@@ -161,12 +176,18 @@ async function fetchCurrent(origin: string, layer: EcoLayer, regionId: string) {
   }
 }
 
-async function fetchSeries(layer: EcoLayer, LAT: number, LNG: number): Promise<
+async function fetchSeries(layer: EcoLayer, region: Region, LAT: number, LNG: number): Promise<
   | { available: true; past24: HourPoint[]; next24: HourPoint[]; note?: string }
   | { available: false; reason: string }
 > {
   if (layer.seriesApi === "none" || !layer.vars.length) {
     return { available: false, reason: layer.noSeriesReason ?? "Уақыт қатары қарастырылмаған" };
+  }
+
+  // GloFAS ағынды ТЕК нақты өзен арнасында береді. Аймақ орталығының
+  // координатасын беру — өзені жоқ жерден «ағын» шығару, яғни жалған сан.
+  if (layer.seriesApi === "flood" && !hasModule(region, "riverFlow")) {
+    return { available: false, reason: MODULE_REASON.riverFlow };
   }
 
   const base = SERIES_BASE[layer.seriesApi];

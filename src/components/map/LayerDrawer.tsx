@@ -5,7 +5,7 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
 } from "recharts";
 import {
-  X, Loader2, Scale, Database, Sparkles, History, ExternalLink, AlertTriangle,
+  X, Loader2, Scale, Database, Sparkles, History, ExternalLink, AlertTriangle, CircleSlash,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
@@ -42,6 +42,8 @@ interface LayerData {
   fetchedAt: string;
   current: Record<string, unknown> | null;
   currentError: string | null;
+  /** Модуль осы аймақта жоқ болса — себебі (жалған дерек орнына) */
+  moduleMissing: { error: string; reason: string } | null;
   series:
     | { available: true; vars: SeriesVar[]; past24: HourPoint[]; next24: HourPoint[]; note: string | null }
     | { available: false; reason: string };
@@ -218,6 +220,20 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
         <TierBadge tier="measurement" />
         <span className="text-[10px] text-neutral-400">{tr("AI қолданылмаған")}</span>
       </div>
+
+      {/* Модуль бұл аймақта жоқ — БОС қалдырмаймыз, себебін жазамыз */}
+      {data.moduleMissing && (
+        <div className="space-y-1.5 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+          <p className="flex items-center gap-1.5 text-[12px] font-medium text-neutral-200">
+            <CircleSlash className="h-3.5 w-3.5 shrink-0 text-neutral-500" />
+            {data.moduleMissing.error}
+          </p>
+          <p className="text-[10px] leading-relaxed text-neutral-400">{data.moduleMissing.reason}</p>
+          <p className="border-t border-white/5 pt-1.5 text-[9px] leading-relaxed text-neutral-500">
+            {tr("Басқа қаланың деректері мұнда көрсетілмейді — ол жалған дерек болар еді.")}
+          </p>
+        </div>
+      )}
 
       {/* Ағымдағы көрсеткіштер */}
       {data.compliance.results.length > 0 && (

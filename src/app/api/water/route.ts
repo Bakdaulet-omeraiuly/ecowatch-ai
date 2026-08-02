@@ -1,32 +1,35 @@
 import { NextResponse } from "next/server";
+import { getRegion } from "@/data/regions";
 
-// Атырау бойынша жер су қорының трендісі (GRACE баламасы).
+// Таңдалған аймақ бойынша жер су қорының трендісі (GRACE баламасы).
 // GRACE-тің тегін нүктелік API-ы жоқ, сондықтан ERA5 топырақ су қоры
 // (0–100 см, көп жылдық) қолданылады — нақты, нүктелік, жер су қорының
 // ұзақмерзімді азаю/көбею динамикасын көрсетеді. Жалған дерек жоқ.
+//
+// ERA5 — ЖАҺАНДЫҚ реанализ, сондықтан кез келген аймақта жұмыс істейді:
+// координата аймақтың орталығынан алынады (тізілім қажет емес).
 
 export const revalidate = 604800;
-
-const LAT = 47.1167;
-const LNG = 51.8833;
 
 function isoAgo(days: number): string {
   return new Date(Date.now() - days * 86400_000).toISOString().slice(0, 10);
 }
 
-const URL =
-  `https://archive-api.open-meteo.com/v1/archive?latitude=${LAT}&longitude=${LNG}` +
+const SRC_URL = (lat: number, lng: number) =>
+  `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lng}` +
   `&start_date=1995-01-01&end_date=${isoAgo(7)}` +
   `&daily=soil_moisture_0_to_100cm_mean&timezone=auto`;
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 604800_000) {
-    return NextResponse.json(cache.data);
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 604800_000) {
+    return NextResponse.json(hit.data);
   }
   try {
-    const res = await fetch(URL, { next: { revalidate: 604800 } });
+    const res = await fetch(SRC_URL(region.lat, region.lng), { next: { revalidate: 604800 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const j = await res.json();
     const time: string[] = j.daily?.time ?? [];
@@ -63,8 +66,10 @@ export async function GET() {
     const recent = years.slice(-5).reduce((a, c) => a + c.sm, 0) / Math.min(5, n);
 
     const data = {
+      available: true as const,
       fetchedAt: new Date().toISOString(),
       source: "ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві · GRACE баламасы",
+      region: { id: region.id, name: region.name },
       years,
       slopePerDecadePct: +pctPerDecade.toFixed(1),
       totalChange: +totalChange.toFixed(3),
@@ -72,7 +77,7 @@ export async function GET() {
       recent: +recent.toFixed(3),
       trend: pctPerDecade < -1 ? "drying" : pctPerDecade > 1 ? "wetting" : "stable",
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Water storage error:", err);

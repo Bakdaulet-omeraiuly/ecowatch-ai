@@ -273,9 +273,22 @@ export async function GET(req: Request) {
       ? Math.round(idx.reduce((a, b) => a + b, 0) / idx.length)
       : null;
 
+    // Гидрология мен қалалық күшейту коэффициенттері (SETTLEMENTS,
+    // ZHAIYK_PATH) тек Атырау үшін тексерілген. Басқа аймақта олар
+    // қолданылмайды — индекс тек климаттан есептеледі. Мұны ЖАСЫРУ
+    // болмас үшін жауапта ашық жазамыз.
+    const hydrologyRegistry = region.id === "atyrau";
+
     const data = {
       fetchedAt: new Date().toISOString(),
       source: "JAIYQ-MRI · FPEB (Flood-Pulse Egg-Bank) · Open-Meteo (live) + Mordecai термиялық гейт + қос түр (Aedes/Culex)",
+      region: { id: region.id, name: region.name },
+      amplification: hydrologyRegistry ? "registry" : "climate-only",
+      amplificationNote: hydrologyRegistry
+        ? "Жайық жайылмасы мен елді мекендер тізілімі қолданылды (қалалық + гидрологиялық күшейту)."
+        : "Бұл аймақ үшін су нысандары мен елді мекендер тізілімі әлі жасалмаған — " +
+          "индекс ТЕК климаттан (температура, ылғалдылық, жауын-шашын) есептелді. " +
+          "Жергілікті жайылма/суару арналары ескерілмеген, сондықтан нақты мән жоғары болуы мүмкін.",
       avgIndex,
       maxIndex: idx.length ? Math.max(...idx) : null,
       gridPoints: grid.length,
