@@ -17,6 +17,17 @@ export const SITE_URL =
 
 export const SITE_NAME = "Jaiyq";
 
+/**
+ * Google Search Console растау кілті.
+ *
+ * Кодта тұрғаны — құпия емес: ол бәрібір беттің HTML-інде ашық көрінеді.
+ * Айнымалымен ауыстыруға болады, сонда кодты өзгертпей-ақ Vercel
+ * баптауынан жаңа кілт қоюға болады (мыс. ресурс қайта жасалса).
+ */
+export const GOOGLE_VERIFICATION =
+  process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION ||
+  "zEHJpRS-5oZe-4_P0ko2nXzoshEMkY1UKoMV-L5gXBQ";
+
 export const SITE_TITLE =
   "Jaiyq — Қазақстан мен Каспий жағалауының экологиялық мониторингі";
 
