@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, siteJsonLd } from "@/lib/seo";
+import {
+  GOOGLE_VERIFICATION, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, siteJsonLd,
+} from "@/lib/seo";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -56,6 +58,9 @@ export const metadata: Metadata = {
     description: SITE_DESCRIPTION,
     images: ["/og.png"],
   },
+  // Google Search Console растауы — `<meta name="google-site-verification">`
+  // тегін Next.js өзі шығарады
+  verification: { google: GOOGLE_VERIFICATION },
   robots: {
     index: true,
     follow: true,
