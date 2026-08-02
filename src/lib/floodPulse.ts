@@ -36,6 +36,13 @@ import { FLOOD_ZONES } from "@/data/floodZones";
 /** SAR: аймақ ауданының қанша %-ы су басса — импульс толық (1.0) деп саналады */
 const SAR_FULL_PCT = 5;
 
+export interface ZoneHabitat {
+  id: string;
+  bbox: [number, number, number, number];
+  /** 0..1 — қамыс мекенінің қолайлылығы (Sentinel-2 NDVI). null — өлшенбеген */
+  reed: number | null;
+}
+
 export interface FloodPulse {
   /** 0..1 аймақ бойынша жалпы импульс; null — сигнал жоқ */
   value: number | null;
@@ -53,6 +60,9 @@ export interface FloodPulse {
   sarPct: number | null;
   sarZonesOk: number;
   glofasRatio: number | null;
+  /** L4 — қамыс мекені (Sentinel-2 NDVI), терезе бойынша */
+  habitat: ZoneHabitat[];
+  reedZonesOk: number;
   /** UI-де көрсетілетін қазақша түсіндірме */
   note: string;
 }
@@ -66,6 +76,8 @@ const NO_SIGNAL: FloodPulse = {
   sarPct: null,
   sarZonesOk: 0,
   glofasRatio: null,
+  habitat: [],
+  reedZonesOk: 0,
   note:
     "Тасқын сигналы қолжетімсіз (Sentinel-1 де, GloFAS та жауап бермеді). " +
     "Индекс тек жайылмаға жақындық бойынша есептелді — су басу оқиғасы " +
@@ -97,10 +109,23 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
   const rq = `?region=${regionId}`;
   // SAR баяу болуы мүмкін (Sentinel Hub статистикалық API) — бірақ оның өз
   // кэші бар. Уақыт шектеуі картаны бөгемеу үшін.
-  const [sar, glofas] = await Promise.all([
+  const [sar, glofas, reed] = await Promise.all([
     getJson(`${origin}/api/flood-extent${rq}`, 8000),
     getJson(`${origin}/api/flood${rq}`, 5000),
+    // L4 — қамыс мекені. Кэші 24 сағат, сондықтан әдетте бірден қайтады
+    getJson(`${origin}/api/reed-habitat${rq}`, 8000),
   ]);
+
+  // ── Sentinel-2 қамыс мекені ───────────────────────────────────────────
+  const habitat: ZoneHabitat[] = [];
+  for (const z of (reed?.zones ?? []) as {
+    id: string; status: string; suitability: number | null;
+  }[]) {
+    if (z.status !== "ok" || z.suitability == null) continue;
+    const def = FLOOD_ZONES.find((f) => f.id === z.id);
+    if (!def) continue;
+    habitat.push({ id: z.id, bbox: def.bbox, reed: z.suitability });
+  }
 
   // ── Sentinel-1 SAR ────────────────────────────────────────────────────
   const byZone: FloodPulse["byZone"] = [];
@@ -127,7 +152,7 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
 
   const hasSar = byZone.length > 0;
   const hasGlofas = glofasRatio != null;
-  if (!hasSar && !hasGlofas) return NO_SIGNAL;
+  if (!hasSar && !hasGlofas) return { ...NO_SIGNAL, habitat, reedZonesOk: habitat.length };
 
   // Аймақ бойынша жалпы импульс.
   // SAR — өлшем, сондықтан салмағы басым. GloFAS оны толықтырады
@@ -158,6 +183,13 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
   if (hasGlofas) {
     parts.push(`📊 GloFAS: өзен ағыны өз терезесінің ${Math.round(glofasRatio! * 100)}%-ында`);
   }
+  if (habitat.length) {
+    const best = Math.max(...habitat.map((h) => h.reed ?? 0));
+    parts.push(
+      `🛰 Sentinel-2: қамыс мекені ${habitat.length} терезеде өлшенді, ` +
+        `ең тығызы ${Math.round(best * 100)}%`
+    );
+  }
 
   return {
     value: +value.toFixed(3),
@@ -166,6 +198,8 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
     sarPct,
     sarZonesOk: byZone.length,
     glofasRatio: glofasRatio != null ? +glofasRatio.toFixed(3) : null,
+    habitat,
+    reedZonesOk: habitat.length,
     note:
       parts.join(" · ") +
       ". Су басу жұмыртқа банкінің жарылуын іске қосады — импульс жоғары болса " +
@@ -199,4 +233,16 @@ export function pulseAt(p: FloodPulse, lat: number, lng: number): number | null 
  */
 export function hydroDaysAt(p: FloodPulse, lat: number, lng: number): number | null {
   return zoneAt(p, lat, lng)?.hydroDays ?? null;
+}
+
+/**
+ * Нүктедегі қамыс мекенінің қолайлылығы (0..1).
+ * Өлшенбеген жерде null — жуықталмайды.
+ */
+export function reedAt(p: FloodPulse, lat: number, lng: number): number | null {
+  for (const h of p.habitat) {
+    const [w, s, e, n] = h.bbox;
+    if (lng >= w && lng <= e && lat >= s && lat <= n) return h.reed;
+  }
+  return null;
 }
