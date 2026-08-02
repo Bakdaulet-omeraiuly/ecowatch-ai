@@ -20,6 +20,7 @@ import { MlForecast } from "@/components/dashboard/MlForecast";
 import { FloodExtent } from "@/components/dashboard/FloodExtent";
 import { ExportPanel } from "@/components/dashboard/ExportPanel";
 import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
+import { ExceedanceLog } from "@/components/dashboard/ExceedanceLog";
 import { EventFeed } from "@/components/dashboard/EventFeed";
 import { useRegion } from "@/store/useRegionStore";
 import { MissingModulesNote, ModuleMissing } from "@/components/ui/ModuleMissing";
@@ -393,6 +394,9 @@ export default function DashboardPage() {
 
       {/* Заңнамалық сәйкестік — ҚР/WHO/EU нормаларынан асу (ең жоғарыда) */}
       <LegalAlerts />
+
+      {/* Асу журналы — уақытымен тіркелген оқиғалар (кэш өткен соң жоғалмайды) */}
+      <ExceedanceLog />
 
       {/* Оқиғалар таспасы — нақты дерек нүктелері, уақыт бойынша */}
       <EventFeed limit={12} />

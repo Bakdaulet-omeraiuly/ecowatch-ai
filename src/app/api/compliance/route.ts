@@ -89,6 +89,16 @@ export async function GET(req: Request) {
     withData: results.filter((r) => r.value != null).length,
     worst: agg.worst,
     kzViolations: results.filter((r) => r.kzViolation).length,
+    /**
+     * ⚠️ АЙЫРМАСЫ МАҢЫЗДЫ:
+     *   kzViolations — ҚР актісі бойынша расталған асу (заңдық белгі)
+     *   exceededAny  — кез келген РАСТАЛҒАН нормадан асу (WHO/EU да кіреді)
+     * Бұрын дашбордта тек `kzViolations` көрсетіліп, оның жанында
+     * «НОРМА АСҚАН» деген қызыл белгі тұратын — ал ол белгі `worst`-тан
+     * шығатын. Нәтижесінде WHO эталонынан асқанда жоғарыда «0», төменде
+     * «НОРМА АСҚАН» деп қайшы жазылатын.
+     */
+    exceededAny: results.filter((r) => r.worst === "exceeded").length,
     /** Расталмаған шек бойынша алдын ала белгілер */
     preliminary: results.filter((r) => r.worst === "exceeded-unverified").length,
     approaching: results.filter((r) => r.worst === "approaching").length,
