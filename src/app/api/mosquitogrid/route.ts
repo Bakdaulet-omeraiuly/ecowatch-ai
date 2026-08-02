@@ -291,6 +291,7 @@ export async function GET(req: Request) {
         d: {
         latitude: number;
         longitude: number;
+        utc_offset_seconds?: number;
         current?: { relative_humidity_2m?: number; soil_moisture_0_to_1cm?: number };
         hourly?: {
           time?: string[];
@@ -402,20 +403,39 @@ export async function GET(req: Request) {
         const hTemp = d.hourly?.temperature_2m ?? [];
         const hRh = d.hourly?.relative_humidity_2m ?? [];
         const hSoil = d.hourly?.soil_moisture_0_to_1cm ?? [];
-        const HSTART = 7 * 24; // бүгін 00:00
+        // ӨТКЕН 24 САҒАТ + АЛДАҒЫ 24 САҒАТ — барлығы 48 нүкте, ортасы «қазір».
+        //
+        // Бұрын тек бүгінгі 00:00–23:00 берілетін: түн ортасында ашсаң,
+        // алдағы бір сағаттан басқа ештеңе көрінбейтін. Енді терезе
+        // ағымдағы сағатқа ОРТАЛЫҚТАНҒАН, басқа эко қабаттармен бірдей.
+        //
+        // Open-Meteo `timezone=auto` → уақыттар ЖЕРГІЛІКТІ (офсетсіз),
+        // сондықтан «қазірді» де сол белдеуге ауыстырамыз.
+        const offsetMs = (d.utc_offset_seconds ?? 0) * 1000;
+        const nowLocal = Date.now() + offsetMs;
+        let cur = hTime.findIndex((t) => new Date(t).getTime() > nowLocal);
+        cur = cur < 0 ? 7 * 24 : Math.max(0, cur - 1); // қамтылмаса — бүгін 00:00
+        const from = Math.max(0, Math.min(cur - 24, Math.max(0, hTime.length - 48)));
+        const count = Math.min(48, Math.max(0, hTime.length - from));
+        const nowIndex = cur - from;
+
         const dayRain = days[0].rainMm;
-        const hours = Array.from({ length: 24 }, (_, h) => {
-          const i = HSTART + h;
+        const hours = Array.from({ length: count }, (_, k) => {
+          const i = from + k;
           const t = hTemp[i] ?? days[0].temp;
           const hrh = hRh[i] ?? rh;
           const hsoil = hSoil[i] ?? soil;
+          const date = (hTime[i] ?? "").slice(0, 10);
           return {
             time: hTime[i] ?? "",
+            /** Осы сағат өтіп кетті ме — UI-де өткен/болжам болып бөлінеді */
+            past: k < nowIndex,
             index: fpebIndex({
               t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month, hydroDays, reed,
               // Тәуліктік ересек саны — сағат ішінде өзгермейді; сағаттық
-              // ырғақты Φ_T(сағаттық температура) береді
-              aedesDynamic: adultsOn(days[0].date),
+              // ырғақты Φ_T(сағаттық температура) береді. Күні бойынша
+              // алынады, сондықтан 48 сағат екі-үш тәулікті қамтиды.
+              aedesDynamic: adultsOn(date),
             }),
             temp: +t.toFixed(1),
           };
@@ -438,6 +458,8 @@ export async function GET(req: Request) {
           reedHabitat: reed,
           /** FPEB динамикасы қолданылды ма */
           dynamic: fpebSim != null,
+          /** `hours` ішіндегі «қазір» индексі (өткен/алдағы шекарасы) */
+          nowIndex,
           /** Массалық шығу шыңы (болжам терезесінде) */
           emergencePeak: peak,
           index: days[0].index, // today (back-compat)

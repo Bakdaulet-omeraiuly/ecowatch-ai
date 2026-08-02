@@ -569,7 +569,7 @@ export const INDICATORS: Indicator[] = [
     instrument:
       "Жеке модель. Кірістер: Open-Meteo (ECMWF) метеорологиясы + Copernicus Sentinel-1 SAR (су, гидропериод) + Sentinel-2 NDVI (қамыс мекені) + GloFAS (өзен ағыны)",
     spatial: "90 нүкте (облыстық 5×5 тор + Атырау қаласының 65 нүктелік тізілімі)",
-    temporal: "сағат сайын (тасқын импульсі — SAR қайталау кезеңі ~6 күн)",
+    temporal: "сағат сайын; терезе — өткен 24 сағат + алдағы 24 сағат (тасқын импульсі SAR қайталау кезеңі ~6 күн)",
     latency: "≈1 сағат (метео), ≈1–6 тәулік (SAR)",
     sources: [DOC.openMeteoWx, DOC.openMeteoFlood],
     references: [DOC.mordecai, DOC.mordecai2019],
