@@ -26,8 +26,12 @@
 /** Жүйедегі өлшенетін заттардың индикатор идентификаторлары */
 export type SubstanceId =
   | "no2" | "so2" | "co" | "ozone" | "pm25" | "pm10" | "nh3"
-  // Төмендегілері жүйеде ӨЛШЕНБЕЙДІ — топ толықтығын көрсету үшін ғана
-  | "h2s" | "phenol" | "formaldehyde" | "mazut_ash" | "no";
+  // Төмендегілері жүйеде ӨЛШЕНБЕЙДІ — топ ТОЛЫҚ ЕМЕС екенін дұрыс
+  // көрсету үшін тізілімде тұруы ШАРТ. Оларды тізбеу — топты бір заттан
+  // тұрады деп есептеп, жалғыз заттың асуын «жинақталу бұзушылығы» деп
+  // көрсетуге әкелер еді.
+  | "h2s" | "phenol" | "formaldehyde" | "mazut_ash" | "no"
+  | "hexane" | "hexene" | "pb_oxide" | "zn_oxide";
 
 export interface Substance {
   id: SubstanceId;
@@ -65,6 +69,22 @@ export const SUBSTANCES: Record<SubstanceId, Substance> = {
     id: "no", name: "Азот оксиді (NO)", measured: false,
     measuredNote: "CAMS-те NO₂ ғана бар",
   },
+  hexane: {
+    id: "hexane", name: "Гексан", measured: false,
+    measuredNote: "Ұшпа көмірсутек — жергілікті зертханалық өлшем қажет",
+  },
+  hexene: {
+    id: "hexene", name: "Гексен", measured: false,
+    measuredNote: "Ұшпа көмірсутек — жергілікті зертханалық өлшем қажет",
+  },
+  pb_oxide: {
+    id: "pb_oxide", name: "Қорғасын оксиді", measured: false,
+    measuredNote: "Ауыр металл аэрозолі — сүзгі әдісімен зертханада өлшенеді",
+  },
+  zn_oxide: {
+    id: "zn_oxide", name: "Мырыш оксиді", measured: false,
+    measuredNote: "Ауыр металл аэрозолі — сүзгі әдісімен зертханада өлшенеді",
+  },
 };
 
 export interface SummationGroup {
@@ -87,17 +107,18 @@ export const SUMMATION_GROUPS: SummationGroup[] = [
   { no: 2, substances: ["nh3", "h2s", "formaldehyde"], mode: "full" },
   { no: 3, substances: ["nh3", "formaldehyde"], mode: "full" },
   { no: 4, substances: ["no2", "no", "mazut_ash", "so2"], mode: "full" },
-  { no: 5, substances: ["no2", "co", "formaldehyde"], mode: "full" },
-  // ⭐ Ең маңыздысы — екеуі де жүйеде өлшенеді
+  { no: 5, substances: ["no2", "hexane", "co", "formaldehyde"], mode: "full" },
+  { no: 6, substances: ["no2", "hexene", "so2"], mode: "full" },
+  // ⭐ Ең маңыздысы — екеуі де жүйеде өлшенеді, сондықтан ЖАЛҒЫЗ есептелетін топ
   { no: 7, substances: ["no2", "so2"], mode: "full" },
   { no: 8, substances: ["no2", "so2", "co", "phenol"], mode: "full" },
   { no: 33, substances: ["ozone", "no2", "formaldehyde"], mode: "full" },
-  { no: 35, substances: ["so2"], mode: "full", modeNote: "Қорғасын оксидімен бірге" },
+  { no: 35, substances: ["pb_oxide", "so2"], mode: "full" },
   { no: 40, substances: ["so2", "phenol"], mode: "full" },
   { no: 44, substances: ["so2", "h2s"], mode: "full" },
   {
-    no: 57, substances: ["so2"], mode: "independent",
-    modeNote: "Мырыш оксидімен бірге — жекелеген ШРК сақталады, қосынды есептелмейді",
+    no: 57, substances: ["so2", "zn_oxide"], mode: "independent",
+    modeNote: "Бірге болғанда жекелеген заттардың ШРК-сы сақталады — қосынды есептелмейді",
   },
 ];
 
