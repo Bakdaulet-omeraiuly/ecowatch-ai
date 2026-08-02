@@ -201,7 +201,7 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
 // ── Дашборд ──────────────────────────────────────────────────────────
 Object.assign(UI_TR, {
   "Аймақтық аналитика": { ru: "Региональная аналитика", en: "Regional analytics" },
-  "Атырау облысының экологиялық жағдайы — нақты уақытта": { ru: "Экологическая обстановка Атырауской области — в реальном времени", en: "Environmental status of Atyrau region — in real time" },
+  "экологиялық жағдай нақты уақытта": { ru: "экологическая обстановка в реальном времени", en: "environmental status in real time" },
   "Шолу": { ru: "Обзор", en: "Overview" },
   "Рейтинг": { ru: "Рейтинг", en: "Ranking" },
   "Жылу картасы": { ru: "Тепловая карта", en: "Heatmap" },

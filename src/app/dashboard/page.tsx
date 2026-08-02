@@ -305,7 +305,7 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
       <div>
         <h1 className="text-2xl font-bold text-white">{tr("Аймақтық аналитика")}</h1>
-        <p className="text-sm text-neutral-400">{tr("Атырау облысының экологиялық жағдайы — нақты уақытта")}</p>
+        <p className="text-sm text-neutral-400">{region.name} — {tr("экологиялық жағдай нақты уақытта")}</p>
       </div>
 
       {/* LIVE environmental data — Open-Meteo / Copernicus CAMS */}

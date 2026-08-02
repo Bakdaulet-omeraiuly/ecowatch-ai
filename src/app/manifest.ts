@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Jaiyq — Атырау экологиялық мониторингі",
+    name: "Jaiyq — Қазақстан мен Каспий жағалауының экологиялық мониторингі",
     short_name: "Jaiyq",
     description:
       "Спутник пен AI арқылы қоқыс, мұнай ластануы, жер деградациясы, ауа сапасы және маса тәуекелін бақылау",

@@ -9,7 +9,7 @@ export default function PrivacyPage() {
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-semibold text-white">1. Жалпы ақпарат</h2>
         <p className="text-neutral-400 leading-relaxed">
-          Jaiyq платформасы (ecojaiyq.com) Атырау облысының экологиялық мониторингіне арналған.
+          Jaiyq платформасы (ecojaiyq.com) Қазақстан мен Каспий жағалауының экологиялық мониторингіне арналған.
           Біз пайдаланушылардың жеке деректерін қорғауды маңызды міндет деп санаймыз және
           Қазақстан Республикасының «Дербес деректер және оларды қорғау туралы» Заңына (№94-V) сай жұмыс істейміз.
         </p>
