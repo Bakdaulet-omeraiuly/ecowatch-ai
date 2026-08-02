@@ -123,13 +123,32 @@ const SRC_URL = (points: GridPoint[]) =>
   `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum` +
   `&past_days=7&forecast_days=7&timezone=auto`;
 
-// Temperature suitability: bell curve, dev range ~15-35°C, optimum ~28°C.
-// Based on Mordecai et al. (2017) thermal-response models for mosquito-borne disease.
+// ── ТЕМПЕРАТУРА ГЕЙТІ Φ_T ────────────────────────────────────────────────
+//
+// Mordecai т.б. 2019 (PLoS NTD, 10.1371/journal.pntd.0006451) Батыс Нил
+// вирусы жүйесі үшін жариялаған термиялық шектер:
+//     T₀ = 16.8 °C (төменгі шек), Tm = 34.9 °C (жоғарғы шек)
+// Симметриялы (квадрат) түрде шыңы (T₀+Tm)/2 = 25.9 °C — мақалада
+// хабарланған ~25 °C оптимумына сәйкес келеді.
+//
+// НЕГЕ ӨЗГЕРТІЛДІ: бұрын шектер қолмен таңдалған еді (15/36, «оптимум 28»),
+// әрі нормалау бөлгіші қате болатын — қисықтың шын шыңы 25.5 °C-та жатып,
+// 24–27 аралығында 1-ден асып қиылатын. Яғни түсініктемедегі «оптимум
+// 28 °C» кодтағы мінез-құлыққа сәйкес келмейтін. Енді шектер жарияланған
+// зерттеуден алынды, ал нормалау шыңда дәл 1 береді.
+//
+// ⚠️ ШЕКТЕУІ: бұл — БАСЫМ түрдің (Culex modestus, аулауда 56%) жүйесіне
+// калибрленген қисық. Aedes caspius суыққа төзімдірек әрі көктемде
+// 16.8 °C-тан төмен де белсенді бола алады — ол үшін жарияланған
+// термиялық фит табылмады, сондықтан бөлек қисық жасалмады.
+export const THERMAL = { t0: 16.8, tm: 34.9 };
+
 function tempSuitability(t: number): number {
-  if (t <= 15 || t >= 36) return 0;
-  // quadratic peaking near 28°C
-  const s = ((t - 15) * (36 - t)) / ((28 - 15) * (36 - 28));
-  return Math.max(0, Math.min(1, s));
+  const { t0, tm } = THERMAL;
+  if (t <= t0 || t >= tm) return 0;
+  // Шыңында дәл 1 болатындай нормалау: ((tm−t0)/2)²
+  const half = (tm - t0) / 2;
+  return Math.max(0, Math.min(1, ((t - t0) * (tm - t)) / (half * half)));
 }
 
 function humidityFactor(rh: number): number {
