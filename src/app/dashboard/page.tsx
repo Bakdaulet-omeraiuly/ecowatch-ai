@@ -26,7 +26,7 @@ import { MissingModulesNote, ModuleMissing } from "@/components/ui/ModuleMissing
 import { IndicatorHelp, IndicatorSummary, indicatorName } from "@/components/ui/IndicatorHelp";
 import { LevelLegend } from "@/components/ui/LevelLegend";
 import { missingModules, hasModule } from "@/data/regions";
-import type { FloodSignal } from "@/hooks/useEcoData";
+import type { FloodSignal, MosquitoDynamics } from "@/hooks/useEcoData";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -238,7 +238,7 @@ export default function DashboardPage() {
   // моделінен оқиды: /api/mosquitogrid → grid[].days.
   const mosMissing = !hasModule(region, "mosquito");
   const [mosDays, setMosDays] = useState<{ date: string; index: number; temp: number; rainMm: number }[] | null>(null);
-  const [mosMeta, setMosMeta] = useState<{ avgIndex: number | null; maxIndex: number | null; points: number; flood: FloodSignal | null } | null>(null);
+  const [mosMeta, setMosMeta] = useState<{ avgIndex: number | null; maxIndex: number | null; points: number; flood: FloodSignal | null; dyn: MosquitoDynamics | null } | null>(null);
   const [mosLoadedFor, setMosLoadedFor] = useState<string | null>(null);
 
   useEffect(() => {
@@ -266,6 +266,7 @@ export default function DashboardPage() {
           maxIndex: d.maxIndex ?? null,
           points: d.gridPoints ?? grid.length,
           flood: d.floodSignal ?? null,
+          dyn: d.dynamics ?? null,
         });
       })
       .catch(() => setMosDays([]))
@@ -593,6 +594,29 @@ export default function DashboardPage() {
                     </div>
                     <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-400">
                       {mosMeta.flood.note}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Массалық шығу болжамы — модельдің ең пайдалы шығысы */}
+              {mosMeta?.dyn?.emergencePeak && (
+                <Card className="border-purple-500/25 bg-purple-500/[0.07]">
+                  <CardContent className="pt-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-sm font-semibold text-purple-200">
+                        🦟 {tr("Күтілетін массалық шығу")}:
+                      </span>
+                      <span className="text-lg font-bold text-white">
+                        {mosMeta.dyn.emergencePeak.date}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-400">
+                      {mosMeta.dyn.note}
+                    </p>
+                    <p className="mt-1 text-[10px] text-neutral-500">
+                      {tr("Динамикалық интеграция")}: {mosMeta.dyn.pointsWithOde}/{mosMeta.dyn.pointsTotal}{" "}
+                      {tr("нүктеде")}
                     </p>
                   </CardContent>
                 </Card>

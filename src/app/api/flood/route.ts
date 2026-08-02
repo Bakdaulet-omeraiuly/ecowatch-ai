@@ -72,12 +72,37 @@ export async function GET(req: Request) {
       };
     });
 
+    // КҮНДІК ТАСҚЫН ҚАТАРЫ — JAIYQ-MRI моделінің L2 динамикасы үшін.
+    //
+    // Модель жұмыртқа банкінің жарылуы мен дернәсілдің дамуын УАҚЫТ БОЙЫНША
+    // интегралдайды, сондықтан оған бір сан емес, күндік драйвер қатары
+    // керек: қай күні су көтерілді, қай күні қайтты.
+    //
+    // Аймақ бойынша ең жоғары ағын нүктесі алынады — жайылманы басатын
+    // импульс сол арнадан келеді.
+    const dailyPulse: { date: string; ratio: number }[] = [];
+    {
+      const first = list[0] as { daily?: { time?: string[] } } | undefined;
+      const times: string[] = first?.daily?.time ?? [];
+      const series = list.map((d: { daily?: { river_discharge?: (number | null)[] } }) =>
+        (d.daily?.river_discharge ?? []).map((v) => v ?? 0)
+      );
+      const maxima = series.map((arr: number[]) => Math.max(1, ...arr));
+      for (let i = 0; i < times.length; i++) {
+        // Әр нүктенің өз терезесіне қатысты үлесі, солардың ең жоғарысы
+        const r = Math.max(...series.map((arr: number[], k: number) => (arr[i] ?? 0) / maxima[k]));
+        dailyPulse.push({ date: times[i], ratio: +Math.min(1, r).toFixed(3) });
+      }
+    }
+
     const data = {
       available: true as const,
       fetchedAt: new Date().toISOString(),
       source: "Open-Meteo Flood API — Copernicus GloFAS",
       region: { id: region.id, name: region.name },
       river: river.river,
+      /** Күндік тасқын импульсі (0..1) — 30 күн өткен + 14 күн болжам */
+      dailyPulse,
       points: points.filter((p) => p.discharge > 0.5), // only real river cells
     };
     cache.set(region.id, { at: Date.now(), data });

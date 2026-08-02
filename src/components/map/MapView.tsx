@@ -380,7 +380,7 @@ export function MapView() {
     );
   }, [activeLayer, flares]);
 
-  const { mosGrid, mosFlood, mosError, mosMissing } = useMosquitoGrid(activeLayer === "mosquito");
+  const { mosGrid, mosFlood, mosDyn, mosError, mosMissing } = useMosquitoGrid(activeLayer === "mosquito");
 
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
   const { source, sourceError, sourceMissing } = usePollutionSource(sourceMode);
@@ -2050,6 +2050,26 @@ export function MapView() {
                     <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
                       💡 {tr(mosquitoAdvice(mosStats.avg))}
                     </div>
+
+                    {/* L2 — МАССАЛЫҚ ШЫҒУ БОЛЖАМЫ.
+                        Модельдің ең пайдалы шығысы: дезинсекция мен
+                        халыққа ескерту осы күнге жоспарланады */}
+                    {mosDyn?.emergencePeak && (
+                      <div className="mt-2 rounded-md border border-purple-400/30 bg-purple-500/[0.08] p-2">
+                        <div className="flex items-center gap-1.5">
+                          <Bug className="h-3 w-3 text-purple-300" />
+                          <span className="text-[10px] font-semibold text-neutral-200">
+                            {tr("Күтілетін шығу шыңы")}
+                          </span>
+                          <span className="ml-auto text-[11px] font-bold text-purple-200">
+                            {mosDyn.emergencePeak.date.slice(5).replace("-", ".")}
+                          </span>
+                        </div>
+                        <p className="mt-1 text-[9px] leading-snug text-neutral-400">
+                          {tr("Су басудан кейінгі кідіріс есептелген: жұмыртқа жарылады → дернәсіл дамиды → ересек шығады.")}
+                        </p>
+                      </div>
+                    )}
 
                     {/* L1 — ТАСҚЫН ИМПУЛЬСІ: модельдің ажыратқышы.
                         Су басу оқиғасы өлшенді ме, әлде тек география ма —
