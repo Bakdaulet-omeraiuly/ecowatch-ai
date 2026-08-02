@@ -63,6 +63,7 @@ interface Data {
   withData: number;
   worst: ComplianceLevel;
   kzViolations: number;
+  exceededAny: number;
   preliminary: number;
   approaching: number;
   results: Result[];
@@ -108,6 +109,13 @@ export function LegalAlerts() {
               <span className="rounded-full border border-red-400/40 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-200">
                 {data.kzViolations} {tr("норма асқан")}
               </span>
+            ) : (data.exceededAny ?? 0) > 0 ? (
+              // ҚР нормасы асқан жоқ, бірақ WHO/EU эталонынан асу бар.
+              // Бұрын мұнда жасыл «расталған асу жоқ» деп тұратын, ал
+              // төменде PM₂.₅ қызыл «НОРМА АСҚАН» болып, қайшы шығатын.
+              <span className="rounded-full border border-amber-400/35 bg-amber-500/12 px-2 py-0.5 text-[10px] text-amber-200">
+                {tr("ҚР нормасы асқан жоқ")} · {data.exceededAny} {tr("WHO/EU эталонынан асу")}
+              </span>
             ) : (
               <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-200">
                 {tr("расталған асу жоқ")}
@@ -131,9 +139,14 @@ export function LegalAlerts() {
           </p>
         ) : (
           <>
-            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
               <Mini label={tr("Тексерілді")} value={`${data.withData}/${data.checkedCount}`} />
-              <Mini label={tr("Норма асқан")} value={String(data.kzViolations)} bad={data.kzViolations > 0} />
+              <Mini label={tr("ҚР нормасы асқан")} value={String(data.kzViolations)} bad={data.kzViolations > 0} />
+              <Mini
+                label={tr("WHO/EU эталонынан асқан")}
+                value={String(Math.max(0, (data.exceededAny ?? 0) - data.kzViolations))}
+                warn={(data.exceededAny ?? 0) > data.kzViolations}
+              />
               <Mini label={tr("Алдын ала белгі")} value={String(data.preliminary)} warn={data.preliminary > 0} />
               <Mini label={tr("Нормаға жақын")} value={String(data.approaching)} warn={data.approaching > 0} />
             </div>

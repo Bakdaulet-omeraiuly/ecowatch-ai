@@ -3,13 +3,29 @@
     {
       "path": "/api/alerts-push",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/fixate",
+      "schedule": "5 * * * *"
     }
   ],
   "headers": [
     {
       "source": "/api/alerts-push",
       "headers": [
-        { "key": "x-cron-secret", "value": "required" }
+        {
+          "key": "x-cron-secret",
+          "value": "required"
+        }
+      ]
+    },
+    {
+      "source": "/api/fixate",
+      "headers": [
+        {
+          "key": "x-cron-secret",
+          "value": "required"
+        }
       ]
     }
   ]
