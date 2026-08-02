@@ -43,6 +43,9 @@ const ICONS: Record<PlaceKind, React.ElementType> = {
 
 export function MapSearch({ onSelect, onPickPlace }: Props) {
   const { tr } = useLang();
+  // Телефонда іздеу картаны жаппауы үшін әдепкіде тек ИКОНКА болады.
+  // Басқанда ғана ашылады. Үлкен экранда әрқашан ашық тұрады.
+  const [expanded, setExpanded] = useState(false);
   const [query, setQuery] = useState("");
   const [geo, setGeo] = useState<GeoFeature[]>([]);
   const [loading, setLoading] = useState(false);
@@ -110,8 +113,22 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
     else pickGeo(geo[i - local.length]);
   };
 
+  // Жиналған күй — тек дөңгелек иконка
+  if (!expanded) {
+    return (
+      <button
+        onClick={() => { setExpanded(true); setTimeout(() => inputRef.current?.focus(), 50); }}
+        title={tr("Іздеу")}
+        aria-label={tr("Іздеу")}
+        className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-neutral-900/95 text-neutral-300 shadow-xl backdrop-blur transition hover:bg-neutral-800 hover:text-white"
+      >
+        <Search className="h-4 w-4" />
+      </button>
+    );
+  }
+
   return (
-    <div ref={wrapRef} className="w-[min(92vw,32rem)]">
+    <div ref={wrapRef} className="w-[min(88vw,26rem)]">
       <div className="relative">
         {loading ? (
           <Loader2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-neutral-400" />
@@ -124,7 +141,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
           onChange={(e) => { setQuery(e.target.value); setOpen(true); setActive(0); }}
           onFocus={() => setOpen(true)}
           onKeyDown={(e) => {
-            if (e.key === "Escape") { setOpen(false); return; }
+            if (e.key === "Escape") { setOpen(false); setExpanded(false); return; }
             if (!open || !total) return;
             if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => (i + 1) % total); }
             else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => (i - 1 + total) % total); }
@@ -134,19 +151,17 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
           className="w-full rounded-xl border border-white/15 bg-neutral-900/95 py-2.5 pl-10 pr-9 text-sm text-white shadow-xl outline-none backdrop-blur transition placeholder:text-neutral-500 focus:border-emerald-400/50"
           aria-label={tr("Іздеу")}
         />
-        {query && (
-          <button
-            onClick={() => { setQuery(""); setGeo([]); setOpen(false); inputRef.current?.focus(); }}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 transition hover:bg-white/10 hover:text-white"
-            aria-label={tr("Тазалау")}
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
+        <button
+          onClick={() => { setQuery(""); setGeo([]); setOpen(false); setExpanded(false); }}
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 transition hover:bg-white/10 hover:text-white"
+          aria-label={tr("Жабу")}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
       </div>
 
       {open && query.trim().length >= 2 && (
-        <div className="mt-1.5 max-h-[60vh] overflow-y-auto rounded-xl border border-white/10 bg-neutral-900/97 shadow-2xl backdrop-blur">
+        <div className="absolute bottom-full left-0 mb-1.5 max-h-[55vh] w-full overflow-y-auto rounded-xl border border-white/10 bg-neutral-900/97 shadow-2xl backdrop-blur sm:relative sm:bottom-auto sm:mb-0 sm:mt-1.5">
           {total === 0 && !loading ? (
             <div className="px-3 py-3 text-[12px] leading-relaxed text-neutral-400">
               {tr("Табылмады.")}{" "}

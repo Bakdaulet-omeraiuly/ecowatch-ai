@@ -1339,7 +1339,7 @@ export function MapView() {
 
       {/* Оң жақ — NASA спутник қабаттары панелі */}
       {gibsPanelOpen ? (
-        <div className="absolute right-4 top-4 z-10 w-52 rounded-lg border border-white/10 bg-neutral-900/90 p-2 backdrop-blur">
+        <div className="absolute right-2 top-16 z-10 w-fit max-w-[52vw] rounded-lg border border-white/10 bg-neutral-900/90 p-1.5 backdrop-blur sm:right-4 sm:top-4 sm:max-w-[13rem]">
           <div className="mb-1.5 flex items-center justify-between px-1">
             <span className="text-[10px] uppercase tracking-wide text-neutral-500">{tr("Спутник")} · {SAT_PROVIDER}</span>
             <button
@@ -1350,13 +1350,13 @@ export function MapView() {
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
-          <div className="flex max-h-[calc(100dvh-9rem)] flex-col gap-1 overflow-y-auto pr-0.5">
+          <div className="flex max-h-[calc(100dvh-12rem)] w-fit flex-col gap-1 overflow-y-auto pr-0.5 sm:max-h-[calc(100dvh-9rem)]">
             {GIBS_LAYERS.map((g) => (
               <button
                 key={g.key}
                 onClick={() => setGibsKey((cur) => (cur === g.key ? null : g.key))}
                 title={g.descKz}
-                className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
                   gibsKey === g.key
                     ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-200"
                     : "border-transparent text-neutral-300 hover:bg-white/5"
@@ -1377,7 +1377,7 @@ export function MapView() {
                     key={g.key}
                     onClick={() => setGibsKey((cur) => (cur === g.key ? null : g.key))}
                     title={g.descKz}
-                    className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                    className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
                       gibsKey === g.key
                         ? "border-amber-500/50 bg-amber-500/15 text-amber-200"
                         : "border-transparent text-neutral-300 hover:bg-white/5"
@@ -1441,7 +1441,7 @@ export function MapView() {
       ) : (
         <button
           onClick={() => setGibsPanelOpen(true)}
-          className="absolute right-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
+          className="absolute right-4 top-4 z-10 flex items-center gap-2 w-fit max-w-[58vw] sm:max-w-none rounded-lg border border-white/10 bg-neutral-900/90 px-2.5 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
         >
           <Satellite className="h-4 w-4" /> {tr("Спутник")}
         </button>
@@ -1451,7 +1451,7 @@ export function MapView() {
       {!panelOpen && (
         <button
           onClick={() => setPanelOpen(true)}
-          className="absolute left-2 top-16 z-10 flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800 sm:left-4 sm:top-4"
+          className="absolute left-2 top-16 z-10 flex items-center gap-2 w-fit max-w-[58vw] sm:max-w-none rounded-lg border border-white/10 bg-neutral-900/90 px-2.5 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800 sm:left-4 sm:top-4"
         >
           <Layers className="h-4 w-4" /> {tr("Қабаттар")}
         </button>
@@ -1459,14 +1459,14 @@ export function MapView() {
 
       {/* Layer panel */}
       <div
-        className={`absolute left-2 top-16 bottom-2 z-10 w-[min(15rem,72vw)] flex-col gap-2 overflow-y-auto pr-1 sm:left-4 sm:top-4 sm:w-auto sm:max-h-[calc(100dvh-7rem)] ${
+        className={`absolute left-2 top-16 bottom-16 z-10 w-fit max-w-[58vw] flex-col gap-1.5 overflow-y-auto pr-1 sm:left-4 sm:top-4 sm:bottom-4 sm:max-w-[15rem] sm:max-h-[calc(100dvh-7rem)] ${
           panelOpen ? "flex" : "hidden"
         }`}
       >
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMapStyle((s) => (s === "satellite" ? "streets" : "satellite"))}
-            className="flex flex-1 items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
+            className="flex flex-1 items-center gap-2 w-fit max-w-[58vw] sm:max-w-none rounded-lg border border-white/10 bg-neutral-900/90 px-2.5 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
           >
             <Layers className="h-4 w-4" />
             {mapStyle === "satellite" ? tr("Қала картасы") : tr("Спутник")}
@@ -1484,7 +1484,7 @@ export function MapView() {
           <div className="mb-1.5 px-1 text-[10px] uppercase tracking-wide text-neutral-500">
             {tr("Эко қабаттар")}
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex w-fit flex-col gap-1">
             {/* Негізгі мүмкіндік — ең басында, көрнекті */}
             <button
               onClick={() => {
@@ -1492,7 +1492,7 @@ export function MapView() {
                 setSourceMode(next);
                 if (!next) { setSelectedFacs([]); setFacAir(null); setAnimMode(null); setFcStep(null); } // қабат өшсе — анимация тазаланады
               }}
-              className={`flex items-center gap-2 rounded-md border px-2.5 py-2 text-xs font-semibold transition-colors ${
+              className={`flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold transition-colors ${
                 sourceMode
                   ? "border-red-500/60 bg-red-500/25 text-red-100"
                   : "border-red-500/40 bg-red-500/10 text-red-200 hover:bg-red-500/20"
@@ -1520,7 +1520,7 @@ export function MapView() {
                 <button
                   key={l.key}
                   onClick={() => setActiveLayer((cur) => (cur === l.key ? null : l.key))}
-                  className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
                     activeLayer === l.key
                       ? l.activeCls
                       : "border-transparent text-neutral-300 hover:bg-white/5"
@@ -1550,7 +1550,7 @@ export function MapView() {
             <div className="my-0.5 h-px bg-white/10" />
             <button
               onClick={() => { setAiOn((v) => !v); setAiTool("point"); setDrawPoints([]); setAnalyzedArea(null); }}
-              className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
                 aiOn
                   ? "border-violet-500/50 bg-violet-500/15 text-violet-200"
                   : "border-transparent text-neutral-300 hover:bg-white/5"
@@ -1563,7 +1563,7 @@ export function MapView() {
             </button>
             <button
               onClick={() => setShowReports((v) => !v)}
-              className={`flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors ${
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[11px] transition-colors ${
                 showReports
                   ? "border-pink-500/50 bg-pink-500/15 text-pink-200"
                   : "border-transparent text-neutral-300 hover:bg-white/5"
@@ -1584,7 +1584,7 @@ export function MapView() {
                 <a
                   key={sv.href}
                   href={sv.href}
-                  className="flex items-center gap-2 rounded-md border border-transparent px-2.5 py-1.5 text-xs text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
+                  className="flex items-center gap-1.5 whitespace-nowrap rounded-md border border-transparent px-2 py-1.5 text-[11px] text-neutral-300 transition-colors hover:bg-white/5 hover:text-white"
                 >
                   <sv.icon className="h-3.5 w-3.5 text-neutral-400" /> {tr(sv.label)}
                 </a>
