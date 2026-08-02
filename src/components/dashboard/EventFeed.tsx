@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity, Loader2, MapPin, Scale } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
+import { useRegion } from "@/store/useRegionStore";
 
 // ОҚИҒАЛАР ТАСПАСЫ — нақты уақыттағы экологиялық оқиғалар.
 //
@@ -49,6 +50,7 @@ function timeAgo(iso: string, tr: (s: string) => string): string {
 
 export function EventFeed({ limit }: { limit?: number }) {
   const { tr } = useLang();
+  const region = useRegion();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -56,13 +58,13 @@ export function EventFeed({ limit }: { limit?: number }) {
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/events")
+    fetch(`/api/events?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => !cancelled && setData(d))
       .catch(() => !cancelled && setError(true))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
-  }, []);
+  }, [region.id]);
 
   const shown = limit ? data?.events.slice(0, limit) : data?.events;
 

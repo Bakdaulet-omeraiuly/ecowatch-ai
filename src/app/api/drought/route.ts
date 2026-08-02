@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRegion } from "@/data/regions";
 import { computeSPI, droughtClass, DROUGHT_KZ, DROUGHT_COLOR } from "@/lib/spi";
 
 // Атырау бойынша нақты 3-айлық SPI (Standardized Precipitation Index, McKee 1993).
@@ -8,8 +9,6 @@ import { computeSPI, droughtClass, DROUGHT_KZ, DROUGHT_COLOR } from "@/lib/spi";
 
 export const revalidate = 86400; // тәулігіне бір
 
-const LAT = 47.1167;
-const LNG = 51.8833;
 const START = "1991-01-01";
 
 function isoDaysAgo(n: number): string {
@@ -18,11 +17,15 @@ function isoDaysAgo(n: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 86400_000) {
-    return NextResponse.json(cache.data);
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const LAT = region.lat;
+  const LNG = region.lng;
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 86400_000) {
+    return NextResponse.json(hit.data);
   }
   try {
     const end = isoDaysAgo(7); // архивте ~5 күн кідіріс
@@ -85,7 +88,7 @@ export async function GET() {
       droughtLabel: DROUGHT_KZ[cls],
       droughtColor: DROUGHT_COLOR[cls],
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Drought SPI error:", err);

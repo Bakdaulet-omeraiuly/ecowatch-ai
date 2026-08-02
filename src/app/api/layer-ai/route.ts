@@ -21,6 +21,7 @@ export const dynamic = "force-dynamic";
 
 const reqSchema = z.object({
   key: z.string().min(2).max(20),
+  region: z.string().max(30).optional(),
   lang: z.enum(["kk", "ru", "en"]).optional(),
 });
 
@@ -91,7 +92,8 @@ export async function POST(req: Request) {
   const origin = new URL(req.url).origin;
   let layerData: Record<string, unknown> | null = null;
   try {
-    const r = await fetch(`${origin}/api/layer/${layer.key}`, { cache: "no-store" });
+    const rq = parsed.data.region ? `?region=${encodeURIComponent(parsed.data.region)}` : "";
+    const r = await fetch(`${origin}/api/layer/${layer.key}${rq}`, { cache: "no-store" });
     if (r.ok) layerData = await r.json();
   } catch {
     /* төменде тексеріледі */

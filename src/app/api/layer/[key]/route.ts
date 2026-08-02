@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { LAYER_BY_KEY, SERIES_BASE, type EcoLayer } from "@/data/ecoLayers";
 import { INDICATORS, resolvePath } from "@/data/indicatorRegistry";
 import { checkCompliance, aggregate, type ComplianceResult } from "@/lib/compliance";
+import { getRegion } from "@/data/regions";
 
 // БІР ЭКО ҚАБАТТЫҢ ТОЛЫҚ КЕСКІНІ.
 //
@@ -20,9 +21,7 @@ import { checkCompliance, aggregate, type ComplianceResult } from "@/lib/complia
 
 export const revalidate = 1800; // 30 минут
 
-// Атырау қаласы — тірек нүкте (кейін қала таңдағышпен ауысады)
-const LAT = 47.1167;
-const LNG = 51.8833;
+
 
 interface HourPoint {
   time: string;
@@ -39,7 +38,15 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
     return NextResponse.json({ error: `Белгісіз қабат: ${key}` }, { status: 404 });
   }
 
-  const hit = cache.get(key);
+  // Аймақ — таңдалған қаланың координатасы. ҚР-дан тыс аймақта ҚР
+  // нормативтері ҚОЛДАНЫЛМАЙДЫ (checkCompliance-ке jurisdiction беріледі).
+  const region = getRegion(req.nextUrl.searchParams.get("region"));
+  const LAT = region.lat;
+  const LNG = region.lng;
+  const jurisdiction = region.country === "KZ" ? ("KZ" as const) : ("OTHER" as const);
+
+  const cacheKey = `${key}:${region.id}`;
+  const hit = cache.get(cacheKey);
   if (hit && Date.now() - hit.at < revalidate * 1000) {
     return NextResponse.json(hit.data);
   }
@@ -48,8 +55,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
 
   try {
     const [current, series] = await Promise.all([
-      fetchCurrent(origin, layer),
-      fetchSeries(layer),
+      fetchCurrent(origin, layer, region.id),
+      fetchSeries(layer, LAT, LNG),
     ]);
 
     // --- Заңнамалық сәйкестік ---
@@ -64,7 +71,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
       } else if (current.extra?.[ind.endpoint]) {
         value = resolvePath(current.extra[ind.endpoint], ind.path);
       }
-      compliance.push({ ...checkCompliance(id, value), name: ind.name, unit: ind.unit });
+      compliance.push({ ...checkCompliance(id, value, jurisdiction), name: ind.name, unit: ind.unit });
     }
     const agg = aggregate(compliance);
 
@@ -74,7 +81,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
       emoji: layer.emoji,
       what: layer.what,
       fetchedAt: new Date().toISOString(),
-      location: { lat: LAT, lng: LNG, name: "Атырау" },
+      location: { lat: LAT, lng: LNG, name: region.name, country: region.country, regionId: region.id },
 
       current: current.ok ? current.data : null,
       currentError: current.ok ? null : current.error,
@@ -108,7 +115,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
         "ресми атмосфералық/гидрологиялық модель шығысы.",
     };
 
-    cache.set(key, { at: Date.now(), data });
+    cache.set(cacheKey, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error(`layer ${key} error:`, err);
@@ -121,10 +128,11 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
 
 // ---------------------------------------------------------------------------
 
-async function fetchCurrent(origin: string, layer: EcoLayer) {
+async function fetchCurrent(origin: string, layer: EcoLayer, regionId: string) {
   const extra: Record<string, unknown> = {};
   try {
-    const res = await fetch(`${origin}${layer.currentEndpoint}`, { cache: "no-store" });
+    const q = layer.currentEndpoint.includes("?") ? "&" : "?";
+    const res = await fetch(`${origin}${layer.currentEndpoint}${q}region=${regionId}`, { cache: "no-store" });
     const data = res.ok ? await res.json() : null;
 
     // Қабатта басқа эндпоинттегі көрсеткіштер де болса — соларды да аламыз
@@ -136,7 +144,8 @@ async function fetchCurrent(origin: string, layer: EcoLayer) {
     await Promise.all(
       [...others].map(async (ep) => {
         try {
-          const r = await fetch(`${origin}${ep}`, { cache: "no-store" });
+          const eq = ep.includes("?") ? "&" : "?";
+          const r = await fetch(`${origin}${ep}${eq}region=${regionId}`, { cache: "no-store" });
           if (r.ok) extra[ep] = await r.json();
         } catch {
           /* қолжетімсіз — сол көрсеткіш «дерек жоқ» болып қалады */
@@ -152,7 +161,7 @@ async function fetchCurrent(origin: string, layer: EcoLayer) {
   }
 }
 
-async function fetchSeries(layer: EcoLayer): Promise<
+async function fetchSeries(layer: EcoLayer, LAT: number, LNG: number): Promise<
   | { available: true; past24: HourPoint[]; next24: HourPoint[]; note?: string }
   | { available: false; reason: string }
 > {

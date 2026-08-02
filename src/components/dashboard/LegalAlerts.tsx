@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge, type Tier } from "@/components/ui/TierBadge";
 import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
+import { useRegion } from "@/store/useRegionStore";
 
 // Заңнамалық ескертулер — ҚР/WHO/EU нормаларынан асу.
 //
@@ -72,18 +73,19 @@ const ORDER: Record<ComplianceLevel, number> = {
 
 export function LegalAlerts() {
   const { tr } = useLang();
+  const region = useRegion();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/compliance")
+    fetch(`/api/compliance?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setData)
       .catch(() => setError(true))
       .finally(() => setLoading(false));
-  }, []);
+  }, [region.id]);
 
   const sorted = data?.results.slice().sort((a, b) => ORDER[a.worst] - ORDER[b.worst]) ?? [];
 

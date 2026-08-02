@@ -22,6 +22,7 @@ import { FloodExtent } from "@/components/dashboard/FloodExtent";
 import { ExportPanel } from "@/components/dashboard/ExportPanel";
 import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
 import { EventFeed } from "@/components/dashboard/EventFeed";
+import { useRegion } from "@/store/useRegionStore";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -95,6 +96,9 @@ const tooltipStyle = {
 
 export default function DashboardPage() {
   const { tr } = useLang();
+  // Таңдалған аймақ — барлық тірі дерек сол қала бойынша сұралады
+  const region = useRegion();
+  const rq = `?region=${region.id}`;
   const userSites = useSitesStore((s) => s.userSites);
   const allSites = userSites;
   const [forecast, setForecast] = useState<Forecast | null>(null);
@@ -106,27 +110,29 @@ export default function DashboardPage() {
   const [water, setWater] = useState<WaterData | null>(null);
 
   useEffect(() => {
-    fetch("/api/environment")
+    fetch(`/api/environment${rq}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setEnv)
       .catch(() => setEnvError(true));
-    fetch("/api/fire")
+    fetch(`/api/fire${rq}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setFire)
       .catch(() => setFire(null));
-    fetch("/api/drought")
+    fetch(`/api/drought${rq}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setDrought)
       .catch(() => setDrought(null));
-    fetch("/api/climate")
+    fetch(`/api/climate${rq}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setClimate)
       .catch(() => setClimate(null));
-    fetch("/api/water")
+    fetch(`/api/water${rq}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setWater)
       .catch(() => setWater(null));
-  }, []);
+    // Аймақ ауысса — барлық дерек қайта сұралады
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [region.id]);
 
   // Forecast input: real history of the platform's own analyses, grouped by day
   const riskHistory = useMemo(() => {

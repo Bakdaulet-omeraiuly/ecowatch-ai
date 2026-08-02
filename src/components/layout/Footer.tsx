@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Send, Code2, Satellite, Wind, BookOpen } from "lucide-react";
+import { Send, Satellite, Wind, BookOpen } from "lucide-react";
 import { JaiyqLogo } from "@/components/layout/JaiyqLogo";
 import { useLang } from "@/lib/i18n";
 
 const TELEGRAM_BOT = "https://t.me/jaiyq_atyrau_bot";
-const GITHUB_REPO = "https://github.com/Bakdaulet-omeraiuly/ecowatch-ai";
 
 // Толық экранды беттерде (карта) футер көрсетілмейді
 const HIDE_ON = ["/map"];
@@ -97,14 +96,6 @@ export function Footer() {
                 <Send className="h-4 w-4" /> {t("foot.tg")}
               </div>
               <p className="mt-1 text-[11px] text-neutral-400">{t("foot.tgDesc")}</p>
-            </a>
-            <a
-              href={GITHUB_REPO}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-2.5 flex items-center gap-2 text-sm text-neutral-400 transition-colors hover:text-white"
-            >
-              <Code2 className="h-4 w-4 text-neutral-600" /> {t("foot.github")}
             </a>
           </div>
         </div>
