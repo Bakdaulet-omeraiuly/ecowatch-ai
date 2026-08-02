@@ -45,13 +45,13 @@ export function RegionPicker({ compact }: { compact?: boolean }) {
         aria-label={tr("Аймақты таңдау")}
       >
         <MapPin className="h-3.5 w-3.5 text-emerald-400" />
-        <span className="max-w-[9rem] truncate">{current.name}</span>
+        <span className="max-w-[6rem] truncate sm:max-w-[9rem]">{current.name}</span>
         {current.country !== "KZ" && <span>{COUNTRY_FLAG[current.country]}</span>}
         <ChevronDown className={`h-3 w-3 text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
-        <div className="absolute right-0 z-50 mt-1.5 max-h-[70vh] w-[19rem] overflow-y-auto rounded-xl border border-white/10 bg-neutral-900/98 shadow-2xl backdrop-blur">
+        <div className="absolute right-0 z-50 mt-1.5 max-h-[70vh] w-[min(15rem,86vw)] overflow-y-auto rounded-xl border border-white/10 bg-neutral-900/98 shadow-2xl backdrop-blur sm:w-[17rem]">
           <Group title={tr("Қазақстан")}>
             {kz.map((r) => (
               <Row
@@ -134,7 +134,7 @@ function Row({
             </span>
           )}
         </span>
-        <span className="mt-0.5 block truncate text-[10px] text-neutral-500">{region.pressure}</span>
+        <span className="mt-0.5 hidden truncate text-[10px] text-neutral-500 sm:block">{region.pressure}</span>
       </span>
     </button>
   );
