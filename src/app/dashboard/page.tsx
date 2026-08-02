@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSitesStore } from "@/store/useSitesStore";
 import { useLang } from "@/lib/i18n";
 import { RISK_COLORS, RISK_LABELS_KZ } from "@/lib/risk";
-import { monthlyMosquitoForecast } from "@/lib/mosquito";
 import { aqiCategory } from "@/lib/airQuality";
 import type { Forecast } from "@/types/site";
 import { AlertTriangle, Flag, MapPin, TrendingUp, Radio, Thermometer, Wind, Droplets, Gauge, Flame } from "lucide-react";
@@ -23,10 +22,11 @@ import { ExportPanel } from "@/components/dashboard/ExportPanel";
 import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
 import { EventFeed } from "@/components/dashboard/EventFeed";
 import { useRegion } from "@/store/useRegionStore";
-import { MissingModulesNote } from "@/components/ui/ModuleMissing";
+import { MissingModulesNote, ModuleMissing } from "@/components/ui/ModuleMissing";
 import { IndicatorHelp, IndicatorSummary, indicatorName } from "@/components/ui/IndicatorHelp";
 import { LevelLegend } from "@/components/ui/LevelLegend";
-import { missingModules } from "@/data/regions";
+import { missingModules, hasModule } from "@/data/regions";
+import type { FloodSignal } from "@/hooks/useEcoData";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -232,7 +232,45 @@ export default function DashboardPage() {
       .sort((a, b) => b.avgRisk - a.avgRisk);
   }, [allSites]);
 
-  const mosquitoSeason = useMemo(() => monthlyMosquitoForecast(47.12, 51.9, true), []);
+  // ⚠️ Бұрын мұнда `monthlyMosquitoForecast` тұрған — ол БАСҚА, ескі
+  // формула еді (lib/mosquito.ts), сондықтан дашборд пен карта бір жер
+  // үшін әртүрлі сан көрсететін. Енді екеуі де бір ғана JAIYQ-MRI
+  // моделінен оқиды: /api/mosquitogrid → grid[].days.
+  const mosMissing = !hasModule(region, "mosquito");
+  const [mosDays, setMosDays] = useState<{ date: string; index: number; temp: number; rainMm: number }[] | null>(null);
+  const [mosMeta, setMosMeta] = useState<{ avgIndex: number | null; maxIndex: number | null; points: number; flood: FloodSignal | null } | null>(null);
+  const [mosLoadedFor, setMosLoadedFor] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mosMissing || mosLoadedFor === region.id) return;
+    fetch(`/api/mosquitogrid?region=${region.id}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((d) => {
+        const grid = (d.grid ?? []) as { days?: { date: string; index: number; temp: number; rainMm: number }[] }[];
+        // Тор бойынша орташа — облыстың жалпы бейнесі
+        const n = grid[0]?.days?.length ?? 0;
+        const days = Array.from({ length: n }, (_, i) => {
+          const vals = grid.map((g) => g.days?.[i]).filter(Boolean) as { date: string; index: number; temp: number; rainMm: number }[];
+          const avg = (k: "index" | "temp" | "rainMm") =>
+            vals.length ? vals.reduce((a, v) => a + v[k], 0) / vals.length : 0;
+          return {
+            date: vals[0]?.date ?? "",
+            index: Math.round(avg("index")),
+            temp: +avg("temp").toFixed(1),
+            rainMm: +avg("rainMm").toFixed(1),
+          };
+        });
+        setMosDays(days);
+        setMosMeta({
+          avgIndex: d.avgIndex ?? null,
+          maxIndex: d.maxIndex ?? null,
+          points: d.gridPoints ?? grid.length,
+          flood: d.floodSignal ?? null,
+        });
+      })
+      .catch(() => setMosDays([]))
+      .finally(() => setMosLoadedFor(region.id));
+  }, [region.id, mosMissing, mosLoadedFor]);
 
   const forecastChart = useMemo(() => {
     if (!forecast) return [];
@@ -516,28 +554,72 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="mosquito" className="mt-4 space-y-4">
-          <div className="mb-2">
-            <IndicatorHelp id="mri" inline />
-          </div>
-          <ChartCard title={tr("Маса белсенділігінің маусымдық болжамы — математикалық модель (тасқын маусымы + климат)")}>
-            <AreaChart data={mosquitoSeason}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="month" stroke="#737373" fontSize={11} />
-              <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
-              <Tooltip contentStyle={tooltipStyle} />
-              <ReferenceLine y={70} stroke="#ef4444" strokeDasharray="6 4" label={{ value: tr("Пик деңгейі"), fill: "#ef4444", fontSize: 11 }} />
-              <Area type="monotone" dataKey="index" name={tr("Маса индексі")} stroke="#a855f7" fill="#a855f733" strokeWidth={2} />
-            </AreaChart>
-          </ChartCard>
-          <Card className="border-purple-500/20 bg-purple-500/5">
-            <CardContent className="pt-4">
-              <p className="text-sm text-neutral-300">
-                🦟 <b className="text-purple-300">{tr("Маусымдық ескерту:")}</b> мамыр–шілде — Жайық тасқыны кезеңі,
-                жайылмадағы тұрған су айдындары маса көбеюінің басты ошағы. Картадағы «Маса қабатын» қосып,
-                тәуекелді аймақтарды көріңіз. Өзенге жақын, тұрған суы бар нүктелерде индекс ең жоғары.
-              </p>
-            </CardContent>
-          </Card>
+          {mosMissing ? (
+            <ModuleMissing module="mosquito" region={region} />
+          ) : (
+            <>
+              <div className="mb-2">
+                <IndicatorHelp id="mri" inline />
+              </div>
+
+              {/* Тасқын импульсі — модельдің ажыратқышы */}
+              {mosMeta?.flood && (
+                <Card
+                  className={
+                    mosMeta.flood.available
+                      ? "border-sky-500/20 bg-sky-500/[0.05]"
+                      : "border-amber-500/20 bg-amber-500/[0.05]"
+                  }
+                >
+                  <CardContent className="pt-4">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Droplets className={`h-4 w-4 ${mosMeta.flood.available ? "text-sky-400" : "text-amber-400"}`} />
+                      <span className="text-sm font-semibold text-white">{tr("Тасқын импульсі")}</span>
+                      {mosMeta.flood.value != null && (
+                        <span className="text-lg font-bold text-sky-300">
+                          {Math.round(mosMeta.flood.value * 100)}%
+                        </span>
+                      )}
+                      {mosMeta.flood.hydroperiodDaysMax != null && (
+                        <span className="rounded border border-sky-400/25 bg-sky-500/10 px-2 py-0.5 text-[11px] text-sky-200">
+                          {tr("гидропериод")} ≥ {mosMeta.flood.hydroperiodDaysMax} {tr("күн")}
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-neutral-400">
+                      {mosMeta.flood.note}
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+
+              <ChartCard
+                title={tr("Маса индексінің 7 күндік болжамы — JAIYQ-MRI (тор бойынша орташа)")}
+              >
+                <AreaChart data={mosDays ?? []}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                  <XAxis dataKey="date" stroke="#737373" fontSize={11} tickFormatter={(d: string) => d.slice(5)} />
+                  <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <ReferenceLine y={62} stroke="#f97316" strokeDasharray="6 4" label={{ value: tr("Жоғары"), fill: "#f97316", fontSize: 11 }} />
+                  <Area type="monotone" dataKey="index" name={tr("Маса индексі")} stroke="#a855f7" fill="#a855f733" strokeWidth={2} />
+                </AreaChart>
+              </ChartCard>
+
+              <Card className="border-purple-500/20 bg-purple-500/5">
+                <CardContent className="pt-4">
+                  <p className="text-sm leading-relaxed text-neutral-300">
+                    🦟 <b className="text-purple-300">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
+                    {mosMeta?.points ?? 0} {tr("есептелген нүктенің тәуліктік орташасы.")}{" "}
+                    {tr("Мамыр–шілде — Жайық тасқыны кезеңі: су басу жұмыртқа банкін жарады, сондықтан индекс сол кезде шыңға шығады.")}
+                  </p>
+                  <p className="mt-2 border-t border-white/10 pt-2 text-[11px] leading-relaxed text-neutral-500">
+                    {tr("Индекс — климаттық ҚОЛАЙЛЫЛЫҚ, маса САНЫ емес. Тұзақ деректері жоқ болғандықтан модель валидацияланбаған.")}
+                  </p>
+                </CardContent>
+              </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="climate" className="mt-4 space-y-4">

@@ -40,8 +40,16 @@ export interface FloodPulse {
   /** 0..1 аймақ бойынша жалпы импульс; null — сигнал жоқ */
   value: number | null;
   source: "sar+glofas" | "sar" | "glofas" | null;
-  /** Аймақ ішіндегі бақылау терезелері бойынша импульс (SAR болса) */
-  byZone: { id: string; bbox: [number, number, number, number]; pulse: number }[];
+  /**
+   * Аймақ ішіндегі бақылау терезелері бойынша импульс + гидропериод.
+   * `hydroDays` — су КЕМІНДЕ қанша күн тұрды (S1 өтулері бойынша).
+   */
+  byZone: {
+    id: string;
+    bbox: [number, number, number, number];
+    pulse: number;
+    hydroDays: number | null;
+  }[];
   sarPct: number | null;
   sarZonesOk: number;
   glofasRatio: number | null;
@@ -99,6 +107,7 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
   let sarPct: number | null = null;
   const zones = (sar?.zones ?? []) as {
     id: string; status: string; floodedPctOfZone: number | null;
+    hydroperiodDays: number | null;
   }[];
   for (const z of zones) {
     // Тек өлшенген аймақтар. "no-data"/"no-baseline" → импульс НӨЛ емес,
@@ -107,7 +116,7 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
     const def = FLOOD_ZONES.find((f) => f.id === z.id);
     if (!def) continue;
     const pulse = clamp01(z.floodedPctOfZone / SAR_FULL_PCT);
-    byZone.push({ id: z.id, bbox: def.bbox, pulse });
+    byZone.push({ id: z.id, bbox: def.bbox, pulse, hydroDays: z.hydroperiodDays ?? null });
     sarPct = Math.max(sarPct ?? 0, z.floodedPctOfZone);
   }
 
@@ -139,9 +148,11 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
 
   const parts: string[] = [];
   if (hasSar) {
+    const hd = byZone.map((z) => z.hydroDays).filter((d): d is number => d != null);
     parts.push(
       `🛰 Sentinel-1: ${byZone.length} бақылау терезесінде су өлшенді, ` +
-        `ең жоғарысы аймақ ауданының ${sarPct!.toFixed(1)}%-ы`
+        `ең жоғарысы аймақ ауданының ${sarPct!.toFixed(1)}%-ы` +
+        (hd.length ? `; су кемінде ${Math.max(...hd)} күн тұр` : "")
     );
   }
   if (hasGlofas) {
@@ -162,6 +173,15 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
   };
 }
 
+/** Нүкте қай бақылау терезесінің ішінде — сол терезені қайтарады */
+function zoneAt(p: FloodPulse, lat: number, lng: number) {
+  for (const z of p.byZone) {
+    const [w, s, e, n] = z.bbox;
+    if (lng >= w && lng <= e && lat >= s && lat <= n) return z;
+  }
+  return null;
+}
+
 /**
  * Нақты нүкте үшін импульс.
  *
@@ -170,9 +190,13 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
  */
 export function pulseAt(p: FloodPulse, lat: number, lng: number): number | null {
   if (p.value == null) return null;
-  for (const z of p.byZone) {
-    const [w, s, e, n] = z.bbox;
-    if (lng >= w && lng <= e && lat >= s && lat <= n) return z.pulse;
-  }
-  return p.value;
+  return zoneAt(p, lat, lng)?.pulse ?? p.value;
+}
+
+/**
+ * Нүктедегі гидропериод (күн) — су кемінде қанша күн тұрды.
+ * Тек ӨЛШЕНГЕН терезелерде болады; басқа жерде null (жуықталмайды).
+ */
+export function hydroDaysAt(p: FloodPulse, lat: number, lng: number): number | null {
+  return zoneAt(p, lat, lng)?.hydroDays ?? null;
 }
