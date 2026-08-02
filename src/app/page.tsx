@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLang } from "@/lib/i18n";
 import { HeroBackground } from "@/components/layout/HeroBackground";
 import { RegionPicker } from "@/components/layout/RegionPicker";
+import { useRegion } from "@/store/useRegionStore";
 
 interface Article {
   title: string;
@@ -49,6 +50,8 @@ function AnimatedNum({ to }: { to: number }) {
 }
 
 export default function Home() {
+  // Таңдалған аймақ — басты беттегі тірі дерек те, мәтін де осыған қарай
+  const region = useRegion();
   const { t, lang } = useLang();
   const [articles, setArticles] = useState<Article[] | null>(null);
   const [live, setLive] = useState<LiveStats>({ aqi: null, pm25: null, temp: null, humidity: null });
@@ -70,7 +73,7 @@ export default function Home() {
   ] as const;
 
   useEffect(() => {
-    fetch("/api/environment")
+    fetch(`/api/environment?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!d?.current) return;
@@ -82,7 +85,8 @@ export default function Home() {
         });
       })
       .catch(() => {});
-  }, []);
+    // Аймақ ауысса — тірі дерек қайта сұралады
+  }, [region.id]);
 
   useEffect(() => {
     fetch("/api/articles")
@@ -92,7 +96,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    fetch("/api/reports")
+    fetch(`/api/reports`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => setReportCount(Array.isArray(d?.reports) ? d.reports.length : 0))
       .catch(() => setReportCount(0));
@@ -113,18 +117,18 @@ export default function Home() {
     const airWord = t(aqiInfo!.key as never);
     const pmHigh = live.pm25 != null && live.pm25 > 25;
     if (lang === "en") {
-      return `Today in Atyrau it's ${live.temp.toFixed(0)}°C, air quality is "${airWord.toLowerCase()}" (AQI ${live.aqi}). ` +
+      return `Today in ${region.name} it's ${live.temp.toFixed(0)}°C, air quality is "${airWord.toLowerCase()}" (AQI ${live.aqi}). ` +
         (pmHigh
           ? `PM2.5 is above the limit (${live.pm25!.toFixed(0)} µg/m³) — sensitive people should limit time outdoors.`
           : `PM2.5 level is within the norm.`);
     }
     if (lang === "ru") {
-      return `Сегодня в Атырау ${live.temp.toFixed(0)}°C, качество воздуха — «${airWord.toLowerCase()}» (AQI ${live.aqi}). ` +
+      return `Сегодня в ${region.name} ${live.temp.toFixed(0)}°C, качество воздуха — «${airWord.toLowerCase()}» (AQI ${live.aqi}). ` +
         (pmHigh
           ? `PM2.5 выше нормы (${live.pm25!.toFixed(0)} мкг/м³) — чувствительным людям стоит сократить время на улице.`
           : `Уровень PM2.5 в пределах нормы.`);
     }
-    return `Бүгін Атырауда ${live.temp.toFixed(0)}°C, ауа сапасы — «${airWord.toLowerCase()}» (AQI ${live.aqi}). ` +
+    return `Бүгін ${region.name} қаласында ${live.temp.toFixed(0)}°C, ауа сапасы — «${airWord.toLowerCase()}» (AQI ${live.aqi}). ` +
       (pmHigh
         ? `PM2.5 нормадан жоғары (${live.pm25!.toFixed(0)} мкг/м³) — сезімтал адамдарға далада аз болған жөн.`
         : `PM2.5 деңгейі норма шегінде.`);
