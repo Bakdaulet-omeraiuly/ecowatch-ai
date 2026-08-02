@@ -65,10 +65,23 @@ export interface MosquitoDay {
   temp: number;
   rainMm: number;
 }
+export interface FloodSignal {
+  available: boolean;
+  value: number | null;
+  source: "sar+glofas" | "sar" | "glofas" | null;
+  sarZonesOk: number;
+  sarPctMax: number | null;
+  glofasRatio: number | null;
+  note: string;
+}
 export interface MosquitoGridPoint {
   lat: number;
   lng: number;
   index: number;
+  /** Су басуға бейімділік (география) — тұрақты */
+  floodSusceptibility?: number;
+  /** Өлшенген тасқын импульсі (Sentinel-1 + GloFAS) — уақытпен өзгереді */
+  floodPulse?: number | null;
   temperature: number;
   humidity: number;
   weekRainMm: number;
@@ -143,16 +156,20 @@ export function useMosquitoGrid(enabled: boolean) {
   // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
+  const [mosFlood, setMosFlood] = useState<FloodSignal | null>(null);
   const [mosError, setMosError] = useState(false);
   useEffect(() => {
     if (!enabled || missing || loadedFor === region.id) return;
     fetch(`/api/mosquitogrid?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setMosGrid(d.grid))
+      .then((d) => {
+        setMosGrid(d.grid);
+        setMosFlood(d.floodSignal ?? null);
+      })
       .catch(() => setMosError(true))
       .finally(() => setLoadedFor(region.id));
   }, [enabled, missing, loadedFor, region.id]);
-  return { mosGrid, mosError, mosMissing: missing };
+  return { mosGrid, mosFlood, mosError, mosMissing: missing };
 }
 
 // Pollution Source Detection (CAMS + жел → ықтимал өнеркәсіп көзі)

@@ -71,6 +71,7 @@ import { LayerDrawer } from "@/components/map/LayerDrawer";
 import type { LayerKey as DrawerKey } from "@/data/ecoLayers";
 import { useRegion } from "@/store/useRegionStore";
 import { ModuleMissing } from "@/components/ui/ModuleMissing";
+import { LayerIndexNote } from "@/components/map/LayerIndexNote";
 import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
@@ -379,7 +380,7 @@ export function MapView() {
     );
   }, [activeLayer, flares]);
 
-  const { mosGrid, mosError, mosMissing } = useMosquitoGrid(activeLayer === "mosquito");
+  const { mosGrid, mosFlood, mosError, mosMissing } = useMosquitoGrid(activeLayer === "mosquito");
 
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
   const { source, sourceError, sourceMissing } = usePollutionSource(sourceMode);
@@ -1712,6 +1713,7 @@ export function MapView() {
                 </p>
               </>
             )}
+            <LayerIndexNote layer="fire" />
           </div>
         )}
 
@@ -1764,6 +1766,7 @@ export function MapView() {
                 </p>
               </>
             )}
+            <LayerIndexNote layer="drought" />
           </div>
         )}
 
@@ -1799,6 +1802,7 @@ export function MapView() {
                 </p>
               </>
             )}
+            <LayerIndexNote layer="wind" />
           </div>
         )}
 
@@ -2047,6 +2051,40 @@ export function MapView() {
                       💡 {tr(mosquitoAdvice(mosStats.avg))}
                     </div>
 
+                    {/* L1 — ТАСҚЫН ИМПУЛЬСІ: модельдің ажыратқышы.
+                        Су басу оқиғасы өлшенді ме, әлде тек география ма —
+                        пайдаланушы соны бірден көруі керек */}
+                    {mosFlood && (
+                      <div
+                        className={`mt-2 rounded-md border p-2 ${
+                          mosFlood.available
+                            ? "border-sky-400/25 bg-sky-500/[0.07]"
+                            : "border-amber-400/25 bg-amber-500/[0.06]"
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Waves className={`h-3 w-3 ${mosFlood.available ? "text-sky-300" : "text-amber-300"}`} />
+                          <span className="text-[10px] font-semibold text-neutral-200">
+                            {tr("Тасқын импульсі")}
+                          </span>
+                          {mosFlood.available && mosFlood.value != null && (
+                            <span className="ml-auto text-[11px] font-bold text-sky-200">
+                              {Math.round(mosFlood.value * 100)}%
+                            </span>
+                          )}
+                        </div>
+                        {mosFlood.available && mosFlood.value != null && (
+                          <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                            <div
+                              className="h-full rounded-full bg-sky-400"
+                              style={{ width: `${Math.round(mosFlood.value * 100)}%` }}
+                            />
+                          </div>
+                        )}
+                        <p className="mt-1 text-[9px] leading-snug text-neutral-400">{mosFlood.note}</p>
+                      </div>
+                    )}
+
                     {/* Түстердің мағынасы — картадағы иконка түсімен БІР
                         тізілімнен оқылады (MOS_LEVELS), сондықтан алшақтамайды */}
                     <div className="mt-2 rounded-md bg-white/5 p-2">
@@ -2187,6 +2225,7 @@ export function MapView() {
               {oilScan?.loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Fuel className="h-3.5 w-3.5" />}
               {tr("Мұнай дағын сканерлеу (AI)")}
             </button>
+            <LayerIndexNote layer="oil" />
           </div>
         )}
 
@@ -2270,6 +2309,7 @@ export function MapView() {
                 </p>
               </>
             )}
+            <LayerIndexNote layer="soil" />
           </div>
         )}
 
@@ -2328,6 +2368,7 @@ export function MapView() {
                 </p>
               </>
             )}
+            <LayerIndexNote layer="water" />
           </div>
         )}
 
@@ -2521,6 +2562,7 @@ export function MapView() {
                 </p>
               </>
             )}
+            <LayerIndexNote layer="air" />
           </div>
         )}
 
