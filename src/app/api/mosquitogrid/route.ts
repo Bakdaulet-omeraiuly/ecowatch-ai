@@ -3,6 +3,10 @@ import { type GridPoint } from "@/lib/regionGrid";
 import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 import { ATYRAU_DISTRICTS } from "@/data/atyrauDistricts";
 import { fetchFloodPulse, hydroDaysAt, pulseAt, reedAt } from "@/lib/floodPulse";
+import {
+  EGG_READY, emergencePeak, integrateFpeb, normalizeAdults, tauDays,
+  type DayDriver,
+} from "@/lib/fpeb";
 
 // Live mosquito environmental-suitability grid for the Atyrau region.
 // Methodology: climate-driven suitability (the approach used by WHO/ECDC/VECTRI
@@ -114,6 +118,21 @@ function floodplainFactor(lat: number, lng: number): number {
 
 // past 7 days (rolling-rain context) + next 7 days (the forecast animation)
 
+// SPIN-UP ТЕРЕЗЕСІ — FPEB интеграциясының драйвері.
+//
+// Негізгі сұраныс сағаттық деректі 7+7 күнге ғана алады (одан ұзақ болса
+// жауап тым үлкен: 90 нүкте × 24 сағат × 4 айнымалы). Ал динамикалық
+// модельге 30 күндік «жүгіріс» керек — сондықтан ТЕК ТӘУЛІКТІК
+// температура бөлек, жеңіл сұраныспен алынады (90 × 44 × 2 сан).
+const SPINUP_PAST = 30;
+const SPINUP_FORECAST = 14;
+const SPINUP_URL = (points: GridPoint[]) =>
+  `https://api.open-meteo.com/v1/forecast` +
+  `?latitude=${points.map((p) => p.lat).join(",")}` +
+  `&longitude=${points.map((p) => p.lng).join(",")}` +
+  `&daily=temperature_2m_max,temperature_2m_min` +
+  `&past_days=${SPINUP_PAST}&forecast_days=${SPINUP_FORECAST}&timezone=auto`;
+
 const SRC_URL = (points: GridPoint[]) =>
   `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
@@ -171,30 +190,9 @@ function soilFactor(soilMoisture: number | null): number {
 // Тасқын-импульс жұмыртқа банкін жарады → дернәсіл → ересек. Aedes caspius
 // (тасқын-су) мен Culex modestus (тұрақты-су) бөлек, айлық динамикалық салмақпен.
 const clamp01 = (x: number) => Math.max(0, Math.min(1, x));
-// Жұмыртқа банкі дайындығы (Aedes floodwater фенологиясы: мамырдан шыңы)
-const EGG_READY = [0.05, 0.05, 0.12, 0.45, 0.9, 1.0, 0.95, 0.8, 0.5, 0.2, 0.07, 0.05];
 // Динамикалық салмақ: көктем → Aedes (су), жаз ортасы → Culex (WNV)
 const AEDES_W = [0.2, 0.2, 0.4, 0.85, 0.9, 0.85, 0.7, 0.5, 0.4, 0.3, 0.2, 0.2];
 const CULEX_W = [0.1, 0.1, 0.15, 0.3, 0.5, 0.7, 0.9, 0.95, 0.7, 0.4, 0.15, 0.1];
-
-// ── ДЕРНӘСІЛДІҢ ДАМУ УАҚЫТЫ τ(T) ────────────────────────────────────────
-//
-// Модель құжатының L2 шарты: су ≥ τ(T) күн тұрса ғана дернәсіл ересекке
-// жетеді. Үш күнде кеуіп қалған көлшіктен маса шықпайды.
-//
-// Әдісі — градус-күн (degree-day) жуықтауы: даму жылдамдығы табалдырықтан
-// жоғары температураға пропорционал.
-//   τ(T) = DD / (T − T_base),  T_base ≈ 10 °C (кулициндік табалдырық)
-// DD ≈ 150 градус-күн (жұмыртқа → ересек).
-//
-// ⚠️ Бұл — ЖУЫҚТАУ. Aedes caspius үшін жергілікті калибрленген параметр
-// жоқ, DD мәні әдебиеттегі кулициндік шамалардан алынған. Дәл сан емес,
-// шама реті: 25 °C → ~10 күн, 30 °C → ~7.5 күн, 15 °C → ~30 күн.
-const DEGREE_DAYS = 150;
-const T_BASE = 10;
-function tauDays(t: number): number {
-  return DEGREE_DAYS / Math.max(1, t - T_BASE);
-}
 
 function fpebIndex(o: {
   t: number; rh: number; soil: number | null; rain: number;
@@ -203,24 +201,34 @@ function fpebIndex(o: {
   hydroDays: number | null;
   /** Қамыс мекенінің қолайлылығы 0..1 (S2 NDVI). null — өлшенбеген */
   reed: number | null;
+  /**
+   * FPEB интеграциясынан шыққан ересек Aedes индексі 0..1.
+   * null — интеграция мүмкін болмады, лездік жуықтау қолданылады.
+   */
+  aedesDynamic?: number | null;
 }): number {
   const phiT = tempSuitability(o.t); // температура гейті (Mordecai)
   if (phiT <= 0) return 0;
-  const egg = EGG_READY[o.month];
-  const hatch = clamp01(0.5 * o.flood + 0.3 * soilFactor(o.soil) + 0.2 * rainFactor(o.rain)); // тасқын-импульс
 
-  // ГИДРОПЕРИОД — тірі қалу шарты.
-  //   · SAR өлшеген болса: су τ(T) күннен ұзақ тұрса — толық (1.0)
-  //   · Өлшенбеген болса: бұрынғыдай топырақ ылғалы + импульс проксиі
-  // Өлшенген жағдайда да топырақ проксиі ТӨМЕНГІ ШЕК болып қалады:
-  // Sentinel-1 (10–30 м) ұсақ көлшіктер мен арықтарды көрмейді, ал маса
-  // солардан да көбейеді. Сондықтан «SAR су көрмеді» = «су жоқ» емес.
+  // AEDES ТАРМАҒЫ — тасқын-су түрі.
+  //
+  // Мәні динамикалық FPEB интеграциясынан келеді (src/lib/fpeb.ts):
+  // су басу → жұмыртқа жарылады → дернәсіл τ(T) күн дамиды → ересек.
+  // Яғни бұл санда ТАСҚЫННАН КЕЙІНГІ КІДІРІС бар.
+  //
+  // Интеграция мүмкін болмаса (GloFAS күндік қатары жоқ) — бұрынғы
+  // лездік жуықтауға шегінеміз, ол жауапта белгіленеді.
   const hydroProxy = clamp01(0.6 * soilFactor(o.soil) + 0.4 * o.flood);
   const hydro =
     o.hydroDays == null
       ? hydroProxy
       : Math.max(clamp01(o.hydroDays / tauDays(o.t)), 0.5 * hydroProxy);
-  const aedes = egg * hatch * hydro; // тасқын-су Aedes ересек индексі
+  const aedes =
+    o.aedesDynamic != null
+      ? o.aedesDynamic
+      : EGG_READY[o.month] *
+        clamp01(0.5 * o.flood + 0.3 * soilFactor(o.soil) + 0.2 * rainFactor(o.rain)) *
+        hydro;
   // CULEX ТАРМАҒЫ (тұрақты су, WNV тасымалдаушысы).
   //
   // Модель құжаты бойынша Culex modestus үшін ЕҢ КҮШТІ мекен предикторы —
@@ -258,14 +266,25 @@ export async function GET(req: Request) {
     // қосымша кідіріс бермейді. Қолжетімсіз болса `value: null` қайтады
     // да, модель әлсіретілген режимде жұмыс істеп, ол ашық жазылады.
     const origin = new URL(req.url).origin;
-    const [res, pulse] = await Promise.all([
+    const [res, spinRes, pulse] = await Promise.all([
       fetch(SRC_URL(points), { next: { revalidate: 3600 } }),
+      fetch(SPINUP_URL(points), { next: { revalidate: 3600 } }),
       fetchFloodPulse(origin, region.id),
     ]);
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
     const month = new Date().getMonth(); // FPEB айлық фенология салмағы үшін
+
+    // Spin-up тәуліктік температурасы (нүкте бойынша)
+    const spinArr = spinRes.ok ? await spinRes.json() : null;
+    const spinList: {
+      daily?: { time?: string[]; temperature_2m_max?: (number | null)[]; temperature_2m_min?: (number | null)[] };
+    }[] = spinArr ? (Array.isArray(spinArr) ? spinArr : [spinArr]) : [];
+
+    // Күндік тасқын импульсі (GloFAS) — күні бойынша индекс
+    const pulseByDate = new Map(pulse.dailyPulse.map((d) => [d.date, d.ratio]));
+    const today = new Date().toISOString().slice(0, 10);
 
     const grid = list.map(
       (
@@ -303,6 +322,50 @@ export async function GET(req: Request) {
         // Қамыс мекені — Culex тармағының басты предикторы
         const reed = reedAt(pulse, d.latitude, d.longitude);
 
+        // ── L2 ДИНАМИКАСЫ: FPEB интеграциясы ────────────────────────
+        // Драйверлер: GloFAS күндік тасқыны × осы нүктенің бейімділігі,
+        // тәуліктік температура, гидропериодтан шыққан тірі қалу.
+        const spin = spinList[idx]?.daily;
+        let fpebSim: { date: string; adults: number }[] | null = null;
+        if (spin?.time?.length && pulseByDate.size) {
+          const drivers: DayDriver[] = [];
+          for (let k = 0; k < spin.time.length; k++) {
+            const date = spin.time[k];
+            const ratio = pulseByDate.get(date);
+            if (ratio == null) continue; // GloFAS қамтымаған күн — қалдырамыз
+            const tmax = spin.temperature_2m_max?.[k];
+            const tmin = spin.temperature_2m_min?.[k];
+            if (tmax == null || tmin == null) continue;
+            const tday = (tmax + tmin) / 2;
+            drivers.push({
+              date,
+              temp: tday,
+              flood: clamp01(ratio * susceptibility),
+              // Гидропериод бір ғана ағымдағы өлшем — терезе бойында
+              // тұрақты деп алынады (S1 қайталауы 6 күн)
+              survival:
+                hydroDays == null
+                  ? clamp01(0.6 * soilFactor(soil) + 0.4 * susceptibility * ratio)
+                  : clamp01(hydroDays / tauDays(tday)),
+            });
+          }
+          if (drivers.length >= 20) {
+            const startMonth = new Date(drivers[0].date).getUTCMonth();
+            fpebSim = integrateFpeb(drivers, startMonth).map((x) => ({
+              date: x.date,
+              adults: normalizeAdults(x.adults),
+            }));
+          }
+        }
+        const adultsOn = (date: string): number | null =>
+          fpebSim?.find((x) => x.date === date)?.adults ?? null;
+        const peak = fpebSim
+          ? emergencePeak(
+              fpebSim.map((x) => ({ date: x.date, adults: x.adults, larvae: 0, eggs: 0 })),
+              today
+            )
+          : null;
+
         const times = d.daily?.time ?? [];
         const tmax = d.daily?.temperature_2m_max ?? [];
         const tmin = d.daily?.temperature_2m_min ?? [];
@@ -316,7 +379,10 @@ export async function GET(req: Request) {
           let rain = 0;
           for (let k = Math.max(0, i - 6); k <= i; k++) rain += precip[k] ?? 0;
           return {
-            index: fpebIndex({ t, rh, soil, rain, flood, urban, month, hydroDays, reed }),
+            index: fpebIndex({
+              t, rh, soil, rain, flood, urban, month, hydroDays, reed,
+              aedesDynamic: adultsOn(times[i] ?? ""),
+            }),
             temp: +t.toFixed(1),
             rainMm: +rain.toFixed(1),
           };
@@ -345,7 +411,12 @@ export async function GET(req: Request) {
           const hsoil = hSoil[i] ?? soil;
           return {
             time: hTime[i] ?? "",
-            index: fpebIndex({ t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month, hydroDays, reed }),
+            index: fpebIndex({
+              t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month, hydroDays, reed,
+              // Тәуліктік ересек саны — сағат ішінде өзгермейді; сағаттық
+              // ырғақты Φ_T(сағаттық температура) береді
+              aedesDynamic: adultsOn(days[0].date),
+            }),
             temp: +t.toFixed(1),
           };
         });
@@ -365,6 +436,10 @@ export async function GET(req: Request) {
           hydroperiodDays: hydroDays,
           /** Қамыс мекені 0..1 (S2 NDVI). null — өлшенбеген */
           reedHabitat: reed,
+          /** FPEB динамикасы қолданылды ма */
+          dynamic: fpebSim != null,
+          /** Массалық шығу шыңы (болжам терезесінде) */
+          emergencePeak: peak,
           index: days[0].index, // today (back-compat)
           temperature: days[0].temp,
           humidity: rh,
@@ -385,6 +460,25 @@ export async function GET(req: Request) {
       fetchedAt: new Date().toISOString(),
       source: "JAIYQ-MRI · FPEB (Flood-Pulse Egg-Bank) · Open-Meteo (live) + Mordecai термиялық гейт + қос түр (Aedes/Culex)",
       region: { id: region.id, name: region.name },
+      /**
+       * L2 ДИНАМИКАСЫ — қанша нүктеде FPEB интеграциясы жүрді.
+       * Барлығында жүрмесе, қалғандары лездік жуықтаумен есептелген.
+       */
+      dynamics: {
+        available: grid.filter((g) => g.dynamic).length > 0,
+        pointsWithOde: grid.filter((g) => g.dynamic).length,
+        pointsTotal: grid.length,
+        emergencePeak: (() => {
+          const peaks = grid.map((g) => g.emergencePeak).filter(Boolean) as { date: string; value: number }[];
+          if (!peaks.length) return null;
+          return peaks.reduce((a, b) => (b.value > a.value ? b : a));
+        })(),
+        note:
+          "Модель су басудан кейінгі КІДІРІСТІ есептейді: жұмыртқа жарылады → " +
+          "дернәсіл τ(T) күн дамиды → ересек шығады. Сондықтан шың тасқынмен " +
+          "бір күні емес, одан кейін болады. Параметрлер әдебиеттен, " +
+          "жергілікті калибрлеу жоқ — сан салыстыруға жарайды, абсолют емес.",
+      },
       amplification: "registry",
       amplificationNote:
         "Жайық жайылмасы мен елді мекендер тізілімі қолданылды " +

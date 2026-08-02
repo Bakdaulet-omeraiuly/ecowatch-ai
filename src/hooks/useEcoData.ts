@@ -79,6 +79,13 @@ export interface FloodSignal {
   reedMax: number | null;
   note: string;
 }
+export interface MosquitoDynamics {
+  available: boolean;
+  pointsWithOde: number;
+  pointsTotal: number;
+  emergencePeak: { date: string; value: number } | null;
+  note: string;
+}
 export interface MosquitoGridPoint {
   lat: number;
   lng: number;
@@ -166,6 +173,7 @@ export function useMosquitoGrid(enabled: boolean) {
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
   const [mosFlood, setMosFlood] = useState<FloodSignal | null>(null);
+  const [mosDyn, setMosDyn] = useState<MosquitoDynamics | null>(null);
   const [mosError, setMosError] = useState(false);
   useEffect(() => {
     if (!enabled || missing || loadedFor === region.id) return;
@@ -174,11 +182,12 @@ export function useMosquitoGrid(enabled: boolean) {
       .then((d) => {
         setMosGrid(d.grid);
         setMosFlood(d.floodSignal ?? null);
+        setMosDyn(d.dynamics ?? null);
       })
       .catch(() => setMosError(true))
       .finally(() => setLoadedFor(region.id));
   }, [enabled, missing, loadedFor, region.id]);
-  return { mosGrid, mosFlood, mosError, mosMissing: missing };
+  return { mosGrid, mosFlood, mosDyn, mosError, mosMissing: missing };
 }
 
 // Pollution Source Detection (CAMS + жел → ықтимал өнеркәсіп көзі)

@@ -63,6 +63,11 @@ export interface FloodPulse {
   /** L4 — қамыс мекені (Sentinel-2 NDVI), терезе бойынша */
   habitat: ZoneHabitat[];
   reedZonesOk: number;
+  /**
+   * L2 динамикасы үшін КҮНДІК драйвер қатары (GloFAS, 0..1).
+   * 30 күн өткен + 14 күн болжам. Бос болса модель интегралдай алмайды.
+   */
+  dailyPulse: { date: string; ratio: number }[];
   /** UI-де көрсетілетін қазақша түсіндірме */
   note: string;
 }
@@ -78,6 +83,7 @@ const NO_SIGNAL: FloodPulse = {
   glofasRatio: null,
   habitat: [],
   reedZonesOk: 0,
+  dailyPulse: [],
   note:
     "Тасқын сигналы қолжетімсіз (Sentinel-1 де, GloFAS та жауап бермеді). " +
     "Индекс тек жайылмаға жақындық бойынша есептелді — су басу оқиғасы " +
@@ -146,13 +152,16 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
   }
 
   // ── GloFAS ────────────────────────────────────────────────────────────
+  const dailyPulse = (glofas?.dailyPulse ?? []) as { date: string; ratio: number }[];
   const points = (glofas?.points ?? []) as { ratio: number }[];
   const ratios = points.map((p) => p.ratio).filter((r): r is number => Number.isFinite(r));
   const glofasRatio = ratios.length ? Math.max(...ratios) : null;
 
   const hasSar = byZone.length > 0;
   const hasGlofas = glofasRatio != null;
-  if (!hasSar && !hasGlofas) return { ...NO_SIGNAL, habitat, reedZonesOk: habitat.length };
+  if (!hasSar && !hasGlofas) {
+    return { ...NO_SIGNAL, habitat, reedZonesOk: habitat.length, dailyPulse };
+  }
 
   // Аймақ бойынша жалпы импульс.
   // SAR — өлшем, сондықтан салмағы басым. GloFAS оны толықтырады
@@ -200,6 +209,7 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
     glofasRatio: glofasRatio != null ? +glofasRatio.toFixed(3) : null,
     habitat,
     reedZonesOk: habitat.length,
+    dailyPulse,
     note:
       parts.join(" · ") +
       ". Су басу жұмыртқа банкінің жарылуын іске қосады — импульс жоғары болса " +
