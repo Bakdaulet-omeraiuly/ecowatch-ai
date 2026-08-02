@@ -5,6 +5,7 @@ import { Waves, Loader2, Download, Info, Satellite } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
+import { useRegion } from "@/store/useRegionStore";
 
 interface Zone {
   id: string; name: string; note: string;
@@ -46,18 +47,19 @@ const STATUS: Record<Zone["status"], { label: string; cls: string }> = {
 
 export function FloodExtent() {
   const { tr } = useLang();
+  const region = useRegion();
   const [data, setData] = useState<FloodData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [showMethod, setShowMethod] = useState(false);
 
   useEffect(() => {
-    fetch("/api/flood-extent")
+    fetch(`/api/flood-extent?region=${region.id}`)
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) => (ok ? setData(d) : setError(d.error ?? "Қолжетімсіз")))
       .catch(() => setError("Қолжетімсіз"))
       .finally(() => setLoading(false));
-  }, []);
+  }, [region.id]);
 
   return (
     <Card className="border-sky-500/20 bg-sky-500/[0.04]">

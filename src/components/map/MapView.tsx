@@ -69,6 +69,7 @@ import {
 import type { Site, AnalysisResult } from "@/types/site";
 import { LayerDrawer } from "@/components/map/LayerDrawer";
 import type { LayerKey as DrawerKey } from "@/data/ecoLayers";
+import { useRegion } from "@/store/useRegionStore";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
 
@@ -214,6 +215,18 @@ export function MapView() {
   const [activeLayer, setActiveLayer] = useState<LayerKey | null>(null);
   // Қабат Drawer — 4 қойынды: нақты деректер / заңнама / AI / тарих
   const [drawerLayer, setDrawerLayer] = useState<DrawerKey | null>(null);
+  // Таңдалған аймақ — карта да, барлық қабат та осыған қарай ауысады
+  const region = useRegion();
+
+  // Аймақ ауысқанда карта сол қалаға ұшады. Қабаттардың деректері де
+  // жаңа координатаға қайта сұралады (LayerDrawer `key` арқылы қайта құрылады).
+  useEffect(() => {
+    mapRef.current?.flyTo({
+      center: [region.lng, region.lat],
+      zoom: region.zoom,
+      duration: 1600,
+    });
+  }, [region.id, region.lat, region.lng, region.zoom]);
   const [historyMode, setHistoryMode] = useState(false);
   const [showReports, setShowReports] = useState(true);
   const [sourceMode, setSourceMode] = useState(false); // Ластану көзін анықтау режимі
@@ -1438,7 +1451,7 @@ export function MapView() {
       {!panelOpen && (
         <button
           onClick={() => setPanelOpen(true)}
-          className="absolute left-4 top-4 z-10 flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800"
+          className="absolute left-2 top-16 z-10 flex items-center gap-2 rounded-lg border border-white/10 bg-neutral-900/90 px-3 py-2 text-xs text-white backdrop-blur hover:bg-neutral-800 sm:left-4 sm:top-4"
         >
           <Layers className="h-4 w-4" /> {tr("Қабаттар")}
         </button>
@@ -1446,7 +1459,7 @@ export function MapView() {
 
       {/* Layer panel */}
       <div
-        className={`absolute left-4 top-4 bottom-4 flex max-h-[calc(100dvh-7rem)] flex-col gap-2 overflow-y-auto pr-1 ${
+        className={`absolute left-2 top-16 bottom-2 z-10 w-[min(15rem,72vw)] flex-col gap-2 overflow-y-auto pr-1 sm:left-4 sm:top-4 sm:w-auto sm:max-h-[calc(100dvh-7rem)] ${
           panelOpen ? "flex" : "hidden"
         }`}
       >
@@ -2523,7 +2536,7 @@ export function MapView() {
       )}
 
       {/* Іздеу — карта үстінде, ортада */}
-      <div className="absolute left-1/2 top-4 z-20 -translate-x-1/2">
+      <div className="absolute left-1/2 top-2 z-20 w-[min(94vw,32rem)] -translate-x-1/2 sm:top-4">
         <MapSearch
           onSelect={(lng, lat, _label, zoom) =>
             mapRef.current?.flyTo({ center: [lng, lat], zoom: zoom ?? 14, duration: 1200 })
@@ -2532,7 +2545,7 @@ export function MapView() {
       </div>
 
       {/* Zoom controls — Google Maps style */}
-      <div className="absolute bottom-8 right-4 flex flex-col items-center gap-3">
+      <div className="absolute bottom-4 right-2 z-10 flex flex-col items-center gap-2 sm:bottom-8 sm:right-4 sm:gap-3">
         <button
           onClick={() =>
             mapRef.current?.flyTo({ center: [51.8833, 47.1167], zoom: 12.5, duration: 1400 })
@@ -2660,7 +2673,12 @@ export function MapView() {
 
       {/* Қабат Drawer — 4 қойынды: деректер / заңнама / AI / тарих */}
       {drawerLayer && (
-        <LayerDrawer key={drawerLayer} layerKey={drawerLayer} onClose={() => setDrawerLayer(null)} />
+        <LayerDrawer
+          key={`${drawerLayer}:${region.id}`}
+          layerKey={drawerLayer}
+          regionId={region.id}
+          onClose={() => setDrawerLayer(null)}
+        />
       )}
     </div>
   );

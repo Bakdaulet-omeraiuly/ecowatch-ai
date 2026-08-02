@@ -4,6 +4,7 @@ import { normsFor } from "@/data/legalNorms";
 import { aggregate, checkCompliance, type ComplianceResult } from "@/lib/compliance";
 import { evaluateAllGroups } from "@/lib/summation";
 import type { SubstanceId } from "@/data/summationGroups";
+import { getRegion } from "@/data/regions";
 
 // ЗАҢНАМАЛЫҚ СӘЙКЕСТІК — тірі деректі ҚР/WHO/EU нормаларымен салыстыру.
 //
@@ -19,20 +20,26 @@ export const revalidate = 900; // 15 минут
 
 const CHECKED = INDICATORS.filter((i) => normsFor(i.id).length > 0);
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
 export async function GET(req: Request) {
-  if (cache && Date.now() - cache.at < revalidate * 1000) {
-    return NextResponse.json(cache.data);
+  const url = new URL(req.url);
+  const region = getRegion(url.searchParams.get("region"));
+  const jurisdiction = region.country === "KZ" ? ("KZ" as const) : ("OTHER" as const);
+
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < revalidate * 1000) {
+    return NextResponse.json(hit.data);
   }
 
-  const origin = new URL(req.url).origin;
+  const origin = url.origin;
   const endpoints = [...new Set(CHECKED.map((i) => i.endpoint))];
 
   const fetched = await Promise.all(
     endpoints.map(async (ep) => {
       try {
-        const r = await fetch(`${origin}${ep}`, { cache: "no-store" });
+        const q = ep.includes("?") ? "&" : "?";
+        const r = await fetch(`${origin}${ep}${q}region=${region.id}`, { cache: "no-store" });
         return { ep, ok: r.ok, d: r.ok ? await r.json() : null };
       } catch {
         return { ep, ok: false, d: null };
@@ -51,7 +58,7 @@ export async function GET(req: Request) {
     const src = byEp.get(ind.endpoint);
     const value = src?.ok ? resolvePath(src.d, ind.path) : null;
     return {
-      ...checkCompliance(ind.id, value),
+      ...checkCompliance(ind.id, value, jurisdiction),
       name: ind.name,
       unit: ind.unit,
       section: ind.section,
@@ -77,6 +84,7 @@ export async function GET(req: Request) {
 
   const data = {
     fetchedAt: new Date().toISOString(),
+    region: { id: region.id, name: region.name, country: region.country, jurisdiction },
     checkedCount: results.length,
     withData: results.filter((r) => r.value != null).length,
     worst: agg.worst,
@@ -100,6 +108,6 @@ export async function GET(req: Request) {
       "расталмаған шек бойынша заңдық тұжырым шығарылмайды.",
   };
 
-  cache = { at: Date.now(), data };
+  cache.set(region.id, { at: Date.now(), data });
   return NextResponse.json(data);
 }

@@ -67,7 +67,14 @@ const PRIORITY_CLS: Record<string, string> = {
   төмен: "border-white/15 bg-white/5 text-neutral-300",
 };
 
-export function LayerDrawer({ layerKey, onClose }: { layerKey: LayerKey; onClose: () => void }) {
+export function LayerDrawer({
+  layerKey, regionId, onClose,
+}: {
+  layerKey: LayerKey;
+  /** Таңдалған аймақ — барлық дерек сол қала үшін сұралады */
+  regionId?: string;
+  onClose: () => void;
+}) {
   const { tr } = useLang();
   const [tab, setTab] = useState<Tab>("data");
   const [data, setData] = useState<LayerData | null>(null);
@@ -84,7 +91,7 @@ export function LayerDrawer({ layerKey, onClose }: { layerKey: LayerKey; onClose
   // тазалаудың қажеті жоқ — бастапқы мәндер сол күйінде дұрыс.
   useEffect(() => {
     let cancelled = false;
-    fetch(`/api/layer/${layerKey}`)
+    fetch(`/api/layer/${layerKey}${regionId ? `?region=${regionId}` : ""}`)
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) => {
         if (cancelled) return;
@@ -94,14 +101,14 @@ export function LayerDrawer({ layerKey, onClose }: { layerKey: LayerKey; onClose
       .catch(() => !cancelled && setErr("Қолжетімсіз"))
       .finally(() => !cancelled && setLoading(false));
     return () => { cancelled = true; };
-  }, [layerKey]);
+  }, [layerKey, regionId]);
 
   const runAi = useCallback(() => {
     setAiLoading(true); setAiErr(null);
     fetch("/api/layer-ai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key: layerKey }),
+      body: JSON.stringify({ key: layerKey, region: regionId }),
     })
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) => {
@@ -114,7 +121,7 @@ export function LayerDrawer({ layerKey, onClose }: { layerKey: LayerKey; onClose
       })
       .catch(() => setAiErr({ msg: "AI қызметіне қосылу мүмкін болмады" }))
       .finally(() => setAiLoading(false));
-  }, [layerKey]);
+  }, [layerKey, regionId]);
 
   const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
     { id: "data", label: "Нақты деректер", icon: Database },
@@ -124,7 +131,16 @@ export function LayerDrawer({ layerKey, onClose }: { layerKey: LayerKey; onClose
   ];
 
   return (
-    <div className="absolute right-0 top-0 z-30 flex h-full w-full max-w-md flex-col border-l border-white/10 bg-neutral-950/95 backdrop-blur-md sm:w-[27rem]">
+    <div
+      className="
+        absolute inset-x-0 bottom-0 z-30 flex max-h-[85dvh] flex-col rounded-t-2xl
+        border-t border-white/10 bg-neutral-950/97 backdrop-blur-md
+        sm:inset-x-auto sm:right-0 sm:top-0 sm:h-full sm:max-h-none sm:w-[27rem]
+        sm:rounded-none sm:border-l sm:border-t-0
+      "
+    >
+      {/* Телефонда сүйреу тұтқасы — панель екенін көрсетеді */}
+      <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-white/20 sm:hidden" />
       {/* Тақырып */}
       <div className="flex items-start gap-2 border-b border-white/10 px-4 py-3">
         <span className="text-xl leading-none">{data?.emoji ?? "🌍"}</span>
@@ -154,7 +170,7 @@ export function LayerDrawer({ layerKey, onClose }: { layerKey: LayerKey; onClose
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex flex-1 items-center justify-center gap-1 px-1 py-2 text-[10px] font-medium transition ${
+            className={`flex min-w-0 flex-1 items-center justify-center gap-1 px-1 py-2.5 text-[10px] font-medium transition ${
               tab === t.id
                 ? t.id === "ai"
                   ? "border-b-2 border-sky-400 text-sky-300"
@@ -163,7 +179,7 @@ export function LayerDrawer({ layerKey, onClose }: { layerKey: LayerKey; onClose
             }`}
           >
             <t.icon className="h-3 w-3" />
-            <span className="hidden xs:inline">{tr(t.label)}</span>
+            <span className="truncate">{tr(t.label)}</span>
           </button>
         ))}
       </div>

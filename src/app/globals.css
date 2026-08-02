@@ -69,3 +69,22 @@ body {
   100%{transform:translate(0,0) rotate(0deg)}
 }
 @media (prefers-reduced-motion:reduce){ .mos-flit{animation:none} }
+
+/* ─── Телефонға бейімдеу (jaiyq-mobile) ───────────────────────────────
+   Кестелер мен кең блоктар бетті көлденең созбауы керек: олар өз ішінде
+   сырғиды. Бұл болмаса телефонда бүкіл бет оңға-солға жылжып, оқу қиын. */
+@media (max-width: 640px) {
+  html, body {
+    overflow-x: hidden;
+  }
+  /* Кез келген кесте — өз контейнерінде сырғиды */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  /* Басу аймағы саусаққа жеткілікті болуы үшін */
+  button, a[role="button"] {
+    min-height: 32px;
+  }
+}

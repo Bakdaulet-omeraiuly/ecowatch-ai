@@ -46,10 +46,10 @@ export function Navbar() {
   ];
   return (
     <header className="fixed top-0 z-50 w-full border-b border-white/10 bg-neutral-950/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-7xl items-center gap-2 px-3 sm:px-4">
+      <div className="mx-auto flex h-14 max-w-7xl items-center gap-1.5 px-2 sm:gap-2 sm:px-4">
         <Link href="/" className="flex shrink-0 items-center gap-2 font-semibold text-white">
           <JaiyqLogo className="h-6 w-6 text-emerald-400" />
-          <span className="text-lg">Jaiyq</span>
+          <span className="text-base sm:text-lg">Jaiyq</span>
           <span className="ml-2 hidden rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-normal text-emerald-300 lg:inline">
             {t("nav.tagline")}
           </span>
@@ -94,7 +94,7 @@ export function Navbar() {
               key={l}
               onClick={() => setLang(l)}
               className={cn(
-                "px-2 py-1 text-xs font-medium uppercase transition-colors",
+                "px-1.5 py-1 text-[10px] font-medium uppercase transition-colors sm:px-2 sm:text-xs",
                 lang === l
                   ? "bg-emerald-500/20 text-emerald-300"
                   : "text-neutral-500 hover:bg-white/5 hover:text-white"

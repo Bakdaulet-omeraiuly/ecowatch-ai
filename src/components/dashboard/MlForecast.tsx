@@ -8,6 +8,7 @@ import { BrainCircuit, Loader2, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
+import { useRegion } from "@/store/useRegionStore";
 
 interface Metrics { mae: number; rmse: number; r2: number | null }
 interface MlData {
@@ -32,20 +33,21 @@ const fmtDay = (iso: string) => {
 
 export function MlForecast() {
   const { tr } = useLang();
+  const region = useRegion();
   const [data, setData] = useState<MlData | null>(null);
   const [error, setError] = useState<{ msg: string; detail?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
-    fetch("/api/ml-forecast")
+    fetch(`/api/ml-forecast?region=${region.id}`)
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) =>
         ok ? setData(d) : setError({ msg: d.error ?? "Қолжетімсіз", detail: d.detail })
       )
       .catch(() => setError({ msg: "Қолжетімсіз" }))
       .finally(() => setLoading(false));
-  }, []);
+  }, [region.id]);
 
   const firstBeyond = data?.daily.find((d) => d.beyondCams)?.date;
   const aqiMetrics = data?.model.metrics["european_aqi"];

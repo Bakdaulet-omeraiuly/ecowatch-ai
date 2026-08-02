@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRegion } from "@/data/regions";
 
 // Live environmental data for Atyrau from Open-Meteo (free, no key).
 // Weather: official Open-Meteo forecast model.
@@ -7,16 +8,12 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 3600; // refresh hourly
 
-const LAT = 47.1167;
-const LNG = 51.8833; // Atyrau city
 
-const WEATHER_URL =
-  `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
+const WEATHER_URL = (LAT: number, LNG: number) => `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
   `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,weather_code,surface_pressure` +
   `&timezone=auto`;
 
-const AIR_URL =
-  `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LNG}` +
+const AIR_URL = (LAT: number, LNG: number) => `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LNG}` +
   `&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,european_aqi` +
   `&hourly=pm2_5,pm10,european_aqi&past_days=30&forecast_days=3&timezone=auto`;
 
@@ -43,16 +40,20 @@ function dailyMeans(time: string[], pm25: (number | null)[], pm10: (number | nul
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 3600_000) {
-    return NextResponse.json(cache.data);
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const LAT = region.lat;
+  const LNG = region.lng;
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) {
+    return NextResponse.json(hit.data);
   }
   try {
     const [wRes, aRes] = await Promise.all([
-      fetch(WEATHER_URL, { next: { revalidate: 3600 } }),
-      fetch(AIR_URL, { next: { revalidate: 3600 } }),
+      fetch(WEATHER_URL(LAT, LNG), { next: { revalidate: 3600 } }),
+      fetch(AIR_URL(LAT, LNG), { next: { revalidate: 3600 } }),
     ]);
     if (!wRes.ok || !aRes.ok) throw new Error(`upstream ${wRes.status}/${aRes.status}`);
     const weather = await wRes.json();
@@ -96,7 +97,7 @@ export async function GET() {
         return out;
       })(),
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Environment fetch error:", err);

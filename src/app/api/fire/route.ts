@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRegion } from "@/data/regions";
 import {
   computeFwiSeries,
   fireDangerClass,
@@ -13,23 +14,24 @@ import {
 
 export const revalidate = 3600;
 
-const LAT = 47.1167;
-const LNG = 51.8833; // Атырау қаласы
 
 // Spin-up үшін 21 күн тарих + түскі (12:00) мәндерді алу
-const URL =
-  `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
+const SRC_URL = (LAT: number, LNG: number) => `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
   `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation` +
   `&past_days=21&forecast_days=1&timezone=auto`;
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 3600_000) {
-    return NextResponse.json(cache.data);
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const LAT = region.lat;
+  const LNG = region.lng;
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) {
+    return NextResponse.json(hit.data);
   }
   try {
-    const res = await fetch(URL, { next: { revalidate: 3600 } });
+    const res = await fetch(SRC_URL(LAT, LNG), { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const j = await res.json();
 
@@ -83,7 +85,7 @@ export async function GET() {
       dangerLabel: FIRE_DANGER_KZ[danger],
       dangerColor: FIRE_DANGER_COLOR[danger],
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Fire FWI error:", err);
