@@ -27,6 +27,8 @@ interface Data {
   bySeverity: { critical: number; warning: number; notice: number };
   events: EcoEvent[];
   unavailable: string[];
+  /** Бұл аймақта модуль ретінде жоқ бөліктер */
+  missingModules?: { key: string; name: string }[];
   note: string;
 }
 
@@ -173,6 +175,14 @@ export function EventFeed({ limit }: { limit?: number }) {
               );
             })}
           </ul>
+        )}
+
+        {data && (data.missingModules?.length ?? 0) > 0 && (
+          <p className="mt-2.5 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-neutral-400">
+            {region.name} {tr("үшін әлі жоқ модульдер")}:{" "}
+            {data.missingModules!.map((m) => m.name).join(", ")}.{" "}
+            {tr("Олар бойынша оқиға шықпайды — бұл «оқиға болмады» дегенді білдірмейді.")}
+          </p>
         )}
 
         {data && data.unavailable.length > 0 && (

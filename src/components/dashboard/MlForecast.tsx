@@ -8,6 +8,8 @@ import { BrainCircuit, Loader2, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
+import { ModuleMissing } from "@/components/ui/ModuleMissing";
+import { hasModule } from "@/data/regions";
 import { useRegion } from "@/store/useRegionStore";
 
 interface Metrics { mae: number; rmse: number; r2: number | null }
@@ -36,18 +38,24 @@ export function MlForecast() {
   const region = useRegion();
   const [data, setData] = useState<MlData | null>(null);
   const [error, setError] = useState<{ msg: string; detail?: string } | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showInfo, setShowInfo] = useState(false);
+  // Модель бұл аймақта оқытылмаған — сұраныс жіберілмейді
+  const missing = !hasModule(region, "mlForecast");
+  // Қай аймақ үшін жүктелді — «жүктелуде» күйі осыдан шығарылады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const loading = !missing && loadedFor !== region.id;
 
   useEffect(() => {
+    if (missing || loadedFor === region.id) return;
     fetch(`/api/ml-forecast?region=${region.id}`)
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
-      .then(({ ok, d }) =>
-        ok ? setData(d) : setError({ msg: d.error ?? "Қолжетімсіз", detail: d.detail })
-      )
-      .catch(() => setError({ msg: "Қолжетімсіз" }))
-      .finally(() => setLoading(false));
-  }, [region.id]);
+      .then(({ ok, d }) => {
+        setData(ok ? d : null);
+        setError(ok ? null : { msg: d.error ?? "Қолжетімсіз", detail: d.detail });
+      })
+      .catch(() => { setData(null); setError({ msg: "Қолжетімсіз" }); })
+      .finally(() => setLoadedFor(region.id));
+  }, [region.id, missing, loadedFor]);
 
   const firstBeyond = data?.daily.find((d) => d.beyondCams)?.date;
   const aqiMetrics = data?.model.metrics["european_aqi"];
@@ -72,7 +80,9 @@ export function MlForecast() {
         </p>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {missing ? (
+          <ModuleMissing module="mlForecast" region={region} />
+        ) : loading ? (
           <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>

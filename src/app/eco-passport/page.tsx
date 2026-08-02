@@ -4,12 +4,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Printer, Loader2, ChevronDown, ExternalLink, Download, ShieldCheck, ShieldAlert } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { TierBadge, TierLegend } from "@/components/ui/TierBadge";
+import { useRegion } from "@/store/useRegionStore";
 import {
   INDICATORS, SECTIONS, requiredEndpoints, resolvePath,
   type Indicator, type Norm,
 } from "@/data/indicatorRegistry";
 
-// ЭКО-ПАСПОРТ — Атырау облысының экологиялық жағдайының құжаты.
+// ЭКО-ПАСПОРТ — таңдалған аймақтың экологиялық жағдайының құжаты.
 //
 // Мақсаты: әр санның ЖАНЫНДА оның қайдан келгені, қалай есептелгені және
 // қандай шектеуі бары тұруы. Тексеруге келетін құжат жасау.
@@ -19,7 +20,7 @@ import {
 // сенімділіктегі көрсеткіштерді бір санға қосу ғылыми негізсіз болар еді.
 
 type Values = Record<string, number | null>;
-type Meta = Record<string, { fetchedAt?: string; source?: string; ok: boolean }>;
+type Meta = Record<string, { fetchedAt?: string; source?: string; ok: boolean; missingReason?: string | null }>;
 
 const nowStamp = () =>
   new Date().toLocaleString("kk-KZ", { dateStyle: "long", timeStyle: "short" });
@@ -37,22 +38,31 @@ function exceeds(v: number | null, n: Norm): boolean {
 
 export default function EcoPassportPage() {
   const { tr } = useLang();
+  const region = useRegion();
   const [values, setValues] = useState<Values>({});
   const [meta, setMeta] = useState<Meta>({});
-  const [loading, setLoading] = useState(true);
+  // Қай аймақ үшін жүктелді — «жүктелуде» күйі осыдан шығарылады,
+  // сондықтан эффект ішінде setState синхронды шақырылмайды
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const loading = loadedFor !== region.id;
   const [open, setOpen] = useState<Set<string>>(new Set());
   const [allOpen, setAllOpen] = useState(false);
 
   useEffect(() => {
+    if (loadedFor === region.id) return;
     const eps = requiredEndpoints();
     Promise.all(
       eps.map(async (ep) => {
         try {
-          const r = await fetch(ep);
+          // Аймақ әр эндпоинтке беріледі — паспорт таңдалған қаланікі болады
+          const q = ep.includes("?") ? "&" : "?";
+          const r = await fetch(`${ep}${q}region=${region.id}`);
           const d = await r.json();
-          return { ep, ok: r.ok, d };
+          // Эндпоинт «бұл аймақта модуль жоқ» деп қайтарса — дерек емес
+          const missing = d?.available === false;
+          return { ep, ok: r.ok && !missing, d, missing: missing ? d : null };
         } catch {
-          return { ep, ok: false, d: null };
+          return { ep, ok: false, d: null, missing: null };
         }
       })
     ).then((res) => {
@@ -64,6 +74,7 @@ export default function EcoPassportPage() {
           ok: r.ok,
           fetchedAt: r.d?.fetchedAt,
           source: r.d?.source,
+          missingReason: r.missing?.reason ?? null,
         };
       }
       for (const ind of INDICATORS) {
@@ -72,9 +83,9 @@ export default function EcoPassportPage() {
       }
       setValues(v);
       setMeta(m);
-      setLoading(false);
+      setLoadedFor(region.id);
     });
-  }, []);
+  }, [region.id, loadedFor]);
 
   const toggle = useCallback((id: string) => {
     setOpen((prev) => {
@@ -149,7 +160,7 @@ export default function EcoPassportPage() {
                 Jaiyq · {tr("экологиялық мониторинг")}
               </div>
               <h2 className="mt-1.5 text-2xl font-bold leading-tight text-white print:text-black">
-                {tr("Атырау облысының экологиялық паспорты")}
+                {region.name} — {tr("экологиялық паспорт")}
               </h2>
               <p className="mt-1 text-xs text-neutral-400 print:text-gray-600">
                 {tr("Құжат жасалған уақыт")}: {nowStamp()}
@@ -158,11 +169,13 @@ export default function EcoPassportPage() {
             <dl className="text-[10px] leading-relaxed text-neutral-500 print:text-gray-600">
               <div className="flex gap-2">
                 <dt>{tr("Аумақ")}:</dt>
-                <dd className="text-neutral-300 print:text-black">{tr("Атырау облысы, ҚР")}</dd>
+                <dd className="text-neutral-300 print:text-black">{region.name}, {region.countryName}</dd>
               </div>
               <div className="flex gap-2">
                 <dt>{tr("Тірек нүкте")}:</dt>
-                <dd className="text-neutral-300 print:text-black">47.1167° N, 51.8833° E</dd>
+                <dd className="text-neutral-300 print:text-black">
+                  {region.lat.toFixed(4)}° N, {region.lng.toFixed(4)}° E
+                </dd>
               </div>
               <div className="flex gap-2">
                 <dt>{tr("Көрсеткіш саны")}:</dt>
@@ -271,8 +284,20 @@ export default function EcoPassportPage() {
                       {meta[ep]?.fetchedAt ? meta[ep]!.fetchedAt!.replace("T", " ").slice(0, 16) : "—"}
                     </td>
                     <td className="py-1.5">
-                      <span className={meta[ep]?.ok ? "text-emerald-300 print:text-green-700" : "text-amber-300 print:text-amber-800"}>
-                        {meta[ep]?.ok ? tr("алынды") : tr("қолжетімсіз")}
+                      <span
+                        className={
+                          meta[ep]?.ok
+                            ? "text-emerald-300 print:text-green-700"
+                            : meta[ep]?.missingReason
+                              ? "text-neutral-400 print:text-gray-600"
+                              : "text-amber-300 print:text-amber-800"
+                        }
+                      >
+                        {meta[ep]?.ok
+                          ? tr("алынды")
+                          : meta[ep]?.missingReason
+                            ? tr("бұл аймақта жоқ")
+                            : tr("қолжетімсіз")}
                       </span>
                     </td>
                   </tr>
@@ -296,8 +321,8 @@ export default function EcoPassportPage() {
             </li>
             <li>
               {tr(
-                "«Валидацияланбаған» деп белгіленген көрсеткіштер Атырау бойынша жердегі " +
-                "өлшеммен салыстырылмаған — оларды сот немесе әкімшілік іс үшін дәлел " +
+                "«Валидацияланбаған» деп белгіленген көрсеткіштер жердегі өлшеммен " +
+                "салыстырылмаған — оларды сот немесе әкімшілік іс үшін дәлел " +
                 "ретінде қолдануға болмайды."
               )}
             </li>
@@ -315,7 +340,7 @@ export default function EcoPassportPage() {
             </li>
           </ul>
           <p className="border-t border-white/10 pt-3 text-neutral-500 print:border-gray-300 print:text-gray-600">
-            Jaiyq · ecojaiyq.com · {tr("Атырау облысының экологиялық AI мониторинг платформасы")}
+            Jaiyq · ecojaiyq.com · {tr("Қазақстан мен Каспий жағалауының экологиялық AI мониторинг платформасы")}
           </p>
         </footer>
       </article>
@@ -351,7 +376,7 @@ function IndicatorRow({
 }: {
   ind: Indicator;
   value: number | null;
-  meta?: { fetchedAt?: string; source?: string; ok: boolean };
+  meta?: { fetchedAt?: string; source?: string; ok: boolean; missingReason?: string | null };
   open: boolean;
   onToggle: () => void;
   tr: (s: string) => string;
@@ -378,6 +403,12 @@ function IndicatorRow({
           <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-neutral-400 print:line-clamp-none print:text-gray-600">
             {ind.what}
           </p>
+          {/* Модуль бұл аймақта жоқ — «өлшенбеді» деп қалдырмай, себебін жазамыз */}
+          {meta?.missingReason && (
+            <p className="mt-1 text-[10px] leading-snug text-neutral-500 print:text-gray-600">
+              ⃠ {tr("Бұл аймақта модуль жоқ")}: {meta.missingReason}
+            </p>
+          )}
         </div>
 
         <div className="shrink-0 text-right">

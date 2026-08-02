@@ -1,23 +1,20 @@
 import { NextResponse } from "next/server";
+import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
+import { getRiver, type RiverPoint } from "@/data/riverPoints";
 
-// Live Zhaiyk (Ural) river discharge + flood risk along its course.
+// Live river discharge + flood risk along the river course.
 // Source: Open-Meteo Flood API = Copernicus GloFAS global flood model.
 // Free, no key. Flood/standing water also drives the mosquito problem.
+//
+// ⚠️ Аймақтың өзен нүктелері тізілімде болмаса — БАСҚА қаланың ағыны
+// көрсетілмейді. «Бұл аймақта жоқ» деп ашық қайтарылады (жалған дерек жоқ).
 
 export const revalidate = 3600;
 
-// Points snapped to actual GloFAS river cells along the Zhaiyk (north→south)
-const RIVER: { lat: number; lng: number; name: string }[] = [
-  { lat: 47.70, lng: 51.50, name: "Жоғары ағыс (Махамбет)" },
-  { lat: 47.65, lng: 51.52, name: "Сарайшық маңы" },
-  { lat: 47.50, lng: 51.60, name: "Орта ағыс" },
-  { lat: 47.1167, lng: 51.8833, name: "Атырау қаласы" },
-];
-
-const URL =
+const SRC_URL = (river: RiverPoint[]) =>
   `https://flood-api.open-meteo.com/v1/flood` +
-  `?latitude=${RIVER.map((p) => p.lat).join(",")}` +
-  `&longitude=${RIVER.map((p) => p.lng).join(",")}` +
+  `?latitude=${river.map((p) => p.lat).join(",")}` +
+  `&longitude=${river.map((p) => p.lng).join(",")}` +
   `&daily=river_discharge&past_days=30&forecast_days=14`;
 
 function riskLevel(ratio: number): { level: string; color: string } {
@@ -27,20 +24,27 @@ function riskLevel(ratio: number): { level: string; color: string } {
   return { level: "Қалыпты", color: "#22c55e" };
 }
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 3600_000) {
-    return NextResponse.json(cache.data);
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const river = getRiver(region.id);
+  if (!hasModule(region, "riverFlow") || !river) {
+    return NextResponse.json(moduleUnavailable(region, "riverFlow"));
+  }
+
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) {
+    return NextResponse.json(hit.data);
   }
   try {
-    const res = await fetch(URL, { next: { revalidate: 3600 } });
+    const res = await fetch(SRC_URL(river.points), { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
 
     const points = list.map((d: { latitude: number; longitude: number; daily?: { time?: string[]; river_discharge?: (number | null)[] } }, idx: number) => {
-      const meta = RIVER[idx] ?? { name: "?" };
+      const meta = river.points[idx] ?? { name: "?" };
       const times = d.daily?.time ?? [];
       const disc = (d.daily?.river_discharge ?? []).map((v) => v ?? 0);
       const todayIdx = 30; // past_days=30 puts today at offset 30
@@ -69,11 +73,14 @@ export async function GET() {
     });
 
     const data = {
+      available: true as const,
       fetchedAt: new Date().toISOString(),
       source: "Open-Meteo Flood API — Copernicus GloFAS",
+      region: { id: region.id, name: region.name },
+      river: river.river,
       points: points.filter((p) => p.discharge > 0.5), // only real river cells
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Flood error:", err);

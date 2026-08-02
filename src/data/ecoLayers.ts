@@ -110,7 +110,10 @@ export const ECO_LAYERS: EcoLayer[] = [
     name: "Су",
     emoji: "💧",
     accent: "teal",
-    what: "Жайық өзенінің ағыны және Sentinel-1 радарымен өлшенген су беті",
+    what:
+      "Өзен ағыны және Sentinel-1 радарымен өлшенген су беті. " +
+      "⚠️ Екеуі де аймақтық тізілімді талап етеді (арна нүктелері мен " +
+      "бақылау терезелері) — тізілімі жоқ қалада «жоқ» деп көрсетіледі.",
     currentEndpoint: "/api/flood-extent",
     seriesApi: "flood",
     vars: [{ api: "river_discharge", label: "Өзен ағыны", unit: "м³/с" }],

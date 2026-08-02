@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { Site, AnalysisResult } from "@/types/site";
 import { useSitesStore } from "@/store/useSitesStore";
 import { useRegion } from "@/store/useRegionStore";
+import { hasModule } from "@/data/regions";
 
 // Data types for the live eco-layers
 export interface AirGridPoint {
@@ -137,19 +138,21 @@ export function useAirGrid(enabled: boolean) {
 // Mosquito climate-suitability grid (Open-Meteo)
 export function useMosquitoGrid(enabled: boolean) {
   const region = useRegion();
+  // JAIYQ-MRI тізілімі жоқ аймақта — сұраныс жіберілмейді
+  const missing = !hasModule(region, "mosquito");
   // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
   const [mosError, setMosError] = useState(false);
   useEffect(() => {
-    if (!enabled || loadedFor === region.id) return;
+    if (!enabled || missing || loadedFor === region.id) return;
     fetch(`/api/mosquitogrid?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => setMosGrid(d.grid))
       .catch(() => setMosError(true))
       .finally(() => setLoadedFor(region.id));
-  }, [enabled, loadedFor, region.id]);
-  return { mosGrid, mosError };
+  }, [enabled, missing, loadedFor, region.id]);
+  return { mosGrid, mosError, mosMissing: missing };
 }
 
 // Pollution Source Detection (CAMS + жел → ықтимал өнеркәсіп көзі)
@@ -180,19 +183,21 @@ export interface PollutionSourceData {
 }
 export function usePollutionSource(enabled: boolean) {
   const region = useRegion();
+  // Тізілімсіз аймақта модуль мүлдем жоқ — сұраныс та жіберілмейді
+  const missing = !hasModule(region, "pollutionSource");
   // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [source, setSource] = useState<PollutionSourceData | null>(null);
   const [sourceError, setSourceError] = useState(false);
   useEffect(() => {
-    if (!enabled || loadedFor === region.id) return;
+    if (!enabled || missing || loadedFor === region.id) return;
     fetch(`/api/pollution-source?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => (d.error ? setSourceError(true) : setSource(d)))
       .catch(() => setSourceError(true))
       .finally(() => setLoadedFor(region.id));
-  }, [enabled, loadedFor, region.id]);
-  return { source, sourceError };
+  }, [enabled, missing, loadedFor, region.id]);
+  return { source, sourceError, sourceMissing: missing };
 }
 
 // Soil dryness / land-degradation grid (Open-Meteo ECMWF)
@@ -220,19 +225,25 @@ export function useSoilGrid(enabled: boolean) {
 // Zhaiyk river discharge / flood risk (GloFAS)
 export function useFlood(enabled: boolean) {
   const region = useRegion();
+  // Өзен нүктелерінің тізілімі жоқ аймақта — сұраныс жіберілмейді
+  const missing = !hasModule(region, "riverFlow");
   // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [flood, setFlood] = useState<FloodPoint[] | null>(null);
+  const [river, setRiver] = useState<string | null>(null);
   const [floodError, setFloodError] = useState(false);
   useEffect(() => {
-    if (!enabled || loadedFor === region.id) return;
+    if (!enabled || missing || loadedFor === region.id) return;
     fetch(`/api/flood?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => setFlood(d.points ?? []))
+      .then((d) => {
+        setFlood(d.points ?? []);
+        setRiver(d.river ?? null);
+      })
       .catch(() => setFloodError(true))
       .finally(() => setLoadedFor(region.id));
-  }, [enabled, loadedFor, region.id]);
-  return { flood, floodError };
+  }, [enabled, missing, loadedFor, region.id]);
+  return { flood, river, floodError, floodMissing: missing };
 }
 
 // Gas-flare detections (NASA FIRMS)

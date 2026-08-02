@@ -1,16 +1,26 @@
 import { NextResponse } from "next/server";
+import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
+import { getRiver } from "@/data/riverPoints";
 
-// Су деңгейінің өзгерісі — Жайық (Урал) өзенінің ағыны, 2020 → қазір.
+// Су деңгейінің өзгерісі — өзен ағыны, 2020 → қазір.
 // Дереккөз: GloFAS (Copernicus Global Flood Awareness) — Open-Meteo Flood API.
 // river_discharge (m³/s) — өзен деңгейі/көлемінің нақты өлшенген прокси-көрсеткіші.
 // Ешбір дерек ойдан жасалмайды.
+//
+// ⚠️ Аймақтың өзен нүктесі тізілімде болмаса — Жайықтың трендісі БАСҚА
+// қалаға телінбейді, «бұл аймақта жоқ» деп қайтарылады.
 
-const LAT = 47.1167, LNG = 51.8833; // Атырау, Жайық өзені
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const river = getRiver(region.id);
+  if (!hasModule(region, "riverFlow") || !river) {
+    return NextResponse.json(moduleUnavailable(region, "riverFlow"));
+  }
+  const { lat, lng } = river.trendPoint;
 
-export async function GET() {
   const today = new Date().toISOString().slice(0, 10);
   const url =
-    `https://flood-api.open-meteo.com/v1/flood?latitude=${LAT}&longitude=${LNG}` +
+    `https://flood-api.open-meteo.com/v1/flood?latitude=${lat}&longitude=${lng}` +
     `&daily=river_discharge&start_date=2020-01-01&end_date=${today}`;
 
   try {
@@ -40,9 +50,11 @@ export async function GET() {
     const changePct = +(((last.discharge - first.discharge) / first.discharge) * 100).toFixed(1);
 
     return NextResponse.json({
+      available: true as const,
       fetchedAt: new Date().toISOString(),
       source: "GloFAS (Copernicus) — Open-Meteo Flood API",
-      river: "Жайық (Урал)",
+      region: { id: region.id, name: region.name },
+      river: river.river,
       unit: "m³/s",
       yearly,
       changePct, // + = ағын артты, - = азайды

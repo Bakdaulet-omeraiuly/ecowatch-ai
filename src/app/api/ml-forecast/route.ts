@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildFeatures, RAW_KEYS, WINDOW, type RawRow } from "@/lib/ml/features";
 import { isTrained, model, predict } from "@/lib/ml/gbt";
+import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 
 // JAIYQ-ML — Атырау ауа сапасының кеңейтілген болжамы.
 //
@@ -51,7 +52,15 @@ interface DayOut {
 
 let cache: { at: number; data: unknown } | null = null;
 
-export async function GET() {
+export async function GET(req: Request) {
+  // Модель НАҚТЫ бір аймақтың CAMS/ERA5 деректерінде оқытылған. Басқа
+  // қалаға сол модельді қолдану — оқытылмаған жерге болжам жасау, яғни
+  // жалған дәлдік. Сондықтан тізілімде жоқ аймақта модуль «жоқ».
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  if (!hasModule(region, "mlForecast")) {
+    return NextResponse.json(moduleUnavailable(region, "mlForecast"));
+  }
+
   if (!isTrained(model)) {
     return NextResponse.json(
       {

@@ -23,6 +23,10 @@ import { ExportPanel } from "@/components/dashboard/ExportPanel";
 import { LegalAlerts } from "@/components/dashboard/LegalAlerts";
 import { EventFeed } from "@/components/dashboard/EventFeed";
 import { useRegion } from "@/store/useRegionStore";
+import { MissingModulesNote } from "@/components/ui/ModuleMissing";
+import { IndicatorHelp } from "@/components/ui/IndicatorHelp";
+import { LevelLegend } from "@/components/ui/LevelLegend";
+import { missingModules } from "@/data/regions";
 
 interface LiveEnv {
   fetchedAt: string;
@@ -263,14 +267,14 @@ export default function DashboardPage() {
           ) : (
             <>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
-                <LiveStat icon={Thermometer} label={tr("Температура")} value={env.current.temperature} unit="°C" />
-                <LiveStat icon={Wind} label={tr("Жел")} value={env.current.windSpeed} unit="км/сағ" />
-                <LiveStat icon={Droplets} label={tr("Ылғалдылық")} value={env.current.humidity} unit="%" />
-                <LiveStat icon={Gauge} label="EU AQI" value={env.current.europeanAqi} unit="" highlight={(env.current.europeanAqi ?? 0) > 50} />
-                <LiveStat label="PM2.5" value={env.current.pm2_5} unit="µg/m³" highlight={(env.current.pm2_5 ?? 0) > WHO_PM25_DAILY} />
-                <LiveStat label="PM10" value={env.current.pm10} unit="µg/m³" />
-                <LiveStat label="NO₂" value={env.current.no2} unit="µg/m³" />
-                <LiveStat label="SO₂" value={env.current.so2} unit="µg/m³" />
+                <LiveStat icon={Thermometer} label={tr("Температура")} value={env.current.temperature} unit="°C" indicatorId="temperature" />
+                <LiveStat icon={Wind} label={tr("Жел")} value={env.current.windSpeed} unit="км/сағ" indicatorId="wind" />
+                <LiveStat icon={Droplets} label={tr("Ылғалдылық")} value={env.current.humidity} unit="%" indicatorId="humidity" />
+                <LiveStat icon={Gauge} label="EU AQI" value={env.current.europeanAqi} unit="" highlight={(env.current.europeanAqi ?? 0) > 50} indicatorId="aqi" />
+                <LiveStat label="PM2.5" value={env.current.pm2_5} unit="µg/m³" highlight={(env.current.pm2_5 ?? 0) > WHO_PM25_DAILY} indicatorId="pm25" />
+                <LiveStat label="PM10" value={env.current.pm10} unit="µg/m³" indicatorId="pm10" />
+                <LiveStat label="NO₂" value={env.current.no2} unit="µg/m³" indicatorId="no2" />
+                <LiveStat label="SO₂" value={env.current.so2} unit="µg/m³" indicatorId="so2" />
               </div>
               {env.current.europeanAqi != null && (() => {
                 const cat = aqiCategory(env.current.europeanAqi);
@@ -288,13 +292,21 @@ export default function DashboardPage() {
                   </div>
                 );
               })()}
+              <div className="mt-2.5">
+                <LevelLegend />
+              </div>
               <p className="mt-2 text-[10px] text-neutral-500">
-                Соңғы жаңару: {new Date(env.fetchedAt).toLocaleString("kk-KZ")}
+                Соңғы жаңару: {new Date(env.fetchedAt).toLocaleString("kk-KZ")} ·{" "}
+                {tr("әр көрсеткіштің жанындағы ⓘ — сол сан нені білдіретіні")}
               </p>
             </>
           )}
         </CardContent>
       </Card>
+
+      {/* Бұл қалада ҚАНДАЙ модуль жоқ — алдын ала ашық жазылады, сонда
+          төмендегі бос блоктар «бәрі тыныш» деп оқылмайды */}
+      <MissingModulesNote region={region} modules={missingModules(region)} />
 
       {/* Заңнамалық сәйкестік — ҚР/WHO/EU нормаларынан асу (ең жоғарыда) */}
       <LegalAlerts />
@@ -479,6 +491,9 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="mosquito" className="mt-4 space-y-4">
+          <div className="mb-2">
+            <IndicatorHelp id="mri" inline />
+          </div>
           <ChartCard title={tr("Маса белсенділігінің маусымдық болжамы — математикалық модель (тасқын маусымы + климат)")}>
             <AreaChart data={mosquitoSeason}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
@@ -599,17 +614,21 @@ function LiveStat({
   value,
   unit,
   highlight,
+  indicatorId,
 }: {
   icon?: React.ElementType;
   label: string;
   value: number | null;
   unit: string;
   highlight?: boolean;
+  /** indicatorRegistry идентификаторы — ⓘ басқанда анықтамасы ашылады */
+  indicatorId?: string;
 }) {
   return (
     <div className={`rounded-lg p-2.5 ${highlight ? "bg-red-500/10" : "bg-white/5"}`}>
-      <div className="flex items-center gap-1 text-[10px] text-neutral-400">
+      <div className="flex flex-wrap items-center gap-1 text-[10px] text-neutral-400">
         {Icon && <Icon className="h-3 w-3" />} {label}
+        {indicatorId && <IndicatorHelp id={indicatorId} />}
       </div>
       <div className={`text-base font-bold ${highlight ? "text-red-300" : "text-white"}`}>
         {value != null ? value : "—"}
@@ -640,7 +659,10 @@ function FireDangerCard({ fire }: { fire: FireData }) {
             <Flame className="h-6 w-6" style={{ color: fire.dangerColor }} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-white">{tr("Дала/орман өрті қаупі — FWI")}</h3>
+            <h3 className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white">
+              {tr("Дала/орман өрті қаупі — FWI")}
+              <IndicatorHelp id="fwi" />
+            </h3>
             <p className="text-[11px] text-neutral-500">
               Канада FWI жүйесі (EFFIS) · {fire.spinupDays} күндік нақты ауа райынан есептелді
             </p>
@@ -693,7 +715,10 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
             <Droplets className="h-6 w-6" style={{ color: drought.droughtColor }} />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-white">{tr("Құрғақшылық индексі — SPI-3")}</h3>
+            <h3 className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white">
+              {tr("Құрғақшылық индексі — SPI-3")}
+              <IndicatorHelp id="spi" />
+            </h3>
             <p className="text-[11px] text-neutral-500">
               McKee 1993 (WMO) · {drought.yearsOfRecord} жылдық ERA5 климатологиясы
             </p>

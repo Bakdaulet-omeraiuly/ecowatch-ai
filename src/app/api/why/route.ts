@@ -1,20 +1,22 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { allow } from "@/lib/ratelimit";
+import { getRegion } from "@/data/regions";
 
 // AI «Неге?» — бүгін ауа неге осындай екенін тірі деректермен түсіндіреді.
 // Барлық САНДАР нақты (Open-Meteo + CAMS). GPT тек сол сандарды сөзбен түсіндіреді,
 // ойдан дерек қоспайды. Кілт жоқ болса — ереже негізіндегі түсіндірме қайтарады.
 
-const LAT = 47.1167, LNG = 51.8833;
-const W_URL =
-  `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
+const W_URL = (lat: number, lng: number) =>
+  `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}` +
   `&current=temperature_2m,relative_humidity_2m,wind_speed_10m,surface_pressure&timezone=auto`;
-const A_URL =
-  `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LNG}` +
+const A_URL = (lat: number, lng: number) =>
+  `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lng}` +
   `&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,european_aqi`;
 
-// Облыстық базалық деңгейлер (µg/m³) — «қалыптыдан жоғары» деп бағалау үшін
+// Фондық деңгейлер (µg/m³) — «қалыптыдан жоғары» деп бағалау үшін.
+// ⚠️ Бұл — ЖАЛПЫ фон, нақты қаланың өлшенген фоны емес. Сондықтан
+// қорытындыда «көзі мынау» деп айтылмайды, тек «жоғары» деп белгіленеді.
 const BASE = { no2: 12, so2: 5, pm2_5: 10, pm10: 20 };
 
 interface Factor { label: string; detail: string; severity: "ok" | "warn" | "bad" }
@@ -23,10 +25,11 @@ export async function GET(req: Request) {
   if (!(await allow(req, "why"))) {
     return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
   }
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
   try {
     const [wRes, aRes] = await Promise.all([
-      fetch(W_URL, { next: { revalidate: 1800 } }),
-      fetch(A_URL, { next: { revalidate: 1800 } }),
+      fetch(W_URL(region.lat, region.lng), { next: { revalidate: 1800 } }),
+      fetch(A_URL(region.lat, region.lng), { next: { revalidate: 1800 } }),
     ]);
     if (!wRes.ok || !aRes.ok) throw new Error(`upstream ${wRes.status}/${aRes.status}`);
     const w = (await wRes.json()).current ?? {};
@@ -81,7 +84,7 @@ export async function GET(req: Request) {
             {
               role: "system",
               content:
-                "Сен Атырау экология AI-сың. Саған тек НАҚТЫ өлшенген сандар мен алдын ала есептелген факторлар беріледі. Осы деректерге ғана сүйеніп, бүгін ауа неге осындай екенін 2-3 сөйлеммен, қарапайым қазақ тілінде түсіндір. Жаңа сан ойлап таппа, берілмеген факт қоспа.",
+                `Сен ${region.name} қаласының экология AI-сың. Саған тек НАҚТЫ өлшенген сандар мен алдын ала есептелген факторлар беріледі. Осы деректерге ғана сүйеніп, бүгін ауа неге осындай екенін 2-3 сөйлеммен, қарапайым қазақ тілінде түсіндір. Жаңа сан ойлап таппа, берілмеген факт қоспа.`,
             },
             {
               role: "user",
@@ -100,6 +103,7 @@ export async function GET(req: Request) {
     return NextResponse.json({
       fetchedAt: new Date().toISOString(),
       source: "Open-Meteo + Copernicus CAMS (нақты өлшеу)",
+      region: { id: region.id, name: region.name },
       verdict, aqi, summary, factors, measured,
     });
   } catch (err) {

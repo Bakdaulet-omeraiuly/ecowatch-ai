@@ -5,11 +5,13 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
 } from "recharts";
 import {
-  X, Loader2, Scale, Database, Sparkles, History, ExternalLink, AlertTriangle,
+  X, Loader2, Scale, Database, Sparkles, History, ExternalLink, AlertTriangle, CircleSlash,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
 import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
+import { IndicatorHelp } from "@/components/ui/IndicatorHelp";
+import { LevelLegend } from "@/components/ui/LevelLegend";
 import type { LayerKey, SeriesVar } from "@/data/ecoLayers";
 
 // ЭКО ҚАБАТ DRAWER — оң жақтан ашылатын 4 қойындылы панель.
@@ -42,6 +44,8 @@ interface LayerData {
   fetchedAt: string;
   current: Record<string, unknown> | null;
   currentError: string | null;
+  /** Модуль осы аймақта жоқ болса — себебі (жалған дерек орнына) */
+  moduleMissing: { error: string; reason: string } | null;
   series:
     | { available: true; vars: SeriesVar[]; past24: HourPoint[]; next24: HourPoint[]; note: string | null }
     | { available: false; reason: string };
@@ -219,13 +223,29 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
         <span className="text-[10px] text-neutral-400">{tr("AI қолданылмаған")}</span>
       </div>
 
-      {/* Ағымдағы көрсеткіштер */}
+      {/* Модуль бұл аймақта жоқ — БОС қалдырмаймыз, себебін жазамыз */}
+      {data.moduleMissing && (
+        <div className="space-y-1.5 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+          <p className="flex items-center gap-1.5 text-[12px] font-medium text-neutral-200">
+            <CircleSlash className="h-3.5 w-3.5 shrink-0 text-neutral-500" />
+            {data.moduleMissing.error}
+          </p>
+          <p className="text-[10px] leading-relaxed text-neutral-400">{data.moduleMissing.reason}</p>
+          <p className="border-t border-white/5 pt-1.5 text-[9px] leading-relaxed text-neutral-500">
+            {tr("Басқа қаланың деректері мұнда көрсетілмейді — ол жалған дерек болар еді.")}
+          </p>
+        </div>
+      )}
+
+      {/* Ағымдағы көрсеткіштер.
+          Әр жолда ⓘ — сол көрсеткіш НЕНІ БІЛДІРЕТІНІ (тізілім мәтіні),
+          астында деңгейлердің мағынасы. Сан жалғыз тұрса түсініксіз. */}
       {data.compliance.results.length > 0 && (
         <div className="space-y-1">
           {data.compliance.results.map((r) => (
             <div
               key={r.indicatorId}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
+              className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
             >
               <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-300">{r.name}</span>
               <span className="text-[13px] font-semibold text-white">
@@ -235,8 +255,10 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
               <span className={`shrink-0 rounded border px-1 py-0.5 text-[9px] ${LEVEL_COLOR[r.worst]}`}>
                 {tr(LEVEL_KZ[r.worst])}
               </span>
+              <IndicatorHelp id={r.indicatorId} />
             </div>
           ))}
+          <LevelLegend />
         </div>
       )}
 

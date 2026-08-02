@@ -1,28 +1,32 @@
 import { NextResponse } from "next/server";
+import { getRegion } from "@/data/regions";
 
-// Атырау бойынша болашақ климат проекциясы — CMIP6 HighResMIP (MRI_AGCM3_2_S).
+// Таңдалған аймақ бойынша болашақ климат проекциясы — CMIP6 HighResMIP.
 // Дереккөз: Open-Meteo Climate API (тегін, кілтсіз) — IPCC CMIP6 даунскейлингі.
 // Жалған дерек жоқ: API қолжетімсіз болса, қате қайтарылады.
+//
+// CMIP6 — ЖАҺАНДЫҚ модель, сондықтан кез келген аймақта жұмыс істейді:
+// координата аймақтың орталығынан алынады (тізілім қажет емес).
 
 export const revalidate = 604800; // аптасына бір
 
-const LAT = 47.1167;
-const LNG = 51.8833;
 const MODEL = "MRI_AGCM3_2_S"; // CMIP6 HighResMIP, ~20 км даунскейлинг
 
-const URL =
-  `https://climate-api.open-meteo.com/v1/climate?latitude=${LAT}&longitude=${LNG}` +
+const SRC_URL = (lat: number, lng: number) =>
+  `https://climate-api.open-meteo.com/v1/climate?latitude=${lat}&longitude=${lng}` +
   `&start_date=2000-01-01&end_date=2050-12-31&models=${MODEL}` +
   `&daily=temperature_2m_mean,precipitation_sum`;
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 604800_000) {
-    return NextResponse.json(cache.data);
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 604800_000) {
+    return NextResponse.json(hit.data);
   }
   try {
-    const res = await fetch(URL, { next: { revalidate: 604800 } });
+    const res = await fetch(SRC_URL(region.lat, region.lng), { next: { revalidate: 604800 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const j = await res.json();
     const time: string[] = j.daily?.time ?? [];
@@ -58,13 +62,14 @@ export async function GET() {
       fetchedAt: new Date().toISOString(),
       source: "Open-Meteo Climate · IPCC CMIP6 HighResMIP (MRI-AGCM3-2-S)",
       model: MODEL,
+      region: { id: region.id, name: region.name },
       years,
       baseline: { period: "2000–2020", temp: +baseT.toFixed(1), precip: Math.round(baseP) },
       future: { period: "2040–2050", temp: +futT.toFixed(1), precip: Math.round(futP) },
       tempDelta: +(futT - baseT).toFixed(1),
       precipDeltaPct: +(((futP - baseP) / baseP) * 100).toFixed(0),
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Climate CMIP6 error:", err);

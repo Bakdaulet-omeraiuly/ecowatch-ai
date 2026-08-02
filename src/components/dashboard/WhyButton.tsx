@@ -5,6 +5,7 @@ import { Sparkles, Loader2, Wind, Thermometer, AlertTriangle, CheckCircle2 } fro
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
+import { useRegion } from "@/store/useRegionStore";
 
 interface Factor { label: string; detail: string; severity: "ok" | "warn" | "bad" }
 interface WhyData { verdict: string; aqi: number | null; summary: string; factors: Factor[] }
@@ -17,18 +18,28 @@ const SEV = {
 
 export function WhyButton() {
   const { tr } = useLang();
+  const region = useRegion();
   const [data, setData] = useState<WhyData | null>(null);
+  // Жауап ҚАЙ аймақ үшін алынды — қала ауысса ескі түсіндірме көрсетілмейді
+  const [dataFor, setDataFor] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [open, setOpen] = useState(false);
 
+  const fresh = dataFor === region.id ? data : null;
+
   const ask = () => {
     setOpen(true);
-    if (data || loading) return;
+    if (fresh || loading) return;
     setLoading(true);
-    fetch("/api/why")
+    setError(false);
+    fetch(`/api/why?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => (d.error ? setError(true) : setData(d)))
+      .then((d) => {
+        if (d.error) { setError(true); return; }
+        setData(d);
+        setDataFor(region.id);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   };
@@ -46,7 +57,7 @@ export function WhyButton() {
         ) : (
           <div>
             <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-violet-200">
-              <Sparkles className="h-4 w-4" /> {tr("AI түсіндірмесі")}
+              <Sparkles className="h-4 w-4" /> {tr("AI түсіндірмесі")} — {region.name}
             </div>
             {loading ? (
               <div className="flex items-center gap-2 py-2 text-sm text-neutral-400">
@@ -56,11 +67,11 @@ export function WhyButton() {
               <p className="text-sm text-neutral-400">
                 {tr("Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
               </p>
-            ) : data ? (
+            ) : fresh ? (
               <>
-                <p className="mb-3 text-sm leading-relaxed text-neutral-200">{data.summary}</p>
+                <p className="mb-3 text-sm leading-relaxed text-neutral-200">{fresh.summary}</p>
                 <div className="space-y-1.5">
-                  {data.factors.map((f, i) => {
+                  {fresh.factors.map((f, i) => {
                     const s = SEV[f.severity];
                     return (
                       <div key={i} className={`flex items-start gap-2 rounded-md border px-2.5 py-1.5 text-xs ${s.cls}`}>
@@ -74,7 +85,15 @@ export function WhyButton() {
                   {tr("Барлық сан нақты өлшенген (Open-Meteo + CAMS). AI тек түсіндіреді, дерек ойлап таппайды.")}
                 </p>
               </>
-            ) : null}
+            ) : (
+              // Қала ауысты — ескі жауап жарамсыз, қайта сұрау керек
+              <button
+                onClick={ask}
+                className="rounded-lg border border-violet-500/40 bg-violet-500/15 px-3 py-1.5 text-xs text-violet-100 transition-colors hover:bg-violet-500/25"
+              >
+                {region.name} {tr("бойынша сұрау")}
+              </button>
+            )}
           </div>
         )}
       </CardContent>

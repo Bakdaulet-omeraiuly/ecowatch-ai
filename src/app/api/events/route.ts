@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { ECO_LAYERS } from "@/data/ecoLayers";
 import { LEGAL_DISCLAIMER } from "@/data/legalNorms";
 import type { ComplianceLevel } from "@/lib/compliance";
+import { getRegion, hasModule, missingModules, MODULE_KZ } from "@/data/regions";
 
 // ОҚИҒАЛАР ТАСПАСЫ (Environmental Event Feed)
 //
@@ -46,14 +47,18 @@ function meta(key: string) {
   return { layer: l?.name ?? key, layerEmoji: l?.emoji ?? "•" };
 }
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
 export async function GET(req: Request) {
-  if (cache && Date.now() - cache.at < revalidate * 1000) {
-    return NextResponse.json(cache.data);
+  const url = new URL(req.url);
+  const region = getRegion(url.searchParams.get("region"));
+
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < revalidate * 1000) {
+    return NextResponse.json(hit.data);
   }
 
-  const origin = new URL(req.url).origin;
+  const origin = url.origin;
   const events: EcoEvent[] = [];
   const failed: string[] = [];
 
@@ -71,11 +76,14 @@ export async function GET(req: Request) {
     }
   };
 
+  const rq = `?region=${region.id}`;
   const [compliance, flares, flood, mosquito] = await Promise.all([
-    get("/api/compliance"),
-    get("/api/flares"),
-    get("/api/flood-extent"),
-    get("/api/mosquitogrid"),
+    get(`/api/compliance${rq}`),
+    get(`/api/flares${rq}`),
+    // Су басқан аумақ тек тізілімі бар аймақта өлшенеді — басқа қалада
+    // Атыраудың терезелері сұралмайды
+    hasModule(region, "floodExtent") ? get(`/api/flood-extent${rq}`) : null,
+    hasModule(region, "mosquito") ? get(`/api/mosquitogrid${rq}`) : null,
   ]);
 
   // ---------- 1. Заңнамалық асулар ----------
@@ -176,8 +184,9 @@ export async function GET(req: Request) {
         title: "Маса белсенділігіне қолайлы жағдай",
         value: `MRI ${idx}/100`,
         detail:
-          `Облыс бойынша орташа индекс. Ең жоғары нүкте: ${mosquito.maxIndex ?? "—"}. ` +
-          "Бұл — климаттық қолайлылық көрсеткіші, маса саны емес.",
+          `${region.name} бойынша орташа индекс. Ең жоғары нүкте: ${mosquito.maxIndex ?? "—"}. ` +
+          "Бұл — климаттық қолайлылық көрсеткіші, маса саны емес. " +
+          (mosquito.amplificationNote ?? ""),
         source: "JAIYQ-MRI · Open-Meteo",
       });
     }
@@ -188,8 +197,11 @@ export async function GET(req: Request) {
     return s !== 0 ? s : b.time.localeCompare(a.time);
   });
 
+  const missing = missingModules(region);
+
   const data = {
     fetchedAt: new Date().toISOString(),
+    region: { id: region.id, name: region.name },
     count: events.length,
     bySeverity: {
       critical: events.filter((e) => e.severity === "critical").length,
@@ -199,13 +211,18 @@ export async function GET(req: Request) {
     events,
     /** Қолжетімсіз дереккөздер — ашық көрсетеміз, оқиға жоқтығы «тыныш» дегенді білдірмейді */
     unavailable: failed,
+    /** Бұл аймақта МОДУЛЬ ретінде жоқ бөліктер — сондықтан оқиға да шықпайды */
+    missingModules: missing.map((m) => ({ key: m, name: MODULE_KZ[m] })),
     disclaimer: LEGAL_DISCLAIMER,
     note:
       "Әр оқиға — нақты дерек нүктесі, жаңалық емес. Дереккөз қолжетімсіз болса " +
-      "сол тектегі оқиға тізімде БОЛМАЙДЫ — бұл «бәрі тыныш» дегенді білдірмейді.",
+      "сол тектегі оқиға тізімде БОЛМАЙДЫ — бұл «бәрі тыныш» дегенді білдірмейді. " +
+      (missing.length
+        ? `${region.name} үшін әлі жоқ модульдер: ${missing.map((m) => MODULE_KZ[m]).join(", ")}.`
+        : ""),
   };
 
-  cache = { at: Date.now(), data };
+  cache.set(region.id, { at: Date.now(), data });
   return NextResponse.json(data);
 }
 

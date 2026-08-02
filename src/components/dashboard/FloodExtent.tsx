@@ -5,6 +5,8 @@ import { Waves, Loader2, Download, Info, Satellite } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
+import { ModuleMissing } from "@/components/ui/ModuleMissing";
+import { hasModule } from "@/data/regions";
 import { useRegion } from "@/store/useRegionStore";
 
 interface Zone {
@@ -50,16 +52,25 @@ export function FloodExtent() {
   const region = useRegion();
   const [data, setData] = useState<FloodData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const [showMethod, setShowMethod] = useState(false);
+  // Бақылау терезелері тізілімде жоқ аймақ — сұраныс та жіберілмейді
+  const missing = !hasModule(region, "floodExtent");
+  // Қай аймақ үшін жүктелді — «жүктелуде» күйі осыдан шығарылады,
+  // сондықтан эффект ішінде setState синхронды шақырылмайды
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const loading = !missing && loadedFor !== region.id;
 
   useEffect(() => {
+    if (missing || loadedFor === region.id) return;
     fetch(`/api/flood-extent?region=${region.id}`)
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => (ok ? setData(d) : setError(d.error ?? "Қолжетімсіз")))
-      .catch(() => setError("Қолжетімсіз"))
-      .finally(() => setLoading(false));
-  }, [region.id]);
+      .then(({ ok, d }) => {
+        setData(ok ? d : null);
+        setError(ok ? null : d.error ?? "Қолжетімсіз");
+      })
+      .catch(() => { setData(null); setError("Қолжетімсіз"); })
+      .finally(() => setLoadedFor(region.id));
+  }, [region.id, missing, loadedFor]);
 
   return (
     <Card className="border-sky-500/20 bg-sky-500/[0.04]">
@@ -82,7 +93,9 @@ export function FloodExtent() {
       </CardHeader>
 
       <CardContent>
-        {loading ? (
+        {missing ? (
+          <ModuleMissing module="floodExtent" region={region} />
+        ) : loading ? (
           <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Спутник деректері өңделуде…")}
           </div>

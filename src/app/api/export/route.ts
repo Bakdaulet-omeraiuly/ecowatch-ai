@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { csvHeaders, toCsv, withProvenance, type Cell } from "@/lib/csv";
+import { getRegion, hasModule, moduleUnavailable, type ModuleKey } from "@/data/regions";
 
 // Эколог есебі үшін CSV экспорт.
 //
@@ -10,6 +11,9 @@ import { csvHeaders, toCsv, withProvenance, type Cell } from "@/lib/csv";
 // болса CSV жасалмайды: 503 қайтарылады, бос немесе жалған баған берілмейді.
 //
 // Су басқан аумақ бөлек: /api/flood-extent?format=csv
+//
+// `?region=<id>` — таңдалған аймақ. Ішкі эндпоинттерге де беріледі,
+// сондықтан Алматыны таңдағанда Атыраудың саны түспейді.
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +38,17 @@ export async function GET(req: Request) {
     );
   }
   const origin = url.origin;
+  const region = getRegion(url.searchParams.get("region"));
+
+  // Аймақтық тізілім қажет ететін жиынтықтар — тізілімсіз қалада бос
+  // немесе бөтен қаланың файлы жасалмайды
+  const DATASET_MODULE: Partial<Record<Dataset, ModuleKey>> = { mosquito: "mosquito" };
+  const needed = DATASET_MODULE[ds];
+  if (needed && !hasModule(region, needed)) {
+    return NextResponse.json(moduleUnavailable(region, needed), { status: 404 });
+  }
+
+  const rq = `?region=${region.id}`;
   const today = new Date().toISOString().slice(0, 10);
 
   try {
@@ -42,7 +57,7 @@ export async function GET(req: Request) {
 
     switch (ds) {
       case "air": {
-        const d = await get(origin, "/api/airgrid");
+        const d = await get(origin, `/api/airgrid${rq}`);
         const grid = (d.grid ?? []) as Record<string, unknown>[];
         rows = withProvenance(
           [
@@ -55,7 +70,7 @@ export async function GET(req: Request) {
             ]),
           ],
           {
-            dataset: "Ауа сапасы — Атырау облысы торы",
+            dataset: `Ауа сапасы — ${region.name} торы`,
             tier: "Модель",
             source: String(d.source ?? "Open-Meteo / Copernicus CAMS"),
             fetchedAt: String(d.fetchedAt ?? ""),
@@ -67,12 +82,12 @@ export async function GET(req: Request) {
             ],
           }
         );
-        name = `jaiyq-aua-sapasy-${today}.csv`;
+        name = `jaiyq-aua-sapasy-${region.id}-${today}.csv`;
         break;
       }
 
       case "mosquito": {
-        const d = await get(origin, "/api/mosquitogrid");
+        const d = await get(origin, `/api/mosquitogrid${rq}`);
         const grid = (d.grid ?? []) as Record<string, unknown>[];
         rows = withProvenance(
           [
@@ -84,7 +99,7 @@ export async function GET(req: Request) {
             ]),
           ],
           {
-            dataset: "Маса тәуекел индексі (JAIYQ-MRI · FPEB)",
+            dataset: `Маса тәуекел индексі (JAIYQ-MRI · FPEB) — ${region.name}`,
             tier: "Модель",
             source: String(d.source ?? "JAIYQ-MRI · Open-Meteo"),
             fetchedAt: String(d.fetchedAt ?? ""),
@@ -93,17 +108,17 @@ export async function GET(req: Request) {
               "Екі түр ескеріледі: Aedes caspius (тасқын суы) және Culex modestus (тұрақты су).",
             caveats: [
               "Бұл — климаттық қолайлылық индексі, шынайы маса санының өлшемі ЕМЕС.",
-              "Атырауда тұзақ (trap) деректері жоқ болғандықтан модель валидацияланбаған.",
+              "Тұзақ (trap) деректері жоқ болғандықтан модель валидацияланбаған.",
               "Индекс салыстыру үшін жарайды (қай жер қауіптірек), абсолют сан ретінде емес.",
             ],
           }
         );
-        name = `jaiyq-masa-indeksi-${today}.csv`;
+        name = `jaiyq-masa-indeksi-${region.id}-${today}.csv`;
         break;
       }
 
       case "fire": {
-        const d = await get(origin, "/api/fire");
+        const d = await get(origin, `/api/fire${rq}`);
         rows = withProvenance(
           [
             ["Көрсеткіш", "Мән", "Түсіндірме"],
@@ -117,7 +132,7 @@ export async function GET(req: Request) {
             ["Есептеу тереңдігі (күн)", num(d.spinupDays), "Индекстер жинақталу кезеңі"],
           ],
           {
-            dataset: "Өрт қаупі — Canadian FWI жүйесі",
+            dataset: `Өрт қаупі — Canadian FWI жүйесі — ${region.name}`,
             tier: "Модель",
             source: String(d.source ?? "Open-Meteo (ECMWF) метеорологиясы бойынша есептелген"),
             fetchedAt: new Date().toISOString(),
@@ -128,12 +143,12 @@ export async function GET(req: Request) {
             ],
           }
         );
-        name = `jaiyq-ort-qaupi-${today}.csv`;
+        name = `jaiyq-ort-qaupi-${region.id}-${today}.csv`;
         break;
       }
 
       case "drought": {
-        const d = await get(origin, "/api/drought");
+        const d = await get(origin, `/api/drought${rq}`);
         rows = withProvenance(
           [
             ["Көрсеткіш", "Мән"],
@@ -144,7 +159,7 @@ export async function GET(req: Request) {
             ["Құрғақшылық сыныбы", String(d.droughtLabel ?? d.droughtClass ?? "")],
           ],
           {
-            dataset: "Құрғақшылық — SPI-3",
+            dataset: `Құрғақшылық — SPI-3 — ${region.name}`,
             tier: "Модель",
             source: "Open-Meteo ERA5 архиві (ECMWF)",
             fetchedAt: new Date().toISOString(),
@@ -157,12 +172,12 @@ export async function GET(req: Request) {
             ],
           }
         );
-        name = `jaiyq-qurgaqshylyq-${today}.csv`;
+        name = `jaiyq-qurgaqshylyq-${region.id}-${today}.csv`;
         break;
       }
 
       case "flares": {
-        const d = await get(origin, "/api/flares");
+        const d = await get(origin, `/api/flares${rq}`);
         const flares = (d.flares ?? []) as Record<string, unknown>[];
         rows = withProvenance(
           [
@@ -173,7 +188,7 @@ export async function GET(req: Request) {
             ]),
           ],
           {
-            dataset: "Жылу аномалиялары (газ факелдері / өрт)",
+            dataset: `Жылу аномалиялары (газ факелдері / өрт) — ${region.name}`,
             tier: "Өлшем",
             source: "NASA FIRMS · VIIRS SNPP NRT",
             fetchedAt: new Date().toISOString(),
@@ -185,7 +200,7 @@ export async function GET(req: Request) {
             ],
           }
         );
-        name = `jaiyq-zhylu-anomaliyalary-${today}.csv`;
+        name = `jaiyq-zhylu-anomaliyalary-${region.id}-${today}.csv`;
         break;
       }
     }
