@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getRegion } from "@/data/regions";
 
 // Live gas-flare / thermal-anomaly detection over the Atyrau oil region.
 // Source: NASA FIRMS (VIIRS 375m active-fire product) — real near-real-time
@@ -8,8 +9,6 @@ import { NextResponse } from "next/server";
 export const revalidate = 3600;
 
 // FIRMS query bbox (must be rectangular): west,south,east,north
-const AREA = "49.5,45.5,55,49";
-
 // Approximate Atyrau oblast boundary [lng, lat] — flares outside it are dropped
 // so neighbouring oblasts (Mangystau, West Kazakhstan, Astrakhan) are excluded.
 const ATYRAU_OBLAST: [number, number][] = [
@@ -39,9 +38,12 @@ interface Flare {
   dayNight: string;
 }
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
+export async function GET(req: Request) {
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  // FIRMS bbox форматы: west,south,east,north
+  const AREA = region.bbox.join(",");
   const key = process.env.FIRMS_MAP_KEY;
   if (!key) {
     return NextResponse.json(
@@ -49,9 +51,8 @@ export async function GET() {
       { status: 503 }
     );
   }
-  if (cache && Date.now() - cache.at < 3600_000) {
-    return NextResponse.json(cache.data);
-  }
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) return NextResponse.json(hit.data);
   try {
     // VIIRS S-NPP, last 2 days
     const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${key}/VIIRS_SNPP_NRT/${AREA}/2`;
@@ -90,7 +91,7 @@ export async function GET() {
       count: flares.length,
       flares,
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Flares error:", err);

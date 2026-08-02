@@ -1,46 +1,29 @@
 import { NextResponse } from "next/server";
+import { regionPoints } from "@/lib/regionGrid";
 import { dominantPollutant } from "@/lib/pollutant";
 
-// Live air-quality grid across Atyrau region for the map's air layer.
+// Таңдалған аймақ бойынша тірі ауа сапасы торы — картаның «Ауа» қабаты үшін.
+// Тор аймақтың bbox-ынан құрылады (src/lib/regionGrid.ts), сондықтан қала
+// ауысқанда деректер де сол қаланікі болады.
 // Source: Open-Meteo Air Quality API (Copernicus CAMS) — real model data.
 // Adds: full pollutant components, 24h hourly forecast, city districts.
 
 export const revalidate = 3600;
 
-// Regional 5×6 grid
-const LATS = [46.2, 46.8, 47.4, 48.0, 48.6];
-const LNGS = [49.6, 50.6, 51.6, 52.6, 53.6, 54.6];
-const points: { lat: number; lng: number; dense: boolean; name?: string }[] = [];
-for (const lat of LATS) for (const lng of LNGS) points.push({ lat, lng, dense: false });
-
-// Atyrau city districts (denser sampling over the city)
-const DISTRICTS: { lat: number; lng: number; name: string }[] = [
-  { lat: 47.1167, lng: 51.8833, name: "Орталық" },
-  { lat: 47.105, lng: 51.842, name: "Балықшы" },
-  { lat: 47.16, lng: 51.918, name: "Жұмыскер" },
-  { lat: 47.10, lng: 51.918, name: "Авангард" },
-  { lat: 47.078, lng: 51.862, name: "Нұрсая" },
-  { lat: 47.09, lng: 51.84, name: "МӨЗ маңы" },
-  { lat: 47.148, lng: 51.89, name: "Самал" },
-  { lat: 47.07, lng: 51.93, name: "Лесхоз" },
-];
-for (const d of DISTRICTS) points.push({ ...d, dense: true });
-
-const URL =
-  `https://air-quality-api.open-meteo.com/v1/air-quality` +
+const SRC_URL = (points: { lat: number; lng: number }[]) => `https://air-quality-api.open-meteo.com/v1/air-quality` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
   `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,methane,carbon_monoxide,ammonia,aerosol_optical_depth,uv_index` +
   `&hourly=european_aqi&forecast_days=2&timezone=auto`;
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 3600_000) {
-    return NextResponse.json(cache.data);
-  }
+export async function GET(req: Request) {
+  const { region, points } = regionPoints(new URL(req.url).searchParams.get("region"));
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) return NextResponse.json(hit.data);
   try {
-    const res = await fetch(URL, { next: { revalidate: 3600 } });
+    const res = await fetch(SRC_URL(points), { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
@@ -109,7 +92,7 @@ export async function GET() {
       dominant,
       grid,
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Air grid error:", err);

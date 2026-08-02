@@ -1,27 +1,23 @@
 import { NextResponse } from "next/server";
+import { regionPoints } from "@/lib/regionGrid";
 
 // Атырау бойынша жел бағыты мен жылдамдығы торы — карта «Жел» қабаты үшін.
 // Дереккөз: Open-Meteo (тегін, кілтсіз) — нақты ауа райы моделі.
 
 export const revalidate = 3600;
 
-const LATS = [46.2, 46.7, 47.1, 47.5, 47.9, 48.4];
-const LNGS = [49.8, 50.6, 51.4, 51.9, 52.6, 53.4, 54.2];
-const points: { lat: number; lng: number }[] = [];
-for (const lat of LATS) for (const lng of LNGS) points.push({ lat, lng });
-
-const URL =
-  `https://api.open-meteo.com/v1/forecast` +
+const SRC_URL = (points: { lat: number; lng: number }[]) => `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
   `&current=wind_speed_10m,wind_direction_10m&timezone=auto`;
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 3600_000) return NextResponse.json(cache.data);
-  try {
-    const res = await fetch(URL, { next: { revalidate: 3600 } });
+export async function GET(req: Request) {
+  const { region, points } = regionPoints(new URL(req.url).searchParams.get("region"));
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) return NextResponse.json(hit.data);try {
+    const res = await fetch(SRC_URL(points), { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
@@ -44,7 +40,7 @@ export async function GET() {
       source: "Open-Meteo (ECMWF) — нақты жел моделі",
       grid, avgSpeed: avg, maxSpeed: max, dominantDir: domDir,
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Windgrid error:", err);

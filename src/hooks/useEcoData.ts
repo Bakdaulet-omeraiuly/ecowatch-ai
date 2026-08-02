@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { Site, AnalysisResult } from "@/types/site";
 import { useSitesStore } from "@/store/useSitesStore";
+import { useRegion } from "@/store/useRegionStore";
 
 // Data types for the live eco-layers
 export interface AirGridPoint {
@@ -113,33 +114,41 @@ export function useSharedReports(): Site[] {
 
 // Air quality grid (Copernicus CAMS) — fetched on first activation
 export function useAirGrid(enabled: boolean) {
+  const region = useRegion();
+  // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
   const [airDominant, setAirDominant] = useState<Dominant | null>(null);
   const [airError, setAirError] = useState(false);
   useEffect(() => {
-    if (!enabled || airGrid || airError) return;
-    fetch("/api/airgrid")
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/airgrid?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
         setAirGrid(d.grid);
         setAirDominant(d.dominant ?? null);
       })
-      .catch(() => setAirError(true));
-  }, [enabled, airGrid, airError]);
+      .catch(() => setAirError(true))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
   return { airGrid, airDominant, airError };
 }
 
 // Mosquito climate-suitability grid (Open-Meteo)
 export function useMosquitoGrid(enabled: boolean) {
+  const region = useRegion();
+  // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
   const [mosError, setMosError] = useState(false);
   useEffect(() => {
-    if (!enabled || mosGrid || mosError) return;
-    fetch("/api/mosquitogrid")
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/mosquitogrid?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => setMosGrid(d.grid))
-      .catch(() => setMosError(true));
-  }, [enabled, mosGrid, mosError]);
+      .catch(() => setMosError(true))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
   return { mosGrid, mosError };
 }
 
@@ -170,63 +179,79 @@ export interface PollutionSourceData {
   note: string;
 }
 export function usePollutionSource(enabled: boolean) {
+  const region = useRegion();
+  // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [source, setSource] = useState<PollutionSourceData | null>(null);
   const [sourceError, setSourceError] = useState(false);
   useEffect(() => {
-    if (!enabled || source || sourceError) return;
-    fetch("/api/pollution-source")
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/pollution-source?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => (d.error ? setSourceError(true) : setSource(d)))
-      .catch(() => setSourceError(true));
-  }, [enabled, source, sourceError]);
+      .catch(() => setSourceError(true))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
   return { source, sourceError };
 }
 
 // Soil dryness / land-degradation grid (Open-Meteo ECMWF)
 export function useSoilGrid(enabled: boolean) {
+  const region = useRegion();
+  // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [soilGrid, setSoilGrid] = useState<SoilPoint[] | null>(null);
   const [soilMeta, setSoilMeta] = useState<{ avgStress: number; avgMoisture: number } | null>(null);
   const [soilError, setSoilError] = useState(false);
   useEffect(() => {
-    if (!enabled || soilGrid || soilError) return;
-    fetch("/api/soilgrid")
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/soilgrid?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
         setSoilGrid(d.grid);
         setSoilMeta({ avgStress: d.avgStress, avgMoisture: d.avgMoisture });
       })
-      .catch(() => setSoilError(true));
-  }, [enabled, soilGrid, soilError]);
+      .catch(() => setSoilError(true))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
   return { soilGrid, soilMeta, soilError };
 }
 
 // Zhaiyk river discharge / flood risk (GloFAS)
 export function useFlood(enabled: boolean) {
+  const region = useRegion();
+  // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [flood, setFlood] = useState<FloodPoint[] | null>(null);
   const [floodError, setFloodError] = useState(false);
   useEffect(() => {
-    if (!enabled || flood || floodError) return;
-    fetch("/api/flood")
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/flood?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => setFlood(d.points ?? []))
-      .catch(() => setFloodError(true));
-  }, [enabled, flood, floodError]);
+      .catch(() => setFloodError(true))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
   return { flood, floodError };
 }
 
 // Gas-flare detections (NASA FIRMS)
 export function useFlares(enabled: boolean) {
+  const region = useRegion();
+  // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [flares, setFlares] = useState<Flare[] | null>(null);
   const [flaresError, setFlaresError] = useState<string | null>(null);
   useEffect(() => {
-    if (!enabled || flares || flaresError) return;
-    fetch("/api/flares")
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/flares?region=${region.id}`)
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) => {
         if (ok) setFlares(d.flares ?? []);
         else setFlaresError(d.error ?? "Қолжетімсіз");
       })
-      .catch(() => setFlaresError("Қолжетімсіз"));
-  }, [enabled, flares, flaresError]);
+      .catch(() => setFlaresError("Қолжетімсіз"))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
   return { flares, flaresError };
 }

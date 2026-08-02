@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { buildGrid, cityPoints, type GridPoint } from "@/lib/regionGrid";
+import { getRegion } from "@/data/regions";
 
 // Live mosquito environmental-suitability grid for the Atyrau region.
 // Methodology: climate-driven suitability (the approach used by WHO/ECDC/VECTRI
@@ -12,115 +14,30 @@ export const revalidate = 3600;
 
 // Each point: dense=true → a city district (icons cluster tightly inside it);
 // dense=false → a regional grid cell (icons spread wide).
-const points: { lat: number; lng: number; dense: boolean; name?: string }[] = [];
-
-// 5×5 = 25-нүктелі тор (облыс деңгейі) — Open-Meteo 100 лимитіне сыйдыру үшін
-// Қалған 75 слот → қала аудандары мен көшелері
-const LAT_MIN = 46.0, LAT_MAX = 48.8;
-const LNG_MIN = 49.2, LNG_MAX = 54.8;
-const N = 5;
-for (let i = 0; i < N; i++)
-  for (let j = 0; j < N; j++)
-    points.push({
-      lat: +(LAT_MIN + ((LAT_MAX - LAT_MIN) * i) / (N - 1)).toFixed(4),
-      lng: +(LNG_MIN + ((LNG_MAX - LNG_MIN) * j) / (N - 1)).toFixed(4),
-      dense: false,
-    });
-
-// Атырау қаласының аудандары, көшелері, нақты нүктелері
-const ATYRAU_DISTRICTS: { lat: number; lng: number; name: string }[] = [
-  // ── Орталық аудан ──
-  { lat: 47.1167, lng: 51.8833, name: "Орталық алаң" },
-  { lat: 47.1130, lng: 51.8860, name: "Әзіз Мамбетов к." },
-  { lat: 47.1155, lng: 51.8910, name: "Сатпаев к." },
-  { lat: 47.1175, lng: 51.8780, name: "Махамбет к." },
-  { lat: 47.1195, lng: 51.8850, name: "Абай даңғылы" },
-  { lat: 47.1100, lng: 51.8800, name: "Молдағали к." },
-  { lat: 47.1215, lng: 51.8920, name: "Аймауытов к." },
-  { lat: 47.1085, lng: 51.8845, name: "Орталық базар" },
-
-  // ── Жайық өзені жағасы — маса тәуекелі ең жоғары ──
-  { lat: 47.1220, lng: 51.8730, name: "Жайық сол жағасы-1" },
-  { lat: 47.1150, lng: 51.8750, name: "Жайық сол жағасы-2" },
-  { lat: 47.1080, lng: 51.8770, name: "Жайық сол жағасы-3" },
-  { lat: 47.1250, lng: 51.8790, name: "Жайық оң жағасы-1" },
-  { lat: 47.1180, lng: 51.8800, name: "Жайық оң жағасы-2" },
-  { lat: 47.1100, lng: 51.8820, name: "Жайық оң жағасы-3" },
-  { lat: 47.1350, lng: 51.8820, name: "Жоғарғы көпір" },
-  { lat: 47.1050, lng: 51.8860, name: "Төменгі көпір" },
-  { lat: 47.0980, lng: 51.8920, name: "Өзен дельтасы-1" },
-  { lat: 47.0920, lng: 51.8960, name: "Өзен дельтасы-2" },
-
-  // ── Балықшы ──
-  { lat: 47.1050, lng: 51.8420, name: "Балықшы орт." },
-  { lat: 47.1000, lng: 51.8380, name: "Балықшы батыс" },
-  { lat: 47.1080, lng: 51.8460, name: "Балықшы шығыс" },
-  { lat: 47.0980, lng: 51.8440, name: "Балықшы оңт." },
-
-  // ── Жұмыскер / Привокзальный ──
-  { lat: 47.1600, lng: 51.9180, name: "Жұмыскер" },
-  { lat: 47.1560, lng: 51.9100, name: "Жұмыскер батыс" },
-  { lat: 47.1310, lng: 51.9180, name: "Привокзальный" },
-  { lat: 47.1270, lng: 51.9240, name: "Вокзал маңы" },
-  { lat: 47.1350, lng: 51.9050, name: "Студенттік аудан" },
-
-  // ── Авангард / Геолог ──
-  { lat: 47.1000, lng: 51.9180, name: "Авангард" },
-  { lat: 47.0950, lng: 51.9140, name: "Авангард оңт." },
-  { lat: 47.0920, lng: 51.9000, name: "Геолог" },
-  { lat: 47.0880, lng: 51.9060, name: "Геолог оңт." },
-
-  // ── Нұрсая / Мирный ──
-  { lat: 47.0780, lng: 51.8620, name: "Нұрсая" },
-  { lat: 47.0740, lng: 51.8660, name: "Нұрсая оңт." },
-  { lat: 47.1340, lng: 51.8620, name: "Мирный" },
-  { lat: 47.1380, lng: 51.8680, name: "Мирный шығыс" },
-
-  // ── Самал ──
-  { lat: 47.1480, lng: 51.8900, name: "Самал-1" },
-  { lat: 47.1450, lng: 51.8960, name: "Самал-2" },
-  { lat: 47.1420, lng: 51.9020, name: "Самал-3" },
-
-  // ── Лесхоз / Жайық оңтүстік ──
-  { lat: 47.0700, lng: 51.9300, name: "Лесхоз" },
-  { lat: 47.0650, lng: 51.9380, name: "Лесхоз оңт." },
-  { lat: 47.1500, lng: 51.9500, name: "Жайық оңт.-1" },
-  { lat: 47.1460, lng: 51.9580, name: "Жайық оңт.-2" },
-
-  // ── МӨЗ / Батыс ──
-  { lat: 47.0900, lng: 51.8400, name: "Атырау МӨЗ" },
-  { lat: 47.0950, lng: 51.8320, name: "МӨЗ маңы" },
-  { lat: 47.1200, lng: 51.8200, name: "Батыс аудан" },
-  { lat: 47.1050, lng: 51.8080, name: "Батыс-2" },
-  { lat: 47.1380, lng: 51.8300, name: "Батыс-3" },
-
-  // ── Солтүстік аудан ──
-  { lat: 47.1680, lng: 51.8750, name: "Солтүстік-1" },
-  { lat: 47.1750, lng: 51.8900, name: "Солтүстік-2" },
-  { lat: 47.1800, lng: 51.8550, name: "Нұрқала" },
-  { lat: 47.1620, lng: 51.8550, name: "Жаңа қала" },
-  { lat: 47.1720, lng: 51.9100, name: "Солтүстік шығыс" },
-
-  // ── Оңтүстік аудан ──
-  { lat: 47.0620, lng: 51.8750, name: "Оңтүстік-1" },
-  { lat: 47.0550, lng: 51.9000, name: "Оңтүстік-2" },
-  { lat: 47.0680, lng: 51.8500, name: "Теміржол маңы" },
-  { lat: 47.0600, lng: 51.9150, name: "Оңтүстік шығыс" },
-
-  // ── Шығыс аудан ──
-  { lat: 47.1180, lng: 51.9450, name: "Шығыс-1" },
-  { lat: 47.1020, lng: 51.9600, name: "Шығыс-2" },
-  { lat: 47.1400, lng: 51.9520, name: "Достық" },
-  { lat: 47.1250, lng: 51.9350, name: "Алтын орда" },
-  { lat: 47.1100, lng: 51.9700, name: "Шығыс-3" },
-
-  // ── Жаңа нұр / т.б. ──
-  { lat: 47.0820, lng: 51.9100, name: "Жаңа нұр" },
-  { lat: 47.1430, lng: 51.9050, name: "Жаңа аудан" },
-  { lat: 47.1580, lng: 51.8600, name: "Орталық солт." },
-  { lat: 47.1000, lng: 51.8700, name: "Орталық оңт." },
+// Нүктелер аймақ бойынша құрылады (src/lib/regionGrid.ts): сирек тор +
+// қала маңындағы тығыз нүктелер. Бұрын тор Атырауға қатып қалған еді —
+// қала ауысқанда маса индексі сол күйінде қалатын.
+//
+// Атырау үшін қаланың нақты аудандары қосымша беріледі: MRI-дің қала
+// ішіндегі айырмасы сол жерде маңызды (Жайық жайылмасы, сор, тұрғын аймақ).
+const ATYRAU_EXTRA: GridPoint[] = [
+  { lat: 47.1167, lng: 51.8833, dense: true, name: "Орталық алаң" },
+  { lat: 47.1050, lng: 51.8420, dense: true, name: "Балықшы" },
+  { lat: 47.1600, lng: 51.9180, dense: true, name: "Жұмыскер" },
+  { lat: 47.1000, lng: 51.9180, dense: true, name: "Авангард" },
+  { lat: 47.0780, lng: 51.8620, dense: true, name: "Нұрсая" },
+  { lat: 47.1480, lng: 51.8900, dense: true, name: "Самал" },
+  { lat: 47.0700, lng: 51.9300, dense: true, name: "Лесхоз" },
 ];
-for (const d of ATYRAU_DISTRICTS) points.push({ ...d, dense: true });
+
+function pointsFor(regionId?: string | null): { region: ReturnType<typeof getRegion>; points: GridPoint[] } {
+  const region = getRegion(regionId);
+  const base = [...buildGrid(region, 5, 5), ...cityPoints(region)];
+  return {
+    region,
+    points: region.id === "atyrau" ? [...base, ...ATYRAU_EXTRA] : base,
+  };
+}
 
 // Settlements: cities concentrate breeding habitat (containers, tires, drains,
 // irrigation) independent of rainfall — a documented urban amplification of
@@ -184,7 +101,8 @@ function floodplainFactor(lat: number, lng: number): number {
 }
 
 // past 7 days (rolling-rain context) + next 7 days (the forecast animation)
-const URL =
+
+const SRC_URL = (points: GridPoint[]) =>
   `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
@@ -244,14 +162,14 @@ function fpebIndex(o: {
   return Math.round(Math.min(100, amplified));
 }
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 3600_000) {
-    return NextResponse.json(cache.data);
-  }
+export async function GET(req: Request) {
+  const { region, points } = pointsFor(new URL(req.url).searchParams.get("region"));
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) return NextResponse.json(hit.data);
   try {
-    const res = await fetch(URL, { next: { revalidate: 3600 } });
+    const res = await fetch(SRC_URL(points), { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
@@ -363,7 +281,7 @@ export async function GET() {
       gridPoints: grid.length,
       grid,
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Mosquito grid error:", err);

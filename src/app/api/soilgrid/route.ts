@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { regionPoints } from "@/lib/regionGrid";
 
 // Live soil-dryness / land-degradation stress grid for the Atyrau region.
 // Source: Open-Meteo (ECMWF/ERA model) — real root-zone soil moisture, soil
@@ -7,26 +8,20 @@ import { NextResponse } from "next/server";
 
 export const revalidate = 3600;
 
-const LATS = [46.2, 46.8, 47.4, 48.0, 48.6];
-const LNGS = [49.6, 50.6, 51.6, 52.6, 53.6, 54.6];
-const points: { lat: number; lng: number }[] = [];
-for (const lat of LATS) for (const lng of LNGS) points.push({ lat, lng });
-
-const URL =
-  `https://api.open-meteo.com/v1/forecast` +
+const SRC_URL = (points: { lat: number; lng: number }[]) => `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
   `&current=soil_moisture_9_to_27cm,soil_temperature_18cm,temperature_2m` +
   `&daily=precipitation_sum&past_days=30&forecast_days=1&timezone=auto`;
 
-let cache: { at: number; data: unknown } | null = null;
+const cache = new Map<string, { at: number; data: unknown }>();
 
-export async function GET() {
-  if (cache && Date.now() - cache.at < 3600_000) {
-    return NextResponse.json(cache.data);
-  }
+export async function GET(req: Request) {
+  const { region, points } = regionPoints(new URL(req.url).searchParams.get("region"));
+  const hit = cache.get(region.id);
+  if (hit && Date.now() - hit.at < 3600_000) return NextResponse.json(hit.data);
   try {
-    const res = await fetch(URL, { next: { revalidate: 3600 } });
+    const res = await fetch(SRC_URL(points), { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`upstream ${res.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
@@ -66,7 +61,7 @@ export async function GET() {
       avgMoisture: +(grid.reduce((a, g) => a + g.soilMoisture, 0) / grid.length).toFixed(3),
       grid,
     };
-    cache = { at: Date.now(), data };
+    cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Soil grid error:", err);
