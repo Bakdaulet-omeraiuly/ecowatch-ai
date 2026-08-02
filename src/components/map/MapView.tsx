@@ -205,6 +205,23 @@ const DRAWER_KEYS: Partial<Record<LayerKey, DrawerKey>> = {
 // Мұнда жоқ қабаттар жаһандық дереккөзге сүйенеді (CAMS, ERA5, VIIRS) әрі
 // кез келген қалада жұмыс істейді. Ал «Су» қабаты GloFAS арна нүктелерін
 // талап етеді — тізілімсіз аймақта «жоқ» деп көрсетіледі.
+// МАСА ИНДЕКСІНІҢ ДЕҢГЕЙЛЕРІ — картадағы түс пен аңызда БІР ЖЕРДЕН оқылады,
+// сондықтан екеуі ешқашан алшақтамайды.
+//
+// Шкала: JAIYQ-MRI 0–100 (климаттық ҚОЛАЙЛЫЛЫҚ, маса САНЫ емес).
+const MOS_LEVELS: { max: number; color: string; label: string }[] = [
+  { max: 25, color: "#60a5fa", label: "өте төмен" },
+  { max: 45, color: "#4ade80", label: "төмен" },
+  { max: 62, color: "#facc15", label: "орташа" },
+  { max: 78, color: "#fb923c", label: "жоғары" },
+  { max: 101, color: "#ef4444", label: "өте жоғары" },
+];
+
+function mosLevel(idx: number): { color: string; label: string } {
+  const l = MOS_LEVELS.find((x) => idx < x.max) ?? MOS_LEVELS[MOS_LEVELS.length - 1];
+  return { color: l.color, label: l.label };
+}
+
 const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
   water: "riverFlow",
   mosquito: "mosquito",
@@ -660,20 +677,32 @@ export function MapView() {
   // Grid layers need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito" || activeLayer === "soil";
 
-  // Scatter mosquito icons around each grid point — count scales with the live index
+  // МАСА ИКОНКАЛАРЫ.
+  //
+  // Ереже: БІР ЕСЕПТЕЛГЕН КООРДИНАТА = БІР ИКОНКА. Иконкалар ойдан
+  // шашыратылмайды әрі көбейтілмейді — картадағы әр маса нақты есептелген
+  // нүктені білдіреді (Атырауда 90: облыстық тор 25 + қала тізілімі 65).
+  //
+  // Бұрын индексі 12-ден төмен нүктелер жасырылатын. Ол қате еді: иконканың
+  // жоқтығы «дерек жоқ» деп оқылатын. Енді бәрі көрінеді, тек ТҮСІ мен
+  // ӨЛШЕМІ деңгейге қарай өзгереді.
   const mosquitoSwarm = useMemo(() => {
     if (activeLayer !== "mosquito" || !mosGrid) return [];
-    const swarm: { id: string; lat: number; lng: number; size: number; color: string }[] = [];
-    for (const p of mosGrid) {
+    return mosGrid.map((p) => {
       const idx = mosHourIndex(p);
-      const color = idx < 25 ? "#6ee7b7" : idx < 45 ? "#4ade80" : idx < 62 ? "#facc15" : idx < 78 ? "#fb923c" : "#ef4444";
-      // Бір ЕСЕПТЕЛГЕН координата = бір иконка (шашыратылмаған, шынайы).
-      // Өлшемі FPEB индексіне сай (қауіп жоғары → үлкенірек). Төмен индекс — жасырын.
-      if (idx < 12) continue;
-      const size = Math.round(9 + (idx / 100) * 15); // 9..24
-      swarm.push({ id: `${p.lat},${p.lng}`, lat: p.lat, lng: p.lng, size, color });
-    }
-    return swarm;
+      const { color, label } = mosLevel(idx);
+      return {
+        id: `${p.lat},${p.lng}`,
+        lat: p.lat,
+        lng: p.lng,
+        // 13..28 px — төмен индексте де көрінетіндей
+        size: Math.round(13 + (idx / 100) * 15),
+        color,
+        idx,
+        label,
+        name: p.name,
+      };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeLayer, mosGrid, mosHour]);
 
@@ -1013,9 +1042,25 @@ export function MapView() {
           <Marker key={m.id} latitude={m.lat} longitude={m.lng}>
             <span
               className="mos-flit"
+              title={`${m.name ?? "тор нүктесі"} · MRI ${m.idx}/100 — ${m.label}`}
               style={{ animationDelay: `${(i % 12) * 0.18}s`, animationDuration: `${2.2 + (i % 5) * 0.35}s` }}
             >
-              <MosquitoIcon size={m.size} style={{ color: m.color, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }} />
+              {/* Деңгей түсіндегі жұмсақ гало — спутник фонында да көрінеді */}
+              <span
+                className="relative flex items-center justify-center"
+                style={{ width: m.size * 1.9, height: m.size * 1.9 }}
+              >
+                <span
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background: `radial-gradient(circle, ${m.color}66 0%, ${m.color}22 55%, transparent 72%)`,
+                  }}
+                />
+                <MosquitoIcon
+                  size={m.size}
+                  style={{ color: m.color, filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.75))" }}
+                />
+              </span>
             </span>
           </Marker>
         ))}
@@ -2001,6 +2046,32 @@ export function MapView() {
                     <div className="mt-2 rounded-md bg-white/5 p-2 text-[10px] leading-snug text-neutral-200">
                       💡 {tr(mosquitoAdvice(mosStats.avg))}
                     </div>
+
+                    {/* Түстердің мағынасы — картадағы иконка түсімен БІР
+                        тізілімнен оқылады (MOS_LEVELS), сондықтан алшақтамайды */}
+                    <div className="mt-2 rounded-md bg-white/5 p-2">
+                      <div className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-neutral-400">
+                        {tr("Иконка түсі нені білдіреді")}
+                      </div>
+                      <div className="space-y-0.5">
+                        {MOS_LEVELS.map((l, i) => (
+                          <div key={l.label} className="flex items-center gap-1.5 text-[9px]">
+                            <span
+                              className="h-2 w-2 shrink-0 rounded-full"
+                              style={{ backgroundColor: l.color }}
+                            />
+                            <span className="text-neutral-300">{tr(l.label)}</span>
+                            <span className="ml-auto text-neutral-500">
+                              {i === 0 ? 0 : MOS_LEVELS[i - 1].max}–{Math.min(100, l.max)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <p className="mt-1 border-t border-white/5 pt-1 text-[9px] leading-snug text-neutral-500">
+                        {tr("Картадағы әр маса — бір есептелген координата")} ({mosquitoSwarm.length}).{" "}
+                        {tr("Индекс — климаттық ҚОЛАЙЛЫЛЫҚ, маса САНЫ емес.")}
+                      </p>
+                    </div>
                   </>
                 )}
 
@@ -2015,7 +2086,7 @@ export function MapView() {
                     </div>
                     <div className="max-h-40 space-y-0.5 overflow-y-auto pr-0.5">
                       {mosDistricts.slice(0, 12).map((d, i) => {
-                        const c = d.index >= 70 ? "#f87171" : d.index >= 45 ? "#fbbf24" : d.index >= 20 ? "#a3e635" : "#34d399";
+                        const c = mosLevel(d.index).color;
                         return (
                           <div key={d.name} className="flex items-center gap-1.5 text-[10px]">
                             <span className="w-3 text-right text-neutral-500">{i + 1}</span>
