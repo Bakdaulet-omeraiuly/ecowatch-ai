@@ -43,6 +43,7 @@ const EXPORTS: {
     label: "Маса индексі",
     note: "JAIYQ-MRI, тор нүктелері",
     tier: "model",
+    module: "mosquito",
   },
   {
     href: (r) => `/api/export?dataset=fire&region=${r}`,

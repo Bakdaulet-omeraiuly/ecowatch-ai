@@ -83,7 +83,7 @@ export async function GET(req: Request) {
     // Су басқан аумақ тек тізілімі бар аймақта өлшенеді — басқа қалада
     // Атыраудың терезелері сұралмайды
     hasModule(region, "floodExtent") ? get(`/api/flood-extent${rq}`) : null,
-    get(`/api/mosquitogrid${rq}`),
+    hasModule(region, "mosquito") ? get(`/api/mosquitogrid${rq}`) : null,
   ]);
 
   // ---------- 1. Заңнамалық асулар ----------

@@ -10,6 +10,8 @@ import {
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
 import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
+import { IndicatorHelp } from "@/components/ui/IndicatorHelp";
+import { LevelLegend } from "@/components/ui/LevelLegend";
 import type { LayerKey, SeriesVar } from "@/data/ecoLayers";
 
 // ЭКО ҚАБАТ DRAWER — оң жақтан ашылатын 4 қойындылы панель.
@@ -235,13 +237,15 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
         </div>
       )}
 
-      {/* Ағымдағы көрсеткіштер */}
+      {/* Ағымдағы көрсеткіштер.
+          Әр жолда ⓘ — сол көрсеткіш НЕНІ БІЛДІРЕТІНІ (тізілім мәтіні),
+          астында деңгейлердің мағынасы. Сан жалғыз тұрса түсініксіз. */}
       {data.compliance.results.length > 0 && (
         <div className="space-y-1">
           {data.compliance.results.map((r) => (
             <div
               key={r.indicatorId}
-              className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
+              className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
             >
               <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-300">{r.name}</span>
               <span className="text-[13px] font-semibold text-white">
@@ -251,8 +255,10 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
               <span className={`shrink-0 rounded border px-1 py-0.5 text-[9px] ${LEVEL_COLOR[r.worst]}`}>
                 {tr(LEVEL_KZ[r.worst])}
               </span>
+              <IndicatorHelp id={r.indicatorId} />
             </div>
           ))}
+          <LevelLegend />
         </div>
       )}
 

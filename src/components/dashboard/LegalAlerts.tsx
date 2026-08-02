@@ -5,7 +5,9 @@ import { Scale, Loader2, ChevronDown, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge, type Tier } from "@/components/ui/TierBadge";
-import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
+import { LEVEL_COLOR, LEVEL_KZ, LEVEL_MEANING, type ComplianceLevel } from "@/lib/compliance";
+import { IndicatorHelp } from "@/components/ui/IndicatorHelp";
+import { LevelLegend } from "@/components/ui/LevelLegend";
 import { useRegion } from "@/store/useRegionStore";
 
 // Заңнамалық ескертулер — ҚР/WHO/EU нормаларынан асу.
@@ -169,6 +171,19 @@ export function LegalAlerts() {
                         <span className="text-neutral-300">{r.summary}</span>
                       </div>
 
+                      {/* Деңгейдің НАҚТЫ мағынасы және одан шығатын әрекет */}
+                      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2">
+                        <p className="text-[10px] leading-relaxed text-neutral-300">
+                          {LEVEL_MEANING[r.worst].full}
+                        </p>
+                        <p className="mt-1 text-[10px] leading-relaxed text-neutral-400">
+                          → {LEVEL_MEANING[r.worst].action}
+                        </p>
+                      </div>
+
+                      {/* Көрсеткіш нені білдіреді — тізілім мәтіні */}
+                      <IndicatorHelp id={r.indicatorId} inline />
+
                       <table className="w-full text-left">
                         <thead className="text-neutral-500">
                           <tr>
@@ -311,6 +326,12 @@ export function LegalAlerts() {
                 </p>
               </div>
             )}
+
+            {/* Түсті белгілердің мағынасы — «сары» мен «қызылды» болжап
+                отырмауы үшін */}
+            <div className="mt-3">
+              <LevelLegend />
+            </div>
 
             <p className="mt-3 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-amber-200/70">
               ⚖ {data.results[0]?.disclaimer}

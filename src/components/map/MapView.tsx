@@ -182,7 +182,7 @@ function advect(lat: number, lng: number, toBearing: number, speedKmh: number, h
 
 // Панельдің екінші бөлімі — қабат емес, бөлек беттер.
 const SERVICES: { href: string; label: string; icon: React.ElementType }[] = [
-  { href: "/dashboard", label: "Дашборд", icon: BarChart3 },
+  { href: "/dashboard", label: "Аналитика", icon: BarChart3 },
   { href: "/eco-passport", label: "Эко-паспорт", icon: FileText },
   { href: "/legislation", label: "Заңнама", icon: Scale },
   { href: "/methodology", label: "Әдістеме", icon: BookOpen },
@@ -207,6 +207,7 @@ const DRAWER_KEYS: Partial<Record<LayerKey, DrawerKey>> = {
 // талап етеді — тізілімсіз аймақта «жоқ» деп көрсетіледі.
 const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
   water: "riverFlow",
+  mosquito: "mosquito",
 };
 
 export function MapView() {
@@ -361,7 +362,7 @@ export function MapView() {
     );
   }, [activeLayer, flares]);
 
-  const { mosGrid, mosError } = useMosquitoGrid(activeLayer === "mosquito");
+  const { mosGrid, mosError, mosMissing } = useMosquitoGrid(activeLayer === "mosquito");
 
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
   const { source, sourceError, sourceMissing } = usePollutionSource(sourceMode);
@@ -1509,7 +1510,7 @@ export function MapView() {
               }`}
             >
               <Factory className="h-4 w-4" /> {tr("Ластану көзі")}
-              <span className="ml-auto rounded bg-emerald-500/20 px-1 py-px text-[8px] uppercase text-emerald-300">
+              <span className="rounded bg-emerald-500/20 px-1 py-px text-[8px] uppercase text-emerald-300">
                 live
               </span>
               <span
@@ -1544,12 +1545,12 @@ export function MapView() {
                   {off ? (
                     <span
                       title={MODULE_REASON[needsRegistry!]}
-                      className="ml-auto rounded bg-white/10 px-1 py-px text-[8px] uppercase text-neutral-400"
+                      className="rounded bg-white/10 px-1 py-px text-[8px] uppercase text-neutral-400"
                     >
                       {tr("жоқ")}
                     </span>
                   ) : l.key !== "waste" ? (
-                    <span className="ml-auto rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
+                    <span className="rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
                       live
                     </span>
                   ) : null}
@@ -1578,7 +1579,7 @@ export function MapView() {
               }`}
             >
               <Sparkles className="h-3.5 w-3.5" /> {tr("AI талдау")}
-              <span className={`ml-auto rounded px-1 py-px text-[8px] uppercase ${aiOn ? "bg-violet-500/20 text-violet-300" : "bg-white/10 text-neutral-400"}`}>
+              <span className={`rounded px-1 py-px text-[8px] uppercase ${aiOn ? "bg-violet-500/20 text-violet-300" : "bg-white/10 text-neutral-400"}`}>
                 {aiOn ? tr("қосулы") : tr("өшулі")}
               </span>
             </button>
@@ -1591,7 +1592,7 @@ export function MapView() {
               }`}
             >
               <Camera className="h-3.5 w-3.5" /> {tr("Хабарламалар")}
-              <span className="ml-auto rounded bg-white/10 px-1 py-px text-[9px] text-neutral-300">
+              <span className="rounded bg-white/10 px-1 py-px text-[9px] text-neutral-300">
                 {photoReports.length}
               </span>
             </button>
@@ -1616,7 +1617,7 @@ export function MapView() {
 
         {/* Өрт қаупі панелі — FWI (Канада жүйесі) */}
         {activeLayer === "fire" && (
-          <div className="w-56 rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-red-300">
               <Flame className="h-3 w-3" /> {tr("Дала/орман өрті қаупі — тірі")}
             </div>
@@ -1671,7 +1672,7 @@ export function MapView() {
 
         {/* Құрғақшылық панелі — SPI-3 (McKee 1993) */}
         {activeLayer === "drought" && (
-          <div className="w-56 rounded-lg border border-amber-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-amber-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-amber-300">
               <Droplets className="h-3 w-3" /> {tr("Құрғақшылық индексі — SPI-3")}
             </div>
@@ -1723,7 +1724,7 @@ export function MapView() {
 
         {/* Жел бағыты панелі */}
         {activeLayer === "wind" && (
-          <div className="w-56 rounded-lg border border-cyan-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-cyan-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-cyan-300">
               <Wind className="h-3 w-3" /> {tr("Жел бағыты — тірі")}
             </div>
@@ -1758,7 +1759,7 @@ export function MapView() {
 
         {/* Ластану көзін анықтау панелі */}
         {sourceMode && (
-          <div className="w-52 rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-red-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-red-300">
               <Factory className="h-3 w-3" /> {tr("Ластану көзін анықтау — тірі")}
             </div>
@@ -1966,11 +1967,14 @@ export function MapView() {
 
         {/* Live mosquito-suitability panel */}
         {activeLayer === "mosquito" && (
-          <div className="w-56 rounded-lg border border-purple-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-purple-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-purple-300">
-              <Radio className="h-3 w-3 animate-pulse" /> {tr("Маса қолайлылығы — тірі")}
+              {!mosMissing && <Radio className="h-3 w-3 animate-pulse" />}
+              {tr("Маса қолайлылығы")} {!mosMissing && `— ${tr("тірі")}`}
             </div>
-            {mosError ? (
+            {mosMissing ? (
+              <ModuleMissing module="mosquito" region={region} compact />
+            ) : mosError ? (
               <p className="text-[11px] text-neutral-400">{tr("Тірі ауа райы деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}</p>
             ) : !mosGrid ? (
               <p className="text-[11px] text-neutral-500">{tr("Жүктелуде…")}</p>
@@ -2075,7 +2079,7 @@ export function MapView() {
 
         {/* Live gas-flare panel — oil layer */}
         {activeLayer === "oil" && (
-          <div className="w-52 rounded-lg border border-orange-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-orange-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-orange-300">
               <Flame className="h-3 w-3" /> {tr("Газ факелдері — тірі")}
             </div>
@@ -2117,7 +2121,7 @@ export function MapView() {
 
         {/* Waste panel — crowdsourced (AI + citizen reports) */}
         {activeLayer === "waste" && (
-          <div className="w-56 rounded-lg border border-orange-600/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-orange-600/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-orange-300">
               <Trash2 className="h-3 w-3" /> {tr("Қоқыс нүктелері")}
             </div>
@@ -2163,7 +2167,7 @@ export function MapView() {
 
         {/* Live soil panel — soil layer */}
         {activeLayer === "soil" && (
-          <div className="w-56 rounded-lg border border-yellow-600/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-yellow-600/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-yellow-300">
               <Radio className="h-3 w-3 animate-pulse" /> {tr("Топырақ жағдайы — тірі")}
             </div>
@@ -2200,7 +2204,7 @@ export function MapView() {
 
         {/* Live water/flood panel — water layer */}
         {activeLayer === "water" && (
-          <div className="w-56 rounded-lg border border-teal-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-teal-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-teal-300">
               {!floodMissing && <Radio className="h-3 w-3 animate-pulse" />}
               {river ? `${river} — ${tr("тірі ағын")}` : tr("Өзен ағыны")}
@@ -2258,7 +2262,7 @@ export function MapView() {
 
         {/* Live air quality panel — shown while the air layer is active */}
         {activeLayer === "air" && (
-          <div className="w-52 rounded-lg border border-sky-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+          <div className="w-full rounded-lg border border-sky-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold text-sky-300">
               <Radio className="h-3 w-3 animate-pulse" /> {tr("Ауа сапасы — тірі")}
             </div>
@@ -2462,7 +2466,7 @@ export function MapView() {
         </button>
 
         {addOpen && (
-          <div className="w-48 rounded-lg border border-emerald-500/30 bg-neutral-900/95 p-2.5 backdrop-blur">
+          <div className="w-full rounded-lg border border-emerald-500/30 bg-neutral-900/95 p-2.5 backdrop-blur">
             <div className="mb-1.5 text-[10px] uppercase tracking-wide text-neutral-500">
               {tr("Координат бойынша")}
             </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { buildGrid, cityPoints, type GridPoint } from "@/lib/regionGrid";
-import { getRegion } from "@/data/regions";
+import { type GridPoint } from "@/lib/regionGrid";
+import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
+import { ATYRAU_DISTRICTS } from "@/data/atyrauDistricts";
 
 // Live mosquito environmental-suitability grid for the Atyrau region.
 // Methodology: climate-driven suitability (the approach used by WHO/ECDC/VECTRI
@@ -12,31 +13,37 @@ import { getRegion } from "@/data/regions";
 
 export const revalidate = 3600;
 
-// Each point: dense=true → a city district (icons cluster tightly inside it);
-// dense=false → a regional grid cell (icons spread wide).
-// Нүктелер аймақ бойынша құрылады (src/lib/regionGrid.ts): сирек тор +
-// қала маңындағы тығыз нүктелер. Бұрын тор Атырауға қатып қалған еді —
-// қала ауысқанда маса индексі сол күйінде қалатын.
+// НҮКТЕЛЕР.
 //
-// Атырау үшін қаланың нақты аудандары қосымша беріледі: MRI-дің қала
-// ішіндегі айырмасы сол жерде маңызды (Жайық жайылмасы, сор, тұрғын аймақ).
-const ATYRAU_EXTRA: GridPoint[] = [
-  { lat: 47.1167, lng: 51.8833, dense: true, name: "Орталық алаң" },
-  { lat: 47.1050, lng: 51.8420, dense: true, name: "Балықшы" },
-  { lat: 47.1600, lng: 51.9180, dense: true, name: "Жұмыскер" },
-  { lat: 47.1000, lng: 51.9180, dense: true, name: "Авангард" },
-  { lat: 47.0780, lng: 51.8620, dense: true, name: "Нұрсая" },
-  { lat: 47.1480, lng: 51.8900, dense: true, name: "Самал" },
-  { lat: 47.0700, lng: 51.9300, dense: true, name: "Лесхоз" },
-];
+// dense=true → қала нүктесі (иконкалар тығыз шоғырланады);
+// dense=false → облыстық тор ұяшығы (иконкалар кең таралады).
+//
+// ⚠️ АТЫРАУ ҮШІН ТОР ДӘЛ БҰРЫНҒЫДАЙ: облыстық 5×5 тор (25 нүкте) +
+// қаланың 65 нүктелік тізілімі = 90 нүкте. Аймақ ауысатын болғанда бұл
+// тор жалпы `buildGrid`-ке ауысып, 37 нүктеге дейін азайып кеткен еді —
+// сол қате қайтарылды. MRI-дің бүкіл мәні қала ІШІНДЕГІ айырмада,
+// оны 5×5 тор жасырып жібереді.
+//
+// Басқа қалаларда бұл тізілім ЖОҚ, сондықтан «Маса» қабаты сол жерде
+// «жоқ» деп көрсетіледі — жуықтап есептелген индекс JAIYQ-MRI емес.
 
-function pointsFor(regionId?: string | null): { region: ReturnType<typeof getRegion>; points: GridPoint[] } {
-  const region = getRegion(regionId);
-  const base = [...buildGrid(region, 5, 5), ...cityPoints(region)];
-  return {
-    region,
-    points: region.id === "atyrau" ? [...base, ...ATYRAU_EXTRA] : base,
-  };
+// Атыраудың облыстық торы — бұрынғы қалпында (шеттері қоса алынады)
+const ATYRAU_BBOX = { latMin: 46.0, latMax: 48.8, lngMin: 49.2, lngMax: 54.8, n: 5 };
+
+function atyrauPoints(): GridPoint[] {
+  const pts: GridPoint[] = [];
+  const { latMin, latMax, lngMin, lngMax, n } = ATYRAU_BBOX;
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      pts.push({
+        lat: +(latMin + ((latMax - latMin) * i) / (n - 1)).toFixed(4),
+        lng: +(lngMin + ((lngMax - lngMin) * j) / (n - 1)).toFixed(4),
+        dense: false,
+      });
+    }
+  }
+  for (const d of ATYRAU_DISTRICTS) pts.push({ ...d, dense: true });
+  return pts;
 }
 
 // Settlements: cities concentrate breeding habitat (containers, tires, drains,
@@ -165,7 +172,15 @@ function fpebIndex(o: {
 const cache = new Map<string, { at: number; data: unknown }>();
 
 export async function GET(req: Request) {
-  const { region, points } = pointsFor(new URL(req.url).searchParams.get("region"));
+  // JAIYQ-MRI — Атыраудың нүктелік тізіліміне, Жайық жайылмасына және
+  // елді мекен салмақтарына сүйенеді. Ол тізілімсіз есептелген сан
+  // JAIYQ-MRI емес — сондықтан басқа қалада «жоқ» деп қайтарылады.
+  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  if (!hasModule(region, "mosquito")) {
+    return NextResponse.json(moduleUnavailable(region, "mosquito"));
+  }
+  const points = atyrauPoints();
+
   const hit = cache.get(region.id);
   if (hit && Date.now() - hit.at < 3600_000) return NextResponse.json(hit.data);
   try {
@@ -273,22 +288,14 @@ export async function GET(req: Request) {
       ? Math.round(idx.reduce((a, b) => a + b, 0) / idx.length)
       : null;
 
-    // Гидрология мен қалалық күшейту коэффициенттері (SETTLEMENTS,
-    // ZHAIYK_PATH) тек Атырау үшін тексерілген. Басқа аймақта олар
-    // қолданылмайды — индекс тек климаттан есептеледі. Мұны ЖАСЫРУ
-    // болмас үшін жауапта ашық жазамыз.
-    const hydrologyRegistry = region.id === "atyrau";
-
     const data = {
       fetchedAt: new Date().toISOString(),
       source: "JAIYQ-MRI · FPEB (Flood-Pulse Egg-Bank) · Open-Meteo (live) + Mordecai термиялық гейт + қос түр (Aedes/Culex)",
       region: { id: region.id, name: region.name },
-      amplification: hydrologyRegistry ? "registry" : "climate-only",
-      amplificationNote: hydrologyRegistry
-        ? "Жайық жайылмасы мен елді мекендер тізілімі қолданылды (қалалық + гидрологиялық күшейту)."
-        : "Бұл аймақ үшін су нысандары мен елді мекендер тізілімі әлі жасалмаған — " +
-          "индекс ТЕК климаттан (температура, ылғалдылық, жауын-шашын) есептелді. " +
-          "Жергілікті жайылма/суару арналары ескерілмеген, сондықтан нақты мән жоғары болуы мүмкін.",
+      amplification: "registry",
+      amplificationNote:
+        "Жайық жайылмасы мен елді мекендер тізілімі қолданылды " +
+        "(қалалық + гидрологиялық күшейту).",
       avgIndex,
       maxIndex: idx.length ? Math.max(...idx) : null,
       gridPoints: grid.length,

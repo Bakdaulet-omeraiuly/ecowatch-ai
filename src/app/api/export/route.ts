@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { csvHeaders, toCsv, withProvenance, type Cell } from "@/lib/csv";
-import { getRegion } from "@/data/regions";
+import { getRegion, hasModule, moduleUnavailable, type ModuleKey } from "@/data/regions";
 
 // Эколог есебі үшін CSV экспорт.
 //
@@ -39,6 +39,15 @@ export async function GET(req: Request) {
   }
   const origin = url.origin;
   const region = getRegion(url.searchParams.get("region"));
+
+  // Аймақтық тізілім қажет ететін жиынтықтар — тізілімсіз қалада бос
+  // немесе бөтен қаланың файлы жасалмайды
+  const DATASET_MODULE: Partial<Record<Dataset, ModuleKey>> = { mosquito: "mosquito" };
+  const needed = DATASET_MODULE[ds];
+  if (needed && !hasModule(region, needed)) {
+    return NextResponse.json(moduleUnavailable(region, needed), { status: 404 });
+  }
+
   const rq = `?region=${region.id}`;
   const today = new Date().toISOString().slice(0, 10);
 

@@ -32,7 +32,7 @@ export type ModuleKey =
   | "drought"        // SPI, ERA5 архиві — жаһандық
   | "wind"           // ECMWF — жаһандық
   | "soil"           // ECMWF топырақ моделі — жаһандық
-  | "mosquito"       // JAIYQ-MRI, метеорологиядан — жаһандық
+  | "mosquito"       // JAIYQ-MRI — Атыраудың тізіліміне сүйенеді, ТІЗІЛІМ керек
   | "flares"         // VIIRS — жаһандық
   | "climate"        // CMIP6 — жаһандық
   | "riverFlow"      // GloFAS өзен нүктелері — ТІЗІЛІМ керек
@@ -43,12 +43,12 @@ export type ModuleKey =
 
 /** Барлық аймақта бар модульдер — жаһандық дереккөзге сүйенеді */
 export const GLOBAL_MODULES: ModuleKey[] = [
-  "air", "weather", "fire", "drought", "wind", "soil", "mosquito", "flares", "climate",
+  "air", "weather", "fire", "drought", "wind", "soil", "flares", "climate",
 ];
 
 /** Аймаққа арнайы тізілім қажет ететін модульдер */
 export const REGISTRY_MODULES: ModuleKey[] = [
-  "riverFlow", "floodExtent", "pollutionSource", "mlForecast", "objects",
+  "mosquito", "riverFlow", "floodExtent", "pollutionSource", "mlForecast", "objects",
 ];
 
 export const MODULE_KZ: Record<ModuleKey, string> = {
@@ -71,7 +71,11 @@ export const MODULE_KZ: Record<ModuleKey, string> = {
 /** Модуль неге жоқ екенін түсіндіру — UI-де сол жазылады */
 export const MODULE_REASON: Record<ModuleKey, string> = {
   air: "", weather: "", fire: "", drought: "", wind: "", soil: "",
-  mosquito: "", flares: "", climate: "",
+  flares: "", climate: "",
+  mosquito:
+    "JAIYQ-MRI Атыраудың 65 нүктелік қала тізіліміне, Жайық жайылмасының " +
+    "сызығына және елді мекен салмақтарына сүйеніп есептеледі. Ол тізілімсіз " +
+    "шыққан сан JAIYQ-MRI емес — тек жалпы климаттық жуықтау болар еді.",
   riverFlow:
     "Өзен ағыны GloFAS-тың нақты арна нүктелерінен алынады. Бұл аймақ үшін " +
     "өзен нүктелерінің тізілімі әлі жасалмаған — жуықтап алу жалған сан берер еді.",
@@ -130,7 +134,9 @@ export const REGIONS: Region[] = [
     coverage: "full",
     // Тек Атырауда: зауыттар тізілімі, тасқын аймақтары, Жайық нүктелері,
     // оқытылған JAIYQ-ML моделі
-    extraModules: ["riverFlow", "floodExtent", "pollutionSource", "mlForecast", "objects"],
+    extraModules: [
+      "mosquito", "riverFlow", "floodExtent", "pollutionSource", "mlForecast", "objects",
+    ],
   },
   {
     id: "aktau",

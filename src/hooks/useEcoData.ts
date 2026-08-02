@@ -138,19 +138,21 @@ export function useAirGrid(enabled: boolean) {
 // Mosquito climate-suitability grid (Open-Meteo)
 export function useMosquitoGrid(enabled: boolean) {
   const region = useRegion();
+  // JAIYQ-MRI тізілімі жоқ аймақта — сұраныс жіберілмейді
+  const missing = !hasModule(region, "mosquito");
   // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [mosGrid, setMosGrid] = useState<MosquitoGridPoint[] | null>(null);
   const [mosError, setMosError] = useState(false);
   useEffect(() => {
-    if (!enabled || loadedFor === region.id) return;
+    if (!enabled || missing || loadedFor === region.id) return;
     fetch(`/api/mosquitogrid?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => setMosGrid(d.grid))
       .catch(() => setMosError(true))
       .finally(() => setLoadedFor(region.id));
-  }, [enabled, loadedFor, region.id]);
-  return { mosGrid, mosError };
+  }, [enabled, missing, loadedFor, region.id]);
+  return { mosGrid, mosError, mosMissing: missing };
 }
 
 // Pollution Source Detection (CAMS + жел → ықтимал өнеркәсіп көзі)
