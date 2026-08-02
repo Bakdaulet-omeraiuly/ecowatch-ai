@@ -65,6 +65,39 @@ export default function MethodologyPage() {
         >
           Толық эко-паспортты ашу (формулалармен) →
         </Link>
+        <Link
+          href="/methodology/jaiyq-mri"
+          className="rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-2 text-purple-200 transition hover:bg-purple-500/20"
+        >
+          🦟 JAIYQ-MRI маса моделінің толық әдістемесі →
+        </Link>
+        <a
+          href="/JAIYQ-MRI-adistemesi.pdf"
+          className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-neutral-300 transition hover:bg-white/10"
+        >
+          PDF (11 бет)
+        </a>
+      </div>
+
+      {/* Маса моделі — жеке құжат. Ол басқа көрсеткіштерден бөлек, себебі
+          бұл жобаның ӨЗ моделі: формуласы, дәлелдері, әлемдік модельдермен
+          салыстыруы және не жетіспейтіні толық жазылған. */}
+      <div className="mb-8 rounded-xl border border-purple-500/25 bg-purple-500/[0.06] p-4">
+        <h2 className="mb-1 text-sm font-semibold text-purple-200">
+          🦟 JAIYQ-MRI — жобаның өз моделі
+        </h2>
+        <p className="text-[12px] leading-relaxed text-neutral-300">
+          Маса тәуекел индексі — сырттан алынған модель емес, осы жоба үшін жасалған
+          тасқын-импульсті жұмыртқа банкі моделі. Толық әдістемесінде формулалар, дереккөздер,
+          жеті әлемдік модельмен салыстыру, «шынымен жаңа ма» деген шыншыл баға және не
+          жетіспейтіні (шешу жолымен қоса) жазылған.
+        </p>
+        <Link
+          href="/methodology/jaiyq-mri"
+          className="mt-2 inline-block text-[12px] text-purple-300 underline-offset-2 hover:underline"
+        >
+          Толық құжатты ашу →
+        </Link>
       </div>
 
       <div className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4">
