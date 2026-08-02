@@ -1,7 +1,13 @@
 // Ластану көзін анықтау (Pollution Source Detection)
 // -----------------------------------------------------------------------------
 // Әдіс: жеңілдетілген CWT (Concentration Weighted Trajectory) + көп-қабылдағыш
-// жел-кері триангуляция + алға Gaussian-plume таралуы.
+// жел-кері триангуляция + Pasquill–Gifford дисперсия конусы.
+//
+// ⚠️ АТАУЫ ТУРАЛЫ: бұрын бұл «Gaussian-plume» деп аталатын, ал шын мәнінде
+// орнықтылық класы, құбыр биіктігі мен шығарынды қарқыны қолданылмайтын.
+// Енді орнықтылық (Pasquill) ЕНГІЗІЛДІ, бірақ құбыр биіктігі мен
+// шығарынды қарқыны әлі жоқ — сондықтан нәтиже САЛЫСТЫРМАЛЫ таралу
+// аймағы, өлшенген концентрация өрісі емес. Атауы соны білдіреді.
 //
 // Ғылыми негіз: CWT/PSCF — HYSPLIT кері-траекторияларына негізделген receptor
 // модельдері (TraPSA). Біз Vercel serverless шектеуіне бола ТҮЗУ-СЫЗЫҚТЫ
@@ -10,6 +16,10 @@
 // жел Open-Meteo-дан, координаттар — ашық өнеркәсіптік деректер.
 
 import { FACILITIES, PLACES, type Facility, type PollutantKey } from "@/data/facilities";
+import {
+  bearingStdDev, coneHalfAngle, kmhToMs, pasquillClass, plumeLengthKm,
+  relativeConcentration, PASQUILL_KZ, PASQUILL_NOTE, type PasquillClass,
+} from "@/lib/dispersion";
 
 // Тірі өлшенетін ластаушылар (voc CAMS-те жоқ, тек профильде қолданылады)
 type MeasuredKey = "so2" | "no2" | "pm";
@@ -65,6 +75,14 @@ export interface Receptor {
   so2: number | null;
   no2: number | null;
   pm: number | null; // pm10
+  /**
+   * ОСЫ НҮКТЕДЕГІ жел. Бұрын бүкіл торға қала орталығының желі
+   * қолданылатын — ал тор ~130 × 120 км. Каспий жағасында бриз бар,
+   * атыраудағы жел қаладағыдан жиі өзгеше. Енді әр қабылдағыштың өз
+   * желі болады; жоқ болса қала желіне шегінеді.
+   */
+  windFrom?: number | null;
+  windSpeed?: number | null; // км/сағ
 }
 
 // Нақты жердегі бақылау стансасы (Qazhydromet/WAQI)
@@ -155,8 +173,27 @@ export interface SourceResult {
   forecast: DispersionStep[]; // бұлттың алдағы 30мин/1сағ/3сағ болжамды орны
   stations: Station[]; // ескерілген нақты жердегі стансалар (картада көрсету)
   groundStations: number; // елеулі сигнал берген станса саны
+  /** Атмосфералық орнықтылық — конустың пішінін БЕЛГІЛЕЙТІН фактор */
+  stability: {
+    cls: PasquillClass;
+    label: string;
+    note: string;
+    /** Жел бағытының соңғы 12 сағаттағы ауытқуы (°) */
+    windDirSigma: number;
+    coneAngle: { total: number; physical: number; wind: number };
+    plumeLengthKm: number;
+  };
+  /** Жел өрісі тор бойынша қаншалық жергілікті */
+  windField: { localPoints: number; totalReceptors: number; note: string };
   method: string;
   note: string;
+}
+
+/** Конус геометриясын анықтайтын жиынтық */
+export interface PlumeGeometry {
+  stability: PasquillClass;
+  windMs: number;
+  dirSigma: number;
 }
 
 const POLLUTANT_LABEL: Record<PollutantKey, string> = {
@@ -166,8 +203,9 @@ const POLLUTANT_LABEL: Record<PollutantKey, string> = {
   voc: "Ұшпа қосылыстар",
 };
 
-// Қала орталығы (қабылдағыш анықтамасы)
-const CITY = { lat: 47.11, lng: 51.92 };
+// Қала орталығы — БІР ЖЕРДЕ анықталады (бұрын бұл файлда 51.92, ал
+// эндпоинтте 51.90 тұрған, ~1,5 км айырма). Енді эндпоинт осыдан оқиды.
+export const CITY = { lat: 47.11, lng: 51.9 };
 
 // Басым ластаушыны таңдау: тор бойынша ең жоғары асуы бар ластаушы
 function dominantPollutant(receptors: Receptor[]): { key: MeasuredKey; strength: number } {
@@ -191,10 +229,24 @@ export function attributePollution(
   windNow: { fromBearing: number; speed: number },
   windHistory: WindHour[],
   stations: Station[] = [],
-  forecastWind: ForecastWind[] = []
+  forecastWind: ForecastWind[] = [],
+  /** Орнықтылық класын анықтауға қажет метео (Pasquill) */
+  air: { isDay: boolean; solarWm2: number | null; cloudPct: number | null } = {
+    isDay: true, solarWm2: null, cloudPct: null,
+  }
 ): SourceResult {
   const { key: pollutant, strength: signal } = dominantPollutant(receptors);
   const toBearing = (windNow.fromBearing + 180) % 360;
+
+  // ── АТМОСФЕРАЛЫҚ ОРНЫҚТЫЛЫҚ (Pasquill) ──────────────────────────────
+  // Ең үлкен физикалық олқылық осы еді: бұрын конус ені ТЕК жел
+  // жылдамдығынан шығатын. Ал орнықтылық шешуші: түнгі F класында
+  // шлейф жіңішке әрі алысқа кетеді, күндізгі A класында кең әрі қысқа.
+  const windMs = kmhToMs(windNow.speed);
+  const stability = pasquillClass(windMs, air.isDay, air.solarWm2, air.cloudPct);
+  // Жел бағытының соңғы сағаттардағы ауытқуы — БЕЛГІСІЗДІК құрамдасы
+  const dirSigma = bearingStdDev(windHistory.slice(-12).map((h) => h.fromBearing));
+  const geo: PlumeGeometry = { stability, windMs, dirSigma };
 
   // Нақты жердегі станса сигналы (AQI 20..150 → 0..1). Датчик модель жаппаған
   // нүктелік шыңды ұстайды — сондықтан бөлек, күшті дереккөз.
@@ -207,12 +259,18 @@ export function attributePollution(
   // Бірнеше қабылдағыш бір көзге сілтесе — қиылыс табиғи түрде күшейеді.
   const spatial: Record<string, number> = {};
   for (const f of FACILITIES) spatial[f.id] = 0;
+  // ⚠️ ӘР ҚАБЫЛДАҒЫШТЫҢ ӨЗ ЖЕЛІ қолданылады. Бұрын бүкіл торға қала
+  // орталығының желі таралатын — ал тор ~130 × 120 км. Каспий жағасында
+  // бриз әсері күшті, сондықтан ол елеулі қате беретін.
+  let localWindUsed = 0;
   for (const r of receptors) {
     const el = elevation(r[pollutant], pollutant);
     if (el <= 0) continue;
+    const rFrom = r.windFrom ?? windNow.fromBearing;
+    if (r.windFrom != null) localWindUsed++;
     for (const f of FACILITIES) {
       const brg = bearing(r.lat, r.lng, f.lat, f.lng);
-      const align = alignment(angularDelta(brg, windNow.fromBearing));
+      const align = alignment(angularDelta(brg, rFrom));
       const dist = distanceFactor(haversineKm(r.lat, r.lng, f.lat, f.lng));
       spatial[f.id] += el * align * dist;
     }
@@ -305,16 +363,32 @@ export function attributePollution(
     },
     candidates,
     top,
-    plume: top ? plumePath(top, toBearing) : [],
-    cone: top ? plumeCone(top, toBearing, windNow.speed) : [],
-    frames: top ? buildFrames(top, windHistory) : [],
-    forecastFrames: top ? buildForecastFrames(top, forecastWind) : [],
+    plume: top ? plumePath(top, toBearing, geo) : [],
+    cone: top ? plumeCone(top, toBearing, windNow.speed, geo) : [],
+    frames: top ? buildFrames(top, windHistory, geo) : [],
+    forecastFrames: top ? buildForecastFrames(top, forecastWind, geo) : [],
     forecast: top ? dispersionForecast(top, forecastWind, windNow) : [],
     stations,
     groundStations: hasGround ? stations.filter((st) => stationEl(st.aqi) > 0).length : 0,
+    stability: {
+      cls: stability,
+      label: PASQUILL_KZ[stability],
+      note: PASQUILL_NOTE[stability],
+      windDirSigma: dirSigma,
+      coneAngle: coneHalfAngle(plumeLengthKm(stability, windMs), stability, dirSigma),
+      plumeLengthKm: plumeLengthKm(stability, windMs),
+    },
+    windField: {
+      localPoints: localWindUsed,
+      totalReceptors: receptors.length,
+      note:
+        localWindUsed > 0
+          ? `Әр қабылдағыштың өз желі қолданылды (${localWindUsed} нүкте) — тор ~130 × 120 км, Каспий бризі себепті бір нүктелік жел жеткіліксіз.`
+          : "Жел тек қала орталығында алынды — тор бойынша бірдей деп есептелді. Бұл ЖУЫҚТАУ: жағалауда бриз әсері бар.",
+    },
     method: hasGround
-      ? "Жеңілдетілген CWT + нақты жердегі станса (Qazhydromet) + Gaussian-plume"
-      : "Жеңілдетілген CWT + көп-қабылдағыш триангуляция + Gaussian-plume (жергілікті масштаб)",
+      ? "Жеңілдетілген CWT + нақты жердегі станса (Qazhydromet) + Pasquill–Gifford дисперсия конусы"
+      : "Жеңілдетілген CWT + көп-қабылдағыш триангуляция + Pasquill–Gifford дисперсия конусы (жергілікті масштаб)",
     note: !detected
       ? "Ластану деңгейі төмен — көз сенімді анықталмайды. Жалған дерек көрсетілмейді."
       : hasGround
@@ -326,21 +400,30 @@ export function attributePollution(
 // --- Алға Gaussian plume: көзден желмен таралу жолы -------------------------
 // Көзден toBearing бағытымен қадамдап жүріп, әр елді мекенді plume конусы
 // (бүйірлік Гаусс жайылу) ішінде ме — тексеріп, концентрациясымен қайтарамыз.
-export function plumePath(source: { lat: number; lng: number }, toBearing: number): PlumeStep[] {
+export function plumePath(
+  source: { lat: number; lng: number },
+  toBearing: number,
+  geo: PlumeGeometry
+): PlumeStep[] {
   const steps: PlumeStep[] = [];
-  const maxKm = 45;
+  const maxKm = plumeLengthKm(geo.stability, geo.windMs);
+  const half = coneHalfAngle(maxKm, geo.stability, geo.dirSigma).total;
+  // Салыстырмалы концентрацияны нормалау үшін — конус өсіндегі ең жақын
+  // нүктедегі мән (2 км) эталон болады
+  const ref = relativeConcentration(2, 0, geo.stability, geo.windMs);
   for (const p of PLACES) {
     const dist = haversineKm(source.lat, source.lng, p.lat, p.lng);
     if (dist > maxKm || dist < 0.5) continue;
     const brg = bearing(source.lat, source.lng, p.lat, p.lng);
     const off = angularDelta(brg, toBearing); // желден бұрыштық ауытқу
-    if (off > 60) continue; // конустан тыс
-    // бүйірлік жайылу (Гаусс) × ұзындық бойынша сұйылу
-    const lateral = Math.exp(-((off / 30) ** 2));
-    const axial = Math.exp(-dist / 30);
-    const relConc = lateral * axial;
-    if (relConc < 0.05) continue;
-    steps.push({ name: p.name, lat: p.lat, lng: p.lng, relConc: +relConc.toFixed(2) });
+    if (off > half) continue; // конустан тыс
+    // Нақты Gaussian plume: бойлық қашықтық пен көлденең ығысу
+    const rad = (off * Math.PI) / 180;
+    const along = dist * Math.cos(rad);
+    const cross = dist * Math.sin(rad);
+    const relConc = relativeConcentration(along, cross, geo.stability, geo.windMs) / Math.max(1e-12, ref);
+    if (relConc < 0.02) continue;
+    steps.push({ name: p.name, lat: p.lat, lng: p.lng, relConc: +Math.min(1, relConc).toFixed(3) });
   }
   return steps.sort((a, b) => {
     const da = haversineKm(source.lat, source.lng, a.lat, a.lng);
@@ -351,7 +434,11 @@ export function plumePath(source: { lat: number; lng: number }, toBearing: numbe
 
 // Уақыт-анимация кадрлары: соңғы сағаттардағы НАҚТЫ желмен конустың қалай
 // қозғалғанын көрсетеді (көз тұрақты, тек жел бағыты өзгереді). Соңғы 24 сағат.
-function buildFrames(top: { lat: number; lng: number }, windHistory: WindHour[]): PlumeFrame[] {
+function buildFrames(
+  top: { lat: number; lng: number },
+  windHistory: WindHour[],
+  geo: PlumeGeometry
+): PlumeFrame[] {
   const withTime = windHistory.filter((h) => h.time);
   const recent = withTime.slice(-24);
   return recent.map((h) => {
@@ -363,14 +450,18 @@ function buildFrames(top: { lat: number; lng: number }, windHistory: WindHour[])
       fromLabel: bearingLabel(h.fromBearing),
       toBearing: Math.round(toB),
       speed: +h.speed.toFixed(1),
-      cone: plumeCone(top, toB, h.speed),
+      cone: plumeCone(top, toB, h.speed, geo),
     };
   });
 }
 
 // АЛДАҒЫ 24 сағаттағы БОЛЖАМ желмен конустың қозғалысы (анимация).
 // Жел деректері нақты (Open-Meteo болжам). Көз тұрақты, жел бағыты өзгереді.
-function buildForecastFrames(top: { lat: number; lng: number }, forecastWind: ForecastWind[]): PlumeFrame[] {
+function buildForecastFrames(
+  top: { lat: number; lng: number },
+  forecastWind: ForecastWind[],
+  geo: PlumeGeometry
+): PlumeFrame[] {
   return forecastWind.slice(0, 24).map((w) => {
     const toB = (w.fromBearing + 180) % 360;
     const hour = w.time ? w.time.slice(11, 16) : "";
@@ -380,7 +471,7 @@ function buildForecastFrames(top: { lat: number; lng: number }, forecastWind: Fo
       fromLabel: bearingLabel(w.fromBearing),
       toBearing: Math.round(toB),
       speed: +w.speed.toFixed(1),
-      cone: plumeCone(top, toB, w.speed),
+      cone: plumeCone(top, toB, w.speed, geo),
     };
   });
 }
@@ -429,15 +520,21 @@ function dispersionForecast(
   });
 }
 
-// Алға Gaussian дисперсия конусы: көзден желмен таралу аймағы (GeoJSON сақина).
-// Жел қатты болса — конус ұзын әрі жіңішке; баяу болса — қысқа әрі жалпақ.
+// ДИСПЕРСИЯ КОНУСЫ — Pasquill–Gifford негізінде.
+//
+// Ені екі құрамдастан: 2σy(x) физикалық жайылуы (орнықтылық класына
+// тәуелді) + жел бағытының соңғы 12 сағаттағы ауытқуы (белгісіздік).
+//
+// ⚠️ Бұрын жарты бұрыш 14–30° болатын — ол шындықтан 3–5 есе кең.
+// 10 км-де нақты 2σy жарты бұрышы: A класы 17°, D 6,5°, F 3,2°.
 export function plumeCone(
   source: { lat: number; lng: number },
   toBearing: number,
-  windSpeed: number
+  windSpeed: number,
+  geo: PlumeGeometry
 ): [number, number][] {
-  const lengthKm = Math.max(15, Math.min(45, 15 + windSpeed * 3)); // жел қатты → алысқа
-  const halfAngle = Math.max(14, 30 - windSpeed * 1.2); // жел қатты → тар конус
+  const lengthKm = plumeLengthKm(geo.stability, kmhToMs(windSpeed));
+  const halfAngle = coneHalfAngle(lengthKm, geo.stability, geo.dirSigma).total;
   const ring: [number, number][] = [[source.lng, source.lat]];
   const steps = 12;
   for (let i = 0; i <= steps; i++) {
