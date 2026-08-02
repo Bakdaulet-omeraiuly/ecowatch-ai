@@ -531,10 +531,19 @@ export function plumeCone(
   source: { lat: number; lng: number },
   toBearing: number,
   windSpeed: number,
-  geo: PlumeGeometry
+  geo: PlumeGeometry,
+  /**
+   * Сызбадағы ең кіші жарты бұрыш (тек көрнекілік үшін).
+   * Есептеу мен қабаттасу тексерісі ӘРҚАШАН нақты бұрышпен жүреді:
+   * бұл параметр сервер жағында 0, тек картада қолданылады.
+   */
+  minVisualDeg = 0
 ): [number, number][] {
   const lengthKm = plumeLengthKm(geo.stability, kmhToMs(windSpeed));
-  const halfAngle = coneHalfAngle(lengthKm, geo.stability, geo.dirSigma).total;
+  const halfAngle = Math.max(
+    minVisualDeg,
+    coneHalfAngle(lengthKm, geo.stability, geo.dirSigma).total
+  );
   const ring: [number, number][] = [[source.lng, source.lat]];
   const steps = 12;
   for (let i = 0; i <= steps; i++) {

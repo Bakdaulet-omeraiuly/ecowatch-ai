@@ -12,6 +12,7 @@ import {
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
 import { plumeCone } from "@/lib/pollutionSource";
+import { MIN_VISUAL_HALF_ANGLE } from "@/lib/dispersion";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { ATMOS_ELEMENTS, ATMOS_CATEGORIES, type AtmosElement } from "@/data/atmosElements";
@@ -425,7 +426,12 @@ export function MapView() {
       windMs: source.wind.speed / 3.6,
       dirSigma: source.stability.windDirSigma,
     };
-    const polys = selectedFacs.map((f) => [plumeCone({ lat: f.lat, lng: f.lng }, toB, spd, geo)]);
+    // Сызбада кемінде MIN_VISUAL_HALF_ANGLE — түнгі орнықты қабатта
+    // нақты бұрыш 2–3°-қа түсіп, конус экранда көрінбей қалады.
+    // Панельде НАҚТЫ бұрыш жазылады, есептеу де нақтысымен жүреді.
+    const polys = selectedFacs.map((f) => [
+      plumeCone({ lat: f.lat, lng: f.lng }, toB, spd, geo, MIN_VISUAL_HALF_ANGLE),
+    ]);
     return {
       type: "FeatureCollection" as const,
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "MultiPolygon" as const, coordinates: polys } }],
@@ -1206,17 +1212,18 @@ export function MapView() {
               id="plume-cone-fill"
               type="fill"
               paint={{
-                "fill-color": source?.detected ? "#ef4444" : "#94a3b8",
-                "fill-opacity": source?.detected ? 0.14 : 0.07,
+                "fill-color": source?.detected ? "#ef4444" : "#7dd3fc",
+                "fill-opacity": source?.detected ? 0.18 : 0.13,
               }}
             />
             <Layer
               id="plume-cone-outline"
               type="line"
               paint={{
-                "line-color": source?.detected ? "#f87171" : "#94a3b8",
-                "line-width": 1,
-                "line-opacity": source?.detected ? 0.4 : 0.3,
+                // Жіңішке конустың контуры толтырудан гөрі жақсы көрінеді
+                "line-color": source?.detected ? "#f87171" : "#7dd3fc",
+                "line-width": 2,
+                "line-opacity": source?.detected ? 0.65 : 0.55,
                 "line-dasharray": source?.detected ? [1, 0] : [3, 2],
               }}
             />
@@ -2006,6 +2013,14 @@ export function MapView() {
                       {source.stability.coneAngle.wind}° {tr("жел бағытының ауытқуы")}
                       <br />
                       {tr("Ұзындығы")}: {source.stability.plumeLengthKm} {tr("км")}
+                      {source.stability.coneAngle.total < 3 && (
+                        <>
+                          <br />
+                          <span className="text-amber-200/70">
+                            ⚠ {tr("Сызбада көрнекілік үшін 3° етіп салынған — нақты бұрыш жоғарыда.")}
+                          </span>
+                        </>
+                      )}
                     </div>
                   </div>
                 )}
