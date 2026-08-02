@@ -2081,6 +2081,19 @@ export function MapView() {
                             />
                           </div>
                         )}
+                        {mosFlood.hydroperiodDaysMax != null && (
+                          <div className="mt-1.5 flex items-center gap-1.5 rounded bg-white/5 px-1.5 py-1">
+                            <span className="text-[9px] text-neutral-400">
+                              {tr("Гидропериод")}:
+                            </span>
+                            <span className="text-[10px] font-semibold text-sky-200">
+                              ≥ {mosFlood.hydroperiodDaysMax} {tr("күн")}
+                            </span>
+                            <span className="ml-auto text-[8px] text-neutral-500">
+                              {tr("дернәсіл ~7–14 күн керек")}
+                            </span>
+                          </div>
+                        )}
                         <p className="mt-1 text-[9px] leading-snug text-neutral-400">{mosFlood.note}</p>
                       </div>
                     )}

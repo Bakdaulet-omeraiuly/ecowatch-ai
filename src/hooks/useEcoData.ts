@@ -72,6 +72,8 @@ export interface FloodSignal {
   sarZonesOk: number;
   sarPctMax: number | null;
   glofasRatio: number | null;
+  /** Су кемінде қанша күн тұрды — ең ұзағы (SAR өлшемі) */
+  hydroperiodDaysMax: number | null;
   note: string;
 }
 export interface MosquitoGridPoint {
@@ -82,6 +84,8 @@ export interface MosquitoGridPoint {
   floodSusceptibility?: number;
   /** Өлшенген тасқын импульсі (Sentinel-1 + GloFAS) — уақытпен өзгереді */
   floodPulse?: number | null;
+  /** Су кемінде қанша күн тұрды (SAR). null — өлшенбеген */
+  hydroperiodDays?: number | null;
   temperature: number;
   humidity: number;
   weekRainMm: number;

@@ -161,3 +161,66 @@ export function baselineWindow(now: Date): { from: string; to: string; label: st
     label: `${year} ж. 15 қыркүйек – 31 қазан (төмен су кезеңі)`,
   };
 }
+
+// ── ГИДРОПЕРИОД ──────────────────────────────────────────────────────────
+//
+// «Су неше күн тұрды» — JAIYQ-MRI моделінің L2 қабатындағы негізгі шарт:
+// дернәсіл ересекке жету үшін көлшік ЖЕТКІЛІКТІ ҰЗАҚ тұруы керек. Су басып,
+// үш күнде кеуіп кетсе — маса шықпайды.
+//
+// ⚠️ ДӘЛДІК ШЕГІ: Sentinel-1 қайталау кезеңі ~6 күн. Сондықтан бұл сан
+// «дәл N күн» емес, «КЕМІНДЕ N күн» дегенді білдіреді. Екі өту арасында
+// су кеуіп, қайта басуы мүмкін — радар оны көрмейді. Осы себепті
+// нәтижеде `atLeast: true` белгісі беріледі.
+//
+// Әдісі: соңғы өтуден артқа қарай, су тірек деңгейінен жоғары болған
+// ҚАТАРЛАС өтулерді санаймыз. Аралық — сол өтулердің күндері арасы.
+
+/** Тірек деңгейінен қанша артық болса «су басқан» деп саналады (үлес) */
+export const HYDRO_EXCESS = 0.02;
+
+export interface Hydroperiod {
+  /** Кемінде осынша күн су тұрды */
+  days: number;
+  /** Есептеуге негіз болған өтулер саны */
+  passes: number;
+  firstDate: string;
+  lastDate: string;
+  /** Әрқашан true — SAR қайталау кезеңі себепті бұл төменгі шек */
+  atLeast: true;
+}
+
+/**
+ * Тірек деңгейімен салыстырып, судың қанша күн тұрғанын бағалау.
+ * @param days   ағымдағы терезенің тәуліктік статистикасы (күні бойынша реттелген)
+ * @param baselineFraction тірек кезеңдегі медиана су үлесі
+ */
+export function hydroperiod(
+  days: DayStat[],
+  baselineFraction: number
+): Hydroperiod | null {
+  const usable = days
+    .filter((d) => d.coverage >= MIN_COVERAGE)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (usable.length < 2) return null;
+
+  const wet = (d: DayStat) => d.waterFraction > baselineFraction + HYDRO_EXCESS;
+
+  // Соңғы өту су басқан күйде болмаса — қазір су тұрған жоқ
+  const last = usable[usable.length - 1];
+  if (!wet(last)) return null;
+
+  // Артқа қарай қатарлас «су басқан» өтулерді жинаймыз
+  let i = usable.length - 1;
+  while (i - 1 >= 0 && wet(usable[i - 1])) i--;
+  const first = usable[i];
+
+  const ms = new Date(last.date).getTime() - new Date(first.date).getTime();
+  return {
+    days: Math.max(1, Math.round(ms / 86400_000)),
+    passes: usable.length - i,
+    firstDate: first.date,
+    lastDate: last.date,
+    atLeast: true,
+  };
+}

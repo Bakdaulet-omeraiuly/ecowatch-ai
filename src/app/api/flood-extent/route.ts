@@ -5,7 +5,7 @@ import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 import { cdseToken, hasCdseKeys } from "@/lib/cdse";
 import {
   MIN_COVERAGE, RES_M, THRESHOLD_DB,
-  baselineWindow, fetchDailyWater, median, pixelAreaKm2,
+  baselineWindow, fetchDailyWater, hydroperiod, median, pixelAreaKm2,
   type DayStat,
 } from "@/lib/floodSar";
 
@@ -24,7 +24,10 @@ import {
 
 export const revalidate = 21600; // 6 сағат (S1 қайталау кезеңі ~6 күн)
 
-const CURRENT_WINDOW_DAYS = 14; // соңғы қайталау кезеңін қамтиды
+// 14 күн — соңғы қайталау кезеңін қамтиды (ағымдағы су ауданы үшін).
+// 36 күн — гидропериод үшін: S1 қайталауы ~6 күн болғандықтан кемінде
+// 5-6 өту жинақталады, сонда «су неше күн тұрды» деп бағалауға болады.
+const CURRENT_WINDOW_DAYS = 36;
 
 interface ZoneResult {
   id: string;
@@ -34,6 +37,9 @@ interface ZoneResult {
   zoneAreaKm2: number;
   latestDate: string | null;
   coverage: number | null;
+  /** Су кемінде қанша күн тұрды (S1 өтулері бойынша) */
+  hydroperiodDays: number | null;
+  hydroperiodPasses: number;
   observedKm2: number | null;
   waterKm2: number | null;
   baselineKm2: number | null;
@@ -100,7 +106,8 @@ export async function GET(req: Request) {
           if (!latest) {
             return { ...shell, latestDate: null, coverage: null, observedKm2: null,
               waterKm2: null, baselineKm2: null, floodedKm2: null,
-              floodedPctOfZone: null, baselineDates: 0, status: "no-data" as const };
+              floodedPctOfZone: null, baselineDates: 0,
+              hydroperiodDays: null, hydroperiodPasses: 0, status: "no-data" as const };
           }
 
           const observedKm2 = latest.validPixels * pxKm2;
@@ -114,7 +121,8 @@ export async function GET(req: Request) {
               observedKm2: round(observedKm2, 1),
               waterKm2: round(waterKm2, 1),
               baselineKm2: null, floodedKm2: null, floodedPctOfZone: null,
-              baselineDates: 0, status: "no-baseline" as const };
+              baselineDates: 0,
+              hydroperiodDays: null, hydroperiodPasses: 0, status: "no-baseline" as const };
           }
 
           // Тірек — медиана (бір күндік шудан қорғайды).
@@ -123,6 +131,10 @@ export async function GET(req: Request) {
           const baselineFraction = median(basUsable.map((d) => d.waterFraction));
           const baselineKm2 = baselineFraction * observedKm2;
           const floodedKm2 = Math.max(0, waterKm2 - baselineKm2);
+
+          // ГИДРОПЕРИОД — су тірек деңгейінен жоғары болып қанша күн тұрды.
+          // JAIYQ-MRI L2 үшін: дернәсіл ересекке жетуге үлгерді ме.
+          const hp = hydroperiod(cur, baselineFraction);
 
           return { ...shell,
             latestDate: latest.date,
@@ -133,12 +145,15 @@ export async function GET(req: Request) {
             floodedKm2: round(floodedKm2, 1),
             floodedPctOfZone: round((floodedKm2 / shell.zoneAreaKm2) * 100, 2),
             baselineDates: basUsable.length,
+            hydroperiodDays: hp?.days ?? null,
+            hydroperiodPasses: hp?.passes ?? 0,
             status: "ok" as const };
         } catch (e) {
           console.error(`flood-extent ${z.id}:`, e);
           return { ...shell, latestDate: null, coverage: null, observedKm2: null,
             waterKm2: null, baselineKm2: null, floodedKm2: null,
-            floodedPctOfZone: null, baselineDates: 0, status: "no-data" as const };
+            floodedPctOfZone: null, baselineDates: 0,
+            hydroperiodDays: null, hydroperiodPasses: 0, status: "no-data" as const };
         }
       })
     );

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { type GridPoint } from "@/lib/regionGrid";
 import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
 import { ATYRAU_DISTRICTS } from "@/data/atyrauDistricts";
-import { fetchFloodPulse, pulseAt } from "@/lib/floodPulse";
+import { fetchFloodPulse, hydroDaysAt, pulseAt } from "@/lib/floodPulse";
 
 // Live mosquito environmental-suitability grid for the Atyrau region.
 // Methodology: climate-driven suitability (the approach used by WHO/ECDC/VECTRI
@@ -158,15 +158,47 @@ const EGG_READY = [0.05, 0.05, 0.12, 0.45, 0.9, 1.0, 0.95, 0.8, 0.5, 0.2, 0.07, 
 const AEDES_W = [0.2, 0.2, 0.4, 0.85, 0.9, 0.85, 0.7, 0.5, 0.4, 0.3, 0.2, 0.2];
 const CULEX_W = [0.1, 0.1, 0.15, 0.3, 0.5, 0.7, 0.9, 0.95, 0.7, 0.4, 0.15, 0.1];
 
+// ── ДЕРНӘСІЛДІҢ ДАМУ УАҚЫТЫ τ(T) ────────────────────────────────────────
+//
+// Модель құжатының L2 шарты: су ≥ τ(T) күн тұрса ғана дернәсіл ересекке
+// жетеді. Үш күнде кеуіп қалған көлшіктен маса шықпайды.
+//
+// Әдісі — градус-күн (degree-day) жуықтауы: даму жылдамдығы табалдырықтан
+// жоғары температураға пропорционал.
+//   τ(T) = DD / (T − T_base),  T_base ≈ 10 °C (кулициндік табалдырық)
+// DD ≈ 150 градус-күн (жұмыртқа → ересек).
+//
+// ⚠️ Бұл — ЖУЫҚТАУ. Aedes caspius үшін жергілікті калибрленген параметр
+// жоқ, DD мәні әдебиеттегі кулициндік шамалардан алынған. Дәл сан емес,
+// шама реті: 25 °C → ~10 күн, 30 °C → ~7.5 күн, 15 °C → ~30 күн.
+const DEGREE_DAYS = 150;
+const T_BASE = 10;
+function tauDays(t: number): number {
+  return DEGREE_DAYS / Math.max(1, t - T_BASE);
+}
+
 function fpebIndex(o: {
   t: number; rh: number; soil: number | null; rain: number;
   flood: number; urban: number; month: number;
+  /** Су кемінде қанша күн тұрды (SAR өлшемі). null — өлшенбеген */
+  hydroDays: number | null;
 }): number {
   const phiT = tempSuitability(o.t); // температура гейті (Mordecai)
   if (phiT <= 0) return 0;
   const egg = EGG_READY[o.month];
   const hatch = clamp01(0.5 * o.flood + 0.3 * soilFactor(o.soil) + 0.2 * rainFactor(o.rain)); // тасқын-импульс
-  const hydro = clamp01(0.6 * soilFactor(o.soil) + 0.4 * o.flood); // гидропериод (тірі қалу)
+
+  // ГИДРОПЕРИОД — тірі қалу шарты.
+  //   · SAR өлшеген болса: су τ(T) күннен ұзақ тұрса — толық (1.0)
+  //   · Өлшенбеген болса: бұрынғыдай топырақ ылғалы + импульс проксиі
+  // Өлшенген жағдайда да топырақ проксиі ТӨМЕНГІ ШЕК болып қалады:
+  // Sentinel-1 (10–30 м) ұсақ көлшіктер мен арықтарды көрмейді, ал маса
+  // солардан да көбейеді. Сондықтан «SAR су көрмеді» = «су жоқ» емес.
+  const hydroProxy = clamp01(0.6 * soilFactor(o.soil) + 0.4 * o.flood);
+  const hydro =
+    o.hydroDays == null
+      ? hydroProxy
+      : Math.max(clamp01(o.hydroDays / tauDays(o.t)), 0.5 * hydroProxy);
   const aedes = egg * hatch * hydro; // тасқын-су Aedes ересек индексі
   const culex = clamp01(0.5 * o.flood + 0.5 * o.urban) * humidityFactor(o.rh); // тұрақты-су Culex
   const species = clamp01(AEDES_W[o.month] * aedes + CULEX_W[o.month] * culex);
@@ -233,6 +265,8 @@ export async function GET(req: Request) {
         const susceptibility = floodplainFactor(d.latitude, d.longitude);
         const pulseHere = pulseAt(pulse, d.latitude, d.longitude);
         const flood = pulseHere == null ? susceptibility : susceptibility * pulseHere;
+        // Гидропериод тек өлшенген бақылау терезесінде болады
+        const hydroDays = hydroDaysAt(pulse, d.latitude, d.longitude);
 
         const times = d.daily?.time ?? [];
         const tmax = d.daily?.temperature_2m_max ?? [];
@@ -247,7 +281,7 @@ export async function GET(req: Request) {
           let rain = 0;
           for (let k = Math.max(0, i - 6); k <= i; k++) rain += precip[k] ?? 0;
           return {
-            index: fpebIndex({ t, rh, soil, rain, flood, urban, month }),
+            index: fpebIndex({ t, rh, soil, rain, flood, urban, month, hydroDays }),
             temp: +t.toFixed(1),
             rainMm: +rain.toFixed(1),
           };
@@ -276,7 +310,7 @@ export async function GET(req: Request) {
           const hsoil = hSoil[i] ?? soil;
           return {
             time: hTime[i] ?? "",
-            index: fpebIndex({ t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month }),
+            index: fpebIndex({ t, rh: hrh, soil: hsoil, rain: dayRain, flood, urban, month, hydroDays }),
             temp: +t.toFixed(1),
           };
         });
@@ -292,6 +326,8 @@ export async function GET(req: Request) {
           // «бейім әрі су басқан» айырмасы UI-де көрінуі үшін
           floodSusceptibility: +susceptibility.toFixed(2),
           floodPulse: pulseHere == null ? null : +pulseHere.toFixed(2),
+          /** Су кемінде қанша күн тұрды (SAR). null — өлшенбеген */
+          hydroperiodDays: hydroDays,
           index: days[0].index, // today (back-compat)
           temperature: days[0].temp,
           humidity: rh,
@@ -324,6 +360,11 @@ export async function GET(req: Request) {
         sarZonesOk: pulse.sarZonesOk,
         sarPctMax: pulse.sarPct,
         glofasRatio: pulse.glofasRatio,
+        /** Терезелердегі ең ұзақ гидропериод (күн, «кемінде») */
+        hydroperiodDaysMax:
+          pulse.byZone.map((z) => z.hydroDays).filter((d): d is number => d != null).length
+            ? Math.max(...pulse.byZone.map((z) => z.hydroDays ?? 0))
+            : null,
         note: pulse.note,
       },
       avgIndex,
