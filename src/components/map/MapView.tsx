@@ -544,12 +544,15 @@ export function MapView() {
   const [gibsPanelOpen, setGibsPanelOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 1024); // оң жақ спутник панелі — мобильде жиналған
   // Сағаттық режим: 0..23 (әдепкі — қазіргі сағат). Иконкалар сағат сайын
   // координата бойынша қайта шоғырланады.
-  const [mosHour, setMosHour] = useState(() => new Date().getHours());
+  // Сағаттық терезе: өткен 24 + алдағы 24 = 48 нүкте, ортасы «қазір».
+  // `null` — пайдаланушы әлі жылжытпаған, сондықтан «қазірде» тұрады.
+  const [mosHour, setMosHour] = useState<number | null>(null);
   const [mosPlaying, setMosPlaying] = useState(false);
-  // Нақты уақыт өткен сайын әдепкі көрсетілетін сағат жаңарады (ойнатпаса)
+  // Нақты уақыт өткен сайын әдепкі көрсетілетін сағат жаңарады (ойнатпаса).
+  // `null` — «қазірде тұр» дегені, ол деректен есептеледі.
   useEffect(() => {
     if (mosPlaying || activeLayer !== "mosquito") return;
-    const t = setInterval(() => setMosHour(new Date().getHours()), 60_000);
+    const t = setInterval(() => setMosHour(null), 60_000);
     return () => clearInterval(t);
   }, [mosPlaying, activeLayer]);
 
@@ -566,15 +569,22 @@ export function MapView() {
   }, [timelapsePlaying, historyMode]);
 
   // Анимация: 24 сағатты сағат сайын айналдыру
-  useEffect(() => {
-    if (!mosPlaying || activeLayer !== "mosquito") return;
-    const t = setInterval(() => setMosHour((h) => (h + 1) % 24), 450);
-    return () => clearInterval(t);
-  }, [mosPlaying, activeLayer]);
 
   // Таңдалған сағаттың индексі (болмаса — ағымдағы)
-  const mosHourIndex = (p: MosquitoGridPoint) => p.hours?.[mosHour]?.index ?? p.index;
   const mosHours = mosGrid?.[0]?.hours;
+  const mosNowIdx = mosGrid?.[0]?.nowIndex ?? 24;
+  // Деректер жүктелгенше де дұрыс жұмыс істеуі үшін — туынды шама
+  const mosIdx = Math.min(mosHour ?? mosNowIdx, Math.max(0, (mosHours?.length ?? 1) - 1));
+  const mosHourIndex = (p: MosquitoGridPoint) => p.hours?.[mosIdx]?.index ?? p.index;
+
+  // Сағаттық анимация — 48 сағаттық терезе бойымен айналады
+  useEffect(() => {
+    if (!mosPlaying || activeLayer !== "mosquito") return;
+    const len = Math.max(1, mosHours?.length ?? 48);
+    const t = setInterval(() => setMosHour((h) => ((h ?? mosNowIdx) + 1) % len), 450);
+    return () => clearInterval(t);
+  }, [mosPlaying, activeLayer, mosHours?.length, mosNowIdx]);
+
 
   const mosStats = useMemo(() => {
     if (!mosGrid?.length) return null;
@@ -586,7 +596,7 @@ export function MapView() {
       hottest: mosGrid.reduce((a, b) => (mosHourIndex(b) > mosHourIndex(a) ? b : a)),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mosGrid, mosHour]);
+  }, [mosGrid, mosIdx]);
 
   // Қала аудандары бойынша рейтинг — осы сағаттағы FPEB индексі, ретімен
   const mosDistricts = useMemo(() => {
@@ -596,7 +606,7 @@ export function MapView() {
       .map((p) => ({ name: p.name as string, index: mosHourIndex(p) }))
       .sort((a, b) => b.index - a.index);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mosGrid, mosHour]);
+  }, [mosGrid, mosIdx]);
 
   const airStats = useMemo(() => {
     const vals = (airGrid ?? []).map(elemVal).filter((v): v is number => v != null);
@@ -673,7 +683,7 @@ export function MapView() {
       })),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allSites, activeLayer, airGrid, mosGrid, mosHour, airHour, airElem, soilGrid, wasteSites]);
+  }, [allSites, activeLayer, airGrid, mosGrid, mosIdx, airHour, airElem, soilGrid, wasteSites]);
 
   // Grid layers need a wide radius — sparse regional points
   const isGridLayer = activeLayer === "air" || activeLayer === "mosquito" || activeLayer === "soil";
@@ -705,7 +715,7 @@ export function MapView() {
       };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeLayer, mosGrid, mosHour]);
+  }, [activeLayer, mosGrid, mosIdx]);
 
   const analyzeAt = useCallback(
     async (lat: number, lng: number, opts?: { zoom?: number; areaKm2?: number; imageUrl?: string }) => {
@@ -2162,7 +2172,7 @@ export function MapView() {
                   <div className="mt-2 rounded-lg bg-white/5 p-2">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[9px] font-semibold uppercase tracking-wide text-purple-300">
-                        {tr("Аудандар бойынша")} · {String(mosHour).padStart(2, "0")}:00
+                        {tr("Аудандар бойынша")} · {(mosHours?.[mosIdx]?.time ?? "").slice(11, 16) || "—"}
                       </span>
                       <span className="text-[8px] text-neutral-500">{mosDistricts.length} {tr("аудан")}</span>
                     </div>
@@ -2189,22 +2199,30 @@ export function MapView() {
                   <div className="mt-2 rounded-lg bg-purple-500/10 p-2">
                     <div className="mb-1 flex items-center justify-between">
                       <span className="text-[10px] font-semibold text-purple-200">
-                        {String(mosHour).padStart(2, "0")}:00 {mosHour === new Date().getHours() ? `(${tr("қазір")})` : ""}
+                        {(() => {
+                          const h = mosHours[mosIdx];
+                          if (!h?.time) return "—";
+                          const [dt, tm] = h.time.split("T");
+                          const hhmm = (tm ?? "").slice(0, 5);
+                          return mosIdx === mosNowIdx
+                            ? `${hhmm} (${tr("қазір")})`
+                            : `${dt.slice(5).replace("-", ".")} ${hhmm}`;
+                        })()}
                       </span>
                       <button
                         onClick={() => setMosPlaying((v) => !v)}
                         className="flex items-center gap-1 rounded bg-purple-500/25 px-1.5 py-0.5 text-[10px] text-purple-100 hover:bg-purple-500/40"
                       >
                         {mosPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                        {mosPlaying ? tr("Тоқтату") : tr("24 сағат")}
+                        {mosPlaying ? tr("Тоқтату") : tr("48 сағат")}
                       </button>
                     </div>
                     <input
                       type="range"
                       min={0}
-                      max={23}
+                      max={Math.max(0, mosHours.length - 1)}
                       step={1}
-                      value={mosHour}
+                      value={mosIdx}
                       onChange={(e) => {
                         setMosPlaying(false);
                         setMosHour(Number(e.target.value));
@@ -2212,10 +2230,16 @@ export function MapView() {
                       className="w-full accent-purple-400"
                     />
                     <div className="mt-0.5 flex justify-between text-[8px] text-neutral-500">
-                      <span>00</span><span>06</span><span>12</span><span>18</span><span>23</span>
+                      <span>−24{tr("сағ")}</span>
+                      <span className="text-purple-300">{tr("қазір")}</span>
+                      <span>+24{tr("сағ")}</span>
                     </div>
-                    <p className="mt-1 text-[9px] text-neutral-400">
-                      {mosHours[mosHour]?.temp}°C — {tr("иконкалар осы сағаттың нақты жағдайымен шоғырланады (Open-Meteo)")}
+                    <p className="mt-1 text-[9px] leading-snug text-neutral-400">
+                      {mosHours[mosIdx]?.temp}°C ·{" "}
+                      <span className={mosHours[mosIdx]?.past ? "text-neutral-300" : "text-sky-300"}>
+                        {mosHours[mosIdx]?.past ? tr("өткен") : tr("болжам")}
+                      </span>{" "}
+                      — {tr("иконкалар осы сағаттың нақты жағдайымен шоғырланады (Open-Meteo)")}
                     </p>
                   </div>
                 )}

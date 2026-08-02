@@ -238,6 +238,8 @@ export default function DashboardPage() {
   // моделінен оқиды: /api/mosquitogrid → grid[].days.
   const mosMissing = !hasModule(region, "mosquito");
   const [mosDays, setMosDays] = useState<{ date: string; index: number; temp: number; rainMm: number }[] | null>(null);
+  // Өткен 24 сағат + алдағы 24 сағат — басқа эко қабаттармен бірдей терезе
+  const [mosHours, setMosHours] = useState<{ time: string; index: number; temp: number; past?: boolean }[] | null>(null);
   const [mosMeta, setMosMeta] = useState<{ avgIndex: number | null; maxIndex: number | null; points: number; flood: FloodSignal | null; dyn: MosquitoDynamics | null } | null>(null);
   const [mosLoadedFor, setMosLoadedFor] = useState<string | null>(null);
 
@@ -246,7 +248,7 @@ export default function DashboardPage() {
     fetch(`/api/mosquitogrid?region=${region.id}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => {
-        const grid = (d.grid ?? []) as { days?: { date: string; index: number; temp: number; rainMm: number }[] }[];
+        const grid = (d.grid ?? []) as { days?: { date: string; index: number; temp: number; rainMm: number }[]; hours?: { time: string; index: number; temp: number; past?: boolean }[] }[];
         // Тор бойынша орташа — облыстың жалпы бейнесі
         const n = grid[0]?.days?.length ?? 0;
         const days = Array.from({ length: n }, (_, i) => {
@@ -261,6 +263,23 @@ export default function DashboardPage() {
           };
         });
         setMosDays(days);
+
+        // Сағаттық терезе: тор бойынша орташа, «қазір» шекарасымен
+        const hs = (grid[0] as { hours?: { time: string; past?: boolean }[] })?.hours ?? [];
+        const hourly = hs.map((h, i) => {
+          const vals = grid
+            .map((g) => (g as { hours?: { index: number; temp: number }[] }).hours?.[i])
+            .filter(Boolean) as { index: number; temp: number }[];
+          const avg = (k: "index" | "temp") =>
+            vals.length ? vals.reduce((a, v) => a + v[k], 0) / vals.length : 0;
+          return {
+            time: h.time,
+            past: h.past,
+            index: Math.round(avg("index")),
+            temp: +avg("temp").toFixed(1),
+          };
+        });
+        setMosHours(hourly);
         setMosMeta({
           avgIndex: d.avgIndex ?? null,
           maxIndex: d.maxIndex ?? null,
@@ -620,6 +639,43 @@ export default function DashboardPage() {
                     </p>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* ӨТКЕН 24 САҒАТ + АЛДАҒЫ 24 САҒАТ — эко қабаттармен бірдей терезе */}
+              {mosHours && mosHours.length > 1 && (
+                <ChartCard
+                  title={tr("Өткен 24 сағат + алдағы 24 сағат — JAIYQ-MRI (тор бойынша орташа)")}
+                >
+                  <AreaChart data={mosHours}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis
+                      dataKey="time"
+                      stroke="#737373"
+                      fontSize={10}
+                      tickFormatter={(t: string) => (t ?? "").slice(11, 16)}
+                      minTickGap={28}
+                    />
+                    <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
+                    <Tooltip
+                      contentStyle={tooltipStyle}
+                      labelFormatter={(t) => String(t ?? "").replace("T", " ").slice(5, 16)}
+                    />
+                    {/* «Қазір» шекарасы — сол жағы өлшенген ауа райы,
+                        оң жағы ресми болжам */}
+                    {(() => {
+                      const nowAt = mosHours.find((h) => !h.past)?.time;
+                      return nowAt ? (
+                        <ReferenceLine
+                          x={nowAt}
+                          stroke="#a855f7"
+                          strokeDasharray="4 4"
+                          label={{ value: tr("қазір"), fill: "#a855f7", fontSize: 11 }}
+                        />
+                      ) : null;
+                    })()}
+                    <Area type="monotone" dataKey="index" name={tr("Маса индексі")} stroke="#a855f7" fill="#a855f733" strokeWidth={2} />
+                  </AreaChart>
+                </ChartCard>
               )}
 
               <ChartCard

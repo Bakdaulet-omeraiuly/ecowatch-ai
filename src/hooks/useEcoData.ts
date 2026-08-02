@@ -102,7 +102,9 @@ export interface MosquitoGridPoint {
   humidity: number;
   weekRainMm: number;
   days?: MosquitoDay[];
-  hours?: { time: string; index: number; temp: number }[];
+  hours?: { time: string; index: number; temp: number; past?: boolean }[];
+  /** `hours` ішіндегі «қазір» индексі — өткен/алдағы шекарасы */
+  nowIndex?: number;
   dense?: boolean;
   name?: string;
 }
