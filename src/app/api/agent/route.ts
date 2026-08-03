@@ -8,6 +8,7 @@ import { scoreToLevel } from "@/lib/risk";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import type { AnalysisResult } from "@/types/site";
 import { AGENT_SYSTEM, langDirective } from "@/lib/prompts";
+import { aiFailure } from "@/lib/aiError";
 
 // AI Agent: a multi-source assessment. It does NOT rely on satellite imagery
 // alone — it also pulls LIVE official data for the exact point (Copernicus CAMS
@@ -141,12 +142,16 @@ export async function POST(req: Request) {
   } catch (err) {
     console.error("Agent error:", err);
     // ЖАЛҒАН ДЕРЕККЕ ШЕГІНУ ЖОҚ — жобаның басты қағидасы.
+    // Бірақ СЕБЕБІ жасырылмайды: қай ақау екені нақты айтылады.
+    const f = aiFailure(err);
     return NextResponse.json(
       {
         error: "AI агент уақытша қолжетімсіз",
         detail:
+          `${f.reason} ${f.fix} ` +
           "Ойдан бағалау жасалмайды. Тірі деректер (CAMS ауа сапасы, Open-Meteo " +
           "ауа райы, JAIYQ-MRI маса индексі) төменде — олар нақты әрі AI-сыз да жұмыс істейді.",
+        reason: f.code,
         imageUrl,
         live,
         mri,
