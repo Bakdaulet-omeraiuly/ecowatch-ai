@@ -4,6 +4,7 @@ import { z } from "zod";
 import { allow } from "@/lib/ratelimit";
 import { LAYER_BY_KEY, type EcoLayer } from "@/data/ecoLayers";
 import { LEGAL_DISCLAIMER } from "@/data/legalNorms";
+import { aiFailure } from "@/lib/aiError";
 
 // ЭКО ҚАБАТТЫҢ AI ТАЛДАУЫ — БӨЛЕК эндпоинт, БӨЛЕК батырма.
 //
@@ -167,10 +168,12 @@ export async function POST(req: Request) {
     });
   } catch (err) {
     console.error("layer-ai error:", err);
+    const f = aiFailure(err);
     return NextResponse.json(
       {
         error: "AI талдауы уақытша қолжетімсіз",
-        detail: "Ойдан талдау жасалмайды. Нақты деректер «Нақты деректер» қойындысында.",
+        detail: `${f.reason} ${f.fix} Ойдан талдау жасалмайды. Нақты деректер «Нақты деректер» қойындысында.`,
+        reason: f.code,
       },
       { status: 503 }
     );

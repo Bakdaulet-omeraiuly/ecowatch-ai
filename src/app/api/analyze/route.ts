@@ -7,6 +7,7 @@ import { satelliteImageUrl, historicalImageUrl } from "@/lib/mapbox";
 import { scoreToLevel } from "@/lib/risk";
 import { ANALYZE_SYSTEM, analyzeUserPrompt, langDirective } from "@/lib/prompts";
 import type { AnalysisResult } from "@/types/site";
+import { aiFailure } from "@/lib/aiError";
 
 const reqSchema = z.object({
   mode: z.enum(["satellite", "photo", "combined"]),
@@ -178,6 +179,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ analysis, imageUrl, mock: false });
   } catch (err) {
     console.error("Analyze error:", err);
+    const f = aiFailure(err);
     // ЖАЛҒАН ДЕРЕККЕ ШЕГІНУ ЖОҚ. Бұрын мұнда ойдан жасалған талдау
     // қайтарылатын («демо ешқашан құламасын» деп) — ол синустан шыққан
     // санды «NDVI» мен «сенімділік 78%» етіп көрсететін де, нақтысымен
@@ -186,8 +188,10 @@ export async function POST(req: Request) {
       {
         error: "AI талдауы уақытша қолжетімсіз",
         detail:
+          `${f.reason} ${f.fix} ` +
           "Ойдан талдау жасалмайды. Осы нүктенің нақты спутник өлшемдерін " +
           "«ML индекстері» бөлімінен көруге болады (Sentinel-2).",
+        reason: f.code,
         imageUrl,
       },
       { status: 503 }

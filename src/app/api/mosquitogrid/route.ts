@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { type GridPoint } from "@/lib/regionGrid";
 import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
-import { ATYRAU_DISTRICTS } from "@/data/atyrauDistricts";
+import { ATYRAU_DISTRICTS, ATYRAU_OBLAST_SETTLEMENTS } from "@/data/atyrauDistricts";
 import { fetchFloodPulse, hydroDaysAt, pulseAt, reedAt } from "@/lib/floodPulse";
 import {
   EGG_READY, emergencePeak, integrateFpeb, normalizeAdults, tauDays,
@@ -23,8 +23,8 @@ export const revalidate = 3600;
 // dense=true → қала нүктесі (иконкалар тығыз шоғырланады);
 // dense=false → облыстық тор ұяшығы (иконкалар кең таралады).
 //
-// ⚠️ АТЫРАУ ҮШІН ТОР ДӘЛ БҰРЫНҒЫДАЙ: облыстық 5×5 тор (25 нүкте) +
-// қаланың 65 нүктелік тізілімі = 90 нүкте. Аймақ ауысатын болғанда бұл
+// ⚠️ АТЫРАУ ТОРЫ: облыстық 5×5 тор (25 нүкте) + қаланың 65 нүктелік
+// тізілімі + қала сыртындағы 7 елді мекен = 97 нүкте. Аймақ ауысатын болғанда бұл
 // тор жалпы `buildGrid`-ке ауысып, 37 нүктеге дейін азайып кеткен еді —
 // сол қате қайтарылды. MRI-дің бүкіл мәні қала ІШІНДЕГІ айырмада,
 // оны 5×5 тор жасырып жібереді.
@@ -48,6 +48,10 @@ function atyrauPoints(): GridPoint[] {
     }
   }
   for (const d of ATYRAU_DISTRICTS) pts.push({ ...d, dense: true });
+  // Қала сыртындағы аудан орталықтары мен кенттер. `dense: true` — себебі
+  // бұлар да АТЫ БАР нақты нүктелер (тор ұяшығы емес), сондықтан рейтингте
+  // өз атымен көрінуі керек.
+  for (const s of ATYRAU_OBLAST_SETTLEMENTS) pts.push({ ...s, dense: true });
   return pts;
 }
 
@@ -120,10 +124,10 @@ function floodplainFactor(lat: number, lng: number): number {
 
 // SPIN-UP ТЕРЕЗЕСІ — FPEB интеграциясының драйвері.
 //
-// Негізгі сұраныс сағаттық деректі 7+7 күнге ғана алады (одан ұзақ болса
-// жауап тым үлкен: 90 нүкте × 24 сағат × 4 айнымалы). Ал динамикалық
-// модельге 30 күндік «жүгіріс» керек — сондықтан ТЕК ТӘУЛІКТІК
-// температура бөлек, жеңіл сұраныспен алынады (90 × 44 × 2 сан).
+// Негізгі сұраныс сағаттық деректі қысқа терезеде алады (төмендегі
+// HOURLY_PAST/HOURLY_FORECAST). Ал динамикалық модельге 30 күндік
+// «жүгіріс» керек — сондықтан ТЕК ТӘУЛІКТІК температура бөлек, жеңіл
+// сұраныспен алынады (97 × 44 × 2 сан).
 const SPINUP_PAST = 30;
 const SPINUP_FORECAST = 14;
 const SPINUP_URL = (points: GridPoint[]) =>
@@ -133,14 +137,47 @@ const SPINUP_URL = (points: GridPoint[]) =>
   `&daily=temperature_2m_max,temperature_2m_min` +
   `&past_days=${SPINUP_PAST}&forecast_days=${SPINUP_FORECAST}&timezone=auto`;
 
+// ── СҰРАНЫС ТЕРЕЗЕЛЕРІ ───────────────────────────────────────────────────
+//
+// ⚠️ НЕГЕ САҒАТТЫҚ ПЕН ТӘУЛІКТІК БӨЛЕК СҰРАЛАДЫ
+//
+// Бұрын екеуі БІР сұраныста, `past_days=7&forecast_days=7` терезесімен
+// алынатын. Open-Meteo-да `past_days` сағаттыққа да, тәуліктікке де
+// БІРДЕЙ қолданылады, ал екеуінің қажеттігі әртүрлі:
+//   · тәуліктік — 7 күн артқа (жинақталған жаңбыр) + 7 күн алға (болжам)
+//   · сағаттық  — тек 48 сағат (өткен 24 + алдағы 24)
+// Нәтижесінде сағаттық дерек 336 сағатқа сұралып, 48-і ғана
+// пайдаланылатын — ЖЕТІ ЕСЕ артық жүктеме.
+//
+// Салдары: 97 нүкте × 4 айнымалы × 336 сағат ≈ 130 000 сан. Open-Meteo
+// тегін лимиті сұранысты локация × айнымалы × күн бойынша салмақтайды,
+// сондықтан бір ғана сұраныс минуттық шекті тауысып, 429 қайтаратын —
+// қабат «Тірі ауа райы деректері уақытша қолжетімсіз» деп тұратын.
+//
+// Енді екі бөлек сұраныс: сағаттық ЖЕҢІЛ терезеде, тәуліктік бұрынғы
+// қалпында. Модель ештеңе жоғалтпайды — 48 сағаттық терезе бәрібір
+// толық сыяды. Үстіне `precipitation` сағаттық айнымалысы алынып
+// тасталды: ол сұралатын, бірақ ЕШҚАЙДА қолданылмайтын (жаңбыр
+// тәуліктік `precipitation_sum`-нан алынады).
+const HOURLY_PAST = 2;
+const HOURLY_FORECAST = 2;
+const DAILY_PAST = 7;
+const DAILY_FORECAST = 7;
+
 const SRC_URL = (points: GridPoint[]) =>
   `https://api.open-meteo.com/v1/forecast` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
   `&current=relative_humidity_2m,soil_moisture_0_to_1cm` +
-  `&hourly=temperature_2m,relative_humidity_2m,precipitation,soil_moisture_0_to_1cm` +
+  `&hourly=temperature_2m,relative_humidity_2m,soil_moisture_0_to_1cm` +
+  `&past_days=${HOURLY_PAST}&forecast_days=${HOURLY_FORECAST}&timezone=auto`;
+
+const DAILY_URL = (points: GridPoint[]) =>
+  `https://api.open-meteo.com/v1/forecast` +
+  `?latitude=${points.map((p) => p.lat).join(",")}` +
+  `&longitude=${points.map((p) => p.lng).join(",")}` +
   `&daily=temperature_2m_max,temperature_2m_min,precipitation_sum` +
-  `&past_days=7&forecast_days=7&timezone=auto`;
+  `&past_days=${DAILY_PAST}&forecast_days=${DAILY_FORECAST}&timezone=auto`;
 
 // ── ТЕМПЕРАТУРА ГЕЙТІ Φ_T ────────────────────────────────────────────────
 //
@@ -266,14 +303,24 @@ export async function GET(req: Request) {
     // қосымша кідіріс бермейді. Қолжетімсіз болса `value: null` қайтады
     // да, модель әлсіретілген режимде жұмыс істеп, ол ашық жазылады.
     const origin = new URL(req.url).origin;
-    const [res, spinRes, pulse] = await Promise.all([
+    const [res, dailyRes, spinRes, pulse] = await Promise.all([
       fetch(SRC_URL(points), { next: { revalidate: 3600 } }),
+      fetch(DAILY_URL(points), { next: { revalidate: 3600 } }),
       fetch(SPINUP_URL(points), { next: { revalidate: 3600 } }),
       fetchFloodPulse(origin, region.id),
     ]);
     if (!res.ok) throw new Error(`upstream ${res.status}`);
+    if (!dailyRes.ok) throw new Error(`upstream daily ${dailyRes.status}`);
     const arr = await res.json();
     const list = Array.isArray(arr) ? arr : [arr];
+
+    // Тәуліктік дерек БӨЛЕК сұраныстан келеді (жоғарыдағы түсініктемені
+    // қара). Нүкте реті екі жауапта да бірдей — сұраныстағы координаталар
+    // тізбегі бірдей. Оны әр нүктенің өз нысанына қосамыз, сонда төмендегі
+    // талдау коды бұрынғыдай `d.daily` арқылы оқи береді.
+    const dailyArr = await dailyRes.json();
+    const dailyList = Array.isArray(dailyArr) ? dailyArr : [dailyArr];
+    for (let i = 0; i < list.length; i++) list[i].daily = dailyList[i]?.daily;
     const month = new Date().getMonth(); // FPEB айлық фенология салмағы үшін
 
     // Spin-up тәуліктік температурасы (нүкте бойынша)
@@ -297,7 +344,6 @@ export async function GET(req: Request) {
           time?: string[];
           temperature_2m?: (number | null)[];
           relative_humidity_2m?: (number | null)[];
-          precipitation?: (number | null)[];
           soil_moisture_0_to_1cm?: (number | null)[];
         };
         daily?: {
@@ -371,8 +417,10 @@ export async function GET(req: Request) {
         const tmax = d.daily?.temperature_2m_max ?? [];
         const tmin = d.daily?.temperature_2m_min ?? [];
         const precip = d.daily?.precipitation_sum ?? [];
-        // index 7 = today (past_days=7 puts today at offset 7)
-        const todayIdx = 7;
+        // Бүгін тәуліктік массивте DAILY_PAST орнында тұрады
+        // (past_days=N → бүгін = offset N). Тұрақтыға байланған:
+        // терезе өзгерсе, ығысу да өзімен бірге өзгереді.
+        const todayIdx = DAILY_PAST;
 
         const dayIndex = (i: number) => {
           const t = ((tmax[i] ?? 0) + (tmin[i] ?? 0)) / 2;
@@ -389,8 +437,8 @@ export async function GET(req: Request) {
           };
         };
 
-        // 7-day forecast starting today
-        const days = Array.from({ length: 7 }, (_, k) => {
+        // Бүгіннен бастап DAILY_FORECAST күндік болжам
+        const days = Array.from({ length: DAILY_FORECAST }, (_, k) => {
           const i = todayIdx + k;
           const calc = dayIndex(i);
           return { date: times[i] ?? "", ...calc };
@@ -414,7 +462,8 @@ export async function GET(req: Request) {
         const offsetMs = (d.utc_offset_seconds ?? 0) * 1000;
         const nowLocal = Date.now() + offsetMs;
         let cur = hTime.findIndex((t) => new Date(t).getTime() > nowLocal);
-        cur = cur < 0 ? 7 * 24 : Math.max(0, cur - 1); // қамтылмаса — бүгін 00:00
+        // Қамтылмаса — бүгін 00:00 (сағаттық массивте HOURLY_PAST × 24 орны)
+        cur = cur < 0 ? HOURLY_PAST * 24 : Math.max(0, cur - 1);
         const from = Math.max(0, Math.min(cur - 24, Math.max(0, hTime.length - 48)));
         const count = Math.min(48, Math.max(0, hTime.length - from));
         const nowIndex = cur - from;
