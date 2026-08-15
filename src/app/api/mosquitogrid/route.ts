@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { type GridPoint } from "@/lib/regionGrid";
 import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
-import { ATYRAU_DISTRICTS } from "@/data/atyrauDistricts";
+import { ATYRAU_DISTRICTS, ATYRAU_OBLAST_SETTLEMENTS } from "@/data/atyrauDistricts";
 import { fetchFloodPulse, hydroDaysAt, pulseAt, reedAt } from "@/lib/floodPulse";
 import {
   EGG_READY, emergencePeak, integrateFpeb, normalizeAdults, tauDays,
@@ -23,8 +23,8 @@ export const revalidate = 3600;
 // dense=true → қала нүктесі (иконкалар тығыз шоғырланады);
 // dense=false → облыстық тор ұяшығы (иконкалар кең таралады).
 //
-// ⚠️ АТЫРАУ ҮШІН ТОР ДӘЛ БҰРЫНҒЫДАЙ: облыстық 5×5 тор (25 нүкте) +
-// қаланың 65 нүктелік тізілімі = 90 нүкте. Аймақ ауысатын болғанда бұл
+// ⚠️ АТЫРАУ ТОРЫ: облыстық 5×5 тор (25 нүкте) + қаланың 65 нүктелік
+// тізілімі + қала сыртындағы 7 елді мекен = 97 нүкте. Аймақ ауысатын болғанда бұл
 // тор жалпы `buildGrid`-ке ауысып, 37 нүктеге дейін азайып кеткен еді —
 // сол қате қайтарылды. MRI-дің бүкіл мәні қала ІШІНДЕГІ айырмада,
 // оны 5×5 тор жасырып жібереді.
@@ -48,6 +48,10 @@ function atyrauPoints(): GridPoint[] {
     }
   }
   for (const d of ATYRAU_DISTRICTS) pts.push({ ...d, dense: true });
+  // Қала сыртындағы аудан орталықтары мен кенттер. `dense: true` — себебі
+  // бұлар да АТЫ БАР нақты нүктелер (тор ұяшығы емес), сондықтан рейтингте
+  // өз атымен көрінуі керек.
+  for (const s of ATYRAU_OBLAST_SETTLEMENTS) pts.push({ ...s, dense: true });
   return pts;
 }
 
