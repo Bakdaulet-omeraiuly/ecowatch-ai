@@ -67,7 +67,7 @@ export default function MethodologyPage() {
         </Link>
         <Link
           href="/methodology/jaiyq-mri"
-          className="rounded-lg border border-purple-500/30 bg-purple-500/10 px-3 py-2 text-purple-200 transition hover:bg-purple-500/20"
+          className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-violet-200 transition hover:bg-violet-500/20"
         >
           🦟 JAIYQ-MRI маса моделінің толық әдістемесі →
         </Link>
@@ -82,8 +82,8 @@ export default function MethodologyPage() {
       {/* Маса моделі — жеке құжат. Ол басқа көрсеткіштерден бөлек, себебі
           бұл жобаның ӨЗ моделі: формуласы, дәлелдері, әлемдік модельдермен
           салыстыруы және не жетіспейтіні толық жазылған. */}
-      <div className="mb-8 rounded-xl border border-purple-500/25 bg-purple-500/[0.06] p-4">
-        <h2 className="mb-1 text-sm font-semibold text-purple-200">
+      <div className="mb-8 rounded-xl border border-violet-500/25 bg-violet-500/[0.06] p-4">
+        <h2 className="mb-1 text-sm font-semibold text-violet-200">
           🦟 JAIYQ-MRI — жобаның өз моделі
         </h2>
         <p className="text-[13px] leading-relaxed text-neutral-300">
@@ -94,7 +94,7 @@ export default function MethodologyPage() {
         </p>
         <Link
           href="/methodology/jaiyq-mri"
-          className="mt-2 inline-block text-[13px] text-purple-300 underline-offset-2 hover:underline"
+          className="mt-2 inline-block text-[13px] text-violet-300 underline-offset-2 hover:underline"
         >
           Толық құжатты ашу →
         </Link>

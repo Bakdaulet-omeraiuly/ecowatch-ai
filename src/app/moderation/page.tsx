@@ -36,7 +36,7 @@ type FilterType = "all" | "pending" | "confirmed" | "contradicted";
 
 const STATUS_CFG = {
   confirmed:    { label: "Расталды",     cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
-  unconfirmed:  { label: "Тексеруде",    cls: "bg-yellow-500/15  text-yellow-300  border-yellow-500/30"  },
+  unconfirmed:  { label: "Тексеруде",    cls: "bg-amber-500/15  text-amber-300  border-amber-500/30"  },
   contradicted: { label: "Өшірілген",    cls: "bg-red-500/15     text-red-300     border-red-500/30"     },
   pending:      { label: "Күтілуде",     cls: "bg-neutral-500/15 text-neutral-300 border-neutral-500/30" },
 };
@@ -148,7 +148,7 @@ function ModerationPageInner() {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {(["all", "pending", "confirmed", "contradicted"] as FilterType[]).map((f) => {
           const labels: Record<FilterType, string> = { all: "Барлығы", pending: "Күтілуде", confirmed: "Расталған", contradicted: "Өшірілген" };
-          const colors: Record<FilterType, string> = { all: "text-white", pending: "text-yellow-300", confirmed: "text-emerald-300", contradicted: "text-red-300" };
+          const colors: Record<FilterType, string> = { all: "text-white", pending: "text-amber-300", confirmed: "text-emerald-300", contradicted: "text-red-300" };
           return (
             <button
               key={f}
@@ -251,7 +251,7 @@ function ModerationPageInner() {
                         <button
                           onClick={() => update(r.id, "unconfirmed")}
                           disabled={isBusy || r.verification_status === "unconfirmed"}
-                          className="flex items-center gap-1 rounded-md border border-yellow-500/30 bg-yellow-500/10 px-2.5 py-1 text-xs text-yellow-300 hover:bg-yellow-500/20 disabled:opacity-40"
+                          className="flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300 hover:bg-amber-500/20 disabled:opacity-40"
                         >
                           <Clock className="h-3.5 w-3.5" /> {tr("Тексеруде")}
                         </button>

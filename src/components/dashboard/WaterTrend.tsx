@@ -43,11 +43,11 @@ export function WaterTrend() {
   const trendCls = data?.trend === "азайды" ? "text-red-300" : data?.trend === "артты" ? "text-sky-300" : "text-neutral-300";
 
   return (
-    <Card className="border-teal-500/20 bg-teal-500/[0.04]">
+    <Card className="border-emerald-500/20 bg-emerald-500/[0.04]">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm text-white">
           <TierBadge tier="model" />
-          <Waves className="h-4 w-4 text-teal-400" />
+          <Waves className="h-4 w-4 text-emerald-400" />
           {data ? `${tr("Су деңгейінің өзгерісі")} — ${data.river} (2020→${tr("қазір")})` : tr("Су деңгейінің өзгерісі — өзен ағыны")}
         </CardTitle>
         <p className="text-[13px] text-neutral-400">

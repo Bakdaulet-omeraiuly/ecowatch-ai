@@ -12,7 +12,7 @@ interface WhyData { verdict: string; aqi: number | null; summary: string; factor
 
 const SEV = {
   ok: { cls: "text-emerald-300 border-emerald-500/30 bg-emerald-500/[0.06]", Icon: CheckCircle2 },
-  warn: { cls: "text-yellow-300 border-yellow-500/30 bg-yellow-500/[0.06]", Icon: Wind },
+  warn: { cls: "text-amber-300 border-amber-500/30 bg-amber-500/[0.06]", Icon: Wind },
   bad: { cls: "text-red-300 border-red-500/30 bg-red-500/[0.06]", Icon: AlertTriangle },
 };
 

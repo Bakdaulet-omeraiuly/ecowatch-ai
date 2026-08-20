@@ -22,7 +22,7 @@ interface MlIndicesResult {
 
 const verificationUi = {
   confirmed: { icon: CheckCircle2, label: "Расталды", cls: "text-emerald-400 bg-emerald-500/10" },
-  unconfirmed: { icon: AlertTriangle, label: "Расталмады", cls: "text-yellow-400 bg-yellow-500/10" },
+  unconfirmed: { icon: AlertTriangle, label: "Расталмады", cls: "text-amber-400 bg-amber-500/10" },
   contradicted: { icon: XCircle, label: "Қайшы келеді", cls: "text-red-400 bg-red-500/10" },
 };
 
@@ -328,7 +328,7 @@ export function AnalysisDrawer({
                 );
               })()}
               <div className="flex items-center gap-1.5 text-xs text-neutral-300">
-                <Bug className="h-3.5 w-3.5 text-purple-400" />
+                <Bug className="h-3.5 w-3.5 text-violet-400" />
                 {tr("Маса индексі")}: <b>{site.mosquitoRiskIndex}</b>/100
               </div>
             </div>

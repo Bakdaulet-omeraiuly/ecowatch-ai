@@ -22,7 +22,7 @@ export function LocationPicker({
 
   if (!token) {
     return (
-      <p className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-xs text-neutral-400">
+      <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-neutral-400">
         Mapbox токені жоқ — координатты қолмен енгізіңіз.
       </p>
     );

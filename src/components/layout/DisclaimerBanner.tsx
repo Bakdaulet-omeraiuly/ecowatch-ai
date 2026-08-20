@@ -14,7 +14,7 @@ export function DisclaimerBanner() {
   }, []);
   if (!show) return null;
   return (
-    <div className="flex items-start gap-2 border-b border-yellow-500/20 bg-yellow-500/[0.06] px-3 py-1.5 text-[13px] leading-snug text-yellow-200/90">
+    <div className="flex items-start gap-2 border-b border-amber-500/20 bg-amber-500/[0.06] px-3 py-1.5 text-[13px] leading-snug text-amber-200/90">
       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <span className="flex-1">
         {tr(
@@ -24,7 +24,7 @@ export function DisclaimerBanner() {
       <button
         onClick={() => { localStorage.setItem("jaiyq-disclaimer", "1"); setShow(false); }}
         aria-label="Жабу"
-        className="shrink-0 text-yellow-300/70 hover:text-yellow-200"
+        className="shrink-0 text-amber-300/70 hover:text-amber-200"
       >
         <X className="h-3.5 w-3.5" />
       </button>
