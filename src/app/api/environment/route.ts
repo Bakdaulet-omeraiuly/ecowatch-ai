@@ -14,7 +14,7 @@ const WEATHER_URL = (LAT: number, LNG: number) => `https://api.open-meteo.com/v1
   `&timezone=auto`;
 
 const AIR_URL = (LAT: number, LNG: number) => `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${LAT}&longitude=${LNG}` +
-  `&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,european_aqi` +
+  `&current=pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,carbon_monoxide,european_aqi` +
   `&hourly=pm2_5,pm10,european_aqi&past_days=30&forecast_days=3&timezone=auto`;
 
 interface DailyPoint {
@@ -76,6 +76,10 @@ export async function GET(req: Request) {
         so2: air.current?.sulphur_dioxide ?? null,
         ozone: air.current?.ozone ?? null,
         dust: air.current?.dust ?? null,
+        // ⚠️ CAMS CO-ны µg/m³-пен береді. Норма тізілімінде де µg/m³
+        // қолданылады, сондықтан айналдыру ЖОҚ — mg/m³-ке ауыстыру
+        // жерінде қате шығу қаупі болар еді (5 mg/m³ = 5000 µg/m³).
+        co: air.current?.carbon_monoxide ?? null,
         europeanAqi: air.current?.european_aqi ?? null,
       },
       daily: dailyMeans(air.hourly?.time ?? [], air.hourly?.pm2_5 ?? [], air.hourly?.pm10 ?? []),
