@@ -49,7 +49,7 @@ export function LocationPicker({
           )}
         </Map>
       </div>
-      <div className="bg-neutral-900/80 px-3 py-1.5 text-[11px] text-neutral-400">
+      <div className="bg-neutral-900/80 px-3 py-1.5 text-[13px] text-neutral-400">
         {lat != null && lng != null
           ? `Таңдалды: ${lat.toFixed(5)}, ${lng.toFixed(5)} — басқа жерді басып өзгертуге болады`
           : hover

@@ -62,7 +62,11 @@ export function Navbar() {
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
           onPointerCancel={endDrag}
-          className="flex min-w-0 flex-1 cursor-grab items-center gap-1 overflow-x-auto select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          // Сырғымалы жолақ: соңында ЖҰМСАҚ СӨНУ бар (mask-image).
+          // Бұрын скроллбар жасырылған да, сөну де жоқ еді — сондықтан
+          // сілтеме экран шетінде кенет кесіліп, «бет бұзылған» деген
+          // әсер туатын. Енді ол «әрі қарай да бар» деп өзі көрсетеді.
+          className="flex min-w-0 flex-1 cursor-grab items-center gap-1 overflow-x-auto select-none active:cursor-grabbing [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden [mask-image:linear-gradient(to_right,black_calc(100%-28px),transparent)]"
         >
           {links.map((l) => (
             <Link
@@ -94,10 +98,10 @@ export function Navbar() {
               key={l}
               onClick={() => setLang(l)}
               className={cn(
-                "px-1.5 py-1 text-[10px] font-medium uppercase transition-colors sm:px-2 sm:text-xs",
+                "px-1.5 py-1 text-[12px] font-medium uppercase transition-colors sm:px-2 sm:text-xs",
                 lang === l
                   ? "bg-emerald-500/20 text-emerald-300"
-                  : "text-neutral-500 hover:bg-white/5 hover:text-white"
+                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
               )}
             >
               {l === "kk" ? "KZ" : l === "ru" ? "RU" : "EN"}

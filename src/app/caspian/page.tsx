@@ -42,7 +42,7 @@ const fmt = (v: number | null, d = 1) =>
   v == null ? "—" : v.toLocaleString("kk-KZ", { minimumFractionDigits: d, maximumFractionDigits: d });
 
 function aqiColor(aqi: number | null): string {
-  if (aqi == null) return "text-neutral-500";
+  if (aqi == null) return "text-neutral-400";
   if (aqi > 80) return "text-red-300";
   if (aqi > 50) return "text-orange-300";
   if (aqi > 25) return "text-amber-300";
@@ -114,8 +114,8 @@ export default function CaspianPage() {
               <TierBadge tier="model" />
               <span className="text-sm font-semibold text-sky-100">{tr("Салыстыру неге тең")}</span>
             </div>
-            <p className="text-[12px] leading-relaxed text-sky-100/85">{d.method}</p>
-            <p className="mt-1.5 text-[11px] text-neutral-400">{d.source}</p>
+            <p className="text-[13px] leading-relaxed text-sky-100/85">{d.method}</p>
+            <p className="mt-1.5 text-[13px] text-neutral-400">{d.source}</p>
           </div>
 
           {/* Рейтинг */}
@@ -128,16 +128,16 @@ export default function CaspianPage() {
                 <div key={c.id} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base">{COUNTRY_FLAG[c.country]}</span>
-                    <span className="text-[13px] font-medium text-neutral-100">{c.name}</span>
-                    <span className="text-[10px] text-neutral-500">{c.countryName}</span>
+                    <span className="text-[14px] font-medium text-neutral-100">{c.name}</span>
+                    <span className="text-[12px] text-neutral-400">{c.countryName}</span>
                     {c.jurisdiction === "KZ" && (
-                      <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[9px] text-emerald-200">
+                      <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[12px] text-emerald-200">
                         {tr("ҚР нормасы да тексерілді")}
                       </span>
                     )}
                     <span className={`ml-auto text-xl font-bold ${aqiColor(c.values.aqi)}`}>
                       {c.values.aqi ?? "—"}
-                      <span className="ml-1 text-[10px] font-normal text-neutral-500">AQI</span>
+                      <span className="ml-1 text-[12px] font-normal text-neutral-400">AQI</span>
                     </span>
                   </div>
 
@@ -153,14 +153,14 @@ export default function CaspianPage() {
                     />
                   </div>
 
-                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px]">
+                  <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
                     <Pol label="PM₂.₅" v={c.values.pm25} c={c.compliance.pm25} tr={tr} />
                     <Pol label="PM₁₀" v={c.values.pm10} c={c.compliance.pm10} tr={tr} />
                     <Pol label="NO₂" v={c.values.no2} c={c.compliance.no2} tr={tr} />
                     <Pol label="SO₂" v={c.values.so2} c={c.compliance.so2} tr={tr} />
                   </div>
 
-                  <p className="mt-1.5 text-[10px] leading-relaxed text-neutral-500">
+                  <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-400">
                     {c.context} · <span className="text-neutral-400">{tr("Қысым")}:</span> {c.pressure}
                   </p>
                 </div>
@@ -173,8 +173,8 @@ export default function CaspianPage() {
             <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-amber-200">
               <AlertTriangle className="h-4 w-4" /> {tr("Заңнама туралы")}
             </div>
-            <p className="text-[12px] leading-relaxed text-amber-100/90">{d.legalNote}</p>
-            <p className="mt-2 text-[12px] leading-relaxed text-amber-100/80">
+            <p className="text-[13px] leading-relaxed text-amber-100/90">{d.legalNote}</p>
+            <p className="mt-2 text-[13px] leading-relaxed text-amber-100/80">
               {CASPIAN_FACTS.legalNote}
             </p>
           </section>
@@ -182,17 +182,17 @@ export default function CaspianPage() {
           {/* Шектеулер */}
           <section className="mb-6">
             <h2 className="mb-2 text-sm font-semibold text-white">{tr("Шектеулер")}</h2>
-            <ul className="space-y-1 text-[11px] leading-relaxed text-neutral-400">
+            <ul className="space-y-1 text-[13px] leading-relaxed text-neutral-400">
               {d.caveats.map((c, i) => (
                 <li key={i}>⚠ {c}</li>
               ))}
             </ul>
-            <p className="mt-2 text-[11px] leading-relaxed text-neutral-400">
+            <p className="mt-2 text-[13px] leading-relaxed text-neutral-400">
               {CASPIAN_FACTS.note}
             </p>
           </section>
 
-          <footer className="border-t border-white/10 pt-3 text-[10px] text-neutral-500">
+          <footer className="border-t border-white/10 pt-3 text-[12px] text-neutral-400">
             {tr("Жүктелген")}: {d.fetchedAt.replace("T", " ").slice(0, 16)} UTC · Jaiyq ·
             ecojaiyq.com ·{" "}
             <Link href="/methodology" className="text-sky-300 hover:underline">
@@ -217,7 +217,7 @@ export default function CaspianPage() {
 function Stat({ label, value, warn, good }: { label: string; value: string; warn?: boolean; good?: boolean }) {
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-      <div className="text-[9px] uppercase tracking-wide text-neutral-500">{label}</div>
+      <div className="text-[12px] uppercase tracking-wide text-neutral-400">{label}</div>
       <div className={`truncate text-base font-bold ${warn ? "text-orange-300" : good ? "text-emerald-300" : "text-white"}`}>
         {value}
       </div>
@@ -231,18 +231,18 @@ function Pol({
   const who = c.checks.find((x) => x.act.jurisdiction === "WHO");
   return (
     <span className="inline-flex items-center gap-1">
-      <span className="text-neutral-500">{label}</span>
+      <span className="text-neutral-400">{label}</span>
       <span className="font-medium text-neutral-100">{fmt(v)}</span>
       {who && (
         <span
-          className={`rounded border px-1 py-px text-[9px] ${LEVEL_COLOR[c.worst]}`}
+          className={`rounded border px-1 py-px text-[12px] ${LEVEL_COLOR[c.worst]}`}
           title={`${tr("WHO шегі")}: ${who.norm.limit} ${who.norm.unit} · ${c.summary}`}
         >
           {Math.round(who.ratio * 100)}% {tr("WHO")}
         </span>
       )}
       {!who && c.worst !== "unknown" && (
-        <span className={`rounded border px-1 py-px text-[9px] ${LEVEL_COLOR[c.worst]}`}>
+        <span className={`rounded border px-1 py-px text-[12px] ${LEVEL_COLOR[c.worst]}`}>
           {tr(LEVEL_KZ[c.worst])}
         </span>
       )}

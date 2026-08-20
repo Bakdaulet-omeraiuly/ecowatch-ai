@@ -46,7 +46,7 @@ export default function AlertsPage() {
           <Card key={st} className="border-white/10 bg-white/[0.03]">
             <CardContent className="pt-3 pb-3 text-center">
               <div className="text-xl font-bold text-white">{counts[st]}</div>
-              <div className={`mx-auto mt-1 w-fit rounded-full px-2 py-0.5 text-[10px] ${STATUS_UI[st].cls}`}>
+              <div className={`mx-auto mt-1 w-fit rounded-full px-2 py-0.5 text-[12px] ${STATUS_UI[st].cls}`}>
                 {tr(STATUS_UI[st].label)}
               </div>
             </CardContent>
@@ -85,12 +85,12 @@ export default function AlertsPage() {
                         >
                           {tr(RISK_LABELS_KZ[alert.riskLevel])} · {alert.riskScore}
                         </Badge>
-                        <span className={`rounded-full px-2 py-0.5 text-[11px] ${STATUS_UI[status].cls}`}>
+                        <span className={`rounded-full px-2 py-0.5 text-[13px] ${STATUS_UI[status].cls}`}>
                           {tr(STATUS_UI[status].label)}
                         </span>
                       </div>
                       <h3 className="mt-1.5 text-sm font-semibold text-white">{alert.siteName}</h3>
-                      <p className="flex items-center gap-1 text-xs text-neutral-500">
+                      <p className="flex items-center gap-1 text-xs text-neutral-400">
                         <MapPin className="h-3 w-3" /> {alert.lat.toFixed(4)}, {alert.lng.toFixed(4)} ·{" "}
                         {new Date(alert.createdAt).toLocaleDateString("kk-KZ")}
                       </p>
@@ -122,7 +122,7 @@ export default function AlertsPage() {
                       </div>
                     ))}
                   </div>
-                  <div className="flex justify-between text-[10px] text-neutral-500">
+                  <div className="flex justify-between text-[12px] text-neutral-400">
                     <span className="flex items-center gap-1">
                       <Send className="h-3 w-3" /> {tr("Жіберілді")}
                     </span>
@@ -137,7 +137,7 @@ export default function AlertsPage() {
         })}
       </div>
 
-      <p className="text-center text-[11px] text-neutral-600">
+      <p className="text-center text-[13px] text-neutral-500">
         {tr("Демо режимі: хабарламалар жүйе ішінде модельденеді. Өндірісте — e-eGov / email / Telegram интеграциясы арқылы нақты жіберіледі.")}
       </p>
     </div>

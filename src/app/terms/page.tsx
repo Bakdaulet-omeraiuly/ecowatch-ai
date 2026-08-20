@@ -4,7 +4,7 @@ export default function TermsPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 text-neutral-200">
       <h1 className="mb-2 text-3xl font-bold text-emerald-400">Пайдалану шарттары</h1>
-      <p className="mb-8 text-sm text-neutral-500">Соңғы жаңарту: 2026 жыл</p>
+      <p className="mb-8 text-sm text-neutral-400">Соңғы жаңарту: 2026 жыл</p>
 
       <section className="mb-8">
         <h2 className="mb-3 text-xl font-semibold text-white">1. Жалпы ережелер</h2>

@@ -31,7 +31,7 @@ export function RiskGauge({ score }: { score: number }) {
         <span className="text-3xl font-bold" style={{ color }}>
           {score}
         </span>
-        <span className="text-[10px] uppercase tracking-wide text-neutral-400">{tr("тәуекел")}</span>
+        <span className="text-[12px] uppercase tracking-wide text-neutral-400">{tr("тәуекел")}</span>
       </div>
     </div>
   );

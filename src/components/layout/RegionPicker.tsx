@@ -41,7 +41,7 @@ export function RegionPicker({ compact }: { compact?: boolean }) {
       <button
         onClick={() => setOpen((v) => !v)}
         className={`flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 text-neutral-200 transition hover:bg-white/10 ${
-          compact ? "px-2 py-1 text-[11px]" : "px-2.5 py-1.5 text-xs"
+          compact ? "px-2 py-1 text-[13px]" : "px-2.5 py-1.5 text-xs"
         }`}
         aria-label={tr("Аймақты таңдау")}
       >
@@ -77,7 +77,7 @@ export function RegionPicker({ compact }: { compact?: boolean }) {
 
           <a
             href="/caspian"
-            className="block border-t border-white/10 px-3 py-2 text-[11px] text-sky-300 transition hover:bg-white/5"
+            className="block border-t border-white/10 px-3 py-2 text-[13px] text-sky-300 transition hover:bg-white/5"
           >
             🌊 {tr("Каспий бойынша салыстыру бетін ашу")} →
           </a>
@@ -93,11 +93,11 @@ function Group({
   return (
     <div className="border-b border-white/5 last:border-0">
       <div className="px-3 pb-1 pt-2">
-        <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
+        <div className="flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-neutral-400">
           {Icon && <Icon className="h-2.5 w-2.5" />}
           {title}
         </div>
-        {note && <div className="mt-0.5 text-[9px] leading-tight text-amber-200/60">{note}</div>}
+        {note && <div className="mt-0.5 text-[12px] leading-tight text-amber-200/60">{note}</div>}
       </div>
       {children}
     </div>
@@ -120,25 +120,25 @@ function Row({
         active ? "bg-emerald-500/10" : "hover:bg-white/[0.04]"
       }`}
     >
-      <span className="mt-0.5 w-4 shrink-0 text-center text-[11px]">
+      <span className="mt-0.5 w-4 shrink-0 text-center text-[13px]">
         {active ? <Check className="h-3 w-3 text-emerald-400" /> : COUNTRY_FLAG[region.country]}
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[12px] text-neutral-100">{region.name}</span>
+          <span className="text-[13px] text-neutral-100">{region.name}</span>
           {region.coverage === "full" ? (
-            <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1 py-px text-[8px] text-emerald-200">
+            <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1 py-px text-[12px] text-emerald-200">
               {tr("толық")}
             </span>
           ) : (
-            <span className="rounded border border-white/15 bg-white/5 px-1 py-px text-[8px] text-neutral-400">
+            <span className="rounded border border-white/15 bg-white/5 px-1 py-px text-[12px] text-neutral-400">
               {tr("ауа сапасы")}
             </span>
           )}
         </span>
-        <span className="mt-0.5 hidden truncate text-[10px] text-neutral-500 sm:block">{region.pressure}</span>
+        <span className="mt-0.5 hidden truncate text-[12px] text-neutral-400 sm:block">{region.pressure}</span>
         {missing.length > 0 && (
-          <span className="mt-0.5 block text-[9px] leading-snug text-neutral-500">
+          <span className="mt-0.5 block text-[12px] leading-snug text-neutral-400">
             {tr("жоқ")}: {missing.map((m) => MODULE_KZ[m]).join(", ")}
           </span>
         )}

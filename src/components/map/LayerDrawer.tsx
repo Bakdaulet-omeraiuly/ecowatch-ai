@@ -150,12 +150,12 @@ export function LayerDrawer({
         <span className="text-xl leading-none">{data?.emoji ?? "🌍"}</span>
         <div className="min-w-0 flex-1">
           <h2 className="text-sm font-semibold text-white">{data?.name ?? tr("Қабат")}</h2>
-          <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-neutral-400">
+          <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-neutral-400">
             {data?.what ?? ""}
           </p>
         </div>
         {data && data.compliance.kzViolations > 0 && (
-          <span className="shrink-0 rounded-full border border-red-400/40 bg-red-500/15 px-2 py-0.5 text-[10px] font-semibold text-red-200">
+          <span className="shrink-0 rounded-full border border-red-400/40 bg-red-500/15 px-2 py-0.5 text-[12px] font-semibold text-red-200">
             ⚖ {data.compliance.kzViolations}
           </span>
         )}
@@ -174,12 +174,12 @@ export function LayerDrawer({
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`flex min-w-0 flex-1 items-center justify-center gap-1 px-1 py-2.5 text-[10px] font-medium transition ${
+            className={`flex min-w-0 flex-1 items-center justify-center gap-1 px-1 py-2.5 text-[12px] font-medium transition ${
               tab === t.id
                 ? t.id === "ai"
                   ? "border-b-2 border-sky-400 text-sky-300"
                   : "border-b-2 border-emerald-400 text-emerald-300"
-                : "border-b-2 border-transparent text-neutral-500 hover:text-neutral-300"
+                : "border-b-2 border-transparent text-neutral-400 hover:text-neutral-300"
             }`}
           >
             <t.icon className="h-3 w-3" />
@@ -220,18 +220,18 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <TierBadge tier="measurement" />
-        <span className="text-[10px] text-neutral-400">{tr("AI қолданылмаған")}</span>
+        <span className="text-[12px] text-neutral-400">{tr("AI қолданылмаған")}</span>
       </div>
 
       {/* ҚАБАТ НЕНІ БІЛДІРЕДІ — тақырыптағы жазу екі жолға қиылады,
           сондықтан толық мәтін осында тұрады */}
       <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
-        <div className="mb-1 text-[9px] font-semibold uppercase tracking-wide text-neutral-500">
+        <div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
           {tr("Бұл қабат нені көрсетеді")}
         </div>
-        <p className="text-[11px] leading-relaxed text-neutral-300">{data.what}</p>
+        <p className="text-[13px] leading-relaxed text-neutral-300">{data.what}</p>
         {data.sources.length > 0 && (
-          <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[10px] leading-snug text-neutral-500">
+          <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[12px] leading-snug text-neutral-400">
             {tr("Дереккөз")}: {data.sources.join(" · ")}
           </p>
         )}
@@ -240,12 +240,12 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
       {/* Модуль бұл аймақта жоқ — БОС қалдырмаймыз, себебін жазамыз */}
       {data.moduleMissing && (
         <div className="space-y-1.5 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
-          <p className="flex items-center gap-1.5 text-[12px] font-medium text-neutral-200">
-            <CircleSlash className="h-3.5 w-3.5 shrink-0 text-neutral-500" />
+          <p className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-200">
+            <CircleSlash className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
             {data.moduleMissing.error}
           </p>
-          <p className="text-[10px] leading-relaxed text-neutral-400">{data.moduleMissing.reason}</p>
-          <p className="border-t border-white/5 pt-1.5 text-[9px] leading-relaxed text-neutral-500">
+          <p className="text-[12px] leading-relaxed text-neutral-400">{data.moduleMissing.reason}</p>
+          <p className="border-t border-white/5 pt-1.5 text-[12px] leading-relaxed text-neutral-400">
             {tr("Басқа қаланың деректері мұнда көрсетілмейді — ол жалған дерек болар еді.")}
           </p>
         </div>
@@ -262,12 +262,12 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
               className="rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
             >
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="min-w-0 flex-1 truncate text-[11px] text-neutral-300">{r.name}</span>
-                <span className="text-[13px] font-semibold text-white">
+                <span className="min-w-0 flex-1 truncate text-[13px] text-neutral-300">{r.name}</span>
+                <span className="text-[14px] font-semibold text-white">
                   {r.value == null ? "—" : r.value}
-                  <span className="ml-0.5 text-[9px] font-normal text-neutral-400">{r.unit}</span>
+                  <span className="ml-0.5 text-[12px] font-normal text-neutral-400">{r.unit}</span>
                 </span>
-                <span className={`shrink-0 rounded border px-1 py-0.5 text-[9px] ${LEVEL_COLOR[r.worst]}`}>
+                <span className={`shrink-0 rounded border px-1 py-0.5 text-[12px] ${LEVEL_COLOR[r.worst]}`}>
                   {tr(LEVEL_KZ[r.worst])}
                 </span>
                 <IndicatorHelp id={r.indicatorId} />
@@ -275,8 +275,8 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
               {/* Көрсеткіштің мағынасы — жасырылмайды */}
               <IndicatorSummary id={r.indicatorId} className="mt-0.5" />
               {/* Осы деңгей нақты нені білдіреді */}
-              <p className="mt-1 border-t border-white/5 pt-1 text-[10px] leading-snug text-neutral-400">
-                <span className="text-neutral-500">{tr(LEVEL_KZ[r.worst])}</span> —{" "}
+              <p className="mt-1 border-t border-white/5 pt-1 text-[12px] leading-snug text-neutral-400">
+                <span className="text-neutral-400">{tr(LEVEL_KZ[r.worst])}</span> —{" "}
                 {LEVEL_MEANING[r.worst].full}
               </p>
             </div>
@@ -290,18 +290,18 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
         <>
           <SeriesChart title={tr("Өткен 24 сағат")} points={s.past24} vars={s.vars} past />
           <SeriesChart title={tr("Алдағы 24 сағат (ресми болжам)")} points={s.next24} vars={s.vars} />
-          {s.note && <p className="text-[10px] leading-relaxed text-neutral-500">{s.note}</p>}
+          {s.note && <p className="text-[12px] leading-relaxed text-neutral-400">{s.note}</p>}
         </>
       ) : (
         <div className="rounded-lg border border-amber-400/25 bg-amber-500/[0.06] p-3">
-          <div className="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-amber-200">
+          <div className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-amber-200">
             <AlertTriangle className="h-3 w-3" /> {tr("24 сағаттық қатар жоқ")}
           </div>
-          <p className="text-[11px] leading-relaxed text-amber-100/80">{s.reason}</p>
+          <p className="text-[13px] leading-relaxed text-amber-100/80">{s.reason}</p>
         </div>
       )}
 
-      <div className="border-t border-white/10 pt-2 text-[10px] leading-relaxed text-neutral-500">
+      <div className="border-t border-white/10 pt-2 text-[12px] leading-relaxed text-neutral-400">
         <div className="mb-1">
           {tr("Дереккөздер")}: {data.sources.join(" · ")}
         </div>
@@ -326,8 +326,8 @@ function SeriesChart({
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between">
-        <span className="text-[11px] font-medium text-neutral-300">{title}</span>
-        <span className="text-[10px] text-neutral-500">
+        <span className="text-[13px] font-medium text-neutral-300">{title}</span>
+        <span className="text-[12px] text-neutral-400">
           {v.label} {v.unit && `(${v.unit})`}
         </span>
       </div>
@@ -359,7 +359,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
   const items = data.compliance.results;
   if (!items.length) {
     return (
-      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-[11px] leading-relaxed text-neutral-400">
+      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-400">
         {tr(
           "Бұл қабат үшін заңнамалық норма тізілімде әлі жоқ. Норма қосылғанда " +
           "салыстыру автоматты іске қосылады."
@@ -374,7 +374,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
   return (
     <div className="space-y-3">
       <div
-        className={`rounded-lg border p-2.5 text-[11px] ${
+        className={`rounded-lg border p-2.5 text-[13px] ${
           data.compliance.kzViolations > 0
             ? "border-red-400/40 bg-red-500/10 text-red-100"
             : "border-emerald-400/25 bg-emerald-500/[0.07] text-emerald-100"
@@ -388,18 +388,18 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
       {items.map((r) => (
         <div key={r.indicatorId} className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
           <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
-            <span className={`rounded border px-1.5 py-0.5 text-[9px] ${LEVEL_COLOR[r.worst]}`}>
+            <span className={`rounded border px-1.5 py-0.5 text-[12px] ${LEVEL_COLOR[r.worst]}`}>
               {tr(LEVEL_KZ[r.worst])}
             </span>
-            <span className="text-[11px] font-medium text-neutral-100">{r.name}</span>
-            <span className="ml-auto text-[12px] font-semibold text-white">
+            <span className="text-[13px] font-medium text-neutral-100">{r.name}</span>
+            <span className="ml-auto text-[13px] font-semibold text-white">
               {r.value == null ? "—" : `${r.value} ${r.unit}`}
             </span>
           </div>
-          <p className="mb-1.5 text-[10px] leading-relaxed text-neutral-400">{r.summary}</p>
+          <p className="mb-1.5 text-[12px] leading-relaxed text-neutral-400">{r.summary}</p>
 
           {r.checks.length > 0 && (
-            <table className="w-full text-left text-[10px]">
+            <table className="w-full text-left text-[12px]">
               <tbody>
                 {r.checks.map((c, i) => (
                   <tr key={i} className="border-t border-white/5">
@@ -409,7 +409,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
                         <span className="ml-1 text-amber-300/80" title={c.norm.statusNote}>⚠</span>
                       )}
                     </td>
-                    <td className="py-1 pr-2 text-neutral-500">{c.averagingKz}</td>
+                    <td className="py-1 pr-2 text-neutral-400">{c.averagingKz}</td>
                     <td className="py-1 pr-2 text-right text-neutral-300">
                       {c.norm.limit} {c.norm.unit}
                     </td>
@@ -428,10 +428,10 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
         </div>
       ))}
 
-      <p className="border-t border-white/10 pt-2 text-[10px] leading-relaxed text-amber-200/70">
+      <p className="border-t border-white/10 pt-2 text-[12px] leading-relaxed text-amber-200/70">
         ⚖ {items[0]?.disclaimer}
       </p>
-      <a href="/legislation" className="block text-[10px] text-sky-300 underline-offset-2 hover:underline">
+      <a href="/legislation" className="block text-[12px] text-sky-300 underline-offset-2 hover:underline">
         {tr("Заңнама және норма тізілімі")} →
       </a>
     </div>
@@ -455,9 +455,9 @@ function AiTab({
       <div className="rounded-lg border border-sky-400/25 bg-sky-500/[0.07] p-2.5">
         <div className="mb-1 flex items-center gap-1.5">
           <TierBadge tier="ai" />
-          <span className="text-[10px] text-sky-100/90">{tr("Бөлек, валидацияланбаған қабат")}</span>
+          <span className="text-[12px] text-sky-100/90">{tr("Бөлек, валидацияланбаған қабат")}</span>
         </div>
-        <p className="text-[10px] leading-relaxed text-sky-100/70">
+        <p className="text-[12px] leading-relaxed text-sky-100/70">
           {tr(
             "AI жоғарыдағы нақты сандарды түсіндіреді және ұсыныс береді. Ол жаңа " +
             "дерек жасамайды — тек жүйедегі өлшемдерге сүйенеді."
@@ -469,7 +469,7 @@ function AiTab({
         <button
           onClick={onRun}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-2.5 text-[12px] font-medium text-sky-100 transition hover:bg-sky-500/25 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-2.5 text-[13px] font-medium text-sky-100 transition hover:bg-sky-500/25 disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
           {loading ? tr("Талдау жүргізілуде…") : tr("AI талдауын бастау")}
@@ -478,11 +478,11 @@ function AiTab({
 
       {err && (
         <div className="space-y-1.5 rounded-lg border border-white/10 bg-white/[0.02] p-3">
-          <p className="text-[12px] text-neutral-200">{tr(err.msg)}</p>
-          {err.detail && <p className="text-[10px] leading-relaxed text-neutral-500">{err.detail}</p>}
+          <p className="text-[13px] text-neutral-200">{tr(err.msg)}</p>
+          {err.detail && <p className="text-[12px] leading-relaxed text-neutral-400">{err.detail}</p>}
           <button
             onClick={onRun}
-            className="mt-1 rounded border border-white/15 bg-white/5 px-2 py-1 text-[10px] text-neutral-300 hover:bg-white/10"
+            className="mt-1 rounded border border-white/15 bg-white/5 px-2 py-1 text-[12px] text-neutral-300 hover:bg-white/10"
           >
             {tr("Қайталау")}
           </button>
@@ -490,7 +490,7 @@ function AiTab({
       )}
 
       {ai && (
-        <div className="space-y-3 text-[11px] leading-relaxed">
+        <div className="space-y-3 text-[13px] leading-relaxed">
           <Block title={tr("Жағдай")}>{ai.situation}</Block>
 
           <div>
@@ -499,7 +499,7 @@ function AiTab({
               {ai.drivers.map((d, i) => (
                 <li key={i} className="rounded border border-white/10 bg-white/[0.02] px-2 py-1.5">
                   <span className="text-neutral-100">{d.factor}</span>
-                  <span className="mt-0.5 block text-[10px] text-sky-200/70">{d.evidence}</span>
+                  <span className="mt-0.5 block text-[12px] text-sky-200/70">{d.evidence}</span>
                 </li>
               ))}
             </ul>
@@ -515,16 +515,16 @@ function AiTab({
                 <li key={i} className="rounded-lg border border-white/10 bg-white/[0.02] p-2">
                   <div className="mb-1 flex flex-wrap items-center gap-1.5">
                     <span
-                      className={`rounded border px-1.5 py-0.5 text-[9px] ${
+                      className={`rounded border px-1.5 py-0.5 text-[12px] ${
                         PRIORITY_CLS[r.priority] ?? PRIORITY_CLS["төмен"]
                       }`}
                     >
                       {r.priority}
                     </span>
-                    <span className="text-[10px] text-neutral-400">{r.audience}</span>
+                    <span className="text-[12px] text-neutral-400">{r.audience}</span>
                   </div>
                   <div className="text-neutral-100">{r.action}</div>
-                  <div className="mt-0.5 text-[10px] text-neutral-500">{tr("Негізі")}: {r.basis}</div>
+                  <div className="mt-0.5 text-[12px] text-neutral-400">{tr("Негізі")}: {r.basis}</div>
                 </li>
               ))}
             </ul>
@@ -533,9 +533,9 @@ function AiTab({
           <Block title={tr("Белгісіздік")}>{ai.uncertainty}</Block>
 
           {meta && (
-            <div className="border-t border-white/10 pt-2 text-[10px] leading-relaxed text-amber-200/70">
+            <div className="border-t border-white/10 pt-2 text-[12px] leading-relaxed text-amber-200/70">
               ⚠ {meta.disclaimer}
-              <div className="mt-1 text-neutral-500">
+              <div className="mt-1 text-neutral-400">
                 {tr("Жасалған")}: {meta.generatedAt.replace("T", " ").slice(0, 16)} UTC · gpt-4o
               </div>
             </div>
@@ -544,7 +544,7 @@ function AiTab({
           <button
             onClick={onRun}
             disabled={loading}
-            className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[11px] text-neutral-300 transition hover:bg-white/10 disabled:opacity-60"
+            className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[13px] text-neutral-300 transition hover:bg-white/10 disabled:opacity-60"
           >
             {loading ? tr("Жаңартылуда…") : tr("Талдауды жаңарту")}
           </button>
@@ -556,7 +556,7 @@ function AiTab({
 
 function BlockLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[9px] font-semibold uppercase tracking-wider text-neutral-500">{children}</div>
+    <div className="text-[12px] font-semibold uppercase tracking-wider text-neutral-400">{children}</div>
   );
 }
 
@@ -575,7 +575,7 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
   const s = data.series;
   if (!s.available) {
     return (
-      <div className="rounded-lg border border-amber-400/25 bg-amber-500/[0.06] p-3 text-[11px] leading-relaxed text-amber-100/80">
+      <div className="rounded-lg border border-amber-400/25 bg-amber-500/[0.06] p-3 text-[13px] leading-relaxed text-amber-100/80">
         {s.reason}
       </div>
     );
@@ -585,7 +585,7 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
 
   return (
     <div className="space-y-4">
-      <p className="text-[10px] text-neutral-500">
+      <p className="text-[12px] text-neutral-400">
         {tr("Тік сызық — қазіргі сәт. Сол жағы өлшем/талдау, оң жағы ресми болжам.")}
       </p>
       {s.vars.map((v) => {
@@ -593,8 +593,8 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
         return (
           <div key={v.api}>
             <div className="mb-1 flex items-baseline justify-between">
-              <span className="text-[11px] font-medium text-neutral-300">{v.label}</span>
-              <span className="text-[10px] text-neutral-500">{v.unit}</span>
+              <span className="text-[13px] font-medium text-neutral-300">{v.label}</span>
+              <span className="text-[12px] text-neutral-400">{v.unit}</span>
             </div>
             <ResponsiveContainer width="100%" height={100}>
               <AreaChart data={rows} margin={{ top: 4, right: 4, bottom: 0, left: -26 }}>
@@ -614,7 +614,7 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
           </div>
         );
       })}
-      <div className="border-t border-white/10 pt-2 text-[10px] text-neutral-500">
+      <div className="border-t border-white/10 pt-2 text-[12px] text-neutral-400">
         {tr("Дереккөздер")}: {data.sources.join(" · ")}
         <a
           href="/methodology"

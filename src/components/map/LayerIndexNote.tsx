@@ -174,26 +174,26 @@ export function LayerIndexNote({ layer }: { layer: string }) {
 
   return (
     <div className="mt-2 rounded-md border border-white/10 bg-white/5 p-2">
-      <div className="text-[9px] font-semibold uppercase tracking-wide text-neutral-400">
+      <div className="text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
         {d.title}
       </div>
-      <p className="mt-0.5 text-[9px] leading-snug text-neutral-400">{d.what}</p>
+      <p className="mt-0.5 text-[12px] leading-snug text-neutral-400">{d.what}</p>
 
       <div className="mt-1.5 space-y-0.5 border-t border-white/5 pt-1.5">
         {d.bands.map((b) => (
-          <div key={b.label} className="flex items-center gap-1.5 text-[9px]">
+          <div key={b.label} className="flex items-center gap-1.5 text-[12px]">
             <span
               className="h-2 w-2 shrink-0 rounded-full"
               style={{ backgroundColor: b.color }}
             />
             <span className="min-w-0 flex-1 truncate text-neutral-300">{tr(b.label)}</span>
-            <span className="shrink-0 font-mono text-neutral-500">{b.range}</span>
+            <span className="shrink-0 font-mono text-neutral-400">{b.range}</span>
           </div>
         ))}
       </div>
 
       {d.caveat && (
-        <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[9px] leading-snug text-amber-200/60">
+        <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[12px] leading-snug text-amber-200/60">
           ⚠ {d.caveat}
         </p>
       )}

@@ -69,7 +69,7 @@ export function ExportPanel() {
           <FileSpreadsheet className="h-4 w-4 text-neutral-300" />
           {tr("Есеп үшін жүктеу (CSV / Excel)")}
         </CardTitle>
-        <p className="text-[11px] text-neutral-400">
+        <p className="text-[13px] text-neutral-400">
           {tr("Әр файлда дереккөз, әдіс және ескертулер тіркеледі")} · {region.name}
         </p>
       </CardHeader>
@@ -81,22 +81,22 @@ export function ExportPanel() {
               <>
                 <Download
                   className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${
-                    off ? "text-neutral-600" : "text-neutral-400 group-hover:text-white"
+                    off ? "text-neutral-500" : "text-neutral-400 group-hover:text-white"
                   }`}
                 />
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className={`text-[12px] ${off ? "text-neutral-500" : "text-neutral-100"}`}>
+                    <span className={`text-[13px] ${off ? "text-neutral-400" : "text-neutral-100"}`}>
                       {tr(e.label)}
                     </span>
                     <TierBadge tier={e.tier} />
                     {off && (
-                      <span className="rounded bg-white/10 px-1 py-px text-[8px] uppercase text-neutral-400">
+                      <span className="rounded bg-white/10 px-1 py-px text-[12px] uppercase text-neutral-400">
                         {tr("жоқ")}
                       </span>
                     )}
                   </div>
-                  <div className="mt-0.5 text-[10px] leading-tight text-neutral-500">
+                  <div className="mt-0.5 text-[12px] leading-tight text-neutral-400">
                     {off ? MODULE_REASON[e.module!] : tr(e.note)}
                   </div>
                 </div>
@@ -123,7 +123,7 @@ export function ExportPanel() {
 
         <div className="mt-3 border-t border-white/10 pt-2.5">
           <TierLegend />
-          <p className="mt-2 text-[10px] leading-relaxed text-neutral-500">
+          <p className="mt-2 text-[12px] leading-relaxed text-neutral-400">
             {tr(
               "Дереккөз қолжетімсіз болса файл жасалмайды — бос немесе жалған баған берілмейді."
             )}{" "}

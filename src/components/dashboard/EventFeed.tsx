@@ -77,7 +77,7 @@ export function EventFeed({ limit }: { limit?: number }) {
           <Activity className="h-4 w-4 text-neutral-300" />
           {tr("Оқиғалар таспасы")}
           {data && (
-            <span className="flex items-center gap-1.5 text-[10px]">
+            <span className="flex items-center gap-1.5 text-[12px]">
               {data.bySeverity.critical > 0 && (
                 <span className="rounded-full border border-red-400/40 bg-red-500/15 px-1.5 py-0.5 text-red-200">
                   {data.bySeverity.critical} 🟥
@@ -91,7 +91,7 @@ export function EventFeed({ limit }: { limit?: number }) {
             </span>
           )}
         </CardTitle>
-        <p className="text-[11px] text-neutral-400">
+        <p className="text-[13px] text-neutral-400">
           {tr("Әр оқиға — нақты дерек нүктесі, жаңалық емес")}
         </p>
       </CardHeader>
@@ -108,7 +108,7 @@ export function EventFeed({ limit }: { limit?: number }) {
         ) : !shown?.length ? (
           <div className="py-4">
             <p className="text-sm text-neutral-300">{tr("Тіркелген оқиға жоқ")}</p>
-            <p className="mt-1 text-[11px] leading-relaxed text-neutral-500">
+            <p className="mt-1 text-[13px] leading-relaxed text-neutral-400">
               {tr(
                 "Бұл — барлық көрсеткіш норма шегінде және жаңа детекция жоқ дегенді " +
                 "білдіреді. Дереккөз қолжетімсіз болса, ол төменде көрсетіледі."
@@ -130,14 +130,14 @@ export function EventFeed({ limit }: { limit?: number }) {
                       <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`} />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-baseline gap-x-2">
-                          <span className="text-[12px] text-neutral-100">
+                          <span className="text-[13px] text-neutral-100">
                             {e.layerEmoji} {e.title}
                           </span>
                           {e.value && (
-                            <span className="text-[12px] font-semibold text-white">{e.value}</span>
+                            <span className="text-[13px] font-semibold text-white">{e.value}</span>
                           )}
                         </div>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[10px] text-neutral-500">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] text-neutral-400">
                           <span>{timeAgo(e.time, tr)}</span>
                           <span>·</span>
                           <span>{e.layer}</span>
@@ -154,16 +154,16 @@ export function EventFeed({ limit }: { limit?: number }) {
                     </div>
 
                     {open && (
-                      <div className="mt-2 space-y-1 border-t border-white/10 pt-2 text-[10px] leading-relaxed">
+                      <div className="mt-2 space-y-1 border-t border-white/10 pt-2 text-[12px] leading-relaxed">
                         <p className="text-neutral-300">{e.detail}</p>
-                        <p className="text-neutral-500">
+                        <p className="text-neutral-400">
                           {tr("Дереккөз")}: {e.source}
                         </p>
-                        <p className="text-neutral-500">
+                        <p className="text-neutral-400">
                           {tr("Уақыты")}: {e.time.replace("T", " ").slice(0, 16)} UTC
                         </p>
                         {e.coords && (
-                          <p className="inline-flex items-center gap-1 text-neutral-500">
+                          <p className="inline-flex items-center gap-1 text-neutral-400">
                             <MapPin className="h-2.5 w-2.5" />
                             {e.coords[0].toFixed(4)}, {e.coords[1].toFixed(4)}
                           </p>
@@ -178,7 +178,7 @@ export function EventFeed({ limit }: { limit?: number }) {
         )}
 
         {data && (data.missingModules?.length ?? 0) > 0 && (
-          <p className="mt-2.5 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-neutral-400">
+          <p className="mt-2.5 border-t border-white/10 pt-2 text-[12px] leading-relaxed text-neutral-400">
             {region.name} {tr("үшін әлі жоқ модульдер")}:{" "}
             {data.missingModules!.map((m) => m.name).join(", ")}.{" "}
             {tr("Олар бойынша оқиға шықпайды — бұл «оқиға болмады» дегенді білдірмейді.")}
@@ -186,7 +186,7 @@ export function EventFeed({ limit }: { limit?: number }) {
         )}
 
         {data && data.unavailable.length > 0 && (
-          <p className="mt-2.5 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-amber-200/70">
+          <p className="mt-2.5 border-t border-white/10 pt-2 text-[12px] leading-relaxed text-amber-200/70">
             ⚠ {tr("Қолжетімсіз дереккөздер")}: {data.unavailable.join(", ")}.{" "}
             {tr("Бұл тектегі оқиғалар тізімде жоқ — «бәрі тыныш» дегенді білдірмейді.")}
           </p>

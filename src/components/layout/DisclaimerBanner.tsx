@@ -14,7 +14,7 @@ export function DisclaimerBanner() {
   }, []);
   if (!show) return null;
   return (
-    <div className="flex items-start gap-2 border-b border-yellow-500/20 bg-yellow-500/[0.06] px-3 py-1.5 text-[11px] leading-snug text-yellow-200/90">
+    <div className="flex items-start gap-2 border-b border-yellow-500/20 bg-yellow-500/[0.06] px-3 py-1.5 text-[13px] leading-snug text-yellow-200/90">
       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <span className="flex-1">
         {tr(

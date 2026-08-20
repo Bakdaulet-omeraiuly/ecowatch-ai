@@ -175,7 +175,7 @@ function ModerationPageInner() {
 
       {/* Reports list */}
       {loading ? (
-        <div className="py-12 text-center text-sm text-neutral-500">{tr("Жүктелуде…")}</div>
+        <div className="py-12 text-center text-sm text-neutral-400">{tr("Жүктелуде…")}</div>
       ) : filtered.length === 0 ? (
         <div className="rounded-xl border border-white/10 bg-white/[0.03] py-12 text-center text-sm text-neutral-400">
           {tr("Хабарламалар жоқ")}
@@ -199,7 +199,7 @@ function ModerationPageInner() {
                         className="h-24 w-24 flex-shrink-0 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-white/5 text-xs text-neutral-500">
+                      <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-white/5 text-xs text-neutral-400">
                         {tr("Фото жоқ")}
                       </div>
                     )}
@@ -213,10 +213,10 @@ function ModerationPageInner() {
                         >
                           {tr("Тәуекел")} {r.risk_score}/100
                         </span>
-                        <Badge variant="outline" className={`text-[11px] ${sc.cls}`}>
+                        <Badge variant="outline" className={`text-[13px] ${sc.cls}`}>
                           {tr(sc.label)}
                         </Badge>
-                        <span className="ml-auto text-[11px] text-neutral-500">
+                        <span className="ml-auto text-[13px] text-neutral-400">
                           {new Date(r.created_at).toLocaleString("kk-KZ", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
@@ -226,7 +226,7 @@ function ModerationPageInner() {
                       )}
 
                       {r.analysis?.detectedFeatures?.length ? (
-                        <p className="text-xs text-neutral-500">{r.analysis.detectedFeatures.slice(0, 3).join(" · ")}</p>
+                        <p className="text-xs text-neutral-400">{r.analysis.detectedFeatures.slice(0, 3).join(" · ")}</p>
                       ) : null}
 
                       <a
@@ -265,7 +265,7 @@ function ModerationPageInner() {
                         <button
                           onClick={() => remove(r.id)}
                           disabled={isBusy}
-                          className="ml-auto flex items-center gap-1 rounded-md border border-white/10 px-2.5 py-1 text-xs text-neutral-500 hover:border-red-500/30 hover:text-red-400 disabled:opacity-40"
+                          className="ml-auto flex items-center gap-1 rounded-md border border-white/10 px-2.5 py-1 text-xs text-neutral-400 hover:border-red-500/30 hover:text-red-400 disabled:opacity-40"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> {tr("Жою")}
                         </button>

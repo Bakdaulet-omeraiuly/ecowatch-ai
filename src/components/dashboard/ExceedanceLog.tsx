@@ -84,7 +84,7 @@ export function ExceedanceLog() {
         <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
           <ScrollText className="h-4 w-4 text-red-300" />
           {tr("Норма асуының журналы")}
-          <span className="text-[11px] font-normal text-neutral-400">
+          <span className="text-[13px] font-normal text-neutral-400">
             · {region.name} · {tr("соңғы 30 күн")}
           </span>
           {data && data.count > 0 && (
@@ -92,13 +92,13 @@ export function ExceedanceLog() {
               href={`/api/exceedances?region=${region.id}&days=30`}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto inline-flex items-center gap-1 rounded border border-white/15 px-2 py-0.5 text-[10px] text-neutral-300 transition hover:bg-white/10"
+              className="ml-auto inline-flex items-center gap-1 rounded border border-white/15 px-2 py-0.5 text-[12px] text-neutral-300 transition hover:bg-white/10"
             >
               <Download className="h-3 w-3" /> JSON
             </a>
           )}
         </CardTitle>
-        <p className="text-[11px] leading-relaxed text-neutral-400">
+        <p className="text-[13px] leading-relaxed text-neutral-400">
           {tr("Әр асу деректің өз сағатымен тіркеледі — кейін жоғалмайды.")}
         </p>
       </CardHeader>
@@ -110,9 +110,9 @@ export function ExceedanceLog() {
           </div>
         ) : err ? (
           <div className="space-y-1.5 rounded-lg border border-amber-400/25 bg-amber-500/[0.06] p-3">
-            <p className="text-[12px] text-amber-100">⚠ {err.error}</p>
+            <p className="text-[13px] text-amber-100">⚠ {err.error}</p>
             {err.reason && (
-              <p className="text-[11px] leading-relaxed text-neutral-400">{err.reason}</p>
+              <p className="text-[13px] leading-relaxed text-neutral-400">{err.reason}</p>
             )}
           </div>
         ) : data ? (
@@ -130,19 +130,19 @@ export function ExceedanceLog() {
                   data.coverage.interrupted ? "text-amber-300" : "text-emerald-300"
                 }`}
               />
-              <span className="text-[11px] text-neutral-200">
+              <span className="text-[13px] text-neutral-200">
                 {tr("Соңғы тексеру")}:{" "}
                 {data.coverage.lastRunAt ? fmtTime(data.coverage.lastRunAt) : tr("жүрмеген")}
               </span>
-              <span className="w-full text-[10px] leading-snug text-neutral-400">
+              <span className="w-full text-[12px] leading-snug text-neutral-400">
                 {data.coverage.note}
               </span>
             </div>
 
             {data.count === 0 ? (
-              <p className="py-2 text-[12px] leading-relaxed text-neutral-300">
+              <p className="py-2 text-[13px] leading-relaxed text-neutral-300">
                 {tr("Соңғы 30 күнде тіркелген асу жоқ.")}{" "}
-                <span className="text-neutral-500">
+                <span className="text-neutral-400">
                   {tr("Бұл — тексеру жүріп тұрған кезеңге ғана қатысты (жоғарыдағы қамтуды қараңыз).")}
                 </span>
               </p>
@@ -161,20 +161,20 @@ export function ExceedanceLog() {
                       key={s.indicatorId}
                       className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
                     >
-                      <span className="text-[12px] text-neutral-100">{s.name}</span>
+                      <span className="text-[13px] text-neutral-100">{s.name}</span>
                       {s.kzViolation && (
-                        <span className="rounded border border-red-400/40 bg-red-500/15 px-1 py-px text-[9px] text-red-200">
+                        <span className="rounded border border-red-400/40 bg-red-500/15 px-1 py-px text-[12px] text-red-200">
                           ҚР
                         </span>
                       )}
-                      <span className="ml-auto text-[11px] text-neutral-400">
+                      <span className="ml-auto text-[13px] text-neutral-400">
                         {s.hours} {tr("сағат")}
                       </span>
-                      <span className="text-[11px] font-semibold text-white">
+                      <span className="text-[13px] font-semibold text-white">
                         {tr("макс")} {s.maxValue}
                       </span>
                       {s.maxTimesOver > 0 && (
-                        <span className="text-[11px] text-red-300">
+                        <span className="text-[13px] text-red-300">
                           ×{s.maxTimesOver.toFixed(1)}
                         </span>
                       )}
@@ -184,7 +184,7 @@ export function ExceedanceLog() {
 
                 {/* Уақыт бойынша жазбалар */}
                 <div className="overflow-x-auto rounded-lg border border-white/10">
-                  <table className="w-full min-w-[560px] text-left text-[11px]">
+                  <table className="w-full min-w-[560px] text-left text-[13px]">
                     <thead className="bg-white/[0.04] text-neutral-400">
                       <tr>
                         <th className="px-2 py-1.5 font-medium">{tr("Оқиға уақыты")}</th>
@@ -208,7 +208,7 @@ export function ExceedanceLog() {
                             )}
                           </td>
                           <td className="whitespace-nowrap px-2 py-1.5 text-right font-semibold text-white">
-                            {r.value} <span className="text-[9px] font-normal text-neutral-500">{r.unit}</span>
+                            {r.value} <span className="text-[12px] font-normal text-neutral-400">{r.unit}</span>
                           </td>
                           <td className="whitespace-nowrap px-2 py-1.5 text-right text-neutral-400">
                             {r.norm_limit ?? "—"}
@@ -223,7 +223,7 @@ export function ExceedanceLog() {
                               <span className="ml-1 text-amber-300/80">⚠</span>
                             )}
                           </td>
-                          <td className="whitespace-nowrap px-2 py-1.5 font-mono text-neutral-500">
+                          <td className="whitespace-nowrap px-2 py-1.5 font-mono text-neutral-400">
                             {fmtTime(r.recorded_at)}
                           </td>
                         </tr>
@@ -235,7 +235,7 @@ export function ExceedanceLog() {
                 {data.records.length > 15 && (
                   <button
                     onClick={() => setShowAll((v) => !v)}
-                    className="mt-2 text-[11px] text-sky-300 underline-offset-2 hover:underline"
+                    className="mt-2 text-[13px] text-sky-300 underline-offset-2 hover:underline"
                   >
                     {showAll
                       ? tr("Жинау")
@@ -245,7 +245,7 @@ export function ExceedanceLog() {
               </>
             )}
 
-            <p className="mt-3 border-t border-white/10 pt-2 text-[10px] leading-relaxed text-neutral-500">
+            <p className="mt-3 border-t border-white/10 pt-2 text-[12px] leading-relaxed text-neutral-400">
               <b className="text-neutral-400">{tr("Оқиға уақыты")}</b> —{" "}
               {tr("деректің өз сағаты (CAMS сағат сайын жаңарады).")}{" "}
               <b className="text-neutral-400">{tr("Тіркелген")}</b> —{" "}
@@ -266,7 +266,7 @@ function Stat({ label, value, bad }: { label: string; value: number; bad?: boole
       }`}
     >
       <div className={`text-base font-bold ${bad ? "text-red-300" : "text-white"}`}>{value}</div>
-      <div className="text-[9px] uppercase tracking-wide text-neutral-500">{label}</div>
+      <div className="text-[12px] uppercase tracking-wide text-neutral-400">{label}</div>
     </div>
   );
 }

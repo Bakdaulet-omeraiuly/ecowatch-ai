@@ -47,7 +47,7 @@ export function TierBadge({ tier, className = "" }: { tier: Tier; className?: st
   return (
     <span
       title={t.title}
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[9px] font-medium leading-none ${t.cls} ${className}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[12px] font-medium leading-none ${t.cls} ${className}`}
     >
       <span aria-hidden>{t.icon}</span>
       {t.label}
@@ -58,7 +58,7 @@ export function TierBadge({ tier, className = "" }: { tier: Tier; className?: st
 /** Үш деңгейді бірден түсіндіретін шартты белгі (легенда). */
 export function TierLegend({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[10px] text-neutral-400 ${className}`}>
+    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-neutral-400 ${className}`}>
       {(Object.keys(TIERS) as Tier[]).map((k) => (
         <span key={k} className="inline-flex items-center gap-1.5">
           <TierBadge tier={k} />

@@ -58,7 +58,7 @@ export function IndicatorSummary({ id, className = "" }: { id: string; className
   const text = ind?.what ?? extra?.what;
   if (!text) return null;
   return (
-    <p className={`text-[10px] leading-snug text-neutral-500 ${className}`}>{text}</p>
+    <p className={`text-[12px] leading-snug text-neutral-400 ${className}`}>{text}</p>
   );
 }
 
@@ -77,42 +77,42 @@ export function IndicatorHelp({ id, inline }: Props) {
 
   const body = ind ? (
     <div className="space-y-1.5">
-      <p className="text-[11px] leading-relaxed text-neutral-300">{ind.what}</p>
+      <p className="text-[13px] leading-relaxed text-neutral-300">{ind.what}</p>
       {ind.formula && (
-        <p className="font-mono text-[10px] leading-relaxed text-neutral-400">{ind.formula}</p>
+        <p className="font-mono text-[12px] leading-relaxed text-neutral-400">{ind.formula}</p>
       )}
-      <p className="text-[10px] leading-relaxed text-neutral-500">
+      <p className="text-[12px] leading-relaxed text-neutral-400">
         <span className="text-neutral-400">{tr("Аспап/көзі")}:</span> {ind.instrument} ·{" "}
         <span className="text-neutral-400">{tr("қадам")}:</span> {ind.spatial} ·{" "}
         <span className="text-neutral-400">{tr("жиілік")}:</span> {ind.temporal}
       </p>
       {ind.norms && ind.norms.length > 0 && (
-        <p className="text-[10px] leading-relaxed text-neutral-400">
-          <span className="text-neutral-500">{tr("Норма")}:</span>{" "}
+        <p className="text-[12px] leading-relaxed text-neutral-400">
+          <span className="text-neutral-400">{tr("Норма")}:</span>{" "}
           {ind.norms
             .map((n) => `${n.label} — ${n.value} ${ind.unit}`)
             .join(" · ")}
         </p>
       )}
       {ind.limits.length > 0 && (
-        <p className="text-[10px] leading-relaxed text-amber-200/70">
+        <p className="text-[12px] leading-relaxed text-amber-200/70">
           ⚠ {ind.limits[0]}
         </p>
       )}
       {!ind.validated && (
-        <p className="text-[10px] leading-relaxed text-amber-200/70">
+        <p className="text-[12px] leading-relaxed text-amber-200/70">
           {tr("Валидацияланбаған")}: {ind.validationNote}
         </p>
       )}
       <a
         href="/methodology"
-        className="inline-flex items-center gap-1 text-[10px] text-sky-300 underline-offset-2 hover:underline"
+        className="inline-flex items-center gap-1 text-[12px] text-sky-300 underline-offset-2 hover:underline"
       >
         {tr("Толық әдістеме")} <ExternalLink className="h-2.5 w-2.5" />
       </a>
     </div>
   ) : (
-    <p className="text-[11px] leading-relaxed text-neutral-300">{extra!.what}</p>
+    <p className="text-[13px] leading-relaxed text-neutral-300">{extra!.what}</p>
   );
 
   if (inline) {
@@ -126,7 +126,7 @@ export function IndicatorHelp({ id, inline }: Props) {
         title={tr("Бұл көрсеткіш нені білдіреді?")}
         aria-label={tr("Бұл көрсеткіш нені білдіреді?")}
         className={`shrink-0 rounded p-0.5 transition ${
-          open ? "text-sky-300" : "text-neutral-500 hover:text-neutral-200"
+          open ? "text-sky-300" : "text-neutral-400 hover:text-neutral-200"
         }`}
       >
         <Info className="h-3 w-3" />
@@ -134,7 +134,7 @@ export function IndicatorHelp({ id, inline }: Props) {
       {open && (
         <div className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 p-2.5">
           <div className="mb-1 flex items-center gap-1.5">
-            <span className="text-[11px] font-medium text-white">
+            <span className="text-[13px] font-medium text-white">
               {ind?.name ?? extra!.name}
             </span>
             {ind && <TierBadge tier={ind.tier} />}
