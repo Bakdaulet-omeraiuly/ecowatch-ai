@@ -61,6 +61,7 @@ function yearTileConfig(year: number): { tiles: string[]; maxzoom: number; attri
 }
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import { MosquitoIcon } from "./MosquitoIcon";
+import { PollutionTimeline } from "./PollutionTimeline";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares,
@@ -384,7 +385,9 @@ export function MapView() {
   const { mosGrid, mosFlood, mosDyn, mosError, mosMissing } = useMosquitoGrid(activeLayer === "mosquito");
 
   // Ластану көзін анықтау — тірі CAMS + жел → ықтимал өнеркәсіп көзі
-  const { source, sourceError, sourceMissing } = usePollutionSource(sourceMode);
+  // Архив режимі: таңдалған нақты сағат (null — тірі)
+  const [srcAt, setSrcAt] = useState<string | null>(null);
+  const { source, sourceError, sourceMissing, sourceLoading } = usePollutionSource(sourceMode, srcAt);
   // Анимациялар БАСЫЛҒАН зауыт(тар) үшін — БІРНЕШЕ зауытты қатар таңдауға болады
   const [selectedFacs, setSelectedFacs] = useState<PollutionSourceCandidate[]>([]);
   const isSel = (id: string) => selectedFacs.some((f) => f.id === id);
@@ -403,17 +406,47 @@ export function MapView() {
       features: [{ type: "Feature" as const, properties: {}, geometry: { type: "LineString" as const, coordinates: coords } }],
     };
   }, [source, isTopSelected]);
-  // Екі уақыт-анимация: "past" (өткен 24сағ, нақты жел) / "forecast" (алдағы 24сағ, болжам жел)
-  const [animMode, setAnimMode] = useState<"past" | "forecast" | null>(null);
-  const [animFrame, setAnimFrame] = useState(0);
-  const animFrames = animMode === "forecast" ? source?.forecastFrames : animMode === "past" ? source?.frames : null;
+  // УАҚЫТ БАСҚАРУЫ — бір ғана біріктірілген желі.
+  //
+  // Бұрын екі бөлек батырма болатын («Өткен 24сағ» / «Алдағы 24сағ»),
+  // әрқайсысы автоойнататын, тоқтатуға да, нақты сағатты таңдауға да
+  // болмайтын. Енді бір слайдер: барлық сағат бір қатарда, қолмен
+  // таңдалады, тоқтайды. Ақпарат шашырамайды.
+  //
+  // ⚠️ Күй ИНДЕКС емес, УАҚЫТ болып сақталады. Индекс болса, дерек
+  // ауысқанда (аймақ/архив сағаты) ол ескі орында қалып, мүлдем басқа
+  // сағатты көрсетер еді — сондықтан оны effect-пен қалпына келтіруге
+  // тура келетін. Уақытпен ондай қажеттілік жоқ: жаңа деректе ол уақыт
+  // табылмаса, тірек сағатқа өзі оралады.
+  const [tlTime, setTlTime] = useState<string | null>(null);
+  const [tlPlaying, setTlPlaying] = useState(false);
+  const timeline = useMemo(() => source?.timeline ?? [], [source]);
+  const pivotIdx = useMemo(() => {
+    const p = timeline.findIndex((r) => r.pivot);
+    return p >= 0 ? p : Math.max(0, timeline.length - 1);
+  }, [timeline]);
+  const tlIdx = useMemo(() => {
+    if (!tlTime) return pivotIdx;
+    const i = timeline.findIndex((r) => r.time === tlTime);
+    return i >= 0 ? i : pivotIdx;
+  }, [tlTime, timeline, pivotIdx]);
   useEffect(() => {
-    if (!animMode || !animFrames?.length) return;
-    const t = setInterval(() => setAnimFrame((f) => (f + 1) % animFrames.length), 450);
+    if (!tlPlaying || timeline.length < 2) return;
+    const t = setInterval(() => {
+      setTlTime((cur) => {
+        const i = cur ? timeline.findIndex((r) => r.time === cur) : -1;
+        return timeline[(Math.max(0, i) + 1) % timeline.length].time;
+      });
+    }, 450);
     return () => clearInterval(t);
-  }, [animMode, animFrames]);
-  const setAnim = (m: "past" | "forecast") => { setAnimMode((cur) => (cur === m ? null : m)); setAnimFrame(0); };
-  const activeFrame = animMode && animFrames?.length ? animFrames[animFrame % animFrames.length] : null;
+  }, [tlPlaying, timeline]);
+  // Кадрдың геометриясы: хронологиядағы сағатқа сәйкес конус
+  const activeFrame = useMemo(() => {
+    const row = timeline[tlIdx];
+    if (!row || !source) return null;
+    const all = [...(source.frames ?? []), ...(source.forecastFrames ?? [])];
+    return all.find((f) => f.time === row.time) ?? null;
+  }, [timeline, tlIdx, source]);
   // Белсенді конустар — БАРЛЫҚ таңдалған зауыттар үшін (MultiPolygon)
   const plumeConeGeo = useMemo(() => {
     if (!selectedFacs.length || !source) return null;
@@ -1595,7 +1628,7 @@ export function MapView() {
               onClick={() => {
                 const next = !sourceMode;
                 setSourceMode(next);
-                if (!next) { setSelectedFacs([]); setFacAir(null); setAnimMode(null); setFcStep(null); } // қабат өшсе — анимация тазаланады
+                if (!next) { setSelectedFacs([]); setFacAir(null); setTlPlaying(false); setFcStep(null); } // қабат өшсе — анимация тазаланады
               }}
               className={`flex items-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold transition-colors ${
                 sourceMode
@@ -1863,9 +1896,20 @@ export function MapView() {
             {sourceMissing ? (
               <ModuleMissing module="pollutionSource" region={region} compact />
             ) : sourceError ? (
-              <p className="text-[11px] text-neutral-400">
-                {tr("Тірі ауа/жел деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
-              </p>
+              <div className="space-y-1.5">
+                <p className="text-[11px] text-amber-100">⚠ {tr(sourceError.error)}</p>
+                {sourceError.detail && (
+                  <p className="text-[10px] leading-relaxed text-neutral-400">{tr(sourceError.detail)}</p>
+                )}
+                {srcAt && (
+                  <button
+                    onClick={() => setSrcAt(null)}
+                    className="rounded border border-white/15 bg-white/5 px-2 py-1 text-[10px] text-neutral-300 hover:bg-white/10"
+                  >
+                    {tr("Тірі режимге қайту")}
+                  </button>
+                )}
+              </div>
             ) : !source ? (
               <p className="text-[11px] text-neutral-500">{tr("Талданып жатыр…")}</p>
             ) : (
@@ -1952,42 +1996,28 @@ export function MapView() {
                         )}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-1">
-                      <button
-                        onClick={() => setAnim("past")}
-                        disabled={(source.frames?.length ?? 0) < 2 || !selectedFacs.length}
-                        className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
-                          animMode === "past" ? "border-sky-400 bg-sky-500/25 text-sky-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
-                        }`}
-                      >
-                        {animMode === "past" ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                        {tr("Өткен 24сағ")}
-                      </button>
-                      <button
-                        onClick={() => setAnim("forecast")}
-                        disabled={(source.forecastFrames?.length ?? 0) < 2 || !selectedFacs.length}
-                        className={`flex items-center justify-center gap-1 rounded border px-1.5 py-1 text-[10px] transition-colors disabled:opacity-40 ${
-                          animMode === "forecast" ? "border-orange-400 bg-orange-500/25 text-orange-100" : "border-white/15 text-neutral-300 hover:bg-white/5"
-                        }`}
-                      >
-                        {animMode === "forecast" ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-                        {tr("Алдағы 24сағ")}
-                      </button>
-                    </div>
-                    {activeFrame && (
-                      <>
-                        <div className="text-center text-[10px] font-mono text-neutral-400">
-                          {animMode === "forecast" ? "▶" : "◀"} {activeFrame.hour} · {activeFrame.fromLabel} {activeFrame.speed} {tr("км/сағ")}
-                        </div>
-                        {/* Анимация — траектория ЕМЕС. Әр кадр сол сағаттағы
-                            желмен есептелген тұрақты күй конусы. */}
-                        <p className="mt-0.5 text-[9px] leading-snug text-neutral-500">
-                          ⚠ {tr("Әр кадр — сол сағаттағы желмен есептелген конус, бұлттың жүрген жолы ЕМЕС.")}
-                        </p>
-                      </>
-                    )}
+                    {/* Анимация — траектория ЕМЕС. Әр кадр сол сағаттағы
+                        желмен есептелген тұрақты күй конусы. */}
+                    <p className="text-[9px] leading-snug text-neutral-500">
+                      ⚠ {tr("Әр кадр — сол сағаттағы желмен есептелген конус, бұлттың жүрген жолы ЕМЕС.")}
+                    </p>
                   </div>
                 )}
+
+                {/* УАҚЫТ БАСҚАРУЫ · ХРОНОЛОГИЯ · ҚҰЖАТ */}
+                <div className="mt-2">
+                  <PollutionTimeline
+                    source={source}
+                    frameIdx={tlIdx}
+                    onFrame={(i) => { setTlTime(timeline[i]?.time ?? null); setTlPlaying(false); }}
+                    playing={tlPlaying}
+                    onPlayToggle={() => setTlPlaying((p) => !p)}
+                    at={srcAt}
+                    onAt={(v) => { setSrcAt(v); setTlTime(null); setTlPlaying(false); }}
+                    loading={sourceLoading}
+                    regionId={region.id}
+                  />
+                </div>
 
                 {/* АТМОСФЕРАЛЫҚ ОРНЫҚТЫЛЫҚ — конустың пішінін БЕЛГІЛЕЙТІН фактор.
                     Бұрын мүлдем ескерілмейтін: конус ені тек жел жылдамдығынан
