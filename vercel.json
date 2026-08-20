@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/fixate",
-      "schedule": "5 * * * *"
+      "schedule": "5 3 * * *"
     }
   ],
   "headers": [

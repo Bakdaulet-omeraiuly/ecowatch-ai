@@ -2,27 +2,37 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { REGIONS } from "@/data/regions";
 import { INDICATORS } from "@/data/indicatorRegistry";
-import type { ComplianceLevel } from "@/lib/compliance";
+import { normsFor } from "@/data/legalNorms";
+import { checkCompliance, type ComplianceLevel } from "@/lib/compliance";
 
-// НОРМА АСУЫН ФИКСАЦИЯЛАУ — сағат сайынғы cron.
+// НОРМА АСУЫН ФИКСАЦИЯЛАУ — тәуліктік cron, ӨТКЕН 48 САҒАТТЫ ТОЛЫҚ ТІРКЕЙДІ.
 //
 // ═══ НЕГЕ КЕРЕК ═══
-// Жүйе сәйкестікті СҰРАНЫС КЕЗІНДЕ есептейді де, 30 минуттық кэшке салады.
+// Жүйе сәйкестікті СҰРАНЫС КЕЗІНДЕ есептейді де, кэшке салады.
 // Түнгі 03:00-де болған асу таңертең қарағанда ЖОҚ болып қалады: ол ешжерде
 // сақталмайды. Ал прокуратура үшін керегі дәл сол — «қашан, қай жерде,
 // қандай мән, қандай нормадан асты».
 //
-// Бұл эндпоинт сағат сайын жүріп, әр асуды УАҚЫТЫМЕН жазып отырады.
+// ═══ ⚠️ НЕГЕ ЛЕЗДІК ЕМЕС, САҒАТТЫҚ ҚАТАР ═══
+// Бұрын эндпоинт `/api/compliance`-тен ТЕК ЛЕЗДІК мәнді алып, бір жазба
+// жасайтын, әрі сағат сайынғы cron-ға есептелген еді. Ал Vercel Hobby
+// жоспарында cron ТӘУЛІГІНЕ БІР РЕТ қана жүреді — сонда тәуліктің 24
+// сағатының 23-і тіркелмей қалар еді. Бос журналды «асу болмады» деп оқу
+// қате болар еді.
+//
+// Шешім: жүгіріс сайын CAMS-тың САҒАТТЫҚ қатарын алып, өткен 48 сағаттың
+// ӘР САҒАТЫН бөлек тексереміз. Кестедегі (region, indicator, hour)
+// бірегейлігі қайталауды өзі болдырмайды, сондықтан қайта жүгірту
+// қауіпсіз әрі үзіліс болса кейінгі жүгіріс оны ЖАБАДЫ.
+//
+// Заңдық нормасы бар БАРЛЫҚ көрсеткіш (PM₂.₅, PM₁₀, NO₂, SO₂, O₃) —
+// сағаттық CAMS деректері бар ауа ластаушылары, сондықтан тәуліктік
+// жүгіріс заңдық жағынан ТОЛЫҚ қамтуды береді.
 //
 // ═══ ЕКІ УАҚЫТ ═══
-// `observed_hour` — ДЕРЕКТІҢ өз сағаты (CAMS сағат сайын жаңарады)
+// `observed_hour` — ДЕРЕКТІҢ өз сағаты (UTC)
 // `recorded_at`   — біздің жазған сәтіміз
 // Екеуін шатастыруға болмайды. Кідіріс болса, айырма көрініп тұрады.
-//
-// ═══ БОС КЕЗЕҢ ≠ АСУ ЖОҚ ═══
-// Әр жүгіріс `fixation_runs` кестесіне тіркеледі. Онсыз журналдағы бос
-// кезеңді «асу болмады» деп оқу қате болар еді — тексеру мүлдем
-// жүрмеген де болуы мүмкін.
 //
 // ═══ ҚАУІПСІЗДІК ═══
 // Жазу үшін SUPABASE_SERVICE_ROLE_KEY керек (anon кілтіне RLS жазуға
@@ -32,34 +42,32 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /** Қай аймақтар тіркеледі. ҚР — заңдық маңызы бар, сондықтан бірінші. */
-const TRACKED = REGIONS.filter((r) => r.country === "KZ").map((r) => r.id);
+const TRACKED = REGIONS.filter((r) => r.country === "KZ");
 
 /** Тіркелетін деңгейлер. `approaching` жазылмайды — ол әлі асу емес. */
 const RECORDED_LEVELS: ComplianceLevel[] = ["exceeded", "exceeded-unverified"];
 
-interface CheckRow {
-  norm: { limit: number; unit: string; status: string };
-  act: { jurisdiction: string; number: string };
-  averagingKz: string;
-  level: ComplianceLevel;
-  timesOver: number | null;
-}
-interface ResultRow {
-  indicatorId: string;
-  name: string;
-  unit: string;
-  value: number | null;
-  worst: ComplianceLevel;
-  kzViolation: boolean;
-  summary: string;
-  checks: CheckRow[];
-}
+/** Артқа қарай қанша сағат тексеріледі. Тәуліктік cron + қор = 48. */
+const BACKFILL_HOURS = 48;
 
-/** Сағатқа дейін дөңгелектеу — CAMS сағат сайын жаңарады */
-function toHour(iso: string): string {
-  const d = new Date(iso);
-  d.setUTCMinutes(0, 0, 0);
-  return d.toISOString();
+/**
+ * Заңдық нормасы бар көрсеткіштер ↔ CAMS сағаттық өріс аттары.
+ * Тізілімде нормасы жоқ көрсеткіш тіркелмейді — салыстыруға шек жоқ.
+ */
+const HOURLY_FIELD: Record<string, string> = {
+  pm25: "pm2_5",
+  pm10: "pm10",
+  no2: "nitrogen_dioxide",
+  so2: "sulphur_dioxide",
+  ozone: "ozone",
+};
+const TRACKED_INDICATORS = INDICATORS.filter(
+  (i) => normsFor(i.id).length > 0 && HOURLY_FIELD[i.id]
+);
+
+interface HourlyAir {
+  time?: string[];
+  [k: string]: (number | null)[] | string[] | undefined;
 }
 
 export async function GET(req: Request) {
@@ -90,80 +98,105 @@ export async function GET(req: Request) {
   }
   const db = createClient(url, serviceKey, { auth: { persistSession: false } });
 
-  const origin = new URL(req.url).origin;
   const tierById = new Map(INDICATORS.map((i) => [i.id, i.tier]));
+  const nameById = new Map(INDICATORS.map((i) => [i.id, i.name]));
+  const unitById = new Map(INDICATORS.map((i) => [i.id, i.unit]));
 
   let checked = 0;
   let found = 0;
-  const written: { region: string; indicator: string; value: number; level: string }[] = [];
+  let written = 0;
   const failed: string[] = [];
+  const perRegion: { region: string; hours: number; found: number }[] = [];
 
-  for (const regionId of TRACKED) {
+  const cutoff = Date.now() - BACKFILL_HOURS * 3600_000;
+
+  for (const region of TRACKED) {
     try {
-      const res = await fetch(`${origin}/api/compliance?region=${regionId}`, {
-        cache: "no-store",
-      });
+      // ⚠️ timezone=GMT — жауаптағы уақыттар UTC болады. Бұл маңызды:
+      // `observed_hour` — timestamptz бағаны. Жергілікті уақытты офсетсіз
+      // жазсақ, база оны UTC деп оқып, сағат 5-ке жылжып кетер еді.
+      const api =
+        `https://air-quality-api.open-meteo.com/v1/air-quality` +
+        `?latitude=${region.lat}&longitude=${region.lng}` +
+        `&hourly=${Object.values(HOURLY_FIELD).join(",")}` +
+        `&past_days=2&forecast_days=0&timezone=GMT`;
+      const res = await fetch(api, { cache: "no-store" });
       if (!res.ok) {
-        failed.push(regionId);
+        failed.push(`${region.id}: upstream ${res.status}`);
         continue;
       }
-      const d = (await res.json()) as {
-        fetchedAt: string;
-        region: { id: string; name: string };
-        results: ResultRow[];
-      };
-      const hour = toHour(d.fetchedAt);
+      const j = (await res.json()) as { hourly?: HourlyAir };
+      const times = (j.hourly?.time as string[] | undefined) ?? [];
+      if (!times.length) {
+        failed.push(`${region.id}: сағаттық қатар бос`);
+        continue;
+      }
 
-      for (const r of d.results) {
-        checked++;
-        if (r.value == null || !RECORDED_LEVELS.includes(r.worst)) continue;
-        found++;
+      const rows: Record<string, unknown>[] = [];
+      let regionFound = 0;
 
-        // Ең ауыр тексеру — қай нормадан асқаны сол
-        const worstCheck = r.checks
-          .filter((c) => RECORDED_LEVELS.includes(c.level))
-          .sort((a, b) => (b.timesOver ?? 0) - (a.timesOver ?? 0))[0];
+      for (let h = 0; h < times.length; h++) {
+        const tMs = new Date(`${times[h]}Z`).getTime();
+        // Болашақ немесе тым ескі сағат — өткізіп жібереміз
+        if (!Number.isFinite(tMs) || tMs > Date.now() || tMs < cutoff) continue;
+        const observedHour = new Date(tMs).toISOString();
 
-        const { error } = await db.from("exceedances").upsert(
-          {
-            region_id: d.region.id,
-            region_name: d.region.name,
-            indicator_id: r.indicatorId,
-            indicator_name: r.name,
-            unit: r.unit,
-            value: r.value,
-            level: r.worst,
-            kz_violation: r.kzViolation,
+        for (const ind of TRACKED_INDICATORS) {
+          const series = j.hourly?.[HOURLY_FIELD[ind.id]] as (number | null)[] | undefined;
+          const value = series?.[h];
+          if (value == null || !Number.isFinite(value)) continue;
+          checked++;
+
+          const c = checkCompliance(ind.id, value, "KZ");
+          if (!RECORDED_LEVELS.includes(c.worst)) continue;
+          found++;
+          regionFound++;
+
+          // Ең ауыр тексеру — қай нормадан асқаны сол
+          const worstCheck = c.checks
+            .filter((x) => RECORDED_LEVELS.includes(x.level))
+            .sort((a, b) => (b.timesOver ?? 0) - (a.timesOver ?? 0))[0];
+
+          rows.push({
+            region_id: region.id,
+            region_name: region.name,
+            indicator_id: ind.id,
+            indicator_name: nameById.get(ind.id) ?? ind.id,
+            unit: unitById.get(ind.id) ?? "µg/m³",
+            value,
+            level: c.worst,
+            kz_violation: c.kzViolation,
             act_jurisdiction: worstCheck?.act.jurisdiction ?? null,
             act_number: worstCheck?.act.number ?? null,
             averaging: worstCheck?.averagingKz ?? null,
             norm_limit: worstCheck?.norm.limit ?? null,
             times_over: worstCheck?.timesOver ?? null,
-            tier: tierById.get(r.indicatorId) ?? null,
-            summary: r.summary,
-            observed_hour: hour,
-          },
-          // Бір сағаттағы бір көрсеткіш бір рет — қайталанбайды
-          { onConflict: "region_id,indicator_id,observed_hour", ignoreDuplicates: true }
-        );
-        if (error) {
-          failed.push(`${regionId}/${r.indicatorId}: ${error.message}`);
-        } else {
-          written.push({
-            region: d.region.name,
-            indicator: r.name,
-            value: r.value,
-            level: r.worst,
+            tier: tierById.get(ind.id) ?? null,
+            summary: c.summary,
+            observed_hour: observedHour,
           });
         }
       }
+
+      // Топтап жазу — сағат сайын жеке сұраныс жіберудің қажеті жоқ.
+      // Бірегейлік (region, indicator, hour) қайталауды өзі кесіп тастайды,
+      // сондықтан қайта жүгірту қауіпсіз.
+      if (rows.length) {
+        const { error } = await db.from("exceedances").upsert(rows, {
+          onConflict: "region_id,indicator_id,observed_hour",
+          ignoreDuplicates: true,
+        });
+        if (error) failed.push(`${region.id}: ${error.message}`);
+        else written += rows.length;
+      }
+      perRegion.push({ region: region.name, hours: times.length, found: regionFound });
     } catch (e) {
-      failed.push(`${regionId}: ${e instanceof Error ? e.message : "қате"}`);
+      failed.push(`${region.id}: ${e instanceof Error ? e.message : "қате"}`);
     }
   }
 
   // ⚠️ Жүгірістің ӨЗІН тіркеу — журналдағы бос кезең «асу болмады» ма,
-  // әлде «тексеру жүрмеді» ме, соны ажырату үшін
+  // әлде «тексеру жүрмеген» бе, соны ажырату үшін
   await db.from("fixation_runs").insert({
     regions: TRACKED.length,
     checked,
@@ -176,12 +209,17 @@ export async function GET(req: Request) {
     ok: true,
     ranAt: new Date().toISOString(),
     regions: TRACKED.length,
+    backfillHours: BACKFILL_HOURS,
+    indicators: TRACKED_INDICATORS.map((i) => i.id),
     checked,
     found,
-    written: written.length,
+    written,
+    perRegion,
     failed,
     note:
-      "Тіркелетін деңгейлер: норма асқан (расталған) және асқан (шек расталмаған). " +
-      "«Нормаға жақын» жазылмайды — ол әлі асу емес.",
+      `Әр жүгіріс өткен ${BACKFILL_HOURS} сағаттың ӘР САҒАТЫН бөлек тексереді, ` +
+      "сондықтан тәуліктік cron да толық қамту береді. Тіркелетін деңгейлер: " +
+      "норма асқан (расталған) және асқан (шек расталмаған). «Нормаға жақын» " +
+      "жазылмайды — ол әлі асу емес.",
   });
 }
