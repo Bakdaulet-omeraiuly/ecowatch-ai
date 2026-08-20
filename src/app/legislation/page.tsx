@@ -3,6 +3,10 @@
 import Link from "next/link";
 import { ExternalLink, Scale, AlertTriangle } from "lucide-react";
 import { ACTS, AVERAGING_KZ, LEGAL_DISCLAIMER, NORMS } from "@/data/legalNorms";
+import {
+  SUBSTANCES as HARMFUL, STATUS_KZ, SUBSTANCES_DISCLAIMER,
+  MEASURED_COUNT, PROXY_COUNT, NOT_MEASURED_COUNT,
+} from "@/data/substances";
 import { SUBSTANCES, SUMMATION_GROUPS, SUMMATION_SOURCE } from "@/data/summationGroups";
 import { INDICATORS } from "@/data/indicatorRegistry";
 
@@ -177,6 +181,82 @@ export default function LegislationPage() {
             </tbody>
           </table>
         </div>
+      </section>
+
+      {/* ЗИЯНДЫ ЗАТТАР — өлшенетіні мен өлшенбейтінінің АЙЫРМАСЫ.
+          Бұл бөлімнің мәні — олқылықты ЖАСЫРМАУ: «жүйеде бәрі жасыл»
+          деген көрініс ең қауіпті заттың мүлдем өлшенбегенін жасыруы мүмкін. */}
+      <section className="mb-10">
+        <h2 className="mb-1 text-xl font-semibold text-white">Зиянды заттар: не өлшенеді, не өлшенбейді</h2>
+        <p className="mb-3 text-[12px] leading-relaxed text-neutral-400">
+          Барлығы <span className="text-white">{HARMFUL.length}</span> зат:{" "}
+          <span className="text-emerald-300">{MEASURED_COUNT} өлшенеді</span> ·{" "}
+          <span className="text-amber-300">{PROXY_COUNT} жанама</span> ·{" "}
+          <span className="text-red-300">{NOT_MEASURED_COUNT} өлшенбейді</span>.
+        </p>
+
+        <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/[0.07] p-4">
+          <p className="text-[12px] leading-relaxed text-red-100">
+            <b>Ең маңызды ескерту.</b> «Өлшенбейді» деп белгіленген зат бойынша жүйенің
+            ешқандай қорытындысы <b>жоқ</b>. Ауа сол зат бойынша таза деген сөз емес —
+            ол жай ғана <b>қаралмаған</b>.
+          </p>
+          <p className="mt-2 text-[12px] leading-relaxed text-red-100/85">
+            Атырау үшін бұл нақты мәселе: мұнай өңдеудің басты маркері{" "}
+            <b>күкіртсутек (H₂S)</b> спутниктен де, CAMS моделінен де мүлдем өлшенбейді.
+            Тұрғындар шағымының көбі дәл сол иіске байланысты.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto rounded-xl border border-white/10">
+          <table className="w-full min-w-[720px] text-left text-[12px]">
+            <thead className="bg-white/[0.04] text-neutral-400">
+              <tr>
+                <th className="px-3 py-2 font-medium">Зат</th>
+                <th className="px-3 py-2 font-medium">Күйі</th>
+                <th className="px-3 py-2 font-medium">Қалай / неге жоқ</th>
+                <th className="px-3 py-2 font-medium">Аймаққа қатысы</th>
+              </tr>
+            </thead>
+            <tbody>
+              {HARMFUL.map((s) => (
+                <tr key={s.id} className="border-t border-white/5 align-top">
+                  <td className="px-3 py-2">
+                    <div className="text-neutral-100">{s.name}</div>
+                    {s.formula && (
+                      <div className="font-mono text-[11px] text-neutral-500">{s.formula}</div>
+                    )}
+                    <div className="mt-1 text-[11px] leading-snug text-neutral-500">{s.health}</div>
+                  </td>
+                  <td className="whitespace-nowrap px-3 py-2">
+                    <span
+                      className={`rounded border px-1.5 py-0.5 text-[10px] ${
+                        s.status === "measured"
+                          ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
+                          : s.status === "proxy"
+                            ? "border-amber-400/40 bg-amber-500/15 text-amber-200"
+                            : "border-red-400/40 bg-red-500/15 text-red-200"
+                      }`}
+                    >
+                      {STATUS_KZ[s.status]}
+                    </span>
+                    {s.indicatorId && (
+                      <div className="mt-1 text-[10px] text-sky-300/80">нормасы бар</div>
+                    )}
+                  </td>
+                  <td className="px-3 py-2 text-[11px] leading-relaxed text-neutral-400">{s.how}</td>
+                  <td className="px-3 py-2 text-[11px] leading-relaxed text-neutral-300">
+                    {s.relevance}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
+          {SUBSTANCES_DISCLAIMER}
+        </p>
       </section>
 
       {/* Жинақталу әсері — 2025 ж. № 10 бұйрықпен енгізілген 3-кесте */}

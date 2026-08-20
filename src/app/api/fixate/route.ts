@@ -60,6 +60,7 @@ const HOURLY_FIELD: Record<string, string> = {
   no2: "nitrogen_dioxide",
   so2: "sulphur_dioxide",
   ozone: "ozone",
+  co: "carbon_monoxide",
 };
 const TRACKED_INDICATORS = INDICATORS.filter(
   (i) => normsFor(i.id).length > 0 && HOURLY_FIELD[i.id]
