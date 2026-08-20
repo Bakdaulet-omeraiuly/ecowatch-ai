@@ -86,12 +86,30 @@ export async function GET(req: Request) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
+    // ⚠️ ҚАЙСЫСЫ ЖОҚ ЕКЕНІН НАҚТЫ АЙТАМЫЗ.
+    // Бұрын хабарлама тек кілтті атайтын, ал шарт ЕКЕУІН тексеретін —
+    // сондықтан URL жоқ болса да «кілт қажет» деп тұратын да, іздеу
+    // басқа жаққа кетіп қалатын. Құпия мән ЕШҚАШАН қайтарылмайды,
+    // тек «бар/жоқ» күйі.
+    const missing = [
+      !url && "NEXT_PUBLIC_SUPABASE_URL",
+      !serviceKey && "SUPABASE_SERVICE_ROLE_KEY",
+    ].filter(Boolean) as string[];
     return NextResponse.json(
       {
         error: "Фиксация қоймасы бапталмаған — жазба жүргізілмейді",
+        missing,
         detail:
-          "SUPABASE_SERVICE_ROLE_KEY қажет. Anon кілтіне RLS жазуға рұқсат " +
-          "бермейді, сондықтан жазу тек серверлік кілтпен жүреді.",
+          `Табылмаған айнымалы: ${missing.join(", ")}. ` +
+          "Vercel → Settings → Environment Variables ішіне қосыңыз. " +
+          "⚠️ Қосқаннан КЕЙІН міндетті түрде REDEPLOY жасаңыз: орта " +
+          "айнымалылары бұрынғы деплойға кері қолданылмайды. " +
+          "Anon кілтіне RLS жазуға рұқсат бермейді, сондықтан жазу тек " +
+          "серверлік кілтпен жүреді.",
+        env: {
+          NEXT_PUBLIC_SUPABASE_URL: url ? "бар" : "ЖОҚ",
+          SUPABASE_SERVICE_ROLE_KEY: serviceKey ? "бар" : "ЖОҚ",
+        },
       },
       { status: 503 }
     );
