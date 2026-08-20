@@ -148,7 +148,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
             else if (e.key === "Enter") { e.preventDefault(); pickIndex(active); }
           }}
           placeholder={tr("Кез келген жерді, кәсіпорынды немесе координатаны іздеу…")}
-          className="w-full rounded-xl border border-white/15 bg-neutral-900/95 py-2.5 pl-10 pr-9 text-sm text-white shadow-xl outline-none backdrop-blur transition placeholder:text-neutral-500 focus:border-emerald-400/50"
+          className="w-full rounded-xl border border-white/15 bg-neutral-900/95 py-2.5 pl-10 pr-9 text-sm text-white shadow-xl outline-none backdrop-blur transition placeholder:text-neutral-400 focus:border-emerald-400/50"
           aria-label={tr("Іздеу")}
         />
         <button
@@ -163,7 +163,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
       {open && query.trim().length >= 2 && (
         <div className="absolute bottom-full left-0 mb-1.5 max-h-[55vh] w-full overflow-y-auto rounded-xl border border-white/10 bg-neutral-900/97 shadow-2xl backdrop-blur sm:relative sm:bottom-auto sm:mb-0 sm:mt-1.5">
           {total === 0 && !loading ? (
-            <div className="px-3 py-3 text-[12px] leading-relaxed text-neutral-400">
+            <div className="px-3 py-3 text-[13px] leading-relaxed text-neutral-400">
               {tr("Табылмады.")}{" "}
               {tr("Координатаны тікелей енгізіп көріңіз, мысалы: 47.11, 51.88")}
             </div>
@@ -171,7 +171,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
             <>
               {local.length > 0 && (
                 <>
-                  <div className="px-3 pb-1 pt-2 text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
+                  <div className="px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-neutral-400">
                     {tr("Жүйе тізілімінен")}
                   </div>
                   <ul>
@@ -188,15 +188,15 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
                           >
                             <Icon className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-[12px] text-neutral-100">{p.name}</span>
-                              <span className="block truncate text-[10px] text-neutral-500">
+                              <span className="block truncate text-[13px] text-neutral-100">{p.name}</span>
+                              <span className="block truncate text-[12px] text-neutral-400">
                                 {KIND_KZ[p.kind]}
                                 {p.hint && ` · ${p.hint}`}
                                 {p.approx && ` · ${tr("координата жуық")}`}
                               </span>
                             </span>
                             {p.objectId && (
-                              <span className="shrink-0 rounded border border-sky-400/30 bg-sky-500/10 px-1.5 py-0.5 text-[9px] text-sky-200">
+                              <span className="shrink-0 rounded border border-sky-400/30 bg-sky-500/10 px-1.5 py-0.5 text-[12px] text-sky-200">
                                 {tr("объект картасы")}
                               </span>
                             )}
@@ -210,7 +210,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
 
               {geo.length > 0 && (
                 <>
-                  <div className="border-t border-white/5 px-3 pb-1 pt-2 text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
+                  <div className="border-t border-white/5 px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-neutral-400">
                     {tr("Mapbox геокодері")}
                   </div>
                   <ul>
@@ -225,8 +225,8 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
                               i === active ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
                             }`}
                           >
-                            <Globe className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-500" />
-                            <span className="text-[12px] leading-snug text-neutral-300">
+                            <Globe className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-400" />
+                            <span className="text-[13px] leading-snug text-neutral-300">
                               {f.place_name}
                             </span>
                           </button>

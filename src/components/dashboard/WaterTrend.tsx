@@ -50,7 +50,7 @@ export function WaterTrend() {
           <Waves className="h-4 w-4 text-teal-400" />
           {data ? `${tr("Су деңгейінің өзгерісі")} — ${data.river} (2020→${tr("қазір")})` : tr("Су деңгейінің өзгерісі — өзен ағыны")}
         </CardTitle>
-        <p className="text-[11px] text-neutral-400">
+        <p className="text-[13px] text-neutral-400">
           {tr("Жылдық орташа өзен ағыны — GloFAS (Copernicus)")}
         </p>
       </CardHeader>
@@ -92,7 +92,7 @@ export function WaterTrend() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <p className="mt-1 text-[9px] text-neutral-500">
+            <p className="mt-1 text-[12px] text-neutral-400">
               {tr("river_discharge (m³/s) — өзен деңгейі/көлемінің нақты прокси-көрсеткіші. Дереккөз: GloFAS.")}
             </p>
           </>

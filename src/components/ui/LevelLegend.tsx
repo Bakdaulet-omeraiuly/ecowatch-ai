@@ -30,11 +30,11 @@ export function LevelLegend({
         className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left transition hover:bg-white/[0.03]"
       >
         <HelpCircle className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
-        <span className="flex-1 text-[11px] text-neutral-300">
+        <span className="flex-1 text-[13px] text-neutral-300">
           {tr("Деңгейлер нені білдіреді?")}
         </span>
         <ChevronDown
-          className={`h-3 w-3 shrink-0 text-neutral-500 transition-transform ${open ? "rotate-180" : ""}`}
+          className={`h-3 w-3 shrink-0 text-neutral-400 transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
 
@@ -44,19 +44,19 @@ export function LevelLegend({
             const m = LEVEL_MEANING[lv];
             return (
               <div key={lv}>
-                <span className={`inline-block rounded border px-1.5 py-0.5 text-[9px] ${LEVEL_COLOR[lv]}`}>
+                <span className={`inline-block rounded border px-1.5 py-0.5 text-[12px] ${LEVEL_COLOR[lv]}`}>
                   {tr(m.short)}
                 </span>
-                <p className="mt-1 text-[10px] leading-relaxed text-neutral-400">{m.full}</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-neutral-400">{m.full}</p>
                 {!compact && (
-                  <p className="mt-0.5 text-[10px] leading-relaxed text-neutral-500">
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-400">
                     → {m.action}
                   </p>
                 )}
               </div>
             );
           })}
-          <p className="border-t border-white/5 pt-1.5 text-[9px] leading-relaxed text-neutral-500">
+          <p className="border-t border-white/5 pt-1.5 text-[12px] leading-relaxed text-neutral-400">
             {tr(
               "Спутник пен модель дерегі тексеру тағайындауға негіз болады, " +
                 "бірақ өз алдына сот дәлелі емес — жердегі аспаптық өлшем қажет."

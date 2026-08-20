@@ -51,8 +51,8 @@ export default function LegislationPage() {
           <AlertTriangle className="h-4 w-4" />
           Заңдық мәртебесі — міндетті түрде оқыңыз
         </div>
-        <p className="text-[12px] leading-relaxed text-amber-100/90">{LEGAL_DISCLAIMER}</p>
-        <p className="mt-2 text-[12px] leading-relaxed text-amber-100/80">
+        <p className="text-[13px] leading-relaxed text-amber-100/90">{LEGAL_DISCLAIMER}</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-amber-100/80">
           Яғни жүйе <b>тексеру бастауға негіз</b> береді: қай жерде, қашан, қандай
           көрсеткіш бойынша күдік бар екенін нақты көрсетеді. Айыппұл салу үшін
           сол жерде аккредиттелген зертхана өлшеу жүргізуі қажет.
@@ -66,16 +66,16 @@ export default function LegislationPage() {
           {kzActs.map((a) => (
             <div key={a.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
               <div className="flex flex-wrap items-baseline gap-2">
-                <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-200">
+                <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[12px] font-medium text-emerald-200">
                   ҚР
                 </span>
                 <h3 className="text-sm font-semibold text-white">{a.number}</h3>
-                <span className="text-[11px] text-neutral-500">{a.date}</span>
+                <span className="text-[13px] text-neutral-400">{a.date}</span>
               </div>
-              <p className="mt-1 text-[12px] leading-relaxed text-neutral-300">{a.title}</p>
-              <p className="mt-1 text-[11px] text-neutral-500">{a.authority}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-neutral-300">{a.title}</p>
+              <p className="mt-1 text-[13px] text-neutral-400">{a.authority}</p>
               {a.note && (
-                <p className="mt-1.5 border-t border-white/10 pt-1.5 text-[11px] leading-relaxed text-amber-200/70">
+                <p className="mt-1.5 border-t border-white/10 pt-1.5 text-[13px] leading-relaxed text-amber-200/70">
                   {a.note}
                 </p>
               )}
@@ -84,7 +84,7 @@ export default function LegislationPage() {
                   href={a.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1.5 inline-block text-[11px] text-sky-300 underline-offset-2 hover:underline"
+                  className="mt-1.5 inline-block text-[13px] text-sky-300 underline-offset-2 hover:underline"
                 >
                   Ресми мәтін <ExternalLink className="inline h-2.5 w-2.5" />
                 </a>
@@ -101,20 +101,20 @@ export default function LegislationPage() {
           {intActs.map((a) => (
             <div key={a.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
               <div className="flex flex-wrap items-baseline gap-2">
-                <span className="rounded border border-sky-400/30 bg-sky-500/10 px-1.5 py-0.5 text-[10px] font-medium text-sky-200">
+                <span className="rounded border border-sky-400/30 bg-sky-500/10 px-1.5 py-0.5 text-[12px] font-medium text-sky-200">
                   {a.jurisdiction}
                 </span>
                 <h3 className="text-sm font-semibold text-white">{a.number}</h3>
-                <span className="text-[11px] text-neutral-500">{a.date}</span>
+                <span className="text-[13px] text-neutral-400">{a.date}</span>
               </div>
-              <p className="mt-1 text-[12px] leading-relaxed text-neutral-300">{a.title}</p>
-              {a.note && <p className="mt-1 text-[11px] text-neutral-500">{a.note}</p>}
+              <p className="mt-1 text-[13px] leading-relaxed text-neutral-300">{a.title}</p>
+              {a.note && <p className="mt-1 text-[13px] text-neutral-400">{a.note}</p>}
               {a.url && (
                 <a
                   href={a.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-1.5 inline-block text-[11px] text-sky-300 underline-offset-2 hover:underline"
+                  className="mt-1.5 inline-block text-[13px] text-sky-300 underline-offset-2 hover:underline"
                 >
                   Ресми мәтін <ExternalLink className="inline h-2.5 w-2.5" />
                 </a>
@@ -127,7 +127,7 @@ export default function LegislationPage() {
       {/* Норма тізілімі */}
       <section className="mb-10">
         <h2 className="mb-1 text-xl font-semibold text-white">Норма тізілімі</h2>
-        <p className="mb-3 text-[12px] leading-relaxed text-neutral-400">
+        <p className="mb-3 text-[13px] leading-relaxed text-neutral-400">
           Барлығы <span className="text-white">{NORMS.length}</span> норма, оның{" "}
           <span className="text-white">{verified}</span>-і расталған.{" "}
           <span className="text-amber-200/90">
@@ -136,7 +136,7 @@ export default function LegislationPage() {
           — тек «алдын ала белгі» деп жазады.
         </p>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-left text-[11px]">
+          <table className="w-full min-w-[640px] text-left text-[13px]">
             <thead className="text-neutral-400">
               <tr className="border-b border-white/10">
                 <th className="py-2 pr-3 font-medium">Көрсеткіш</th>
@@ -159,19 +159,19 @@ export default function LegislationPage() {
                       <span className="text-neutral-300">
                         {act.jurisdiction === "KZ" ? "ҚР" : act.jurisdiction}
                       </span>{" "}
-                      <span className="text-neutral-500">{act.number}</span>
+                      <span className="text-neutral-400">{act.number}</span>
                     </td>
                     <td className="py-2 pr-3 text-neutral-400">{AVERAGING_KZ[n.averaging]}</td>
                     <td className="py-2 pr-3 text-right text-neutral-200">
                       {n.limit} {n.unit}
                       {n.allowedExceedances != null && (
-                        <span className="ml-1 text-[10px] text-neutral-500">
+                        <span className="ml-1 text-[12px] text-neutral-400">
                           ({n.allowedExceedances} рет/жыл)
                         </span>
                       )}
                     </td>
                     <td className="py-2">
-                      <span className={`rounded border px-1.5 py-0.5 text-[10px] ${ui.cls}`} title={n.statusNote}>
+                      <span className={`rounded border px-1.5 py-0.5 text-[12px] ${ui.cls}`} title={n.statusNote}>
                         {ui.label}
                       </span>
                     </td>
@@ -188,7 +188,7 @@ export default function LegislationPage() {
           деген көрініс ең қауіпті заттың мүлдем өлшенбегенін жасыруы мүмкін. */}
       <section className="mb-10">
         <h2 className="mb-1 text-xl font-semibold text-white">Зиянды заттар: не өлшенеді, не өлшенбейді</h2>
-        <p className="mb-3 text-[12px] leading-relaxed text-neutral-400">
+        <p className="mb-3 text-[13px] leading-relaxed text-neutral-400">
           Барлығы <span className="text-white">{HARMFUL.length}</span> зат:{" "}
           <span className="text-emerald-300">{MEASURED_COUNT} өлшенеді</span> ·{" "}
           <span className="text-amber-300">{PROXY_COUNT} жанама</span> ·{" "}
@@ -196,12 +196,12 @@ export default function LegislationPage() {
         </p>
 
         <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/[0.07] p-4">
-          <p className="text-[12px] leading-relaxed text-red-100">
+          <p className="text-[13px] leading-relaxed text-red-100">
             <b>Ең маңызды ескерту.</b> «Өлшенбейді» деп белгіленген зат бойынша жүйенің
             ешқандай қорытындысы <b>жоқ</b>. Ауа сол зат бойынша таза деген сөз емес —
             ол жай ғана <b>қаралмаған</b>.
           </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-red-100/85">
+          <p className="mt-2 text-[13px] leading-relaxed text-red-100/85">
             Атырау үшін бұл нақты мәселе: мұнай өңдеудің басты маркері{" "}
             <b>күкіртсутек (H₂S)</b> спутниктен де, CAMS моделінен де мүлдем өлшенбейді.
             Тұрғындар шағымының көбі дәл сол иіске байланысты.
@@ -209,7 +209,7 @@ export default function LegislationPage() {
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-white/10">
-          <table className="w-full min-w-[720px] text-left text-[12px]">
+          <table className="w-full min-w-[720px] text-left text-[13px]">
             <thead className="bg-white/[0.04] text-neutral-400">
               <tr>
                 <th className="px-3 py-2 font-medium">Зат</th>
@@ -224,13 +224,13 @@ export default function LegislationPage() {
                   <td className="px-3 py-2">
                     <div className="text-neutral-100">{s.name}</div>
                     {s.formula && (
-                      <div className="font-mono text-[11px] text-neutral-500">{s.formula}</div>
+                      <div className="font-mono text-[13px] text-neutral-400">{s.formula}</div>
                     )}
-                    <div className="mt-1 text-[11px] leading-snug text-neutral-500">{s.health}</div>
+                    <div className="mt-1 text-[13px] leading-snug text-neutral-400">{s.health}</div>
                   </td>
                   <td className="whitespace-nowrap px-3 py-2">
                     <span
-                      className={`rounded border px-1.5 py-0.5 text-[10px] ${
+                      className={`rounded border px-1.5 py-0.5 text-[12px] ${
                         s.status === "measured"
                           ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-200"
                           : s.status === "proxy"
@@ -241,11 +241,11 @@ export default function LegislationPage() {
                       {STATUS_KZ[s.status]}
                     </span>
                     {s.indicatorId && (
-                      <div className="mt-1 text-[10px] text-sky-300/80">нормасы бар</div>
+                      <div className="mt-1 text-[12px] text-sky-300/80">нормасы бар</div>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-[11px] leading-relaxed text-neutral-400">{s.how}</td>
-                  <td className="px-3 py-2 text-[11px] leading-relaxed text-neutral-300">
+                  <td className="px-3 py-2 text-[13px] leading-relaxed text-neutral-400">{s.how}</td>
+                  <td className="px-3 py-2 text-[13px] leading-relaxed text-neutral-300">
                     {s.relevance}
                   </td>
                 </tr>
@@ -254,7 +254,7 @@ export default function LegislationPage() {
           </table>
         </div>
 
-        <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
+        <p className="mt-2 text-[13px] leading-relaxed text-neutral-400">
           {SUBSTANCES_DISCLAIMER}
         </p>
       </section>
@@ -262,18 +262,18 @@ export default function LegislationPage() {
       {/* Жинақталу әсері — 2025 ж. № 10 бұйрықпен енгізілген 3-кесте */}
       <section className="mb-10">
         <h2 className="mb-1 text-xl font-semibold text-white">Жинақталу (суммация) әсері</h2>
-        <p className="mb-3 text-[12px] leading-relaxed text-neutral-400">
+        <p className="mb-3 text-[13px] leading-relaxed text-neutral-400">
           {SUMMATION_SOURCE.act} — {SUMMATION_SOURCE.amendment}.
         </p>
 
         <div className="mb-3 rounded-xl border border-emerald-400/25 bg-emerald-500/[0.06] p-4">
           <div className="mb-1 font-mono text-lg text-emerald-200">{SUMMATION_SOURCE.formula}</div>
-          <p className="text-[12px] leading-relaxed text-emerald-100/85">
+          <p className="text-[13px] leading-relaxed text-emerald-100/85">
             Cᵢ — атмосфералық ауадағы заттың нақты шоғырлануы, ШРКᵢ — сол заттың рұқсат
             етілген шекті шоғырлануы. Жинақталу әсері бар заттар бірге болғанда, олардың
             қатынастарының қосындысы <b>1-ден аспауға тиіс</b>.
           </p>
-          <p className="mt-2 text-[12px] leading-relaxed text-white">
+          <p className="mt-2 text-[13px] leading-relaxed text-white">
             Бұл нені білдіреді: әр зат <b>жеке-жеке норма шегінде</b> тұрып, бірге алғанда
             норманы <b>бұзуы мүмкін</b>. Мысалы NO₂ = 0,6 ШРК және SO₂ = 0,6 ШРК — екеуі де
             «жасыл», ал қосындысы 1,2 &gt; 1 → бұзушылық.
@@ -281,14 +281,14 @@ export default function LegislationPage() {
         </div>
 
         <div className="mb-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
-          <div className="mb-1 text-[11px] font-semibold text-neutral-200">Ерекшелік ережесі</div>
-          <p className="text-[11px] leading-relaxed text-neutral-400">
+          <div className="mb-1 text-[13px] font-semibold text-neutral-200">Ерекшелік ережесі</div>
+          <p className="text-[13px] leading-relaxed text-neutral-400">
             {SUMMATION_SOURCE.dominanceRule}
           </p>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-left text-[11px]">
+          <table className="w-full min-w-[560px] text-left text-[13px]">
             <thead className="text-neutral-400">
               <tr className="border-b border-white/10">
                 <th className="py-2 pr-3 font-medium">№</th>
@@ -303,21 +303,21 @@ export default function LegislationPage() {
                 const full = missing.length === 0 && g.mode !== "independent";
                 return (
                   <tr key={g.no} className="border-b border-white/5 last:border-0">
-                    <td className="py-2 pr-3 text-neutral-500">{g.no}</td>
+                    <td className="py-2 pr-3 text-neutral-400">{g.no}</td>
                     <td className="py-2 pr-3 text-neutral-200">
                       {g.substances.map((id) => SUBSTANCES[id].name).join(" + ")}
                       {g.modeNote && (
-                        <span className="block text-[10px] text-neutral-500">{g.modeNote}</span>
+                        <span className="block text-[12px] text-neutral-400">{g.modeNote}</span>
                       )}
                     </td>
                     <td className="py-2">
                       {full ? (
-                        <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[10px] text-emerald-200">
+                        <span className="rounded border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[12px] text-emerald-200">
                           иә — {measured.length} компонент
                         </span>
                       ) : (
                         <span
-                          className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-[10px] text-neutral-400"
+                          className="rounded border border-white/15 bg-white/5 px-1.5 py-0.5 text-[12px] text-neutral-400"
                           title={missing.map((id) => SUBSTANCES[id].name).join(", ")}
                         >
                           жоқ — {missing.length} зат өлшенбейді
@@ -331,7 +331,7 @@ export default function LegislationPage() {
           </table>
         </div>
 
-        <p className="mt-2 text-[11px] leading-relaxed text-neutral-500">
+        <p className="mt-2 text-[13px] leading-relaxed text-neutral-400">
           Толық кестеде 59 топ бар. Мұнда жүйеде кемінде бір заты өлшенетіндері
           келтірілген — қалғандары (акрил қышқылы, фурфурол, ванадий аэрозольдері т.б.)
           үшін жер бетіндегі зертханалық өлшем қажет.
@@ -340,7 +340,7 @@ export default function LegislationPage() {
 
       <section className="mb-10">
         <h2 className="mb-2 text-xl font-semibold text-white">Норманы қалай растаймыз</h2>
-        <ol className="list-inside list-decimal space-y-1 text-[12px] leading-relaxed text-neutral-400">
+        <ol className="list-inside list-decimal space-y-1 text-[13px] leading-relaxed text-neutral-400">
           <li>
             adilet.zan.kz сайтынан ҚР ДСМ-70 бұйрығының қолданыстағы редакциясы ашылады
           </li>
@@ -351,13 +351,13 @@ export default function LegislationPage() {
           </li>
           <li>Сол сәттен бастап жүйе сол норма бойынша заңдық тұжырым шығара бастайды</li>
         </ol>
-        <p className="mt-2 text-[11px] text-neutral-500">
+        <p className="mt-2 text-[13px] text-neutral-400">
           2015 жылғы № 168 бұйрық <b className="text-amber-200/90">күшін жойған</b> — ондағы
           нормаларды қолдануға болмайды.
         </p>
       </section>
 
-      <div className="flex flex-wrap gap-2 text-[12px]">
+      <div className="flex flex-wrap gap-2 text-[13px]">
         <Link
           href="/eco-passport"
           className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-neutral-200 transition hover:bg-white/10"

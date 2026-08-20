@@ -174,7 +174,7 @@ export default function Home() {
             {ecoSummary ? (
               <p className="mt-0.5 text-sm leading-relaxed text-neutral-200">{ecoSummary}</p>
             ) : (
-              <p className="mt-0.5 text-sm text-neutral-500">{t("summary.loading")}</p>
+              <p className="mt-0.5 text-sm text-neutral-400">{t("summary.loading")}</p>
             )}
           </div>
         </motion.div>
@@ -187,7 +187,7 @@ export default function Home() {
           className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4"
         >
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur">
-            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-500"><Wind className="h-3.5 w-3.5" /> {t("live.air")}</div>
+            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-400"><Wind className="h-3.5 w-3.5" /> {t("live.air")}</div>
             {live.aqi != null ? (
               <><p className={`text-3xl font-bold ${aqiInfo?.color}`}>{live.aqi}</p>
               <p className="mt-0.5 text-xs text-neutral-400">{t(aqiInfo!.key as never)} · {t("live.aqiUnit")}</p></>
@@ -195,7 +195,7 @@ export default function Home() {
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur">
-            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-500"><Wind className="h-3.5 w-3.5" /> PM2.5 · мкг/м³</div>
+            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-400"><Wind className="h-3.5 w-3.5" /> PM2.5 · мкг/м³</div>
             {live.pm25 != null ? (
               <><p className={`text-3xl font-bold ${live.pm25 > 25 ? "text-orange-400" : "text-emerald-400"}`}>{live.pm25.toFixed(1)}</p>
               <p className="mt-0.5 text-xs text-neutral-400">{live.pm25 > 25 ? t("live.pm.high") : t("live.pm.norm")}</p></>
@@ -203,7 +203,7 @@ export default function Home() {
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur">
-            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-500"><TrendingUp className="h-3.5 w-3.5" /> {t("live.temp")}</div>
+            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-400"><TrendingUp className="h-3.5 w-3.5" /> {t("live.temp")}</div>
             {live.temp != null ? (
               <><p className="text-3xl font-bold text-sky-400">{live.temp.toFixed(0)}°C</p>
               <p className="mt-0.5 text-xs text-neutral-400">{t("live.atyrauCity")}</p></>
@@ -211,14 +211,14 @@ export default function Home() {
           </div>
 
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur">
-            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-500"><Droplets className="h-3.5 w-3.5" /> {t("live.humidity")}</div>
+            <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-400"><Droplets className="h-3.5 w-3.5" /> {t("live.humidity")}</div>
             {live.humidity != null ? (
               <><p className="text-3xl font-bold text-cyan-400">{live.humidity.toFixed(0)}%</p>
               <p className="mt-0.5 text-xs text-neutral-400">{t("live.atyrauCity")}</p></>
             ) : <Skeleton className="mt-1 h-8 w-16 bg-white/5" />}
           </div>
         </motion.div>
-        <p className="mt-2 text-[11px] text-neutral-600">{t("live.note")}</p>
+        <p className="mt-2 text-[13px] text-neutral-500">{t("live.note")}</p>
       </section>
 
       {/* Platform stats — анимацияланған */}
@@ -228,7 +228,7 @@ export default function Home() {
             className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center">
             <p className="text-xl font-bold text-white sm:text-2xl">118 500 км²</p>
             <p className="mt-1 text-xs font-medium text-emerald-400">{t("stats.area")}</p>
-            <p className="mt-0.5 text-[11px] text-neutral-500">{t("stats.areaSub")}</p>
+            <p className="mt-0.5 text-[13px] text-neutral-400">{t("stats.areaSub")}</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.08 }}
@@ -237,21 +237,21 @@ export default function Home() {
               {reportCount != null ? <AnimatedNum to={reportCount} /> : "…"}
             </p>
             <p className="mt-1 text-xs font-medium text-emerald-400">{t("stats.reports")}</p>
-            <p className="mt-0.5 text-[11px] text-neutral-500">{t("stats.reportsSub")}</p>
+            <p className="mt-0.5 text-[13px] text-neutral-400">{t("stats.reportsSub")}</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.16 }}
             className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center">
             <p className="text-xl font-bold text-white sm:text-2xl">2000–2025</p>
             <p className="mt-1 text-xs font-medium text-emerald-400">{t("stats.years")}</p>
-            <p className="mt-0.5 text-[11px] text-neutral-500">{t("stats.yearsSub")}</p>
+            <p className="mt-0.5 text-[13px] text-neutral-400">{t("stats.yearsSub")}</p>
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.24 }}
             className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center">
             <p className="text-xl font-bold text-white sm:text-2xl">GPT-4o</p>
             <p className="mt-1 text-xs font-medium text-emerald-400">{t("stats.refresh")}</p>
-            <p className="mt-0.5 text-[11px] text-neutral-500">{t("stats.refreshSub")}</p>
+            <p className="mt-0.5 text-[13px] text-neutral-400">{t("stats.refreshSub")}</p>
           </motion.div>
         </div>
       </section>
@@ -330,21 +330,21 @@ export default function Home() {
         {articles === null ? (
           <div className="grid gap-3 sm:grid-cols-2">{[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32 rounded-2xl bg-white/5" />)}</div>
         ) : articles.length === 0 ? (
-          <p className="text-sm text-neutral-500">{t("art.empty")}</p>
+          <p className="text-sm text-neutral-400">{t("art.empty")}</p>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {articles.slice(0, 6).map((a, i) => (
               <motion.a key={a.link + i} href={a.link} target="_blank" rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.35 }}
                 className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/5">
-                <div className="mb-2 flex items-center gap-2 text-[11px] text-neutral-500">
+                <div className="mb-2 flex items-center gap-2 text-[13px] text-neutral-400">
                   <span className="rounded-md bg-white/10 px-1.5 py-0.5">{a.source}</span>
                   <span className="ml-auto">{a.date}</span>
                   <ExternalLink className="h-3 w-3 opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
                 <h3 className="mb-1.5 text-sm font-semibold leading-snug text-white group-hover:text-emerald-300">{a.titleKz}</h3>
                 <p className="line-clamp-5 text-xs leading-relaxed text-neutral-400">{a.summaryKz}</p>
-                <p className="mt-2 line-clamp-1 text-[10px] italic text-neutral-600">{a.title}</p>
+                <p className="mt-2 line-clamp-1 text-[12px] italic text-neutral-500">{a.title}</p>
               </motion.a>
             ))}
           </div>

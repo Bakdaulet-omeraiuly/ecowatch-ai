@@ -75,7 +75,7 @@ export function MlForecast() {
             <Info className="h-3.5 w-3.5" />
           </button>
         </CardTitle>
-        <p className="text-[11px] text-neutral-400">
+        <p className="text-[13px] text-neutral-400">
           {tr("Метеорологиядан оқытылған модель — CAMS-тың 5 күндік шегінен әрі жалғастырады")}
         </p>
       </CardHeader>
@@ -90,13 +90,13 @@ export function MlForecast() {
           <div className="space-y-2 py-3">
             <p className="text-sm text-neutral-300">{tr(error?.msg ?? "Қолжетімсіз")}</p>
             {error?.detail && (
-              <p className="text-[11px] leading-relaxed text-neutral-500">{error.detail}</p>
+              <p className="text-[13px] leading-relaxed text-neutral-400">{error.detail}</p>
             )}
           </div>
         ) : (
           <>
             {showInfo && (
-              <div className="mb-3 space-y-1 rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] leading-relaxed text-neutral-300">
+              <div className="mb-3 space-y-1 rounded-lg border border-white/10 bg-black/30 p-3 text-[13px] leading-relaxed text-neutral-300">
                 <p>
                   <span className="text-neutral-400">{tr("Модель")}:</span>{" "}
                   {data.model.name} v{data.model.version} · {data.model.features} {tr("белгі")} ·{" "}
@@ -117,7 +117,7 @@ export function MlForecast() {
                   </p>
                 )}
                 <p className="text-amber-300/80">⚠ {tr(data.disclaimer)}</p>
-                <p className="text-neutral-500">{data.source}</p>
+                <p className="text-neutral-400">{data.source}</p>
               </div>
             )}
 
@@ -152,7 +152,7 @@ export function MlForecast() {
               </AreaChart>
             </ResponsiveContainer>
 
-            <p className="mt-2 text-[10px] leading-relaxed text-neutral-500">
+            <p className="mt-2 text-[12px] leading-relaxed text-neutral-400">
               {data.camsAvailable
                 ? tr("Сары сызықтан кейінгі күндер — CAMS болжамы жетпейтін аймақ, тек модель бағалауы.")
                 : tr("CAMS салыстыруы қазір қолжетімсіз — тек модель бағалауы көрсетілген.")}

@@ -81,7 +81,7 @@ export function WhyButton() {
                     );
                   })}
                 </div>
-                <p className="mt-2 text-[10px] text-neutral-500">
+                <p className="mt-2 text-[12px] text-neutral-400">
                   {tr("Барлық сан нақты өлшенген (Open-Meteo + CAMS). AI тек түсіндіреді, дерек ойлап таппайды.")}
                 </p>
               </>

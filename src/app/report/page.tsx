@@ -308,7 +308,7 @@ function Leaderboard() {
               <span className="text-base">{medals[i] ?? `${i + 1}.`}</span>
               <div className="flex-1 truncate">
                 <div className="truncate text-sm text-white">{r.name.slice(0, 50)}</div>
-                <div className="text-[11px] text-neutral-500">
+                <div className="text-[13px] text-neutral-400">
                   {r.count} {tr("хабарлама")} · {r.confirmed} {tr("расталған")}
                 </div>
               </div>
@@ -318,7 +318,7 @@ function Leaderboard() {
             </div>
           ))}
         </div>
-        <p className="mt-3 text-[11px] text-neutral-500">
+        <p className="mt-3 text-[13px] text-neutral-400">
           {tr("XP = расталған хабарлама × 10 + барлық хабарлама × 2. Лидерборд нақты уақытта жаңарады.")}
         </p>
       </CardContent>

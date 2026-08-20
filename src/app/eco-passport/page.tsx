@@ -156,7 +156,7 @@ export default function EcoPassportPage() {
         <header className="border-b border-white/10 pb-5 print:border-gray-300">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-emerald-400 print:text-green-800">
+              <div className="text-[13px] font-semibold uppercase tracking-[0.2em] text-emerald-400 print:text-green-800">
                 Jaiyq · {tr("экологиялық мониторинг")}
               </div>
               <h2 className="mt-1.5 text-2xl font-bold leading-tight text-white print:text-black">
@@ -166,7 +166,7 @@ export default function EcoPassportPage() {
                 {tr("Құжат жасалған уақыт")}: {nowStamp()}
               </p>
             </div>
-            <dl className="text-[10px] leading-relaxed text-neutral-500 print:text-gray-600">
+            <dl className="text-[12px] leading-relaxed text-neutral-400 print:text-gray-600">
               <div className="flex gap-2">
                 <dt>{tr("Аумақ")}:</dt>
                 <dd className="text-neutral-300 print:text-black">{region.name}, {region.countryName}</dd>
@@ -194,7 +194,7 @@ export default function EcoPassportPage() {
           <h3 className="mb-3 text-sm font-semibold text-white print:text-black">
             {tr("1. Құжат туралы")}
           </h3>
-          <p className="mb-3 max-w-3xl text-[12px] leading-relaxed text-neutral-300 print:text-gray-800">
+          <p className="mb-3 max-w-3xl text-[13px] leading-relaxed text-neutral-300 print:text-gray-800">
             {tr(
               "Бұл паспорт ресми, ашық дереккөздерден автоматты жиналады. Әр көрсеткіштің " +
               "жанында оның қалай есептелгені, қандай аспаппен алынғаны, ресми құжатқа " +
@@ -214,7 +214,7 @@ export default function EcoPassportPage() {
           <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-3 print:border-gray-300 print:bg-gray-50">
             <TierLegend />
           </div>
-          <p className="mt-3 text-[11px] leading-relaxed text-amber-200/80 print:text-amber-900">
+          <p className="mt-3 text-[13px] leading-relaxed text-amber-200/80 print:text-amber-900">
             ⚠{" "}
             {tr(
               "Бұл құжатта жалпы «эко-балл» ЖОҚ. Түрлі бірліктегі және түрлі сенімділік " +
@@ -262,7 +262,7 @@ export default function EcoPassportPage() {
             {SECTIONS.length + 2}. {tr("Дереккөздердің толық тізімі")}
           </h3>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-left text-[11px]">
+            <table className="w-full min-w-[520px] text-left text-[13px]">
               <thead className="text-neutral-400 print:text-gray-600">
                 <tr className="border-b border-white/10 print:border-gray-300">
                   <th className="py-1.5 pr-3 font-medium">{tr("Эндпоинт")}</th>
@@ -274,13 +274,13 @@ export default function EcoPassportPage() {
               <tbody>
                 {requiredEndpoints().map((ep) => (
                   <tr key={ep} className="border-b border-white/5 last:border-0 print:border-gray-200">
-                    <td className="py-1.5 pr-3 font-mono text-[10px] text-neutral-400 print:text-gray-700">
+                    <td className="py-1.5 pr-3 font-mono text-[12px] text-neutral-400 print:text-gray-700">
                       {ep}
                     </td>
                     <td className="py-1.5 pr-3 text-neutral-300 print:text-black">
                       {meta[ep]?.source ?? "—"}
                     </td>
-                    <td className="py-1.5 pr-3 text-neutral-500 print:text-gray-600">
+                    <td className="py-1.5 pr-3 text-neutral-400 print:text-gray-600">
                       {meta[ep]?.fetchedAt ? meta[ep]!.fetchedAt!.replace("T", " ").slice(0, 16) : "—"}
                     </td>
                     <td className="py-1.5">
@@ -308,7 +308,7 @@ export default function EcoPassportPage() {
         </section>
 
         {/* Жауапкершілік */}
-        <footer className="pt-5 text-[11px] leading-relaxed text-neutral-400 print:text-gray-700">
+        <footer className="pt-5 text-[13px] leading-relaxed text-neutral-400 print:text-gray-700">
           <h3 className="mb-2 text-sm font-semibold text-white print:text-black">
             {SECTIONS.length + 3}. {tr("Мәртебесі және шектеулері")}
           </h3>
@@ -339,7 +339,7 @@ export default function EcoPassportPage() {
               </a>
             </li>
           </ul>
-          <p className="border-t border-white/10 pt-3 text-neutral-500 print:border-gray-300 print:text-gray-600">
+          <p className="border-t border-white/10 pt-3 text-neutral-400 print:border-gray-300 print:text-gray-600">
             Jaiyq · ecojaiyq.com · {tr("Қазақстан мен Каспий жағалауының экологиялық AI мониторинг платформасы")}
           </p>
         </footer>
@@ -363,7 +363,7 @@ export default function EcoPassportPage() {
 function Stat({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
   return (
     <div className="rounded-lg border border-white/10 bg-black/20 px-3 py-2 print:border-gray-300 print:bg-gray-50">
-      <div className="text-[10px] uppercase tracking-wide text-neutral-500 print:text-gray-600">{label}</div>
+      <div className="text-[12px] uppercase tracking-wide text-neutral-400 print:text-gray-600">{label}</div>
       <div className={`text-lg font-bold ${warn ? "text-amber-300 print:text-amber-800" : "text-white print:text-black"}`}>
         {value}
       </div>
@@ -393,19 +393,19 @@ function IndicatorRow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <TierBadge tier={ind.tier} />
-            <span className="text-[13px] font-medium text-white print:text-black">{ind.name}</span>
+            <span className="text-[14px] font-medium text-white print:text-black">{ind.name}</span>
             {ind.validated ? (
               <ShieldCheck className="h-3 w-3 text-emerald-400" aria-label={tr("валидацияланған")} />
             ) : (
               <ShieldAlert className="h-3 w-3 text-amber-400" aria-label={tr("валидацияланбаған")} />
             )}
           </div>
-          <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-neutral-400 print:line-clamp-none print:text-gray-600">
+          <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-neutral-400 print:line-clamp-none print:text-gray-600">
             {ind.what}
           </p>
           {/* Модуль бұл аймақта жоқ — «өлшенбеді» деп қалдырмай, себебін жазамыз */}
           {meta?.missingReason && (
-            <p className="mt-1 text-[10px] leading-snug text-neutral-500 print:text-gray-600">
+            <p className="mt-1 text-[12px] leading-snug text-neutral-400 print:text-gray-600">
               ⃠ {tr("Бұл аймақта модуль жоқ")}: {meta.missingReason}
             </p>
           )}
@@ -415,32 +415,32 @@ function IndicatorRow({
           <div
             className={`text-lg font-bold leading-none ${
               value == null
-                ? "text-neutral-500"
+                ? "text-neutral-400"
                 : breached.length
                   ? "text-amber-300 print:text-amber-800"
                   : "text-white print:text-black"
             }`}
           >
             {fmt(value, ind.digits ?? 0)}
-            <span className="ml-1 text-[10px] font-normal text-neutral-400 print:text-gray-600">
+            <span className="ml-1 text-[12px] font-normal text-neutral-400 print:text-gray-600">
               {ind.unit}
             </span>
           </div>
           {value == null ? (
-            <div className="mt-0.5 text-[10px] text-neutral-500">{tr("өлшенбеді")}</div>
+            <div className="mt-0.5 text-[12px] text-neutral-400">{tr("өлшенбеді")}</div>
           ) : breached.length > 0 ? (
-            <div className="mt-0.5 text-[10px] text-amber-300 print:text-amber-800">
+            <div className="mt-0.5 text-[12px] text-amber-300 print:text-amber-800">
               ⚠ {tr("норма асқан")}
             </div>
           ) : ind.norms?.length ? (
-            <div className="mt-0.5 text-[10px] text-emerald-400 print:text-green-700">
+            <div className="mt-0.5 text-[12px] text-emerald-400 print:text-green-700">
               {tr("норма шегінде")}
             </div>
           ) : null}
         </div>
 
         <ChevronDown
-          className={`mt-1 h-3.5 w-3.5 shrink-0 text-neutral-500 transition-transform print:hidden ${
+          className={`mt-1 h-3.5 w-3.5 shrink-0 text-neutral-400 transition-transform print:hidden ${
             open ? "rotate-180" : ""
           }`}
         />
@@ -448,12 +448,12 @@ function IndicatorRow({
 
       {/* Әдістеме — басып шығаруда әрқашан ашық */}
       <div className={`${open ? "block" : "hidden"} print:block`}>
-        <div className="space-y-3 border-t border-white/10 px-3 py-3 text-[11px] leading-relaxed print:border-gray-200">
+        <div className="space-y-3 border-t border-white/10 px-3 py-3 text-[13px] leading-relaxed print:border-gray-200">
           {/* Формула */}
           {ind.formula && (
             <div>
               <Label>{tr("Формула")}</Label>
-              <div className="mt-1 overflow-x-auto rounded-md border border-white/10 bg-black/30 px-2.5 py-1.5 font-mono text-[11px] text-emerald-200 print:border-gray-300 print:bg-gray-50 print:text-black">
+              <div className="mt-1 overflow-x-auto rounded-md border border-white/10 bg-black/30 px-2.5 py-1.5 font-mono text-[13px] text-emerald-200 print:border-gray-300 print:bg-gray-50 print:text-black">
                 {ind.formula}
               </div>
             </div>
@@ -465,7 +465,7 @@ function IndicatorRow({
             <ol className="mt-1 space-y-0.5 text-neutral-300 print:text-gray-800">
               {ind.steps.map((s, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="shrink-0 text-neutral-500 print:text-gray-500">{i + 1}.</span>
+                  <span className="shrink-0 text-neutral-400 print:text-gray-500">{i + 1}.</span>
                   <span>{s}</span>
                 </li>
               ))}
@@ -563,7 +563,7 @@ function IndicatorRow({
 
 function Label({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 print:text-gray-600">
+    <div className="text-[12px] font-semibold uppercase tracking-wider text-neutral-400 print:text-gray-600">
       {children}
     </div>
   );
@@ -572,8 +572,8 @@ function Label({ children }: { children: React.ReactNode }) {
 function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="flex gap-2">
-      <span className="shrink-0 text-neutral-500 print:text-gray-600">{label}:</span>
-      <span className={`text-neutral-300 print:text-gray-900 ${mono ? "font-mono text-[10px]" : ""}`}>
+      <span className="shrink-0 text-neutral-400 print:text-gray-600">{label}:</span>
+      <span className={`text-neutral-300 print:text-gray-900 ${mono ? "font-mono text-[12px]" : ""}`}>
         {value}
       </span>
     </div>
@@ -602,10 +602,10 @@ function Doc({ doc, block }: { doc: { label: string; url?: string; note?: string
         <span className="text-neutral-300 print:text-gray-800">{doc.label}</span>
       )}
       {doc.note && (
-        <span className="ml-1 text-neutral-500 print:text-gray-600">— {doc.note}</span>
+        <span className="ml-1 text-neutral-400 print:text-gray-600">— {doc.note}</span>
       )}
       {doc.url && (
-        <span className="ml-1 hidden text-[9px] text-gray-500 print:inline">({doc.url})</span>
+        <span className="ml-1 hidden text-[12px] text-gray-500 print:inline">({doc.url})</span>
       )}
     </span>
   );

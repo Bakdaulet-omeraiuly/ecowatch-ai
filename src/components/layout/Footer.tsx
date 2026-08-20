@@ -45,7 +45,7 @@ export function Footer() {
 
           {/* Nav */}
           <div>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
               {t("foot.nav")}
             </h3>
             <ul className="space-y-2">
@@ -61,7 +61,7 @@ export function Footer() {
 
           {/* Sources */}
           <div>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
               {t("foot.sources")}
             </h3>
             <ul className="space-y-2.5">
@@ -73,7 +73,7 @@ export function Footer() {
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-sm text-neutral-400 transition-colors hover:text-emerald-300"
                   >
-                    <s.icon className="h-3.5 w-3.5 flex-shrink-0 text-neutral-600" />
+                    <s.icon className="h-3.5 w-3.5 flex-shrink-0 text-neutral-500" />
                     {s.label}
                   </a>
                 </li>
@@ -83,7 +83,7 @@ export function Footer() {
 
           {/* Contact */}
           <div>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-400">
               {t("foot.contact")}
             </h3>
             <a
@@ -95,12 +95,12 @@ export function Footer() {
               <div className="flex items-center gap-2 text-sm font-medium text-sky-300">
                 <Send className="h-4 w-4" /> {t("foot.tg")}
               </div>
-              <p className="mt-1 text-[11px] text-neutral-400">{t("foot.tgDesc")}</p>
+              <p className="mt-1 text-[13px] text-neutral-400">{t("foot.tgDesc")}</p>
             </a>
           </div>
         </div>
 
-        <div className="mt-10 border-t border-white/5 pt-6 text-center text-xs text-neutral-600 space-y-2">
+        <div className="mt-10 border-t border-white/5 pt-6 text-center text-xs text-neutral-500 space-y-2">
           <p>© Copernicus Service Information · Contains modified Copernicus Climate Change Service information · NASA Public Domain · ESA Sentinel-2 Open Access</p>
           <p>
             © {new Date().getFullYear()} Jaiyq · {t("foot.rights")} ·{" "}

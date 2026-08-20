@@ -44,7 +44,7 @@ const fmt = (v: number | null, d = 1) =>
 const STATUS: Record<Zone["status"], { label: string; cls: string }> = {
   ok: { label: "өлшенді", cls: "text-emerald-300" },
   "no-baseline": { label: "тірек кезең жоқ", cls: "text-amber-300" },
-  "no-data": { label: "спутник өтуі жоқ", cls: "text-neutral-500" },
+  "no-data": { label: "спутник өтуі жоқ", cls: "text-neutral-400" },
 };
 
 export function FloodExtent() {
@@ -87,7 +87,7 @@ export function FloodExtent() {
             <Info className="h-3.5 w-3.5" />
           </button>
         </CardTitle>
-        <p className="text-[11px] text-neutral-400">
+        <p className="text-[13px] text-neutral-400">
           {tr("Радар бұлт пен түнді елемейді — тасқынды нақты өлшейді")}
         </p>
       </CardHeader>
@@ -104,7 +104,7 @@ export function FloodExtent() {
         ) : (
           <>
             {showMethod && (
-              <div className="mb-3 space-y-1.5 rounded-lg border border-white/10 bg-black/30 p-3 text-[11px] leading-relaxed text-neutral-300">
+              <div className="mb-3 space-y-1.5 rounded-lg border border-white/10 bg-black/30 p-3 text-[13px] leading-relaxed text-neutral-300">
                 <p>{data.method.summary}</p>
                 <p className="text-sky-200/80">{data.method.deltaExplanation}</p>
                 <p className="text-neutral-400">
@@ -114,7 +114,7 @@ export function FloodExtent() {
                 <p className="text-neutral-400">
                   {tr("Тірек кезең")}: {data.method.baselineWindow.label}
                 </p>
-                <p className="text-neutral-500">{data.source}</p>
+                <p className="text-neutral-400">{data.source}</p>
                 <ul className="mt-2 space-y-1 border-t border-white/10 pt-2 text-amber-200/70">
                   {data.caveats.map((c, i) => (
                     <li key={i}>⚠ {c}</li>
@@ -126,7 +126,7 @@ export function FloodExtent() {
             {/* Басты сан — экологқа ең керегі */}
             <div className="mb-3 flex flex-wrap items-end gap-x-6 gap-y-2">
               <div>
-                <div className="text-[10px] uppercase tracking-wide text-neutral-400">
+                <div className="text-[12px] uppercase tracking-wide text-neutral-400">
                   {tr("Су басқан аумақ")}
                 </div>
                 <div className="text-2xl font-bold text-sky-300">
@@ -134,7 +134,7 @@ export function FloodExtent() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wide text-neutral-400">
+                <div className="text-[12px] uppercase tracking-wide text-neutral-400">
                   {tr("Жалпы су беті")}
                 </div>
                 <div className="text-lg font-semibold text-neutral-200">
@@ -142,7 +142,7 @@ export function FloodExtent() {
                 </div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wide text-neutral-400">
+                <div className="text-[12px] uppercase tracking-wide text-neutral-400">
                   {tr("Тұрақты су (тірек)")}
                 </div>
                 <div className="text-lg font-semibold text-neutral-400">
@@ -152,7 +152,7 @@ export function FloodExtent() {
             </div>
 
             <div className="-mx-1 overflow-x-auto">
-              <table className="w-full min-w-[560px] text-left text-[11px]">
+              <table className="w-full min-w-[560px] text-left text-[13px]">
                 <thead className="text-neutral-400">
                   <tr className="border-b border-white/10">
                     <th className="px-1 py-1.5 font-medium">{tr("Аймақ")}</th>
@@ -168,7 +168,7 @@ export function FloodExtent() {
                     <tr key={z.id} className="border-b border-white/5 last:border-0">
                       <td className="px-1 py-1.5">
                         <div className="text-neutral-200">{z.name}</div>
-                        <div className={`text-[10px] ${STATUS[z.status].cls}`}>
+                        <div className={`text-[12px] ${STATUS[z.status].cls}`}>
                           {tr(STATUS[z.status].label)}
                         </div>
                       </td>
@@ -176,7 +176,7 @@ export function FloodExtent() {
                         {fmt(z.floodedKm2)}
                       </td>
                       <td className="px-1 py-1.5 text-right text-neutral-300">{fmt(z.waterKm2)}</td>
-                      <td className="px-1 py-1.5 text-right text-neutral-500">{fmt(z.baselineKm2)}</td>
+                      <td className="px-1 py-1.5 text-right text-neutral-400">{fmt(z.baselineKm2)}</td>
                       <td className="px-1 py-1.5 text-right text-neutral-300">
                         {z.floodedPctOfZone == null ? "—" : `${fmt(z.floodedPctOfZone, 2)}%`}
                       </td>
@@ -190,12 +190,12 @@ export function FloodExtent() {
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <a
                 href="/api/flood-extent?format=csv"
-                className="inline-flex items-center gap-1.5 rounded-md border border-sky-400/30 bg-sky-500/10 px-2.5 py-1.5 text-[11px] text-sky-200 transition hover:bg-sky-500/20"
+                className="inline-flex items-center gap-1.5 rounded-md border border-sky-400/30 bg-sky-500/10 px-2.5 py-1.5 text-[13px] text-sky-200 transition hover:bg-sky-500/20"
               >
                 <Download className="h-3.5 w-3.5" />
                 {tr("CSV жүктеу (Excel)")}
               </a>
-              <span className="inline-flex items-center gap-1 text-[10px] text-neutral-500">
+              <span className="inline-flex items-center gap-1 text-[12px] text-neutral-400">
                 <Satellite className="h-3 w-3" />
                 {data.totals.zonesOk}/{data.totals.zonesTotal} {tr("аймақ өлшенді")}
               </span>

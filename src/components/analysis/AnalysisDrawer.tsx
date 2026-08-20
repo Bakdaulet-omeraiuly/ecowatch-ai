@@ -225,12 +225,12 @@ export function AnalysisDrawer({
               <h2 className="flex items-center gap-2 font-semibold text-white">
                 {site.areaKm2 ? tr("Талданған аумақ") : site.name ? tr(site.name) : tr("Талданған нүкте")}
                 {site.imageryYear && (
-                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-normal text-amber-300">
+                  <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[12px] font-normal text-amber-300">
                     {site.imageryYear} жыл
                   </span>
                 )}
                 {site.areaKm2 != null && (
-                  <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[10px] font-normal text-sky-300">
+                  <span className="rounded-full bg-sky-500/15 px-2 py-0.5 text-[12px] font-normal text-sky-300">
                     ⬡ {site.areaKm2.toFixed(2)} км²
                   </span>
                 )}
@@ -238,7 +238,7 @@ export function AnalysisDrawer({
               <p className="text-xs text-neutral-400">
                 {tr(site.district)} · {site.lat.toFixed(4)}, {site.lng.toFixed(4)}
               </p>
-              <p className="text-[10px] text-neutral-500">
+              <p className="text-[12px] text-neutral-400">
                 {tr("Соңғы талдау")}: {new Date(site.createdAt).toLocaleString("kk-KZ")}
               </p>
             </div>
@@ -278,10 +278,10 @@ export function AnalysisDrawer({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={site.photoThumb} alt={tr("Азамат фотосы")} className="absolute inset-0 h-full w-full object-cover" />
-              <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+              <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[12px] text-white">
                 📸 {tr("Азамат фотосы")}
               </span>
-              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[12px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-3 w-3" /> {tr("Үлкейту")}
               </span>
             </div>
@@ -300,10 +300,10 @@ export function AnalysisDrawer({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={site.imageUrl} alt={tr("Спутник суреті")} className="absolute inset-0 h-full w-full object-cover" />
-              <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white">
+              <span className="absolute left-2 top-2 rounded bg-black/60 px-1.5 py-0.5 text-[12px] text-white">
                 🛰 {site.imageryYear ? `Sentinel-2, ${site.imageryYear} ${tr("жыл")}` : tr("Спутник көрінісі (қазіргі)")}
               </span>
-              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[10px] text-white opacity-0 transition-opacity group-hover:opacity-100">
+              <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded bg-black/60 px-1.5 py-0.5 text-[12px] text-white opacity-0 transition-opacity group-hover:opacity-100">
                 <Maximize2 className="h-3 w-3" /> {tr("Үлкейту")}
               </span>
             </div>
@@ -359,10 +359,10 @@ export function AnalysisDrawer({
             <div className="rounded-lg border border-sky-500/25 bg-sky-500/5 p-3">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-sky-300">
                 🛰 {tr("ML спектрлік талдау")}
-                <span className="rounded bg-sky-500/15 px-1 py-px text-[8px] uppercase text-sky-300">{tr("Sentinel-2 · 10м")}</span>
+                <span className="rounded bg-sky-500/15 px-1 py-px text-[12px] uppercase text-sky-300">{tr("Sentinel-2 · 10м")}</span>
               </h3>
               {indicesState === "loading" ? (
-                <p className="text-[11px] text-neutral-500">{tr("Спутник деректері есептелуде…")}</p>
+                <p className="text-[13px] text-neutral-400">{tr("Спутник деректері есептелуде…")}</p>
               ) : indices ? (
                 <>
                   <div className="grid grid-cols-2 gap-2">
@@ -371,12 +371,12 @@ export function AnalysisDrawer({
                     <MlBar label={tr("NDMI · ылғал")} value={indices.ndmi} min={-0.5} max={0.6} color="#06b6d4" note={indices.interpretation.moist} />
                     <MlBar label={tr("NDBI · құрылыс")} value={indices.ndbi} min={-0.4} max={0.5} color="#f97316" note={indices.interpretation.built} />
                   </div>
-                  <p className="mt-2 text-[9px] text-neutral-500">
+                  <p className="mt-2 text-[12px] text-neutral-400">
                     {indices.source} · {indices.from} — {indices.to} ({tr("соңғы бұлтсыз кадр")})
                   </p>
                 </>
               ) : (
-                <p className="text-[11px] text-neutral-500">
+                <p className="text-[13px] text-neutral-400">
                   {tr("Спектрлік талдау қолжетімсіз (бұлт болуы мүмкін) — жалған дерек көрсетілмейді.")}
                 </p>
               )}
@@ -386,7 +386,7 @@ export function AnalysisDrawer({
             <div className="rounded-lg border border-violet-500/25 bg-violet-500/5 p-3">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-violet-300">
                 🤖 {tr("LLM Vision талдауы")}
-                <span className="rounded bg-violet-500/15 px-1 py-px text-[8px] uppercase text-violet-300">GPT-4o</span>
+                <span className="rounded bg-violet-500/15 px-1 py-px text-[12px] uppercase text-violet-300">GPT-4o</span>
               </h3>
               <p className="text-xs text-neutral-300">{tx?.summary ?? site.analysis.summary}</p>
             </div>
@@ -396,11 +396,11 @@ export function AnalysisDrawer({
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-violet-300">
                   <Sparkles className="h-3.5 w-3.5" /> {tr("AI агент — көп дереккөзді талдау")}
                 </h3>
-                <p className="text-[11px] text-neutral-400">
+                <p className="text-[13px] text-neutral-400">
                   {tr("Тек спутникке емес, тірі ресми деректерге де сүйенді:")}
                 </p>
                 {site.analysis.agentSources.map((s, i) => (
-                  <div key={i} className="rounded-md bg-neutral-900/60 p-2 text-[11px]">
+                  <div key={i} className="rounded-md bg-neutral-900/60 p-2 text-[13px]">
                     <b className="text-violet-200">{s.source}</b>
                     <div className="text-neutral-300">{tx?.agentFindings?.[i] ?? s.finding}</div>
                   </div>
@@ -412,43 +412,43 @@ export function AnalysisDrawer({
               <div className="space-y-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200">
                   🔬 {tr("Ғылыми сараптама")}
-                  <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[9px] font-normal text-violet-300">
+                  <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[12px] font-normal text-violet-300">
                     {tr("GPT-4o пайымдауы")}
                   </span>
                 </h3>
                 {/* Спектрлік индекстер жоғарыдағы «ML спектрлік талдауда» (нақты Sentinel-2) */}
 
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="grid grid-cols-2 gap-2 text-[13px]">
                   <div className="rounded bg-white/5 p-2">
-                    <div className="text-neutral-500">{tr("Ластанған аумақ")}</div>
+                    <div className="text-neutral-400">{tr("Ластанған аумақ")}</div>
                     <div className="font-semibold text-white">
                       ≈ {site.analysis.science.areaM2.toLocaleString("kk-KZ")} м²
                     </div>
                   </div>
                   <div className="rounded bg-white/5 p-2">
-                    <div className="text-neutral-500">{tr("Жақын инфрақұрылым")}</div>
+                    <div className="text-neutral-400">{tr("Жақын инфрақұрылым")}</div>
                     <div className="text-neutral-300">
                       {site.analysis.science.nearbyInfrastructure.join(", ") || "—"}
                     </div>
                   </div>
                 </div>
 
-                <div className="text-[11px] text-neutral-400">
+                <div className="text-[13px] text-neutral-400">
                   <b className="text-neutral-300">{tr("Динамика:")}</b> {tx?.changeDynamics ?? site.analysis.science.changeDynamics}
                 </div>
-                <div className="text-[11px] text-neutral-400">
+                <div className="text-[13px] text-neutral-400">
                   <b className="text-neutral-300">{tr("Текстура:")}</b> {tx?.textureNote ?? site.analysis.science.textureNote}
                 </div>
 
                 {/* Evidence-based reasoning */}
                 {site.analysis.science.evidence.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-[11px] font-semibold text-white">{tr("Себеп-салдар талдауы")}</h4>
+                    <h4 className="text-[13px] font-semibold text-white">{tr("Себеп-салдар талдауы")}</h4>
                     {site.analysis.science.evidence.map((e, i) => (
-                      <div key={i} className="rounded-md border border-white/10 bg-neutral-900/60 p-2.5 text-[11px]">
+                      <div key={i} className="rounded-md border border-white/10 bg-neutral-900/60 p-2.5 text-[13px]">
                         <div className="flex items-center justify-between">
                           <b className="text-white">⚠ {e.sign}</b>
-                          <span className="text-neutral-500">{tr("сенімділік")} {e.confidence}%</span>
+                          <span className="text-neutral-400">{tr("сенімділік")} {e.confidence}%</span>
                         </div>
                         <div className="mt-1 text-neutral-300">
                           <span className="text-sky-400">{tr("Дәлел:")}</span> {e.evidence}
@@ -466,19 +466,19 @@ export function AnalysisDrawer({
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-300">
                 🎯 {tr("Деректерге негізделген ұсыныс")}
-                <span className="rounded bg-emerald-500/15 px-1 py-px text-[8px] uppercase text-emerald-300">
+                <span className="rounded bg-emerald-500/15 px-1 py-px text-[12px] uppercase text-emerald-300">
                   ML + AI
                 </span>
               </h3>
               {recsState === "loading" ? (
-                <p className="flex items-center gap-1.5 text-[11px] text-neutral-500">
+                <p className="flex items-center gap-1.5 text-[13px] text-neutral-400">
                   <RefreshCw className="h-3 w-3 animate-spin" /> {tr("Талдау деректеріне сай ұсыныс дайындалуда…")}
                 </p>
               ) : recs && recs.length > 0 ? (
                 <ol className="space-y-1.5">
                   {recs.map((r, i) => (
                     <li key={i} className="flex gap-2 text-xs text-neutral-200">
-                      <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[9px] font-bold text-emerald-300">
+                      <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500/20 text-[12px] font-bold text-emerald-300">
                         {i + 1}
                       </span>
                       <span>{r}</span>
@@ -561,7 +561,7 @@ export function AnalysisDrawer({
             onClick={(e) => e.stopPropagation()}
             className="max-h-[80vh] max-w-4xl rounded-lg object-contain shadow-2xl"
           />
-          <p className="mt-3 text-xs text-neutral-500">{tr("Жабу үшін кез келген жерді басыңыз")}</p>
+          <p className="mt-3 text-xs text-neutral-400">{tr("Жабу үшін кез келген жерді басыңыз")}</p>
         </motion.div>
       )}
     </AnimatePresence>
@@ -573,13 +573,13 @@ function MlBar({ label, value, min, max, color, note }: { label: string; value: 
   return (
     <div className="rounded-md bg-white/[0.03] p-2">
       <div className="flex items-center justify-between">
-        <span className="text-[10px] text-neutral-400">{label}</span>
-        <span className="text-[11px] font-bold text-white">{value.toFixed(2)}</span>
+        <span className="text-[12px] text-neutral-400">{label}</span>
+        <span className="text-[13px] font-bold text-white">{value.toFixed(2)}</span>
       </div>
       <div className="my-1 h-1.5 overflow-hidden rounded-full bg-white/10">
         <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
       </div>
-      <span className="text-[9px] text-neutral-500">{note}</span>
+      <span className="text-[12px] text-neutral-400">{note}</span>
     </div>
   );
 }
@@ -588,7 +588,7 @@ function Indicator({ on, label }: { on: boolean; label: string }) {
   const { tr } = useLang();
   return (
     <div
-      className={`rounded-md px-2 py-1.5 ${on ? "bg-red-500/10 text-red-300" : "bg-white/5 text-neutral-500"}`}
+      className={`rounded-md px-2 py-1.5 ${on ? "bg-red-500/10 text-red-300" : "bg-white/5 text-neutral-400"}`}
     >
       {label}: {on ? tr("Иә") : tr("Жоқ")}
     </div>

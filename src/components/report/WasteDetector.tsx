@@ -124,7 +124,7 @@ export function WasteDetector({ photo }: { photo: string }) {
               </span>
             )}
           </div>
-          <p className="text-[10px] text-neutral-500">
+          <p className="text-[12px] text-neutral-400">
             {tr("YOLOS-tiny моделі браузерде on-device жұмыс істейді (transformers.js). Қызғылт сары — қоқысқа қатысты, көк — басқа объект.")}
           </p>
         </>
