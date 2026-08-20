@@ -149,7 +149,14 @@ export async function GET(req: Request) {
         `https://air-quality-api.open-meteo.com/v1/air-quality` +
         `?latitude=${region.lat}&longitude=${region.lng}` +
         `&hourly=${Object.values(HOURLY_FIELD).join(",")}` +
-        `&past_days=2&forecast_days=0&timezone=GMT`;
+        // ⚠️ forecast_days=1 — БҮГІНГІ сағаттар үшін.
+        // `forecast_days=0` болғанда Open-Meteo тек өткен ТОЛЫҚ күндерді
+        // қайтарады, яғни бүгін таңертеңнен бергі сағаттар жауапқа мүлдем
+        // кірмейтін: бүгінгі асу ертеңгі жүгіріске дейін тіркелмей тұратын.
+        // Прокуратураға арналған журнал үшін мұндай кідіріс жарамайды.
+        // Болашақ сағаттар төмендегі `tMs > Date.now()` тексерісімен
+        // сүзіледі — болжам ешқашан «тіркелген асу» болып жазылмайды.
+        `&past_days=2&forecast_days=1&timezone=GMT`;
       const res = await fetch(api, { cache: "no-store" });
       if (!res.ok) {
         failed.push(`${region.id}: upstream ${res.status}`);
