@@ -4,6 +4,11 @@ import {
   type Receptor, type WindHour, type Station,
 } from "@/lib/pollutionSource";
 import { getRegion, hasModule, moduleUnavailable } from "@/data/regions";
+import {
+  parseSelection, isSelectionError, meteoUrl, airUrl, hourIndex, formatKz,
+  MAX_DAYS_BACK,
+} from "@/lib/pollutionTime";
+import { buildTimeline, type AirHour } from "@/lib/pollutionTimeline";
 
 // Нақты жердегі стансалар (Qazhydromet — WAQI/aqicn желісі). Токен болса ғана.
 // Атырау облысының шектелген аймағындағы барлық постты тартады.
@@ -53,12 +58,6 @@ for (const lat of LATS) for (const lng of LNGS) gridPoints.push({ lat, lng });
 // координата тұрған (51.90 мен 51.92, ~1,5 км айырма).
 const CITY = SRC_CITY;
 
-const AIR_GRID_URL =
-  `https://air-quality-api.open-meteo.com/v1/air-quality` +
-  `?latitude=${gridPoints.map((p) => p.lat).join(",")}` +
-  `&longitude=${gridPoints.map((p) => p.lng).join(",")}` +
-  `&current=sulphur_dioxide,nitrogen_dioxide,pm10`;
-
 // ЖЕЛ ӨРІСІ — тордың ӘР НҮКТЕСІНДЕ.
 //
 // ⚠️ Бұрын жел тек қала орталығында алынып, бүкіл торға таралатын.
@@ -66,19 +65,18 @@ const AIR_GRID_URL =
 // жел қаладағыдан жиі өзгеше болады. Ол атрибуцияға тікелей әсер етеді
 // (көз желдің КЕЛГЕН жағынан ізделеді). Енді әр қабылдағыштың өз желі.
 //
-// Бірінші нүкте — қала орталығы, сағаттық тарих пен болжам содан алынады.
-const WIND_URL =
-  `https://api.open-meteo.com/v1/forecast` +
-  `?latitude=${[CITY.lat, ...gridPoints.map((p) => p.lat)].join(",")}` +
-  `&longitude=${[CITY.lng, ...gridPoints.map((p) => p.lng)].join(",")}` +
-  `&current=wind_speed_10m,wind_direction_10m,is_day,shortwave_radiation,cloud_cover` +
-  `&hourly=wind_speed_10m,wind_direction_10m&past_days=2&forecast_days=2&timezone=auto`;
+// Бірінші нүкте — қала орталығы, сағаттық тарих пен «алға қарау» содан алынады.
+const METEO_POINTS = [CITY, ...gridPoints];
 
-const CITY_AIR_URL =
-  `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${CITY.lat}&longitude=${CITY.lng}` +
-  `&hourly=sulphur_dioxide,nitrogen_dioxide,pm10&past_days=2&forecast_days=0&timezone=auto`;
+// URL-дер енді таңдалған уақытқа қарай құрылады (@/lib/pollutionTime):
+// тірі режимде `current` + past_days, архив режимінде start_date/end_date.
 
-let cache: { at: number; data: unknown } | null = null;
+// Кэш уақыт таңдауы бойынша БӨЛЕК — әйтпесе бір сағаттың жауабы
+// екіншісіне беріліп кетеді.
+const cache = new Map<string, { at: number; data: unknown }>();
+const CACHE_MS = 1800_000;
+/** Архив өзгермейді — оны ұзағырақ ұстауға болады */
+const ARCHIVE_CACHE_MS = 12 * 3600_000;
 
 export async function GET(req: Request) {
   // Ластану көзін анықтау кәсіпорындардың ТЕКСЕРІЛГЕН координаттарына
@@ -89,15 +87,26 @@ export async function GET(req: Request) {
     return NextResponse.json(moduleUnavailable(region, "pollutionSource"));
   }
 
-  if (cache && Date.now() - cache.at < 1800_000) {
-    return NextResponse.json(cache.data);
+  // УАҚЫТ ТАҢДАУЫ: `?at=2026-08-14T15:00` берілсе — архив режимі.
+  const sel = parseSelection(new URL(req.url).searchParams.get("at"));
+  if (isSelectionError(sel)) {
+    return NextResponse.json(sel, { status: 400 });
+  }
+
+  const key = `${region.id}:${sel.at ?? "live"}`;
+  const ttl = sel.mode === "archive" ? ARCHIVE_CACHE_MS : CACHE_MS;
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < ttl) {
+    return NextResponse.json(hit.data);
   }
   try {
     const [gRes, wRes, aRes, stations] = await Promise.all([
-      fetch(AIR_GRID_URL, { next: { revalidate: 1800 } }),
-      fetch(WIND_URL, { next: { revalidate: 1800 } }),
-      fetch(CITY_AIR_URL, { next: { revalidate: 1800 } }),
-      fetchStations(), // параллель — негізгі жауапты бөгемейді
+      fetch(airUrl(gridPoints, sel), { next: { revalidate: 1800 } }),
+      fetch(meteoUrl(METEO_POINTS, sel), { next: { revalidate: 1800 } }),
+      fetch(airUrl([CITY], sel, { hourly: true }), { next: { revalidate: 1800 } }),
+      // ⚠️ WAQI тек ҚАЗІРГІ мәнді береді — тарихы жоқ. Сондықтан архив
+      // режимінде жердегі стансалар ҚОСЫЛМАЙДЫ, ол жауапта белгіленеді.
+      sel.mode === "live" ? fetchStations() : Promise.resolve([] as Station[]),
     ]);
     if (!gRes.ok || !wRes.ok || !aRes.ok) {
       throw new Error(`upstream ${gRes.status}/${wRes.status}/${aRes.status}`);
@@ -108,16 +117,59 @@ export async function GET(req: Request) {
 
     // Жел жауабы — МАССИВ: [0] қала орталығы, [1..] тор нүктелері
     // (WIND_URL сол ретпен сұралады).
+    type Hourly = {
+      time?: string[];
+      wind_speed_10m?: (number | null)[];
+      wind_direction_10m?: (number | null)[];
+      shortwave_radiation?: (number | null)[];
+      cloud_cover?: (number | null)[];
+      is_day?: (number | null)[];
+    };
     type WindPoint = {
       utc_offset_seconds?: number;
       current?: {
         wind_direction_10m?: number; wind_speed_10m?: number;
         is_day?: number; shortwave_radiation?: number; cloud_cover?: number;
       };
-      hourly?: { time?: string[]; wind_speed_10m?: (number | null)[]; wind_direction_10m?: (number | null)[] };
+      hourly?: Hourly;
+    };
+    type AirHourly = {
+      time?: string[];
+      sulphur_dioxide?: (number | null)[];
+      nitrogen_dioxide?: (number | null)[];
+      pm10?: (number | null)[];
     };
     const wList: WindPoint[] = Array.isArray(wArr) ? wArr : [wArr];
     const wind = wList[0] ?? {};
+
+    // ── ТАҢДАЛҒАН САҒАТТЫҢ ИНДЕКСІ ───────────────────────────────────────
+    // Архив режимінде барлық мән осы индекстен алынады. Табылмаса — дерек
+    // ЖОҚ дегенді білдіреді, ойдан толтырылмайды.
+    const atIdx = sel.mode === "archive" ? hourIndex(wind.hourly?.time, sel.at!) : -1;
+    if (sel.mode === "archive" && atIdx < 0) {
+      return NextResponse.json(
+        {
+          error: `${formatKz(sel.at!)} — бұл сағат үшін метеодерек жоқ`,
+          detail:
+            `Дереккөз (${sel.useEra5 ? "ECMWF ERA5 архиві" : "Open-Meteo"}) осы сағатты ` +
+            `қайтармады. Ойдан дерек жасалмайды. Басқа сағатты таңдап көріңіз.`,
+          mode: sel.mode, at: sel.at,
+        },
+        { status: 404 }
+      );
+    }
+
+    /** Тірі режимде `current`-тен, архивте сағаттық массивтен алу */
+    const pick = (p: WindPoint | undefined, k: keyof Hourly): number | null => {
+      if (!p) return null;
+      if (sel.mode === "live") {
+        const c = p.current as Record<string, number | undefined> | undefined;
+        return c?.[k as string] ?? null;
+      }
+      const i = hourIndex(p.hourly?.time, sel.at!);
+      if (i < 0) return null;
+      return (p.hourly?.[k] as (number | null)[] | undefined)?.[i] ?? null;
+    };
 
     // 1) Қабылдағыш торы — ӘР НҮКТЕНІҢ ӨЗ ЖЕЛІМЕН
     const gList = Array.isArray(gArr) ? gArr : [gArr];
@@ -127,32 +179,43 @@ export async function GET(req: Request) {
           latitude: number;
           longitude: number;
           current?: { sulphur_dioxide?: number; nitrogen_dioxide?: number; pm10?: number };
+          hourly?: AirHourly;
         },
         i: number
       ) => {
-        const w = wList[i + 1]?.current; // [0] — қала, сондықтан +1
+        const w = wList[i + 1]; // [0] — қала, сондықтан +1
+        const air = (k: keyof AirHourly): number | null => {
+          if (sel.mode === "live") {
+            const c = d.current as Record<string, number | undefined> | undefined;
+            return c?.[k as string] ?? null;
+          }
+          const gi = hourIndex(d.hourly?.time, sel.at!);
+          if (gi < 0) return null;
+          return (d.hourly?.[k] as (number | null)[] | undefined)?.[gi] ?? null;
+        };
         return {
           lat: d.latitude,
           lng: d.longitude,
-          so2: d.current?.sulphur_dioxide ?? null,
-          no2: d.current?.nitrogen_dioxide ?? null,
-          pm: d.current?.pm10 ?? null,
-          windFrom: w?.wind_direction_10m ?? null,
-          windSpeed: w?.wind_speed_10m ?? null,
+          so2: air("sulphur_dioxide"),
+          no2: air("nitrogen_dioxide"),
+          pm: air("pm10"),
+          windFrom: pick(w, "wind_direction_10m"),
+          windSpeed: pick(w, "wind_speed_10m"),
         };
       }
     );
 
-    // 2) Ағымдағы жел (қала орталығы) + орнықтылық кірістері
+    // 2) Таңдалған сағаттағы жел (қала орталығы) + орнықтылық кірістері
     const windNow = {
-      fromBearing: wind.current?.wind_direction_10m ?? 0,
-      speed: wind.current?.wind_speed_10m ?? 0,
+      fromBearing: pick(wind, "wind_direction_10m") ?? 0,
+      speed: pick(wind, "wind_speed_10m") ?? 0,
     };
     // Pasquill класы үшін: күндіз бе, күн радиациясы, бұлттылық
+    const isDayVal = pick(wind, "is_day");
     const airMeteo = {
-      isDay: (wind.current?.is_day ?? 1) === 1,
-      solarWm2: wind.current?.shortwave_radiation ?? null,
-      cloudPct: wind.current?.cloud_cover ?? null,
+      isDay: isDayVal == null ? true : isDayVal === 1,
+      solarWm2: pick(wind, "shortwave_radiation"),
+      cloudPct: pick(wind, "cloud_cover"),
     };
 
     // 3) Уақыттық тарих (жел + қалалық концентрация сағат бойынша сәйкестендіру)
@@ -166,18 +229,25 @@ export async function GET(req: Request) {
     const airIdx = new Map<string, number>();
     aTimes.forEach((t, i) => airIdx.set(t, i));
 
-    // Өткен/болжам шекарасы — қазіргі уақыт.
+    // ӨТКЕН/АЛДАҒЫ ШЕКАРАСЫ — «тірек сағат».
+    //
+    // Тірі режимде ол — қазіргі уақыт, одан кейінгісі БОЛЖАМ.
+    // Архив режимінде ол — таңдалған сағат, одан кейінгісі ӨЛШЕНГЕН
+    // (нақты болған) дерек. Массивтің өзі бірдей, тек МАҒЫНАСЫ басқа —
+    // сондықтан жауапта `mode` беріліп, UI жапсырманы ауыстырады.
+    //
     // Open-Meteo timezone=auto → жергілікті уақыт (офсетсіз). Дұрыс салыстыру
     // үшін «қазірді» сол жергілікті уақытқа ауыстырамыз (utc_offset_seconds).
     const offsetMs = (wind.utc_offset_seconds ?? 0) * 1000;
-    const nowLocal = Date.now() + offsetMs;
+    const pivotMs =
+      sel.mode === "archive" ? new Date(sel.at!).getTime() : Date.now() + offsetMs;
     const windHistory: WindHour[] = [];
     const forecastWind: { fromBearing: number; speed: number; time: string }[] = [];
     for (let i = 0; i < wTimes.length; i++) {
       if (wDir[i] == null) continue;
       const tMs = new Date(wTimes[i]).getTime();
-      if (tMs > nowLocal) {
-        // Болжам: алдағы 24 сағат желі (алдағы 24сағ анимация + dispersion forecast)
+      if (tMs > pivotMs) {
+        // Тірек сағаттан кейінгі 24 сағат (анимация + дисперсия жолы)
         if (forecastWind.length < 24) forecastWind.push({ fromBearing: wDir[i]!, speed: wSpeed[i] ?? 0, time: wTimes[i] });
         continue;
       }
@@ -197,16 +267,52 @@ export async function GET(req: Request) {
       receptors, windNow, windHistory, stations, forecastWind, airMeteo
     );
 
+    // ХРОНОЛОГИЯ — әр сағат бір жол: жел, жел бағытындағы елді мекендер,
+    // концентрациялар, норма салыстыруы. Жаңа дерек есептелмейді —
+    // жоғарыда есептелгені бір кестеге жиналады.
+    const airByTime = new Map<string, AirHour>();
+    aTimes.forEach((t, i) => {
+      airByTime.set(t, { so2: aSo2[i] ?? null, no2: aNo2[i] ?? null, pm: aPm[i] ?? null });
+    });
+    const pivotIso =
+      sel.mode === "archive"
+        ? sel.at!
+        : (wTimes.find((t) => new Date(t).getTime() > pivotMs) ?? null);
+    const timeline = buildTimeline(
+      result.frames,
+      result.forecastFrames,
+      airByTime,
+      pivotIso,
+      region.country === "KZ" ? "KZ" : "OTHER"
+    );
+
     const data = {
       fetchedAt: new Date().toISOString(),
+      // ⚠️ РЕЖИМ — UI мен құжат осыған қарап жапсырманы таңдайды
+      mode: sel.mode,
+      at: sel.at,
+      atLabel: sel.at ? formatKz(sel.at) : null,
+      daysAgo: sel.daysAgo,
+      maxDaysBack: MAX_DAYS_BACK,
+      archiveNote:
+        sel.mode === "archive"
+          ? `Архив режимі: ${formatKz(sel.at!)}. Тірек сағаттан КЕЙІНГІ мәндер — ` +
+            `болжам емес, ӨЛШЕНГЕН дерек. Жердегі стансалар (WAQI) қосылмаған: ` +
+            `ол дереккөзде тарих сақталмайды.`
+          : null,
       sources: [
+        sel.useEra5
+          ? "ECMWF ERA5 реанализі (жел, радиация, бұлттылық) — Open-Meteo Archive API"
+          : "Open-Meteo (тор бойынша жел өрісі, күн радиациясы, бұлттылық)",
         "Copernicus CAMS (SO₂/NO₂/PM) — Open-Meteo Air Quality API",
-        "Open-Meteo (тор бойынша жел өрісі, күн радиациясы, бұлттылық)",
-        stations.length ? "Qazhydromet жердегі стансалары (WAQI)" : "Ашық өнеркәсіптік координаттар",
+        stations.length
+          ? "Qazhydromet жердегі стансалары (WAQI)"
+          : "Ашық өнеркәсіптік координаттар",
       ],
+      timeline,
       ...result,
     };
-    cache = { at: Date.now(), data };
+    cache.set(key, { at: Date.now(), data });
     return NextResponse.json(data);
   } catch (err) {
     console.error("Pollution source error:", err);

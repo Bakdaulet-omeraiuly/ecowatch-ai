@@ -227,26 +227,68 @@ export interface PollutionSourceData {
   };
   /** Жел өрісі тор бойынша қаншалық жергілікті */
   windField: { localPoints: number; totalReceptors: number; note: string };
+  /** ⚠️ Режим: тірі ме, әлде архивтен алынған өткен сағат па.
+   *  Архивте «алдағы 24 сағат» — БОЛЖАМ ЕМЕС, өлшенген дерек. */
+  mode: "live" | "archive";
+  at: string | null;
+  atLabel: string | null;
+  daysAgo: number;
+  maxDaysBack: number;
+  archiveNote: string | null;
+  /** Сағаттық хронология — оқиға желісі */
+  timeline: PollutionTimelineHour[];
+  sources: string[];
   method: string;
   note: string;
 }
-export function usePollutionSource(enabled: boolean) {
+
+export type ComplianceLevelLite =
+  | "ok" | "approaching" | "exceeded" | "exceeded-unverified" | "unknown";
+
+export interface PollutionTimelineHour {
+  time: string;
+  hour: string;
+  past: boolean;
+  pivot: boolean;
+  wind: { fromLabel: string; toBearing: number; speed: number };
+  /** Сол сағаттағы конус ішіндегі елді мекендер (өлшем емес — бағыт) */
+  downwind: string[];
+  so2: number | null;
+  no2: number | null;
+  pm: number | null;
+  levels: { so2: ComplianceLevelLite; no2: ComplianceLevelLite; pm: ComplianceLevelLite };
+  kzViolation: boolean;
+}
+/**
+ * Ластану көзі.
+ *
+ * `at` берілсе — АРХИВ режимі (өткен нақты сағат, «2026-08-14T15:00»).
+ * Берілмесе — тірі режим. Кілт `region + at` болғандықтан, уақыт
+ * ауысқанда дерек қайта сұралады, ал бір уақыт екі рет сұралмайды.
+ */
+export function usePollutionSource(enabled: boolean, at?: string | null) {
   const region = useRegion();
   // Тізілімсіз аймақта модуль мүлдем жоқ — сұраныс та жіберілмейді
   const missing = !hasModule(region, "pollutionSource");
-  // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
+  const key = `${region.id}:${at ?? "live"}`;
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [source, setSource] = useState<PollutionSourceData | null>(null);
-  const [sourceError, setSourceError] = useState(false);
+  const [sourceError, setSourceError] = useState<{ error: string; detail?: string } | null>(null);
+  const sourceLoading = enabled && !missing && loadedFor !== key;
   useEffect(() => {
-    if (!enabled || missing || loadedFor === region.id) return;
-    fetch(`/api/pollution-source?region=${region.id}`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((d) => (d.error ? setSourceError(true) : setSource(d)))
-      .catch(() => setSourceError(true))
-      .finally(() => setLoadedFor(region.id));
-  }, [enabled, missing, loadedFor, region.id]);
-  return { source, sourceError, sourceMissing: missing };
+    if (!enabled || missing || loadedFor === key) return;
+    const q = `region=${region.id}${at ? `&at=${encodeURIComponent(at)}` : ""}`;
+    fetch(`/api/pollution-source?${q}`)
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (ok && !d.error) { setSource(d); setSourceError(null); }
+        // Жалған дерек көрсетілмейді — себебі сақталады да, UI-де жазылады
+        else { setSource(null); setSourceError({ error: d.error ?? "Дерек алынбады", detail: d.detail }); }
+      })
+      .catch(() => setSourceError({ error: "Тірі ауа/жел деректері уақытша қолжетімсіз" }))
+      .finally(() => setLoadedFor(key));
+  }, [enabled, missing, loadedFor, key, region.id, at]);
+  return { source, sourceError, sourceMissing: missing, sourceLoading };
 }
 
 // Soil dryness / land-degradation grid (Open-Meteo ECMWF)
