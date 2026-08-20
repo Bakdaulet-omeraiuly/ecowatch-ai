@@ -187,7 +187,7 @@ export function PollutionTimeline({
             <span className="text-[9px] text-neutral-500">µg/m³</span>
           </div>
           <div className="max-h-56 overflow-auto rounded-lg border border-white/10">
-            <table className="w-full min-w-[420px] text-left text-[10px]">
+            <table className="w-full min-w-[680px] text-left text-[10px]">
               <thead className="sticky top-0 bg-neutral-900 text-neutral-400">
                 <tr>
                   <th className="px-1.5 py-1 font-medium">{tr("Уақыт")}</th>
@@ -196,6 +196,12 @@ export function PollutionTimeline({
                   <th className="px-1.5 py-1 text-right font-medium">SO₂</th>
                   <th className="px-1.5 py-1 text-right font-medium">NO₂</th>
                   <th className="px-1.5 py-1 text-right font-medium">PM₁₀</th>
+                  <th className="px-1.5 py-1 text-right font-medium">PM₂.₅</th>
+                  <th className="px-1.5 py-1 text-right font-medium">O₃</th>
+                  <th className="px-1.5 py-1 text-right font-medium">CO</th>
+                  {/* Нормасы жоқ — тек өлшем әрі ажыратқыш */}
+                  <th className="px-1.5 py-1 text-right font-medium text-neutral-500">Шаң</th>
+                  <th className="px-1.5 py-1 text-right font-medium text-neutral-500">CH₄</th>
                 </tr>
               </thead>
               <tbody>
@@ -217,9 +223,17 @@ export function PollutionTimeline({
                     <td className="px-1.5 py-1 text-neutral-300">
                       {r.downwind.join(", ") || <span className="text-neutral-600">—</span>}
                     </td>
-                    {(["so2", "no2", "pm"] as const).map((k) => (
+                    {(["so2", "no2", "pm", "pm25", "ozone", "co"] as const).map((k) => (
                       <td key={k} className={`whitespace-nowrap px-1.5 py-1 text-right ${LEVEL_CLS[r.levels[k]]}`}>
                         {r[k] ?? "—"} {LEVEL_MARK[r.levels[k]]}
+                      </td>
+                    ))}
+                    {/* Шаң мен метан — гигиеналық нормасы ЖОҚ, сондықтан
+                        деңгей түсі берілмейді (жалған «асты» әсерін
+                        болдырмау үшін) */}
+                    {(["dust", "ch4"] as const).map((k) => (
+                      <td key={k} className="whitespace-nowrap px-1.5 py-1 text-right text-neutral-500">
+                        {r[k] ?? "—"}
                       </td>
                     ))}
                   </tr>
@@ -234,8 +248,32 @@ export function PollutionTimeline({
               "ластану ӨЛШЕНДІ дегенді білдірмейді: концентрация қала нүктесінде (CAMS ~40 км тор) алынған."
             )}{" "}
             <b className="text-neutral-400">⚠</b> {tr("— расталған нормадан асты")},{" "}
-            <b className="text-neutral-400">⚠?</b> {tr("— асты, бірақ норма мәтіні расталмаған")}.
+            <b className="text-neutral-400">⚠?</b> {tr("— асты, бірақ норма мәтіні расталмаған")}.{" "}
+            <b className="text-neutral-400">{tr("Шаң мен CH₄")}</b>{" "}
+            {tr("— гигиеналық нормасы жоқ, тек өлшем. Шаң — PM₁₀ асуы шөл шаңынан ба, әлде кәсіпорыннан ба, соны ажыратуға көмектеседі.")}
           </p>
+
+          {/* ⛔ ӨЛШЕНБЕЙТІНІ — бос баған етіп қосуға БОЛМАЙДЫ.
+              Бос ұяшық «қаралды, таза екен» деген жалған әсер берер еді.
+              Сондықтан кестенің АСТЫНДА ашық жазба ретінде тұрады. */}
+          <div className="mt-2 rounded-lg border border-red-400/25 bg-red-500/[0.06] p-2">
+            <p className="text-[9.5px] leading-relaxed text-red-100/90">
+              <b>⛔ {tr("Бұл кестеде ЖОҚ, себебі мүлдем өлшенбейді")}:</b>{" "}
+              H₂S ({tr("күкіртсутек")}), {tr("меркаптандар")}, {tr("бензол")},{" "}
+              {tr("формальдегид")}, {tr("бенз(а)пирен")}, {tr("фенол")},{" "}
+              {tr("ауыр металдар")} (V, Ni, Pb, Hg, Cd).
+            </p>
+            <p className="mt-1 text-[9.5px] leading-relaxed text-neutral-400">
+              {tr(
+                "Бұлар спутниктен де, CAMS моделінен де анықталмайды — тек жердегі аспап " +
+                "пен зертхана арқылы. H₂S — мұнай өңдеудің басты маркері, сондықтан " +
+                "кестедегі сандар «ауа таза» дегенді БІЛДІРМЕЙДІ."
+              )}{" "}
+              <a href="/legislation" className="text-sky-300 underline-offset-2 hover:underline">
+                {tr("Толық тізім →")}
+              </a>
+            </p>
+          </div>
         </div>
       )}
 

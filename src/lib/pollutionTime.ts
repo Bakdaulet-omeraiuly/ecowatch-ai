@@ -148,7 +148,25 @@ const coords = (pts: { lat: number; lng: number }[]) =>
 const WIND_VARS = "wind_speed_10m,wind_direction_10m";
 /** Pasquill орнықтылық класы осы екеуінсіз есептелмейді */
 const METEO_VARS = "shortwave_radiation,cloud_cover";
+/**
+ * Тор нүктелері үшін — көзді анықтауға қатысатын үшеуі ғана.
+ * Тор 25 нүктеден тұрады, сондықтан артық айнымалы сұраныс салмағын
+ * бекер өсіреді (маса қабатындағы сабақ: 4 есе артық жүктеме 429 берген).
+ */
 const AIR_VARS = "sulphur_dioxide,nitrogen_dioxide,pm10";
+
+/**
+ * ҚАЛА нүктесі үшін — CAMS беретін БАРЛЫҚ ластаушы.
+ * Бір нүкте болғандықтан салмағы елеусіз, ал хронология толық болады.
+ *
+ * ⚠️ Мұнда CAMS-те БАР заттар ғана. H₂S, бензол, формальдегид,
+ * бенз(а)пирен, ауыр металдар — спутниктен де, модельден де
+ * ӨЛШЕНБЕЙДІ. Оларды бос баған етіп қосу «қаралды, таза екен» деген
+ * жалған әсер берер еді. Тізілімі: `src/data/substances.ts`,
+ * бетте бөлек ескертумен көрсетіледі.
+ */
+const AIR_VARS_CITY =
+  "sulphur_dioxide,nitrogen_dioxide,pm10,pm2_5,ozone,carbon_monoxide,dust,methane";
 
 /**
  * Метео (жел + орнықтылық кірістері) — тор нүктелері үшін.
@@ -186,12 +204,14 @@ export function airUrl(
   opts: { hourly?: boolean } = {}
 ): string {
   const base = "https://air-quality-api.open-meteo.com/v1/air-quality";
+  // `hourly: true` — бұл ҚАЛА нүктесі, яғни хронология үшін толық жиын
+  const vars = opts.hourly ? AIR_VARS_CITY : AIR_VARS;
   if (sel.mode === "live") {
-    const h = opts.hourly ? `&hourly=${AIR_VARS}&past_days=2&forecast_days=0` : "";
+    const h = opts.hourly ? `&hourly=${vars}&past_days=2&forecast_days=0` : "";
     return `${base}?${coords(pts)}&current=${AIR_VARS}${h}&timezone=auto`;
   }
   return (
-    `${base}?${coords(pts)}&hourly=${AIR_VARS}` +
+    `${base}?${coords(pts)}&hourly=${vars}` +
     `&start_date=${sel.startDate}&end_date=${sel.endDate}&timezone=auto`
   );
 }

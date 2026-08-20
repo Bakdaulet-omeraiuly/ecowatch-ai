@@ -256,7 +256,17 @@ export interface PollutionTimelineHour {
   so2: number | null;
   no2: number | null;
   pm: number | null;
-  levels: { so2: ComplianceLevelLite; no2: ComplianceLevelLite; pm: ComplianceLevelLite };
+  pm25: number | null;
+  ozone: number | null;
+  co: number | null;
+  /** Гигиеналық нормасы ЖОҚ — тек өлшем (PM₁₀ асуын ажыратуға көмектеседі) */
+  dust: number | null;
+  /** Гигиеналық нормасы ЖОҚ — мұнай-газ ағуының белгісі */
+  ch4: number | null;
+  levels: {
+    so2: ComplianceLevelLite; no2: ComplianceLevelLite; pm: ComplianceLevelLite;
+    pm25: ComplianceLevelLite; ozone: ComplianceLevelLite; co: ComplianceLevelLite;
+  };
   kzViolation: boolean;
 }
 /**
