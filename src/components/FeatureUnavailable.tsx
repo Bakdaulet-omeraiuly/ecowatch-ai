@@ -8,7 +8,7 @@ export function FeatureUnavailable({ title }: { title: string }) {
   const { tr } = useLang();
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-3 px-4 py-24 text-center">
-      <Construction className="h-10 w-10 text-yellow-400" />
+      <Construction className="h-10 w-10 text-amber-400" />
       <h1 className="text-xl font-bold text-white">{tr(title)}</h1>
       <p className="text-sm leading-relaxed text-neutral-400">
         {tr(

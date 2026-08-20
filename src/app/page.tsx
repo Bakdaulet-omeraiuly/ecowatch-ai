@@ -58,12 +58,12 @@ export default function Home() {
   const [reportCount, setReportCount] = useState<number | null>(null);
 
   const FEATURES = [
-    { icon: Satellite, color: "text-blue-400",    bg: "bg-blue-500/10 border-blue-500/20",     t: "feat.sat.t",      d: "feat.sat.d",      href: "/map" },
+    { icon: Satellite, color: "text-sky-400",    bg: "bg-sky-500/10 border-sky-500/20",     t: "feat.sat.t",      d: "feat.sat.d",      href: "/map" },
     { icon: Camera,    color: "text-violet-400",  bg: "bg-violet-500/10 border-violet-500/20", t: "feat.cross.t",    d: "feat.cross.d",    href: "/report" },
     { icon: LineChart, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20", t: "feat.forecast.t", d: "feat.forecast.d", href: "/dashboard" },
     { icon: Bug,       color: "text-orange-400",  bg: "bg-orange-500/10 border-orange-500/20", t: "feat.mosquito.t", d: "feat.mosquito.d", href: "/map" },
-    { icon: GitCompare,color: "text-pink-400",    bg: "bg-pink-500/10 border-pink-500/20",     t: "feat.compare.t",  d: "feat.compare.d",  href: "/compare" },
-    { icon: Bell,      color: "text-yellow-400",  bg: "bg-yellow-500/10 border-yellow-500/20", t: "feat.alerts.t",   d: "feat.alerts.d",   href: "/alerts" },
+    { icon: GitCompare,color: "text-rose-400",    bg: "bg-rose-500/10 border-rose-500/20",     t: "feat.compare.t",  d: "feat.compare.d",  href: "/compare" },
+    { icon: Bell,      color: "text-amber-400",  bg: "bg-amber-500/10 border-amber-500/20", t: "feat.alerts.t",   d: "feat.alerts.d",   href: "/alerts" },
   ] as const;
 
   const HOW = [
@@ -106,7 +106,7 @@ export default function Home() {
   const aqiInfo = (() => {
     if (live.aqi == null) return null;
     if (live.aqi <= 20) return { key: "live.air.clean",     color: "text-emerald-400" } as const;
-    if (live.aqi <= 40) return { key: "live.air.moderate",  color: "text-yellow-400" } as const;
+    if (live.aqi <= 40) return { key: "live.air.moderate",  color: "text-amber-400" } as const;
     if (live.aqi <= 60) return { key: "live.air.sensitive", color: "text-orange-400" } as const;
     return                 { key: "live.air.poor",      color: "text-red-400" } as const;
   })();
@@ -213,7 +213,7 @@ export default function Home() {
           <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left backdrop-blur">
             <div className="mb-1 flex items-center gap-1.5 text-xs text-neutral-400"><Droplets className="h-3.5 w-3.5" /> {t("live.humidity")}</div>
             {live.humidity != null ? (
-              <><p className="text-3xl font-bold text-cyan-400">{live.humidity.toFixed(0)}%</p>
+              <><p className="text-3xl font-bold text-sky-400">{live.humidity.toFixed(0)}%</p>
               <p className="mt-0.5 text-xs text-neutral-400">{t("live.atyrauCity")}</p></>
             ) : <Skeleton className="mt-1 h-8 w-16 bg-white/5" />}
           </div>

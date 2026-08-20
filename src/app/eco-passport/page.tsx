@@ -156,7 +156,7 @@ export default function EcoPassportPage() {
         <header className="border-b border-white/10 pb-5 print:border-gray-300">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="text-[13px] font-semibold uppercase tracking-[0.2em] text-emerald-400 print:text-green-800">
+              <div className="text-[13px] font-semibold uppercase tracking-[0.2em] text-emerald-400 print:text-emerald-800">
                 Jaiyq · {tr("экологиялық мониторинг")}
               </div>
               <h2 className="mt-1.5 text-2xl font-bold leading-tight text-white print:text-black">
@@ -287,7 +287,7 @@ export default function EcoPassportPage() {
                       <span
                         className={
                           meta[ep]?.ok
-                            ? "text-emerald-300 print:text-green-700"
+                            ? "text-emerald-300 print:text-emerald-700"
                             : meta[ep]?.missingReason
                               ? "text-neutral-400 print:text-gray-600"
                               : "text-amber-300 print:text-amber-800"
@@ -334,7 +334,7 @@ export default function EcoPassportPage() {
             </li>
             <li>
               {tr("Толық әдістеме мен валидация күйі")}:{" "}
-              <a href="/methodology" className="text-sky-300 underline underline-offset-2 print:text-blue-700">
+              <a href="/methodology" className="text-sky-300 underline underline-offset-2 print:text-sky-700">
                 ecojaiyq.com/methodology
               </a>
             </li>
@@ -433,7 +433,7 @@ function IndicatorRow({
               ⚠ {tr("норма асқан")}
             </div>
           ) : ind.norms?.length ? (
-            <div className="mt-0.5 text-[12px] text-emerald-400 print:text-green-700">
+            <div className="mt-0.5 text-[12px] text-emerald-400 print:text-emerald-700">
               {tr("норма шегінде")}
             </div>
           ) : null}
@@ -536,7 +536,7 @@ function IndicatorRow({
           <div
             className={`rounded-md border px-2.5 py-1.5 ${
               ind.validated
-                ? "border-emerald-400/25 bg-emerald-500/[0.07] text-emerald-100 print:border-green-300 print:bg-green-50 print:text-green-900"
+                ? "border-emerald-400/25 bg-emerald-500/[0.07] text-emerald-100 print:border-emerald-300 print:bg-emerald-50 print:text-emerald-900"
                 : "border-amber-400/25 bg-amber-500/[0.07] text-amber-100 print:border-amber-300 print:bg-amber-50 print:text-amber-900"
             }`}
           >
@@ -594,7 +594,7 @@ function Doc({ doc, block }: { doc: { label: string; url?: string; note?: string
           href={doc.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sky-300 underline-offset-2 hover:underline print:text-blue-800 print:no-underline"
+          className="text-sky-300 underline-offset-2 hover:underline print:text-sky-800 print:no-underline"
         >
           {inner}
         </a>

@@ -231,7 +231,7 @@ export default function MriMethodologyPage() {
 
       {/* Титул */}
       <header className="border-b-2 border-emerald-500/50 pb-5 print:border-gray-400">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-emerald-400 print:text-green-800">
+        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-emerald-400 print:text-emerald-800">
           Ғылыми-техникалық әдістеме · Jaiyq экологиялық мониторинг платформасы
         </div>
         <h1 className="mt-2 text-4xl font-bold tracking-tight text-white print:text-black">
@@ -397,7 +397,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
   τ(T) = DD / (T − T_base)  даму ұзақтығы, тәулік
   s(hydro)                  гидропериодтан шыққан тірі қалу
   φ_egg(ай)                 маусымдық банк сыйымдылығы`}</Eqn>
-      <div className="my-3 rounded-lg border-l-2 border-emerald-400 bg-emerald-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-green-50 print:text-black">
+      <div className="my-3 rounded-lg border-l-2 border-emerald-400 bg-emerald-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-emerald-50 print:text-black">
         <b className="text-white print:text-black">Осы теңдеулердің мәні — КІДІРІС.</b> Су басқан
         күні маса пайда болмайды: алдымен жұмыртқа жарылады, содан кейін дернәсіл τ(T) күн дамиды.
         25 °C-та бұл ≈ 10 тәулік. Кідіріссіз модель шыңды дұрыс емес күнге қояды әрі «массалық
@@ -586,7 +586,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
           <p className="mt-1 text-[14px] leading-relaxed text-neutral-300 print:text-black">
             <b className="text-white print:text-black">Мәселе:</b> {g.problem}
           </p>
-          <p className="mt-1.5 text-[14px] font-medium text-emerald-300 print:text-green-800">
+          <p className="mt-1.5 text-[14px] font-medium text-emerald-300 print:text-emerald-800">
             Шешу жолы:
           </p>
           <ul className="mt-0.5 list-disc space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-300 marker:text-emerald-400 print:text-black">
@@ -631,7 +631,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
           <li key={i}>
             {r.url ? (
               <a href={r.url} target="_blank" rel="noopener noreferrer"
-                 className="text-sky-300 underline-offset-2 hover:underline print:text-blue-700">
+                 className="text-sky-300 underline-offset-2 hover:underline print:text-sky-700">
                 {r.label}
               </a>
             ) : r.label}

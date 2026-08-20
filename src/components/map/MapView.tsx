@@ -942,8 +942,8 @@ export function MapView() {
   if (!token) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="max-w-md rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-6 text-center">
-          <Satellite className="mx-auto mb-3 h-8 w-8 text-yellow-400" />
+        <div className="max-w-md rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 text-center">
+          <Satellite className="mx-auto mb-3 h-8 w-8 text-amber-400" />
           <h2 className="mb-2 font-semibold text-white">Mapbox токені керек</h2>
           <p className="text-sm text-neutral-400">
             <code className="rounded bg-white/10 px-1">.env.local</code> файлына{" "}
@@ -1714,7 +1714,7 @@ export function MapView() {
               onClick={() => setShowReports((v) => !v)}
               className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[13px] transition-colors ${
                 showReports
-                  ? "border-pink-500/50 bg-pink-500/15 text-pink-200"
+                  ? "border-rose-500/50 bg-rose-500/15 text-rose-200"
                   : "border-transparent text-neutral-300 hover:bg-white/5"
               }`}
             >
@@ -1853,8 +1853,8 @@ export function MapView() {
 
         {/* Жел бағыты панелі */}
         {activeLayer === "wind" && (
-          <div className="w-full rounded-lg border border-cyan-500/30 bg-neutral-900/95 p-3 backdrop-blur">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-cyan-300">
+          <div className="w-full rounded-lg border border-sky-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sky-300">
               <Wind className="h-3 w-3" /> {tr("Жел бағыты — тірі")}
             </div>
             {windError ? (
@@ -1865,7 +1865,7 @@ export function MapView() {
               <>
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-2xl font-bold text-cyan-300">{windData.avgSpeed}</div>
+                    <div className="text-2xl font-bold text-sky-300">{windData.avgSpeed}</div>
                     <div className="text-[12px] text-neutral-400">км/сағ · {tr("орташа")}</div>
                   </div>
                   <div className="flex flex-col items-center">
@@ -2156,8 +2156,8 @@ export function MapView() {
 
         {/* Live mosquito-suitability panel */}
         {activeLayer === "mosquito" && (
-          <div className="w-full rounded-lg border border-purple-500/30 bg-neutral-900/95 p-3 backdrop-blur">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-purple-300">
+          <div className="w-full rounded-lg border border-violet-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-violet-300">
               {!mosMissing && <Radio className="h-3 w-3 animate-pulse" />}
               {tr("Маса қолайлылығы")} {!mosMissing && `— ${tr("тірі")}`}
             </div>
@@ -2181,7 +2181,7 @@ export function MapView() {
                         <div className="text-[12px] text-neutral-400">{tr("орташа")}</div>
                       </div>
                       <div className="rounded bg-white/5 p-1.5">
-                        <div className={`text-sm font-bold ${mosStats.max > 60 ? "text-red-300" : "text-yellow-300"}`}>
+                        <div className={`text-sm font-bold ${mosStats.max > 60 ? "text-red-300" : "text-amber-300"}`}>
                           {mosStats.max}
                         </div>
                         <div className="text-[12px] text-neutral-400">{tr("макс")}</div>
@@ -2195,13 +2195,13 @@ export function MapView() {
                         Модельдің ең пайдалы шығысы: дезинсекция мен
                         халыққа ескерту осы күнге жоспарланады */}
                     {mosDyn?.emergencePeak && (
-                      <div className="mt-2 rounded-md border border-purple-400/30 bg-purple-500/[0.08] p-2">
+                      <div className="mt-2 rounded-md border border-violet-400/30 bg-violet-500/[0.08] p-2">
                         <div className="flex items-center gap-1.5">
-                          <Bug className="h-3 w-3 text-purple-300" />
+                          <Bug className="h-3 w-3 text-violet-300" />
                           <span className="text-[12px] font-semibold text-neutral-200">
                             {tr("Күтілетін шығу шыңы")}
                           </span>
-                          <span className="ml-auto text-[13px] font-bold text-purple-200">
+                          <span className="ml-auto text-[13px] font-bold text-violet-200">
                             {mosDyn.emergencePeak.date.slice(5).replace("-", ".")}
                           </span>
                         </div>
@@ -2301,7 +2301,7 @@ export function MapView() {
                 {mosDistricts.length > 0 && (
                   <div className="mt-2 rounded-lg bg-white/5 p-2">
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="text-[12px] font-semibold uppercase tracking-wide text-purple-300">
+                      <span className="text-[12px] font-semibold uppercase tracking-wide text-violet-300">
                         {tr("Аудандар бойынша")} · {(mosHours?.[mosIdx]?.time ?? "").slice(11, 16) || "—"}
                       </span>
                       <span className="text-[12px] text-neutral-400">{mosDistricts.length} {tr("аудан")}</span>
@@ -2326,9 +2326,9 @@ export function MapView() {
 
                 {/* Сағаттық анимация — иконкалар сағат сайын қайта шоғырланады */}
                 {mosHours && mosHours.length > 1 && (
-                  <div className="mt-2 rounded-lg bg-purple-500/10 p-2">
+                  <div className="mt-2 rounded-lg bg-violet-500/10 p-2">
                     <div className="mb-1 flex items-center justify-between">
-                      <span className="text-[12px] font-semibold text-purple-200">
+                      <span className="text-[12px] font-semibold text-violet-200">
                         {(() => {
                           const h = mosHours[mosIdx];
                           if (!h?.time) return "—";
@@ -2341,7 +2341,7 @@ export function MapView() {
                       </span>
                       <button
                         onClick={() => setMosPlaying((v) => !v)}
-                        className="flex items-center gap-1 rounded bg-purple-500/25 px-1.5 py-0.5 text-[12px] text-purple-100 hover:bg-purple-500/40"
+                        className="flex items-center gap-1 rounded bg-violet-500/25 px-1.5 py-0.5 text-[12px] text-violet-100 hover:bg-violet-500/40"
                       >
                         {mosPlaying ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
                         {mosPlaying ? tr("Тоқтату") : tr("48 сағат")}
@@ -2357,11 +2357,11 @@ export function MapView() {
                         setMosPlaying(false);
                         setMosHour(Number(e.target.value));
                       }}
-                      className="w-full accent-purple-400"
+                      className="w-full accent-violet-400"
                     />
                     <div className="mt-0.5 flex justify-between text-[12px] text-neutral-400">
                       <span>−24{tr("сағ")}</span>
-                      <span className="text-purple-300">{tr("қазір")}</span>
+                      <span className="text-violet-300">{tr("қазір")}</span>
                       <span>+24{tr("сағ")}</span>
                     </div>
                     <p className="mt-1 text-[12px] leading-snug text-neutral-400">
@@ -2376,7 +2376,7 @@ export function MapView() {
 
                 <p className="mt-1.5 text-[12px] leading-snug text-neutral-400">
                   {tr("🦟 иконкалар индекс бойынша шоғырланады. Слайдермен 7 күндік болжамды көріңіз. Басты фактор —")}{" "}
-                  <b className="text-purple-300">{tr("Жайық жайылмасы мен атырауы")}</b>{" "}
+                  <b className="text-violet-300">{tr("Жайық жайылмасы мен атырауы")}</b>{" "}
                   {tr("(қамыс, тұрған су) + температура + жаңбыр + қала. Әдістеме: Mordecai 2017 (WHO/ECDC) + гидрология. Дереккөз: Open-Meteo.")}
                 </p>
               </>
@@ -2454,7 +2454,7 @@ export function MapView() {
                       <div className="text-[12px] text-neutral-400">{tr("расталған")}</div>
                     </div>
                     <div className="rounded bg-white/5 p-1.5">
-                      <div className="text-sm font-bold text-pink-300">{fromCitizens}</div>
+                      <div className="text-sm font-bold text-rose-300">{fromCitizens}</div>
                       <div className="text-[12px] text-neutral-400">{tr("азаматтан")}</div>
                     </div>
                   </div>
@@ -2475,8 +2475,8 @@ export function MapView() {
 
         {/* Live soil panel — soil layer */}
         {activeLayer === "soil" && (
-          <div className="w-full rounded-lg border border-yellow-600/30 bg-neutral-900/95 p-3 backdrop-blur">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-yellow-300">
+          <div className="w-full rounded-lg border border-amber-600/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-amber-300">
               <Radio className="h-3 w-3 animate-pulse" /> {tr("Топырақ жағдайы — тірі")}
             </div>
             {soilError ? (
@@ -2513,8 +2513,8 @@ export function MapView() {
 
         {/* Live water/flood panel — water layer */}
         {activeLayer === "water" && (
-          <div className="w-full rounded-lg border border-teal-500/30 bg-neutral-900/95 p-3 backdrop-blur">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-teal-300">
+          <div className="w-full rounded-lg border border-emerald-500/30 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-300">
               {!floodMissing && <Radio className="h-3 w-3 animate-pulse" />}
               {river ? `${river} — ${tr("тірі ағын")}` : tr("Өзен ағыны")}
             </div>
@@ -2616,8 +2616,8 @@ export function MapView() {
                       title="Sentinel-5P спутрик растрын қосу/өшіру"
                       className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-[12px] font-semibold transition-colors ${
                         gibsKey === airElem.s5p
-                          ? "border-indigo-400 bg-indigo-500/30 text-indigo-100"
-                          : "border-indigo-500/40 bg-indigo-500/10 text-indigo-200 hover:bg-indigo-500/20"
+                          ? "border-sky-400 bg-sky-500/30 text-sky-100"
+                          : "border-sky-500/40 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20"
                       }`}
                     >
                       <Satellite className="h-2.5 w-2.5" /> {gibsKey === airElem.s5p ? tr("Спутрик қосулы") : tr("Спутрик")}

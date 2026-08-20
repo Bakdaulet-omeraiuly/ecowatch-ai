@@ -37,7 +37,7 @@ export const LAYERS: LayerDef[] = [
   {
     key: "mosquito", label: "Маса", emoji: "🦟",
     ramp: ["rgba(124,58,237,0.35)", "rgba(168,85,247,0.6)", "rgba(217,70,239,0.8)", "rgba(232,121,249,0.95)"],
-    activeCls: "border-purple-500/50 bg-purple-500/20 text-purple-200",
+    activeCls: "border-violet-500/50 bg-violet-500/20 text-violet-200",
   },
   {
     key: "air", label: "Ауа", emoji: "💨",
@@ -47,7 +47,7 @@ export const LAYERS: LayerDef[] = [
   {
     key: "soil", label: "Топырақ", emoji: "🏜",
     ramp: ["rgba(202,138,4,0.3)", "rgba(234,179,8,0.55)", "rgba(250,204,21,0.75)", "rgba(254,240,138,0.95)"],
-    activeCls: "border-yellow-500/50 bg-yellow-500/20 text-yellow-200",
+    activeCls: "border-amber-500/50 bg-amber-500/20 text-amber-200",
   },
   {
     key: "oil", label: "Мұнай", emoji: "🛢",
@@ -62,7 +62,7 @@ export const LAYERS: LayerDef[] = [
   {
     key: "water", label: "Су", emoji: "💧",
     ramp: ["rgba(13,148,136,0.3)", "rgba(20,184,166,0.55)", "rgba(45,212,191,0.78)", "rgba(153,246,228,0.95)"],
-    activeCls: "border-teal-500/50 bg-teal-500/20 text-teal-200",
+    activeCls: "border-emerald-500/50 bg-emerald-500/20 text-emerald-200",
   },
   {
     key: "fire", label: "Өрт", emoji: "🔥",
@@ -77,6 +77,6 @@ export const LAYERS: LayerDef[] = [
   {
     key: "wind", label: "Жел", emoji: "🌬",
     ramp: ["rgba(8,145,178,0.3)", "rgba(6,182,212,0.55)", "rgba(34,211,238,0.78)", "rgba(165,243,252,0.95)"],
-    activeCls: "border-cyan-500/50 bg-cyan-500/20 text-cyan-200",
+    activeCls: "border-sky-500/50 bg-sky-500/20 text-sky-200",
   },
 ];

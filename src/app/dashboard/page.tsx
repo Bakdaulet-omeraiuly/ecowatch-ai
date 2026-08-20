@@ -545,7 +545,7 @@ export default function DashboardPage() {
                 <CardContent>
                   <p className="text-sm text-neutral-300">{forecast.outlook}</p>
                   <p className="mt-2 text-xs text-neutral-400">
-                    Тренд: <b className={forecast.trend === "degrading" ? "text-red-400" : forecast.trend === "improving" ? "text-emerald-400" : "text-yellow-400"}>
+                    Тренд: <b className={forecast.trend === "degrading" ? "text-red-400" : forecast.trend === "improving" ? "text-emerald-400" : "text-amber-400"}>
                       {forecast.trend === "degrading" ? tr("Нашарлау") : forecast.trend === "improving" ? tr("Жақсару") : tr("Тұрақты")}
                     </b>
                   </p>
@@ -624,10 +624,10 @@ export default function DashboardPage() {
 
               {/* Массалық шығу болжамы — модельдің ең пайдалы шығысы */}
               {mosMeta?.dyn?.emergencePeak && (
-                <Card className="border-purple-500/25 bg-purple-500/[0.07]">
+                <Card className="border-violet-500/25 bg-violet-500/[0.07]">
                   <CardContent className="pt-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold text-purple-200">
+                      <span className="text-sm font-semibold text-violet-200">
                         🦟 {tr("Күтілетін массалық шығу")}:
                       </span>
                       <span className="text-lg font-bold text-white">
@@ -695,10 +695,10 @@ export default function DashboardPage() {
                 </AreaChart>
               </ChartCard>
 
-              <Card className="border-purple-500/20 bg-purple-500/5">
+              <Card className="border-violet-500/20 bg-violet-500/5">
                 <CardContent className="pt-4">
                   <p className="text-sm leading-relaxed text-neutral-300">
-                    🦟 <b className="text-purple-300">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
+                    🦟 <b className="text-violet-300">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
                     {mosMeta?.points ?? 0} {tr("есептелген нүктенің тәуліктік орташасы.")}{" "}
                     {tr("Мамыр–шілде — Жайық тасқыны кезеңі: су басу жұмыртқа банкін жарады, сондықтан индекс сол кезде шыңға шығады.")}
                   </p>
@@ -1088,7 +1088,7 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
     if (score === null) return "bg-white/5";
     if (score >= 70) return "bg-red-500";
     if (score >= 50) return "bg-orange-500";
-    if (score >= 30) return "bg-yellow-500";
+    if (score >= 30) return "bg-amber-500";
     return "bg-emerald-500";
   }
 
@@ -1124,7 +1124,7 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
               <div className="mt-3 flex items-center gap-3 text-[13px] text-neutral-400">
                 <span>{tr("Тәуекел деңгейі:")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-emerald-500 inline-block" />{tr("Төмен")}</span>
-                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-yellow-500 inline-block" />{tr("Орташа")}</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-amber-500 inline-block" />{tr("Орташа")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-500 inline-block" />{tr("Жоғары")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-red-500 inline-block" />{tr("Критикалық")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-white/5 inline-block" />{tr("Деректер жоқ")}</span>
