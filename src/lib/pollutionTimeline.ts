@@ -39,11 +39,38 @@ export interface TimelineHour {
   so2: number | null;
   no2: number | null;
   pm: number | null;
-  /** Норма салыстыруы — әр зат бойынша ең ауыр деңгей */
-  levels: { so2: ComplianceLevel; no2: ComplianceLevel; pm: ComplianceLevel };
+  pm25: number | null;
+  ozone: number | null;
+  co: number | null;
+  /** Шөл шаңы — PM₁₀-нан БӨЛЕК компонент (нормасы жоқ, ажыратқыш ретінде) */
+  dust: number | null;
+  /** Метан — мұнай-газ ағуының белгісі (гигиеналық нормасы жоқ) */
+  ch4: number | null;
+  /** Норма салыстыруы — нормасы БАР заттар бойынша ғана */
+  levels: {
+    so2: ComplianceLevel; no2: ComplianceLevel; pm: ComplianceLevel;
+    pm25: ComplianceLevel; ozone: ComplianceLevel; co: ComplianceLevel;
+  };
   /** Кемінде біреуі расталған ҚР нормасынан асты ма */
   kzViolation: boolean;
 }
+
+/**
+ * ⛔ ХРОНОЛОГИЯДА БОЛА АЛМАЙТЫН ЗАТТАР.
+ *
+ * Бұларды бос баған етіп қосу «қаралды, таза екен» деген ЖАЛҒАН әсер
+ * берер еді. Сондықтан кестеде емес, кестенің АСТЫНДА ашық жазылады.
+ * Толық сипаттамасы: `src/data/substances.ts` → /legislation беті.
+ */
+export const NOT_MEASURABLE = [
+  "H₂S (күкіртсутек)",
+  "меркаптандар",
+  "бензол",
+  "формальдегид",
+  "бенз(а)пирен",
+  "фенол",
+  "ауыр металдар (V, Ni, Pb, Hg, Cd)",
+] as const;
 
 /** Нүкте көпбұрыш ішінде ме (ray casting). Сақина — [lng, lat] реті. */
 function inRing(lat: number, lng: number, ring: [number, number][]): boolean {
@@ -61,6 +88,11 @@ export interface AirHour {
   so2: number | null;
   no2: number | null;
   pm: number | null;
+  pm25?: number | null;
+  ozone?: number | null;
+  co?: number | null;
+  dust?: number | null;
+  ch4?: number | null;
 }
 
 /**
@@ -97,9 +129,17 @@ export function buildTimeline(
       ? PLACES.filter((p) => inRing(p.lat, p.lng, f.cone)).map((p) => p.name)
       : [];
 
-    const cSo2 = checkCompliance("so2", air.so2, jurisdiction);
-    const cNo2 = checkCompliance("no2", air.no2, jurisdiction);
-    const cPm = checkCompliance("pm10", air.pm, jurisdiction);
+    // Нормасы БАР заттар ғана салыстырылады. Шаң мен метанның
+    // гигиеналық нормасы жоқ: біріншісі PM₁₀ арқылы реттеледі, екіншісі
+    // уыттылық емес, ағу көрсеткіші. Сондықтан олар тек ӨЛШЕМ ретінде.
+    const c = {
+      so2: checkCompliance("so2", air.so2, jurisdiction),
+      no2: checkCompliance("no2", air.no2, jurisdiction),
+      pm: checkCompliance("pm10", air.pm, jurisdiction),
+      pm25: checkCompliance("pm25", air.pm25 ?? null, jurisdiction),
+      ozone: checkCompliance("ozone", air.ozone ?? null, jurisdiction),
+      co: checkCompliance("co", air.co ?? null, jurisdiction),
+    };
 
     return {
       time: f.time,
@@ -111,8 +151,16 @@ export function buildTimeline(
       so2: air.so2,
       no2: air.no2,
       pm: air.pm,
-      levels: { so2: cSo2.worst, no2: cNo2.worst, pm: cPm.worst },
-      kzViolation: cSo2.kzViolation || cNo2.kzViolation || cPm.kzViolation,
+      pm25: air.pm25 ?? null,
+      ozone: air.ozone ?? null,
+      co: air.co ?? null,
+      dust: air.dust ?? null,
+      ch4: air.ch4 ?? null,
+      levels: {
+        so2: c.so2.worst, no2: c.no2.worst, pm: c.pm.worst,
+        pm25: c.pm25.worst, ozone: c.ozone.worst, co: c.co.worst,
+      },
+      kzViolation: Object.values(c).some((x) => x.kzViolation),
     };
   });
 }
@@ -127,17 +175,26 @@ export function summarizeTimeline(rows: TimelineHour[]): {
   affected: string[];
   peak: { time: string; pollutant: string; value: number } | null;
 } {
+  const LEVEL_KEYS = ["so2", "no2", "pm", "pm25", "ozone", "co"] as const;
   const exceeded = rows.filter((r) =>
-    (["so2", "no2", "pm"] as const).some(
+    LEVEL_KEYS.some(
       (k) => r.levels[k] === "exceeded" || r.levels[k] === "exceeded-unverified"
     )
   );
   const affected = new Set<string>();
   for (const r of exceeded) for (const d of r.downwind) affected.add(d);
 
+  // ⚠️ Шыңды тек НОРМАСЫ БАР заттар арасынан іздейміз. Метан мен шаңды
+  // қоссақ, олардың сан шамасы әлдеқайда үлкен болғандықтан «ең жоғары
+  // мән» әрқашан сол екеуі болып шығар еді — ал бұл заңдық тұрғыда
+  // мағынасыз (олардың гигиеналық нормасы жоқ).
   let peak: { time: string; pollutant: string; value: number } | null = null;
+  const PEAK_KEYS = [
+    ["so2", "SO₂"], ["no2", "NO₂"], ["pm", "PM₁₀"],
+    ["pm25", "PM₂.₅"], ["ozone", "O₃"], ["co", "CO"],
+  ] as const;
   for (const r of rows) {
-    for (const [k, label] of [["so2", "SO₂"], ["no2", "NO₂"], ["pm", "PM₁₀"]] as const) {
+    for (const [k, label] of PEAK_KEYS) {
       const v = r[k];
       if (v == null) continue;
       if (!peak || v > peak.value) peak = { time: r.time, pollutant: label, value: v };

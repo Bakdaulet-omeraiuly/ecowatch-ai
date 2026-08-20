@@ -3,7 +3,7 @@ import { getRegion, hasModule } from "@/data/regions";
 import { checkCompliance, LEVEL_KZ, type ComplianceResult } from "@/lib/compliance";
 import { LEGAL_DISCLAIMER, ACTS } from "@/data/legalNorms";
 import { formatKz } from "@/lib/pollutionTime";
-import { summarizeTimeline, type TimelineHour } from "@/lib/pollutionTimeline";
+import { summarizeTimeline, NOT_MEASURABLE, type TimelineHour } from "@/lib/pollutionTimeline";
 import { csvHeaders, toCsv, withProvenance, type Cell } from "@/lib/csv";
 
 // ═══════════════════════════════════════════════════════════════════════
@@ -106,7 +106,7 @@ export async function GET(req: Request) {
   const jur = region.country === "KZ" ? "KZ" : "OTHER";
 
   // Шыңдық мәндер бойынша норма салыстыруы
-  const peakOf = (k: "so2" | "no2" | "pm") => {
+  const peakOf = (k: "so2" | "no2" | "pm" | "pm25" | "ozone" | "co") => {
     const vals = rows.map((r) => r[k]).filter((v): v is number => v != null);
     return vals.length ? Math.max(...vals) : null;
   };
@@ -114,6 +114,9 @@ export async function GET(req: Request) {
     { id: "so2", label: "SO₂ (күкірт диоксиді)", value: peakOf("so2") },
     { id: "no2", label: "NO₂ (азот диоксиді)", value: peakOf("no2") },
     { id: "pm10", label: "PM₁₀ (ірі дисперсті шаң)", value: peakOf("pm") },
+    { id: "pm25", label: "PM₂.₅ (ұсақ дисперсті шаң)", value: peakOf("pm25") },
+    { id: "ozone", label: "O₃ (жер бетіндегі озон)", value: peakOf("ozone") },
+    { id: "co", label: "CO (көміртек оксиді)", value: peakOf("co") },
   ].map((c) => ({ ...c, res: checkCompliance(c.id, c.value, jur) }));
 
   const periodLabel = d.atLabel ?? "соңғы 48 сағат (тірі режим)";
@@ -122,13 +125,18 @@ export async function GET(req: Request) {
   if (format === "csv") {
     const head: Cell[] = [
       "Уақыт", "Жел (қайдан)", "Жел бағыты (°, қайда)", "Жел (км/сағ)",
-      "Жел бағытындағы елді мекендер", "SO₂ µg/m³", "NO₂ µg/m³", "PM₁₀ µg/m³",
-      "SO₂ күйі", "NO₂ күйі", "PM₁₀ күйі", "ҚР расталған нормасы асты ма",
+      "Жел бағытындағы елді мекендер",
+      "SO₂ µg/m³", "NO₂ µg/m³", "PM₁₀ µg/m³", "PM₂.₅ µg/m³", "O₃ µg/m³", "CO µg/m³",
+      "Шаң µg/m³ (нормасыз)", "CH₄ (нормасыз)",
+      "SO₂ күйі", "NO₂ күйі", "PM₁₀ күйі", "PM₂.₅ күйі", "O₃ күйі", "CO күйі",
+      "ҚР расталған нормасы асты ма",
     ];
     const body: Cell[][] = rows.map((r) => [
       r.time, r.wind.fromLabel, r.wind.toBearing, r.wind.speed,
-      r.downwind.join(" · "), r.so2, r.no2, r.pm,
+      r.downwind.join(" · "),
+      r.so2, r.no2, r.pm, r.pm25, r.ozone, r.co, r.dust, r.ch4,
       LEVEL_KZ[r.levels.so2], LEVEL_KZ[r.levels.no2], LEVEL_KZ[r.levels.pm],
+      LEVEL_KZ[r.levels.pm25], LEVEL_KZ[r.levels.ozone], LEVEL_KZ[r.levels.co],
       r.kzViolation ? "иә" : "жоқ",
     ]);
     const csv = toCsv(
@@ -141,6 +149,8 @@ export async function GET(req: Request) {
         caveats: [
           "«Жел бағытындағы елді мекендер» — дисперсия конусының ішіне түскен нүктелер. Бұл сол жерде ластану ӨЛШЕНДІ дегенді БІЛДІРМЕЙДІ.",
           "Концентрация ҚАЛА нүктесінде (CAMS ~40 км тор), әр елді мекенде емес.",
+          "⛔ ӨЛШЕНБЕЙТІН ЗАТТАР: " + NOT_MEASURABLE.join(", ") + ". Бұлар спутниктен де, модельден де анықталмайды — кестедегі сандар олар бойынша ЕШНӘРСЕ айтпайды.",
+          "Шаң мен CH₄ бағандарының гигиеналық нормасы ЖОҚ: біріншісі PM₁₀ арқылы реттеледі, екіншісі ағу көрсеткіші.",
           LEGAL_DISCLAIMER,
         ],
       })
@@ -236,7 +246,8 @@ ${d.archiveNote ? `<div class="note">${esc(d.archiveNote)}</div>` : ""}
 <table>
   <thead><tr>
     <th>Уақыт</th><th>Жел</th><th>км/сағ</th><th>Жел бағытында</th>
-    <th>SO₂</th><th>NO₂</th><th>PM₁₀</th>
+    <th>SO₂</th><th>NO₂</th><th>PM₁₀</th><th>PM₂.₅</th><th>O₃</th><th>CO</th>
+    <th>Шаң*</th><th>CH₄*</th>
   </tr></thead>
   <tbody>
   ${rows
@@ -249,11 +260,31 @@ ${d.archiveNote ? `<div class="note">${esc(d.archiveNote)}</div>` : ""}
       <td class="num">${r.so2 ?? "—"} ${LEVEL_MARK[r.levels.so2] ?? ""}</td>
       <td class="num">${r.no2 ?? "—"} ${LEVEL_MARK[r.levels.no2] ?? ""}</td>
       <td class="num">${r.pm ?? "—"} ${LEVEL_MARK[r.levels.pm] ?? ""}</td>
+      <td class="num">${r.pm25 ?? "—"} ${LEVEL_MARK[r.levels.pm25] ?? ""}</td>
+      <td class="num">${r.ozone ?? "—"} ${LEVEL_MARK[r.levels.ozone] ?? ""}</td>
+      <td class="num">${r.co ?? "—"} ${LEVEL_MARK[r.levels.co] ?? ""}</td>
+      <td class="num">${r.dust ?? "—"}</td>
+      <td class="num">${r.ch4 ?? "—"}</td>
     </tr>`
     )
     .join("\n")}
   </tbody>
 </table>
+<div class="warn">
+  <b>⛔ БҰЛ КЕСТЕДЕ ЖОҚ ЗАТТАР — олар мүлдем өлшенбейді.</b><br>
+  ${esc(NOT_MEASURABLE.join(", "))}.
+  <br><br>
+  Бұл заттар спутниктен де, атмосфералық модельден де анықталмайды — тек
+  жердегі аспап пен аккредиттелген зертхана арқылы. <b>H₂S (күкіртсутек)</b> —
+  күкіртті мұнай мен газды өңдеудің басты маркері әрі тұрғындар шағымының
+  негізгі себебі. Сондықтан жоғарыдағы кестедегі сандар «ауа таза» дегенді
+  БІЛДІРМЕЙДІ: аталған заттар бойынша жүйенің ешқандай қорытындысы жоқ.
+  <br><br>
+  <b>Тексеру кезінде дәл осы заттарға аспаптық өлшеу жүргізу ұсынылады.</b>
+</div>
+<p class="small">* Шаң мен CH₄ бағандарының гигиеналық нормасы ЖОҚ: шаң PM₁₀ арқылы реттеледі
+(бұл баған PM₁₀ асуының табиғи шаңнан ба, әлде кәсіпорыннан ба екенін ажыратуға көмектеседі),
+ал CH₄ — уыттылық емес, мұнай-газ инфрақұрылымының ағу көрсеткіші.</p>
 <p class="small">Белгілер: <b>⚠</b> — расталған нормадан асты · <b>⚠?</b> — асты, бірақ норма мәтіні расталмаған · <b>~</b> — нормаға жақындады (≥80%) · қызыл жол — ҚР расталған нормасы асқан сағат.</p>
 
 <h2>4. Нормативтік салыстыру</h2>

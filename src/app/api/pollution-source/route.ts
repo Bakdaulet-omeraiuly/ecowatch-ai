@@ -226,6 +226,13 @@ export async function GET(req: Request) {
     const aSo2: (number | null)[] = cityAir.hourly?.sulphur_dioxide ?? [];
     const aNo2: (number | null)[] = cityAir.hourly?.nitrogen_dioxide ?? [];
     const aPm: (number | null)[] = cityAir.hourly?.pm10 ?? [];
+    // Хронологияға арналған қосымша ластаушылар (тек ҚАЛА нүктесінде —
+    // тор нүктелерінде олар сұралмайды, сұраныс салмағын өсірмеу үшін)
+    const aPm25: (number | null)[] = cityAir.hourly?.pm2_5 ?? [];
+    const aO3: (number | null)[] = cityAir.hourly?.ozone ?? [];
+    const aCo: (number | null)[] = cityAir.hourly?.carbon_monoxide ?? [];
+    const aDust: (number | null)[] = cityAir.hourly?.dust ?? [];
+    const aCh4: (number | null)[] = cityAir.hourly?.methane ?? [];
     const airIdx = new Map<string, number>();
     aTimes.forEach((t, i) => airIdx.set(t, i));
 
@@ -272,7 +279,11 @@ export async function GET(req: Request) {
     // жоғарыда есептелгені бір кестеге жиналады.
     const airByTime = new Map<string, AirHour>();
     aTimes.forEach((t, i) => {
-      airByTime.set(t, { so2: aSo2[i] ?? null, no2: aNo2[i] ?? null, pm: aPm[i] ?? null });
+      airByTime.set(t, {
+        so2: aSo2[i] ?? null, no2: aNo2[i] ?? null, pm: aPm[i] ?? null,
+        pm25: aPm25[i] ?? null, ozone: aO3[i] ?? null, co: aCo[i] ?? null,
+        dust: aDust[i] ?? null, ch4: aCh4[i] ?? null,
+      });
     });
     const pivotIso =
       sel.mode === "archive"
