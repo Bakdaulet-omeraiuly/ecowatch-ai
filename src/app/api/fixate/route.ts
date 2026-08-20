@@ -84,7 +84,17 @@ export async function GET(req: Request) {
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Serverлік кілттің АТАУЫ бірнеше нұсқада кездеседі: Supabase ескі
+  // `service_role` кілтін енді «Secret key» деп атайды, сондықтан адам
+  // оны `SUPABASE_SECRET_KEY` деп қосуы әбден мүмкін. Үшеуін де
+  // қабылдаймыз — қайсысы табылғаны жауапта көрінеді.
+  const KEY_NAMES = [
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "SUPABASE_SECRET_KEY",
+    "SUPABASE_SERVICE_KEY",
+  ] as const;
+  const foundKeyName = KEY_NAMES.find((n) => process.env[n]);
+  const serviceKey = foundKeyName ? process.env[foundKeyName] : undefined;
   if (!url || !serviceKey) {
     // ⚠️ ҚАЙСЫСЫ ЖОҚ ЕКЕНІН НАҚТЫ АЙТАМЫЗ.
     // Бұрын хабарлама тек кілтті атайтын, ал шарт ЕКЕУІН тексеретін —
@@ -93,22 +103,24 @@ export async function GET(req: Request) {
     // тек «бар/жоқ» күйі.
     const missing = [
       !url && "NEXT_PUBLIC_SUPABASE_URL",
-      !serviceKey && "SUPABASE_SERVICE_ROLE_KEY",
+      !serviceKey && `серверлік кілт (${KEY_NAMES.join(" немесе ")})`,
     ].filter(Boolean) as string[];
     return NextResponse.json(
       {
         error: "Фиксация қоймасы бапталмаған — жазба жүргізілмейді",
         missing,
         detail:
-          `Табылмаған айнымалы: ${missing.join(", ")}. ` +
+          `Табылмағаны: ${missing.join("; ")}. ` +
           "Vercel → Settings → Environment Variables ішіне қосыңыз. " +
-          "⚠️ Қосқаннан КЕЙІН міндетті түрде REDEPLOY жасаңыз: орта " +
-          "айнымалылары бұрынғы деплойға кері қолданылмайды. " +
+          "⚠️ ЕКІ ЖИІ ҚАТЕ: (1) қосқаннан КЕЙІН REDEPLOY жасалмаған — орта " +
+          "айнымалылары бұрынғы деплойға кері қолданылмайды; (2) айнымалы тек " +
+          "Preview/Development ортасына белгіленген, Production-ға емес. " +
           "Anon кілтіне RLS жазуға рұқсат бермейді, сондықтан жазу тек " +
           "серверлік кілтпен жүреді.",
         env: {
           NEXT_PUBLIC_SUPABASE_URL: url ? "бар" : "ЖОҚ",
-          SUPABASE_SERVICE_ROLE_KEY: serviceKey ? "бар" : "ЖОҚ",
+          // Қай атаумен табылғаны (мәні ЕМЕС) — іздеуді жеңілдетеді
+          ...Object.fromEntries(KEY_NAMES.map((n) => [n, process.env[n] ? "бар" : "ЖОҚ"])),
         },
       },
       { status: 503 }
@@ -232,6 +244,7 @@ export async function GET(req: Request) {
     checked,
     found,
     written,
+    keyEnvName: foundKeyName,
     perRegion,
     failed,
     note:
