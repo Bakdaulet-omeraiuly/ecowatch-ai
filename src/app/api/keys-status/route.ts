@@ -76,16 +76,35 @@ export async function GET() {
     {
       env: "CDSE_CLIENT_ID",
       set: has("CDSE_CLIENT_ID") && has("CDSE_CLIENT_SECRET"),
-      what: "Sentinel-1 SAR (су басу), Sentinel-2 (NDVI)",
+      what:
+        "⚠️ Copernicus OAuth. Осыған тәуелді: су басқан аумақ (S1 SAR), " +
+        "қамыс мекені (S2 NDVI), мұнай дағын іздеу, ЖӘНЕ Sentinel-5P " +
+        "атмосфера қабаттары (NO₂/SO₂/CH₄/CO — олар /api/s5p проксиі арқылы жүреді)",
       required: "қосымша",
       where: "dataspace.copernicus.eu → OAuth clients",
     },
     {
-      env: "NEXT_PUBLIC_SENTINELHUB_S5P_INSTANCE_ID",
-      set: has("NEXT_PUBLIC_SENTINELHUB_S5P_INSTANCE_ID"),
-      what: "Sentinel-5P/TROPOMI қабаттары (NO₂, SO₂, CH₄, CO)",
+      env: "NEXT_PUBLIC_SENTINELHUB_INSTANCE_ID",
+      set: has("NEXT_PUBLIC_SENTINELHUB_INSTANCE_ID"),
+      what:
+        "Sentinel-2 оптикалық қабаттары, 10 м: шынайы түс, жалған түс, NDVI, " +
+        "NDMI, SWIR, геология, батиметрия. Болмаса — NASA GIBS/EOX резерві (өрескел)",
       required: "қосымша",
-      where: "Sentinel Hub → Configuration Utility",
+      where: "Sentinel Hub → Configuration Utility → Instance ID",
+    },
+    {
+      env: "NEXT_PUBLIC_SENTINELHUB_S1_INSTANCE_ID",
+      set: has("NEXT_PUBLIC_SENTINELHUB_S1_INSTANCE_ID"),
+      what: "Sentinel-1 радар қабаттары (су/мұнай VV, өсімдік VH). Болмаса — қабат мүлдем көрсетілмейді",
+      required: "қосымша",
+      where: "Sentinel Hub → Configuration Utility → Instance ID",
+    },
+    {
+      env: "FIRMS_MAP_KEY",
+      set: has("FIRMS_MAP_KEY"),
+      what: "NASA FIRMS — жылу аномалиялары мен газ факелдері (/api/flares)",
+      required: "қосымша",
+      where: "firms.modaps.eosdis.nasa.gov/api/map_key",
     },
     {
       env: "CRON_SECRET",
