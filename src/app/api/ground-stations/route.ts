@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRegion } from "@/data/regions";
+import { haversineKm } from "@/lib/pollutionSource";
 
 // ЖЕРДЕГІ СТАНСАЛАР — OpenAQ желісі арқылы НАҚТЫ ӨЛШЕМ.
 //
@@ -69,13 +70,27 @@ function headers(): HeadersInit {
 }
 
 export async function GET(req: Request) {
-  const region = getRegion(new URL(req.url).searchParams.get("region"));
+  const params = new URL(req.url).searchParams;
+  const region = getRegion(params.get("region"));
+
+  // ЕКІ ІЗДЕУ АУҚЫМЫ:
+  //   region  (әдепкі) — тек осы аймақтың шекарасы ішінде
+  //   country          — БҮКІЛ ел бойынша (?scope=country)
+  //
+  // Екіншісі неге керек: аймақта станса табылмағанда «елде мүлдем жоқ па,
+  // әлде басқа қалада бар ма?» деген сұрақ туады. Оны бір сұраныспен
+  // шешу үшін OpenAQ-тың `iso` сүзгісі қолданылады (келісімшарт сол
+  // репозиторийден расталды: v3/models/queries.py → CountryIsoQuery).
+  const scope = params.get("scope") === "country" ? "country" : "region";
+
   const [minX, minY, maxX, maxY] = region.bbox;
   const bbox = [minX, minY, maxX, maxY].map((v) => v.toFixed(4)).join(",");
+  const filter =
+    scope === "country" ? `iso=${encodeURIComponent(region.country)}` : `bbox=${bbox}`;
 
   try {
     const locRes = await fetch(
-      `${API}/locations?bbox=${bbox}&limit=100`,
+      `${API}/locations?${filter}&limit=1000`,
       { headers: headers(), next: { revalidate: 900 } }
     );
 
@@ -111,17 +126,29 @@ export async function GET(req: Request) {
         parameters: [],
         beyondCams: [],
         stations: [],
+        scope,
         note:
-          `${region.name} аумағында OpenAQ желісінде тіркелген станса табылмады. ` +
+          (scope === "country"
+            ? `${region.countryName} бойынша OpenAQ желісінде тіркелген станса табылмады. `
+            : `${region.name} аумағында OpenAQ желісінде тіркелген станса табылмады. `) +
           "Бұл «ауа таза» дегенді БІЛДІРМЕЙДІ — бұл жерде аспаптық өлшеу " +
           "жүргізілмейді (немесе оның деректері ашық желіге берілмейді) дегенді " +
           "білдіреді. Жүйедегі ауа сандары модель (CAMS) болып қалады.",
+        hint:
+          scope === "region"
+            ? "Елде мүлдем бар-жоғын білу үшін: осы сілтемеге &scope=country қосыңыз."
+            : undefined,
       });
     }
 
     // Соңғы мәндер — ең жаңа жаңартылған стансалардан бастаймыз
+    // Аймақ ішінде — ең соңғы жаңарғаны бірінші.
+    // Ел бойынша — ең ЖАҚЫНЫ бірінші (алыс станса пайдасыз).
     const ordered = [...locations].sort((a, b) =>
-      (b.datetime_last?.utc ?? "").localeCompare(a.datetime_last?.utc ?? "")
+      scope === "country"
+        ? haversineKm(region.lat, region.lng, a.coordinates.latitude!, a.coordinates.longitude!) -
+          haversineKm(region.lat, region.lng, b.coordinates.latitude!, b.coordinates.longitude!)
+        : (b.datetime_last?.utc ?? "").localeCompare(a.datetime_last?.utc ?? "")
     );
     const picked = ordered.slice(0, MAX_LATEST);
 
@@ -166,6 +193,9 @@ export async function GET(req: Request) {
         lat: l.coordinates.latitude!,
         lng: l.coordinates.longitude!,
         lastUtc: l.datetime_last?.utc ?? null,
+        // Аймақ орталығынан қашықтығы — ел бойынша іздегенде маңызды:
+        // 900 км жердегі станса Атыраудың ауасы туралы ештеңе айтпайды
+        distanceKm: +haversineKm(region.lat, region.lng, l.coordinates.latitude!, l.coordinates.longitude!).toFixed(1),
         measures: (l.sensors ?? []).map((s) => s.parameter.name),
         values: vals.filter((v) => v.parameter),
       };
@@ -187,6 +217,7 @@ export async function GET(req: Request) {
       tier: "measurement",
       source: "OpenAQ (мемлекеттік мониторинг желілерінің ашық агрегаторы)",
       sourceUrl: "https://openaq.org",
+      scope,
       stationCount: locations.length,
       shown: picked.length,
       parameters: allParams,
