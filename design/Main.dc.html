@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, "Helvetica Neue", sans-serif; }
+    a { color: #7fc9e8; } a:hover { color: #a5dcf2; }
+    .mono { font-family: "Geist Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+  </style>
+</helmet>
+
+<div style="width: 880px; height: 1120px; background: #14161a; color: #e4e6e8; font-size: 14px; line-height: 1.55; display: flex; flex-direction: column; overflow: hidden">
+
+  <!-- Навигация -->
+  <div style="height: 56px; flex-shrink: 0; display: flex; align-items: center; gap: 4px; padding: 0 20px; background: #1a1d22; border-bottom: 1px solid #262a30">
+    <div style="display: flex; align-items: center; gap: 8px; margin-right: 20px">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4ec99a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/></svg>
+      <span style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em">Jaiyq</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 2px; flex-grow: 1">
+      <a href="#" style="padding: 7px 12px; border-radius: 7px; font-size: 14px; text-decoration: none; color: #9aa1a9">Карта</a>
+      <a href="#" style="padding: 7px 12px; border-radius: 7px; font-size: 14px; text-decoration: none; color: #e4e6e8; background: #262a30; font-weight: 500">Аналитика</a>
+      <a href="#" style="padding: 7px 12px; border-radius: 7px; font-size: 14px; text-decoration: none; color: #9aa1a9">Салыстыру</a>
+      <a href="#" style="padding: 7px 12px; border-radius: 7px; font-size: 14px; text-decoration: none; color: #9aa1a9">Заңнама</a>
+    </div>
+    <div style="display: flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 7px; border: 1px solid #2f343b; font-size: 13px; color: #cfd3d8">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4ec99a" stroke-width="2" stroke-linecap="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+      Атырау
+    </div>
+  </div>
+
+  <!-- Ескерту жолағы: бүкіл жолақ емес, бір жіңішке сызық -->
+  <div style="flex-shrink: 0; display: flex; align-items: flex-start; gap: 9px; padding: 10px 20px; background: #1c1a15; border-bottom: 1px solid #2e2a1e">
+    <svg width="14" height="14" style="flex-shrink: 0; margin-top: 2px" viewBox="0 0 24 24" fill="none" stroke="#c9a961" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+    <span style="font-size: 13px; color: #b5a582; line-height: 1.5">Jaiyq — тәуелсіз жоба, ресми мемлекеттік дереккөз емес. Ресми шешім үшін жауапты органдарға жүгініңіз.</span>
+  </div>
+
+  <div style="flex-grow: 1; padding: 26px 20px; display: flex; flex-direction: column; gap: 20px">
+
+    <div>
+      <h1 style="margin: 0 0 3px; font-size: 25px; font-weight: 650; letter-spacing: -0.02em; color: #f2f3f4">Аймақтық аналитика</h1>
+      <p style="margin: 0; font-size: 14px; color: #8b929a">Атырау — экологиялық жағдай нақты уақытта</p>
+    </div>
+
+    <!-- Заңнамалық сәйкестік -->
+    <div style="border: 1px solid #262a30; border-radius: 12px; background: #191c21; padding: 18px">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 3px">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8b929a" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="M7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #f2f3f4">Заңнамалық сәйкестік</h2>
+        <span style="padding: 3px 9px; border-radius: 5px; background: #16281f; border: 1px solid #24402f; font-size: 12px; color: #6fbd93">расталған асу жоқ</span>
+      </div>
+      <p style="margin: 0 0 15px; font-size: 13px; color: #8b929a">ҚР гигиеналық нормативтері · WHO 2021 · EU 2008/50/EC</p>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px">
+        <div style="border: 1px solid #262a30; border-radius: 9px; background: #1d2026; padding: 12px 13px">
+          <div style="font-size: 12px; color: #7d848c; letter-spacing: 0.03em; margin-bottom: 5px">ТЕКСЕРІЛДІ</div>
+          <div class="mono" style="font-size: 23px; font-weight: 600; color: #f2f3f4">0/6</div>
+        </div>
+        <div style="border: 1px solid #262a30; border-radius: 9px; background: #1d2026; padding: 12px 13px">
+          <div style="font-size: 12px; color: #7d848c; letter-spacing: 0.03em; margin-bottom: 5px">ҚР НОРМАСЫ АСҚАН</div>
+          <div class="mono" style="font-size: 23px; font-weight: 600; color: #f2f3f4">0</div>
+        </div>
+        <div style="border: 1px solid #262a30; border-radius: 9px; background: #1d2026; padding: 12px 13px">
+          <div style="font-size: 12px; color: #7d848c; letter-spacing: 0.03em; margin-bottom: 5px">WHO/EU ЭТАЛОНЫНАН</div>
+          <div class="mono" style="font-size: 23px; font-weight: 600; color: #f2f3f4">0</div>
+        </div>
+        <div style="border: 1px solid #262a30; border-radius: 9px; background: #1d2026; padding: 12px 13px">
+          <div style="font-size: 12px; color: #7d848c; letter-spacing: 0.03em; margin-bottom: 5px">НОРМАҒА ЖАҚЫН</div>
+          <div class="mono" style="font-size: 23px; font-weight: 600; color: #f2f3f4">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Хронология -->
+    <div style="border: 1px solid #262a30; border-radius: 12px; background: #191c21; padding: 18px; flex-grow: 1">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 13px">
+        <h2 style="margin: 0; font-size: 16px; font-weight: 600; color: #f2f3f4">Сағаттық хронология</h2>
+        <span style="font-size: 12px; color: #7d848c">µg/m³</span>
+      </div>
+
+      <div style="border: 1px solid #262a30; border-radius: 9px; overflow: hidden">
+        <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+          <thead>
+            <tr style="background: #1d2026">
+              <th style="text-align: left; padding: 9px 13px; font-weight: 500; color: #7d848c; font-size: 12px; letter-spacing: 0.02em">Уақыт</th>
+              <th style="text-align: left; padding: 9px 13px; font-weight: 500; color: #7d848c; font-size: 12px; letter-spacing: 0.02em">Жел</th>
+              <th style="text-align: left; padding: 9px 13px; font-weight: 500; color: #7d848c; font-size: 12px; letter-spacing: 0.02em">Жел бағытында</th>
+              <th style="text-align: right; padding: 9px 13px; font-weight: 500; color: #7d848c; font-size: 12px">SO₂</th>
+              <th style="text-align: right; padding: 9px 13px; font-weight: 500; color: #7d848c; font-size: 12px">NO₂</th>
+              <th style="text-align: right; padding: 9px 13px; font-weight: 500; color: #7d848c; font-size: 12px">PM₁₀</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-top: 1px solid #23262b">
+              <td class="mono" style="padding: 10px 13px; color: #cfd3d8">13:00</td>
+              <td style="padding: 10px 13px; color: #9aa1a9">СШ 3.8</td>
+              <td style="padding: 10px 13px; color: #cfd3d8">Балықшы</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">3.1</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">1.0</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">43.7</td>
+            </tr>
+            <tr style="border-top: 1px solid #23262b">
+              <td class="mono" style="padding: 10px 13px; color: #cfd3d8">14:00</td>
+              <td style="padding: 10px 13px; color: #9aa1a9">СШ 4.2</td>
+              <td style="padding: 10px 13px; color: #cfd3d8">Балықшы, Жұмыскер</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">3.3</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">1.2</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">39.5</td>
+            </tr>
+            <!-- Асқан сағат: жол ішіндегі БІР ұяшық қана боялады -->
+            <tr style="border-top: 1px solid #23262b; background: #201a1a">
+              <td class="mono" style="padding: 10px 13px; color: #e4e6e8; box-shadow: inset 3px 0 0 #c05252">15:00</td>
+              <td style="padding: 10px 13px; color: #9aa1a9">СШ 5.1</td>
+              <td style="padding: 10px 13px; color: #cfd3d8">Балықшы, Авангард</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">3.6</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">1.5</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #e08585; font-weight: 600">71.2</td>
+            </tr>
+            <tr style="border-top: 1px solid #23262b">
+              <td class="mono" style="padding: 10px 13px; color: #cfd3d8">16:00</td>
+              <td style="padding: 10px 13px; color: #9aa1a9">СШ 4.6</td>
+              <td style="padding: 10px 13px; color: #cfd3d8">Самал</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">3.9</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">2.0</td>
+              <td class="mono" style="padding: 10px 13px; text-align: right; color: #cfd3d8">33.9</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="margin: 11px 0 0; font-size: 12px; color: #7d848c; line-height: 1.55">
+        Қызыл — расталған нормадан асқан сағат. Шаң мен CH₄ бағандарының гигиеналық нормасы жоқ, тек өлшем.
+      </p>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
