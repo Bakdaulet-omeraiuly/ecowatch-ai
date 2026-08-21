@@ -310,12 +310,12 @@ export default function DashboardPage() {
       </div>
 
       {/* LIVE environmental data — Open-Meteo / Copernicus CAMS */}
-      <Card className="border-emerald-500/20 bg-emerald-500/[0.04]">
+      <Card className="border-white/10 bg-white/[0.02]">
         <CardHeader className="pb-2">
           <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
             <Radio className="h-4 w-4 animate-pulse text-emerald-400" />
             {tr("Тірі мониторинг — Атырау қ.")}
-            <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[12px] font-normal text-emerald-300">
+            <span className="text-[12px] font-normal text-neutral-500">
               {tr("Дереккөз: Open-Meteo + Copernicus CAMS (ЕО ресми атмосфера қызметі) · сағат сайын жаңарады")}
             </span>
           </CardTitle>
@@ -591,8 +591,8 @@ export default function DashboardPage() {
                 <Card
                   className={
                     mosMeta.flood.available
-                      ? "border-sky-500/20 bg-sky-500/[0.05]"
-                      : "border-amber-500/20 bg-amber-500/[0.05]"
+                      ? "border-sky-500/20 bg-white/[0.02]"
+                      : "border-amber-500/20 bg-white/[0.02]"
                   }
                 >
                   <CardContent className="pt-4">
@@ -624,7 +624,7 @@ export default function DashboardPage() {
 
               {/* Массалық шығу болжамы — модельдің ең пайдалы шығысы */}
               {mosMeta?.dyn?.emergencePeak && (
-                <Card className="border-violet-500/25 bg-violet-500/[0.07]">
+                <Card className="border-white/10 bg-white/[0.02]">
                   <CardContent className="pt-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-semibold text-violet-200">
@@ -695,7 +695,7 @@ export default function DashboardPage() {
                 </AreaChart>
               </ChartCard>
 
-              <Card className="border-violet-500/20 bg-violet-500/5">
+              <Card className="border-white/10 bg-violet-500/5">
                 <CardContent className="pt-4">
                   <p className="text-sm leading-relaxed text-neutral-300">
                     🦟 <b className="text-violet-300">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
@@ -719,13 +719,13 @@ export default function DashboardPage() {
           {climate && (
             <>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Card className="border-orange-500/20 bg-orange-500/5">
+                <Card className="border-white/10 bg-orange-500/5">
                   <CardContent className="pt-4 text-center">
                     <div className="text-3xl font-bold text-orange-400">+{climate.tempDelta}°C</div>
                     <div className="mt-1 text-xs text-neutral-400">{tr("2050 жылға температура")}</div>
                   </CardContent>
                 </Card>
-                <Card className="border-sky-500/20 bg-sky-500/5">
+                <Card className="border-white/10 bg-sky-500/5">
                   <CardContent className="pt-4 text-center">
                     <div className={`text-3xl font-bold ${climate.precipDeltaPct < 0 ? "text-red-400" : "text-sky-400"}`}>
                       {climate.precipDeltaPct > 0 ? "+" : ""}{climate.precipDeltaPct}%
@@ -785,7 +785,7 @@ export default function DashboardPage() {
                   <Area type="monotone" dataKey="sm" name={tr("Топырақ су қоры (м³/м³)")} stroke="#38bdf8" fill="#38bdf833" strokeWidth={2} />
                 </AreaChart>
               </ChartCard>
-              <Card className="border-amber-500/20 bg-amber-500/5">
+              <Card className="border-white/10 bg-amber-500/5">
                 <CardContent className="pt-4">
                   <p className="text-sm text-neutral-300">
                     💧 <b className="text-amber-300">{tr("Қорытынды:")}</b> CMIP6 моделі бойынша Атырау 2050 жылға қарай{" "}
@@ -1003,7 +1003,7 @@ function DistrictRating({ allSites, env }: { allSites: { district: string; analy
   return (
     <div className="space-y-4">
       {aqi != null && (
-        <Card className="border-sky-500/20 bg-sky-500/5">
+        <Card className="border-white/10 bg-sky-500/5">
           <CardContent className="pt-4">
             <p className="text-sm text-neutral-300">
               Қазіргі Атырау EU AQI:{" "}

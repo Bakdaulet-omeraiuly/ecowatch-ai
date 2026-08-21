@@ -148,7 +148,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
             else if (e.key === "Enter") { e.preventDefault(); pickIndex(active); }
           }}
           placeholder={tr("Кез келген жерді, кәсіпорынды немесе координатаны іздеу…")}
-          className="w-full rounded-xl border border-white/15 bg-neutral-900/95 py-2.5 pl-10 pr-9 text-sm text-white shadow-xl outline-none backdrop-blur transition placeholder:text-neutral-400 focus:border-emerald-400/50"
+          className="w-full rounded-xl border border-white/15 bg-neutral-900/95 py-2.5 pl-10 pr-9 text-sm text-white shadow-xl outline-none backdrop-blur transition placeholder:text-neutral-400 focus:border-white/10"
           aria-label={tr("Іздеу")}
         />
         <button

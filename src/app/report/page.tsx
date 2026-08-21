@@ -294,7 +294,7 @@ function Leaderboard() {
   const medals = ["🥇", "🥈", "🥉"];
 
   return (
-    <Card className="border-amber-500/20 bg-amber-500/5">
+    <Card className="border-white/10 bg-amber-500/5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm text-white">
           <Trophy className="h-4 w-4 text-amber-400" />

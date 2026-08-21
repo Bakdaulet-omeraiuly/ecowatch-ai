@@ -11,9 +11,9 @@ interface Factor { label: string; detail: string; severity: "ok" | "warn" | "bad
 interface WhyData { verdict: string; aqi: number | null; summary: string; factors: Factor[] }
 
 const SEV = {
-  ok: { cls: "text-emerald-300 border-emerald-500/30 bg-emerald-500/[0.06]", Icon: CheckCircle2 },
-  warn: { cls: "text-amber-300 border-amber-500/30 bg-amber-500/[0.06]", Icon: Wind },
-  bad: { cls: "text-red-300 border-red-500/30 bg-red-500/[0.06]", Icon: AlertTriangle },
+  ok: { cls: "text-emerald-300 border-emerald-500/30 bg-white/[0.02]", Icon: CheckCircle2 },
+  warn: { cls: "text-amber-300 border-amber-500/30 bg-white/[0.02]", Icon: Wind },
+  bad: { cls: "text-red-300 border-red-500/30 bg-white/[0.02]", Icon: AlertTriangle },
 };
 
 export function WhyButton() {
@@ -45,7 +45,7 @@ export function WhyButton() {
   };
 
   return (
-    <Card className="border-violet-500/25 bg-violet-500/[0.05]">
+    <Card className="border-white/10 bg-white/[0.02]">
       <CardContent className="pt-4">
         {!open ? (
           <button

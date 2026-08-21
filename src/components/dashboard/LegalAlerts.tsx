@@ -96,7 +96,7 @@ export function LegalAlerts() {
     <Card
       className={
         data?.kzViolations
-          ? "border-red-500/40 bg-red-500/[0.06]"
+          ? "border-red-500/40 bg-white/[0.02]"
           : "border-white/10 bg-white/[0.02]"
       }
     >

@@ -536,8 +536,8 @@ function IndicatorRow({
           <div
             className={`rounded-md border px-2.5 py-1.5 ${
               ind.validated
-                ? "border-emerald-400/25 bg-emerald-500/[0.07] text-emerald-100 print:border-emerald-300 print:bg-emerald-50 print:text-emerald-900"
-                : "border-amber-400/25 bg-amber-500/[0.07] text-amber-100 print:border-amber-300 print:bg-amber-50 print:text-amber-900"
+                ? "border-emerald-400/25 bg-white/[0.02] text-emerald-100 print:border-emerald-300 print:bg-emerald-50 print:text-emerald-900"
+                : "border-amber-400/25 bg-white/[0.02] text-amber-100 print:border-amber-300 print:bg-amber-50 print:text-amber-900"
             }`}
           >
             <span className="font-medium">

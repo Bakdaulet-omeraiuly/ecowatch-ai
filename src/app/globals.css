@@ -11,8 +11,8 @@
  * бәсеңдетілді — контраст ~13:1 болды, ол әлі де AAA деңгейінен жоғары.
  */
 :root {
-  --background: #101215;
-  --foreground: #e6e7e8;
+  --background: #1b1b1b;
+  --foreground: #d6d6d4;
   color-scheme: dark;
 }
 
@@ -27,9 +27,28 @@
    * қажеті болмады. Қабат иерархиясы сақталады:
    *   фон #101215 < карточка #171a1e < көтерілген бет #23262b
    */
-  --color-neutral-950: #0c0e11;
-  --color-neutral-900: #171a1e;
-  --color-neutral-800: #23262b;
+  /*
+   * ДАТА-ПЛАТФОРМА ПАЛИТРАСЫ (таңдалған 3-бағыт).
+   *
+   * Мәні: фон мен безендіру ТЫНЫШ болады, түс тек МӘЛІМЕТТЕ қалады.
+   * Сондықтан сұр шкала суық-көгілдірден (#0c0e11) жылы-нейтралдыға
+   * ауыстырылды — ол экранда «фон» болып тұрады да, назарды өзіне
+   * тартпайды, ал қызыл/жасыл сан оның үстінде айқын көрінеді.
+   *
+   * Класс аттары ӨЗГЕРМЕЙДІ — тек мәні. Сондықтан 500-ден астам
+   * шақыру орнын қолмен түзетудің қажеті жоқ.
+   */
+  --color-neutral-950: #1b1b1b; /* бет фоны */
+  --color-neutral-900: #232322; /* панель, карточка */
+  --color-neutral-800: #2c2c2b; /* жиек, көтерілген бет */
+  --color-neutral-700: #3a3a38;
+  --color-neutral-600: #4a4a47;
+  --color-neutral-500: #7a7a74; /* жапсырма */
+  --color-neutral-400: #86867f; /* көмескі мәтін */
+  --color-neutral-300: #a5a59e;
+  --color-neutral-200: #c4c4bf; /* кесте мәтіні */
+  --color-neutral-100: #d6d6d4; /* негізгі мәтін */
+  --color-neutral-50:  #f0f0ec; /* тақырып */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -37,7 +56,14 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /*
+   * ⚠️ БҰРЫН МҰНДА Arial ТҰРАТЫН.
+   * layout.tsx Geist пен Geist Mono қаріптерін жүктеп, CSS айнымалысын
+   * беріп қоятын, ал осы жол оны БАСЫП ТАСТАЙТЫН — сайт Arial-мен
+   * көрсетіліп, жүктелген қаріп бекер жүктелетін.
+   */
+  font-family: var(--font-geist-sans), "Helvetica Neue", Arial, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Ластану көзі: зауыт ауа-сапасы попапы (қараңғы тема) */

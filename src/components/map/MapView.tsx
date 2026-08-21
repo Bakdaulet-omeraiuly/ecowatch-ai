@@ -942,7 +942,7 @@ export function MapView() {
   if (!token) {
     return (
       <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="max-w-md rounded-xl border border-amber-500/30 bg-amber-500/5 p-6 text-center">
+        <div className="max-w-md rounded-xl border border-white/10 bg-amber-500/5 p-6 text-center">
           <Satellite className="mx-auto mb-3 h-8 w-8 text-amber-400" />
           <h2 className="mb-2 font-semibold text-white">Mapbox токені керек</h2>
           <p className="text-sm text-neutral-400">
@@ -2195,7 +2195,7 @@ export function MapView() {
                         Модельдің ең пайдалы шығысы: дезинсекция мен
                         халыққа ескерту осы күнге жоспарланады */}
                     {mosDyn?.emergencePeak && (
-                      <div className="mt-2 rounded-md border border-violet-400/30 bg-violet-500/[0.08] p-2">
+                      <div className="mt-2 rounded-md border border-violet-400/30 bg-white/[0.02] p-2">
                         <div className="flex items-center gap-1.5">
                           <Bug className="h-3 w-3 text-violet-300" />
                           <span className="text-[12px] font-semibold text-neutral-200">
@@ -2218,8 +2218,8 @@ export function MapView() {
                       <div
                         className={`mt-2 rounded-md border p-2 ${
                           mosFlood.available
-                            ? "border-sky-400/25 bg-sky-500/[0.07]"
-                            : "border-amber-400/25 bg-amber-500/[0.06]"
+                            ? "border-sky-400/25 bg-white/[0.02]"
+                            : "border-amber-400/25 bg-white/[0.02]"
                         }`}
                       >
                         <div className="flex items-center gap-1.5">
@@ -2822,7 +2822,7 @@ export function MapView() {
 
       {/* History timeline — real Sentinel-2 yearly mosaics */}
       {historyMode && (
-        <div className="absolute bottom-20 left-1/2 w-[min(620px,90%)] -translate-x-1/2 rounded-xl border border-amber-500/30 bg-neutral-900/95 p-4 backdrop-blur">
+        <div className="absolute bottom-20 left-1/2 w-[min(620px,90%)] -translate-x-1/2 rounded-xl border border-white/10 bg-neutral-900/95 p-4 backdrop-blur">
           <div className="mb-2 flex items-center justify-between">
             <span className="flex items-center gap-1.5 text-xs text-amber-300">
               <History className="h-3.5 w-3.5" />
@@ -2923,7 +2923,7 @@ export function MapView() {
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("AI талдап жатыр…")}
           </div>
         ) : aiOn ? (
-          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-violet-500/40 bg-neutral-900/95 px-3 py-2 text-xs text-violet-100 backdrop-blur">
+          <div className="pointer-events-auto flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-white/10 bg-neutral-900/95 px-3 py-2 text-xs text-violet-100 backdrop-blur">
             {/* Нүкте / Аумақ ауыстырғыш */}
             <div className="flex items-center overflow-hidden rounded-full border border-white/10">
               <button
