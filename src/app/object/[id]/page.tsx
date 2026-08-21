@@ -146,7 +146,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
         ) : (
           <div className="space-y-1.5">
             {d.compliance.results.map((r) => (
-              <div key={r.indicatorId} className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+              <div key={r.indicatorId} className="rounded-lg bg-white/[0.02] p-2.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className={`rounded border px-1.5 py-0.5 text-[12px] ${LEVEL_COLOR[r.worst]}`}>
                     {tr(LEVEL_KZ[r.worst])}
@@ -254,7 +254,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
       <Section n={d.nearbyFlares.length > 0 ? 4 : 3} title={tr("Дәлелдер тізбегі")} icon={FileText}>
         <div className="space-y-2">
           {d.evidence.map((e, i) => (
-            <div key={i} className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5 text-[13px]">
+            <div key={i} className="rounded-lg bg-white/[0.02] p-2.5 text-[13px]">
               <div className="mb-1 flex flex-wrap items-center gap-2">
                 <TierBadge tier={e.tier} />
                 <span className="font-medium text-neutral-100">{e.kind}</span>

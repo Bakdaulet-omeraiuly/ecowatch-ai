@@ -116,7 +116,7 @@ export function IndicatorHelp({ id, inline }: Props) {
   );
 
   if (inline) {
-    return <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">{body}</div>;
+    return <div className="rounded-lg bg-white/[0.02] p-2.5">{body}</div>;
   }
 
   return (

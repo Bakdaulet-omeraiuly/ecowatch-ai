@@ -125,7 +125,7 @@ export default function CaspianPage() {
             </h2>
             <div className="space-y-1.5">
               {sorted.map((c) => (
-                <div key={c.id} className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
+                <div key={c.id} className="rounded-lg bg-white/[0.02] p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base">{COUNTRY_FLAG[c.country]}</span>
                     <span className="text-[14px] font-medium text-neutral-100">{c.name}</span>

@@ -210,7 +210,7 @@ export default function LegislationPage() {
 
         <div className="overflow-x-auto rounded-xl border border-white/10">
           <table className="w-full min-w-[720px] text-left text-[13px]">
-            <thead className="bg-white/[0.04] text-neutral-400">
+            <thead className="border-b border-white/10 text-neutral-400">
               <tr>
                 <th className="px-3 py-2 font-medium">Зат</th>
                 <th className="px-3 py-2 font-medium">Күйі</th>
@@ -280,7 +280,7 @@ export default function LegislationPage() {
           </p>
         </div>
 
-        <div className="mb-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+        <div className="mb-3 rounded-lg bg-white/[0.02] p-3">
           <div className="mb-1 text-[13px] font-semibold text-neutral-200">Ерекшелік ережесі</div>
           <p className="text-[13px] leading-relaxed text-neutral-400">
             {SUMMATION_SOURCE.dominanceRule}

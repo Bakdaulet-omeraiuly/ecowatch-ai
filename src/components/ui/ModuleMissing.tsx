@@ -38,7 +38,7 @@ export function ModuleMissing({ module: key, region, reason, compact }: Props) {
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+    <div className="space-y-2 rounded-lg bg-white/[0.02] p-3">
       <div className="flex items-start gap-2">
         <CircleSlash className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
         <div className="min-w-0">

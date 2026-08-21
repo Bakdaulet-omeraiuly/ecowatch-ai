@@ -185,7 +185,7 @@ export function ExceedanceLog() {
                 {/* Уақыт бойынша жазбалар */}
                 <div className="overflow-x-auto rounded-lg border border-white/10">
                   <table className="w-full min-w-[560px] text-left text-[13px]">
-                    <thead className="bg-white/[0.04] text-neutral-400">
+                    <thead className="border-b border-white/10 text-neutral-400">
                       <tr>
                         <th className="px-2 py-1.5 font-medium">{tr("Оқиға уақыты")}</th>
                         <th className="px-2 py-1.5 font-medium">{tr("Көрсеткіш")}</th>

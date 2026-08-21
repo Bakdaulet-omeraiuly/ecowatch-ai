@@ -74,11 +74,15 @@ export function Navbar() {
               href={l.href}
               draggable={false}
               onClick={(e) => { if (drag.current.moved) e.preventDefault(); }}
+              // Белсенді бет ТОЛТЫРЫЛҒАН таблеткамен емес, астыңғы
+              // сызықпен белгіленеді. Себебі навигация — безендіру емес,
+              // бағдар: жасыл таблетка экранның ең жоғарысында тұрып,
+              // назарды мәліметтен өзіне тартатын.
               className={cn(
-                "shrink-0 whitespace-nowrap rounded-md px-3 py-1.5 text-sm transition-colors",
+                "shrink-0 whitespace-nowrap px-3 py-1.5 text-sm transition-colors",
                 pathname === l.href
-                  ? "bg-emerald-500/15 text-emerald-300"
-                  : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                  ? "text-neutral-50 shadow-[inset_0_-2px_0_var(--color-neutral-50)]"
+                  : "text-neutral-400 hover:text-neutral-100"
               )}
             >
               {l.label}

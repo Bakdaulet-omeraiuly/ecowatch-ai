@@ -182,7 +182,7 @@ export default function ComparePage() {
 
       {/* Controls */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
+        <div className="rounded-lg bg-white/[0.03] p-3">
           <div className="mb-1.5 text-xs text-neutral-400">{tr("Орын")}</div>
           <select
             value={spotIdx}

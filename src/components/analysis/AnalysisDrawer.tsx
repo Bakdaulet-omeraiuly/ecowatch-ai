@@ -409,7 +409,7 @@ export function AnalysisDrawer({
             )}
 
             {site.analysis.science && (
-              <div className="space-y-3 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+              <div className="space-y-3 rounded-lg bg-white/[0.03] p-3">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-neutral-200">
                   🔬 {tr("Ғылыми сараптама")}
                   <span className="rounded bg-violet-500/15 px-1.5 py-0.5 text-[12px] font-normal text-violet-300">

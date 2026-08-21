@@ -357,7 +357,7 @@ export default function DashboardPage() {
               })()}
               {/* КӨРСЕТКІШТЕР НЕНІ БІЛДІРЕДІ — плиткалар кішкентай
                   болғандықтан анықтамалар осында, толық тізіммен тұрады */}
-              <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+              <div className="mt-3 rounded-lg bg-white/[0.02] p-3">
                 <div className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
                   {tr("Көрсеткіштер нені білдіреді")}
                 </div>
@@ -881,7 +881,7 @@ function FireDangerCard({ fire }: { fire: FireData }) {
         {/* Құрамдас индекстер */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {components.map((c) => (
-            <div key={c.label} className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+            <div key={c.label} className="rounded-lg bg-white/[0.02] p-2.5">
               <div className="text-base font-bold text-white">{c.value}</div>
               <div className="text-[12px] font-medium text-neutral-300">{c.label}</div>
               <div className="text-[12px] text-neutral-400">{c.hint}</div>
@@ -939,12 +939,12 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+          <div className="rounded-lg bg-white/[0.02] p-2.5">
             <div className="text-base font-bold text-white">{drought.precip3m} мм</div>
             <div className="text-[12px] font-medium text-neutral-300">{tr("3-айлық жауын")}</div>
             <div className="text-[12px] text-neutral-400">{drought.period} кезеңі</div>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+          <div className="rounded-lg bg-white/[0.02] p-2.5">
             <div className="text-base font-bold text-white">{drought.yearsOfRecord}</div>
             <div className="text-[12px] font-medium text-neutral-300">{tr("Климат жылдары")}</div>
             <div className="text-[12px] text-neutral-400">{tr("ERA5 архиві")}</div>
