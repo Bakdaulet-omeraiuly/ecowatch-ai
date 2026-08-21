@@ -61,7 +61,7 @@ export function MlForecast() {
   const aqiMetrics = data?.model.metrics["european_aqi"];
 
   return (
-    <Card className="border-violet-500/20 bg-violet-500/[0.04]">
+    <Card className="border-white/10 bg-white/[0.02]">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm text-white">
           <TierBadge tier="model" />

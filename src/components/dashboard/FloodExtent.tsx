@@ -73,7 +73,7 @@ export function FloodExtent() {
   }, [region.id, missing, loadedFor]);
 
   return (
-    <Card className="border-sky-500/20 bg-sky-500/[0.04]">
+    <Card className="border-white/10 bg-white/[0.02]">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-sm text-white">
           <TierBadge tier="measurement" />

@@ -79,7 +79,7 @@ export function ExceedanceLog() {
   }, [region.id, loadedFor]);
 
   return (
-    <Card className="border-red-500/20 bg-red-500/[0.03]">
+    <Card className="border-white/10 bg-white/[0.02]">
       <CardHeader className="pb-2">
         <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
           <ScrollText className="h-4 w-4 text-red-300" />
@@ -109,7 +109,7 @@ export function ExceedanceLog() {
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>
         ) : err ? (
-          <div className="space-y-1.5 rounded-lg border border-amber-400/25 bg-amber-500/[0.06] p-3">
+          <div className="space-y-1.5 rounded-lg border border-amber-400/25 bg-white/[0.02] p-3">
             <p className="text-[13px] text-amber-100">⚠ {err.error}</p>
             {err.reason && (
               <p className="text-[13px] leading-relaxed text-neutral-400">{err.reason}</p>
@@ -121,8 +121,8 @@ export function ExceedanceLog() {
             <div
               className={`mb-3 flex flex-wrap items-center gap-2 rounded-lg border p-2.5 ${
                 data.coverage.interrupted
-                  ? "border-amber-400/30 bg-amber-500/[0.07]"
-                  : "border-emerald-400/25 bg-emerald-500/[0.06]"
+                  ? "border-amber-400/30 bg-white/[0.02]"
+                  : "border-emerald-400/25 bg-white/[0.02]"
               }`}
             >
               <Clock

@@ -166,7 +166,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25, duration: 0.5 }}
-          className="mx-auto mt-8 flex max-w-2xl items-start gap-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] px-4 py-3 text-left backdrop-blur"
+          className="mx-auto mt-8 flex max-w-2xl items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 text-left backdrop-blur"
         >
           <Sparkles className="mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-400" />
           <div>
@@ -300,19 +300,19 @@ export default function Home() {
       {/* Quick nav */}
       <section className="relative mx-auto max-w-5xl px-4 py-8">
         <div className="grid gap-3 sm:grid-cols-3">
-          <Link href="/dashboard" className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/5">
+          <Link href="/dashboard" className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/10 hover:bg-emerald-500/5">
             <LineChart className="mb-3 h-6 w-6 text-emerald-400" />
             <p className="font-semibold text-white">{t("qn.dash.t")}</p>
             <p className="mt-1 text-xs text-neutral-400">{t("qn.dash.d")}</p>
             <p className="mt-3 flex items-center gap-1 text-xs font-medium text-emerald-400">{t("qn.enter")} <ChevronRight className="h-3.5 w-3.5" /></p>
           </Link>
-          <Link href="/moderation" className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-violet-500/30 hover:bg-violet-500/5">
+          <Link href="/moderation" className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/10 hover:bg-violet-500/5">
             <Shield className="mb-3 h-6 w-6 text-violet-400" />
             <p className="font-semibold text-white">{t("qn.mod.t")}</p>
             <p className="mt-1 text-xs text-neutral-400">{t("qn.mod.d")}</p>
             <p className="mt-3 flex items-center gap-1 text-xs font-medium text-violet-400">{t("qn.enter")} <ChevronRight className="h-3.5 w-3.5" /></p>
           </Link>
-          <Link href="/eco-passport" className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-sky-500/30 hover:bg-sky-500/5">
+          <Link href="/eco-passport" className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all hover:border-white/10 hover:bg-sky-500/5">
             <FileText className="mb-3 h-6 w-6 text-sky-400" />
             <p className="font-semibold text-white">{t("qn.pass.t")}</p>
             <p className="mt-1 text-xs text-neutral-400">{t("qn.pass.d")}</p>
@@ -336,7 +336,7 @@ export default function Home() {
             {articles.slice(0, 6).map((a, i) => (
               <motion.a key={a.link + i} href={a.link} target="_blank" rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.35 }}
-                className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all hover:border-emerald-500/30 hover:bg-emerald-500/5">
+                className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 transition-all hover:border-white/10 hover:bg-emerald-500/5">
                 <div className="mb-2 flex items-center gap-2 text-[13px] text-neutral-400">
                   <span className="rounded-md bg-white/10 px-1.5 py-0.5">{a.source}</span>
                   <span className="ml-auto">{a.date}</span>

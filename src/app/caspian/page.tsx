@@ -109,7 +109,7 @@ export default function CaspianPage() {
           </div>
 
           {/* Әдістеме — форумда ең жиі сұралатын нәрсе */}
-          <div className="mb-6 rounded-xl border border-sky-400/25 bg-sky-500/[0.06] p-4">
+          <div className="mb-6 rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <div className="mb-1.5 flex items-center gap-2">
               <TierBadge tier="model" />
               <span className="text-sm font-semibold text-sky-100">{tr("Салыстыру неге тең")}</span>
@@ -169,7 +169,7 @@ export default function CaspianPage() {
           </section>
 
           {/* Заңнама */}
-          <section className="mb-6 rounded-xl border border-amber-400/30 bg-amber-500/[0.07] p-4">
+          <section className="mb-6 rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-amber-200">
               <AlertTriangle className="h-4 w-4" /> {tr("Заңнама туралы")}
             </div>

@@ -90,7 +90,7 @@ export function Footer() {
               href={TELEGRAM_BOT}
               target="_blank"
               rel="noopener noreferrer"
-              className="group block rounded-xl border border-sky-500/20 bg-sky-500/10 p-3 transition-colors hover:bg-sky-500/15"
+              className="group block rounded-xl border border-white/10 bg-sky-500/10 p-3 transition-colors hover:bg-sky-500/15"
             >
               <div className="flex items-center gap-2 text-sm font-medium text-sky-300">
                 <Send className="h-4 w-4" /> {t("foot.tg")}

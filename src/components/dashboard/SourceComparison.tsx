@@ -62,7 +62,7 @@ export function SourceComparison() {
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {/* CAMS моделі */}
-            <div className="rounded-lg border border-sky-500/30 bg-sky-500/[0.06] p-3">
+            <div className="rounded-lg border border-sky-500/30 bg-white/[0.02] p-3">
               <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-sky-300">
                 <Satellite className="h-3.5 w-3.5" /> {tr("Модель · CAMS")}
               </div>
@@ -88,7 +88,7 @@ export function SourceComparison() {
             </div>
 
             {/* Qazhydromet нақты датчик */}
-            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/[0.06] p-3">
+            <div className="rounded-lg border border-emerald-500/30 bg-white/[0.02] p-3">
               <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-300">
                 <Radio className="h-3.5 w-3.5" /> {tr("Датчик · Qazhydromet")}
               </div>

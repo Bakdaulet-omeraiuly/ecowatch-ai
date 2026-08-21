@@ -111,7 +111,7 @@ export function PollutionTimeline({
       </div>
 
       {source.archiveNote && (
-        <p className="rounded border border-amber-400/25 bg-amber-500/[0.07] px-2 py-1.5 text-[12px] leading-relaxed text-amber-100/90">
+        <p className="rounded border border-amber-400/25 bg-white/[0.02] px-2 py-1.5 text-[12px] leading-relaxed text-amber-100/90">
           {source.archiveNote}
         </p>
       )}
@@ -256,7 +256,7 @@ export function PollutionTimeline({
           {/* ⛔ ӨЛШЕНБЕЙТІНІ — бос баған етіп қосуға БОЛМАЙДЫ.
               Бос ұяшық «қаралды, таза екен» деген жалған әсер берер еді.
               Сондықтан кестенің АСТЫНДА ашық жазба ретінде тұрады. */}
-          <div className="mt-2 rounded-lg border border-red-400/25 bg-red-500/[0.06] p-2">
+          <div className="mt-2 rounded-lg border border-red-400/25 bg-white/[0.02] p-2">
             <p className="text-[12px] leading-relaxed text-red-100/90">
               <b>⛔ {tr("Бұл кестеде ЖОҚ, себебі мүлдем өлшенбейді")}:</b>{" "}
               H₂S ({tr("күкіртсутек")}), {tr("меркаптандар")}, {tr("бензол")},{" "}
@@ -278,7 +278,7 @@ export function PollutionTimeline({
       )}
 
       {/* ── ҚҰЖАТ ────────────────────────────────────────────────────── */}
-      <div className="rounded-lg border border-emerald-400/25 bg-emerald-500/[0.06] p-2.5">
+      <div className="rounded-lg border border-emerald-400/25 bg-white/[0.02] p-2.5">
         <div className="mb-1 text-[13px] font-semibold text-emerald-100">
           {tr("Мемлекеттік органға арналған құжат")}
         </div>

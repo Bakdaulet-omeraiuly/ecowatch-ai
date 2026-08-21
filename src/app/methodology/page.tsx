@@ -82,7 +82,7 @@ export default function MethodologyPage() {
       {/* Маса моделі — жеке құжат. Ол басқа көрсеткіштерден бөлек, себебі
           бұл жобаның ӨЗ моделі: формуласы, дәлелдері, әлемдік модельдермен
           салыстыруы және не жетіспейтіні толық жазылған. */}
-      <div className="mb-8 rounded-xl border border-violet-500/25 bg-violet-500/[0.06] p-4">
+      <div className="mb-8 rounded-xl border border-white/10 bg-white/[0.02] p-4">
         <h2 className="mb-1 text-sm font-semibold text-violet-200">
           🦟 JAIYQ-MRI — жобаның өз моделі
         </h2>

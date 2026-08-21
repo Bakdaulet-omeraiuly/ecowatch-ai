@@ -293,7 +293,7 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
           {s.note && <p className="text-[12px] leading-relaxed text-neutral-400">{s.note}</p>}
         </>
       ) : (
-        <div className="rounded-lg border border-amber-400/25 bg-amber-500/[0.06] p-3">
+        <div className="rounded-lg border border-amber-400/25 bg-white/[0.02] p-3">
           <div className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-amber-200">
             <AlertTriangle className="h-3 w-3" /> {tr("24 сағаттық қатар жоқ")}
           </div>
@@ -377,7 +377,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
         className={`rounded-lg border p-2.5 text-[13px] ${
           data.compliance.kzViolations > 0
             ? "border-red-400/40 bg-red-500/10 text-red-100"
-            : "border-emerald-400/25 bg-emerald-500/[0.07] text-emerald-100"
+            : "border-emerald-400/25 bg-white/[0.02] text-emerald-100"
         }`}
       >
         {data.compliance.kzViolations > 0
@@ -452,7 +452,7 @@ function AiTab({
 }) {
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-sky-400/25 bg-sky-500/[0.07] p-2.5">
+      <div className="rounded-lg border border-sky-400/25 bg-white/[0.02] p-2.5">
         <div className="mb-1 flex items-center gap-1.5">
           <TierBadge tier="ai" />
           <span className="text-[12px] text-sky-100/90">{tr("Бөлек, валидацияланбаған қабат")}</span>
@@ -575,7 +575,7 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
   const s = data.series;
   if (!s.available) {
     return (
-      <div className="rounded-lg border border-amber-400/25 bg-amber-500/[0.06] p-3 text-[13px] leading-relaxed text-amber-100/80">
+      <div className="rounded-lg border border-amber-400/25 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-amber-100/80">
         {s.reason}
       </div>
     );

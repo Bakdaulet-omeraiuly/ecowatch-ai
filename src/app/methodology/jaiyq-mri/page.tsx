@@ -258,7 +258,7 @@ export default function MriMethodologyPage() {
         </dl>
       </header>
 
-      <div className="mt-5 rounded-lg border-l-2 border-red-400 bg-red-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
+      <div className="mt-5 rounded-lg border-l-2 border-red-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
         <b className="text-white print:text-black">Құжаттың мәртебесі.</b> Бұл — жұмыс істеп
         тұрған жүйенің техникалық сипаттамасы, жарнамалық материал емес. Модельдің әлі
         тексерілмегені, параметрлерінің калибрленбегені және қандай тұжырым жасауға
@@ -318,7 +318,7 @@ export default function MriMethodologyPage() {
         Батыс Қазақстан / Жайық-Ақжайық аулау жинақтары бойынша. Атырау қаласының өз тұзақ базасы жоқ.
       </p>
 
-      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-amber-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-amber-50 print:text-black">
+      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-amber-50 print:text-black">
         <b className="text-white print:text-black">Модельге тікелей әсер еткен түзету.</b> Әдетте
         «Атырауда Aedes caspius басым» деп болжанады. Ал аулау деректерінде{" "}
         <b className="text-white print:text-black">Culex modestus доминант (56 %)</b>. Сондықтан
@@ -397,7 +397,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
   τ(T) = DD / (T − T_base)  даму ұзақтығы, тәулік
   s(hydro)                  гидропериодтан шыққан тірі қалу
   φ_egg(ай)                 маусымдық банк сыйымдылығы`}</Eqn>
-      <div className="my-3 rounded-lg border-l-2 border-emerald-400 bg-emerald-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-emerald-50 print:text-black">
+      <div className="my-3 rounded-lg border-l-2 border-emerald-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-emerald-50 print:text-black">
         <b className="text-white print:text-black">Осы теңдеулердің мәні — КІДІРІС.</b> Су басқан
         күні маса пайда болмайды: алдымен жұмыртқа жарылады, содан кейін дернәсіл τ(T) күн дамиды.
         25 °C-та бұл ≈ 10 тәулік. Кідіріссіз модель шыңды дұрыс емес күнге қояды әрі «массалық
@@ -417,7 +417,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
           ))}
         </tbody>
       </Table>
-      <div className="my-3 rounded-lg border-l-2 border-red-400 bg-red-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
+      <div className="my-3 rounded-lg border-l-2 border-red-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
         Жеті параметрдің <b className="text-white print:text-black">тек біреуі</b> (термиялық
         шектер) нақты жарияланған зерттеуден алынған. Қалғандары — кулициндік әдебиеттегі жалпы
         шамалар мен модель баптаулары. <i>Aedes caspius</i> үшін жергілікті калибрлеу ЖОҚ.
@@ -474,7 +474,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
         <li>Температура гейті мен амплификация қолданылып, 0–100 шкаласына келтіріледі</li>
       </ol>
 
-      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-amber-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-amber-50 print:text-black">
+      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-amber-50 print:text-black">
         <b className="text-white print:text-black">Күй дерекқорда сақталмайды.</b> Әр сұраныста
         нөлден қайта интегралданады. Артықшылығы: нәтиже детерминистік, қайталанады, күй жылжып
         кетпейді. Жобадағы өрт қаупі индексі (FWI) де дәл осылай есептеледі — бұл салада
@@ -568,7 +568,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
         </li>
       </ol>
 
-      <div className="my-4 rounded-lg border-l-2 border-red-400 bg-red-500/[0.07] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
+      <div className="my-4 rounded-lg border-l-2 border-red-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
         <b className="text-white print:text-black">
           Бірақ: «үздік» немесе «дәлірек» деген тұжырым ЖАСАЛМАЙДЫ.
         </b>{" "}

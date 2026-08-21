@@ -46,7 +46,7 @@ export default function LegislationPage() {
       </p>
 
       {/* Ең маңызды ескерту */}
-      <div className="mb-8 rounded-xl border border-amber-400/30 bg-amber-500/[0.07] p-4">
+      <div className="mb-8 rounded-xl border border-white/10 bg-white/[0.02] p-4">
         <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-amber-200">
           <AlertTriangle className="h-4 w-4" />
           Заңдық мәртебесі — міндетті түрде оқыңыз
@@ -195,7 +195,7 @@ export default function LegislationPage() {
           <span className="text-red-300">{NOT_MEASURED_COUNT} өлшенбейді</span>.
         </p>
 
-        <div className="mb-4 rounded-xl border border-red-400/30 bg-red-500/[0.07] p-4">
+        <div className="mb-4 rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <p className="text-[13px] leading-relaxed text-red-100">
             <b>Ең маңызды ескерту.</b> «Өлшенбейді» деп белгіленген зат бойынша жүйенің
             ешқандай қорытындысы <b>жоқ</b>. Ауа сол зат бойынша таза деген сөз емес —
@@ -266,7 +266,7 @@ export default function LegislationPage() {
           {SUMMATION_SOURCE.act} — {SUMMATION_SOURCE.amendment}.
         </p>
 
-        <div className="mb-3 rounded-xl border border-emerald-400/25 bg-emerald-500/[0.06] p-4">
+        <div className="mb-3 rounded-xl border border-white/10 bg-white/[0.02] p-4">
           <div className="mb-1 font-mono text-lg text-emerald-200">{SUMMATION_SOURCE.formula}</div>
           <p className="text-[13px] leading-relaxed text-emerald-100/85">
             Cᵢ — атмосфералық ауадағы заттың нақты шоғырлануы, ШРКᵢ — сол заттың рұқсат
