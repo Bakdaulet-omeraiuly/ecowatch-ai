@@ -47,3 +47,8 @@ eo-service/venv/
 **/__pycache__/
 *.pyc
 .venv/
+
+# Дизайн канвасының жиналған файлы (~2 МБ, редактор payload-ы қоса салынады).
+# Бастапқы көздер — design/*.dc.html пен canvas.json — сақталады.
+design/*.html
+!design/*.dc.html
