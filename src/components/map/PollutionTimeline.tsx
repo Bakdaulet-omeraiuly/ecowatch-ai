@@ -73,7 +73,7 @@ export function PollutionTimeline({
   return (
     <div className="space-y-2.5">
       {/* ── УАҚЫТ ТАҢДАУ ─────────────────────────────────────────────── */}
-      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2.5">
+      <div className="rounded-lg bg-white/[0.03] p-2.5">
         <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-neutral-200">
           <CalendarClock className="h-3.5 w-3.5 text-sky-300" />
           {tr("Нақты уақытты таңдау")}
@@ -118,7 +118,7 @@ export function PollutionTimeline({
 
       {/* ── САҒАТТЫҚ СКРОЛЛЕР ────────────────────────────────────────── */}
       {rows.length > 0 && (
-        <div className="rounded-lg border border-white/10 bg-white/[0.03] p-2.5">
+        <div className="rounded-lg bg-white/[0.03] p-2.5">
           <div className="mb-1.5 flex items-center justify-between gap-2">
             <span className="text-[13px] font-semibold text-neutral-200">
               {cur ? cur.time.replace("T", " ").slice(0, 16) : "—"}
@@ -188,7 +188,7 @@ export function PollutionTimeline({
           </div>
           <div className="max-h-56 overflow-auto rounded-lg border border-white/10">
             <table className="w-full min-w-[680px] text-left text-[12px]">
-              <thead className="sticky top-0 bg-neutral-900 text-neutral-400">
+              <thead className="sticky top-0 border-b border-white/10 bg-neutral-950 text-neutral-500">
                 <tr>
                   <th className="px-1.5 py-1 font-medium">{tr("Уақыт")}</th>
                   <th className="px-1.5 py-1 font-medium">{tr("Жел")}</th>

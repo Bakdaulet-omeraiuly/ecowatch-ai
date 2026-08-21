@@ -225,7 +225,7 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
 
       {/* ҚАБАТ НЕНІ БІЛДІРЕДІ — тақырыптағы жазу екі жолға қиылады,
           сондықтан толық мәтін осында тұрады */}
-      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+      <div className="rounded-lg bg-white/[0.02] p-2.5">
         <div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
           {tr("Бұл қабат нені көрсетеді")}
         </div>
@@ -239,7 +239,7 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
 
       {/* Модуль бұл аймақта жоқ — БОС қалдырмаймыз, себебін жазамыз */}
       {data.moduleMissing && (
-        <div className="space-y-1.5 rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+        <div className="space-y-1.5 rounded-lg bg-white/[0.02] p-2.5">
           <p className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-200">
             <CircleSlash className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
             {data.moduleMissing.error}
@@ -359,7 +359,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
   const items = data.compliance.results;
   if (!items.length) {
     return (
-      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-400">
+      <div className="rounded-lg bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-400">
         {tr(
           "Бұл қабат үшін заңнамалық норма тізілімде әлі жоқ. Норма қосылғанда " +
           "салыстыру автоматты іске қосылады."
@@ -386,7 +386,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
       </div>
 
       {items.map((r) => (
-        <div key={r.indicatorId} className="rounded-lg border border-white/10 bg-white/[0.02] p-2.5">
+        <div key={r.indicatorId} className="rounded-lg bg-white/[0.02] p-2.5">
           <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
             <span className={`rounded border px-1.5 py-0.5 text-[12px] ${LEVEL_COLOR[r.worst]}`}>
               {tr(LEVEL_KZ[r.worst])}
@@ -477,7 +477,7 @@ function AiTab({
       )}
 
       {err && (
-        <div className="space-y-1.5 rounded-lg border border-white/10 bg-white/[0.02] p-3">
+        <div className="space-y-1.5 rounded-lg bg-white/[0.02] p-3">
           <p className="text-[13px] text-neutral-200">{tr(err.msg)}</p>
           {err.detail && <p className="text-[12px] leading-relaxed text-neutral-400">{err.detail}</p>}
           <button
