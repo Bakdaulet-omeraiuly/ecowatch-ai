@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 import os
+import threading
+from concurrent.futures import ThreadPoolExecutor
 import sys
 import time
 import urllib.parse
@@ -57,12 +59,26 @@ def http(url: str, data: bytes | None = None, headers: dict | None = None, retri
     raise AssertionError
 
 
+_TOK: dict = {"v": None, "exp": 0.0}
+_TOK_LOCK = threading.Lock()
+
+
 def token() -> str:
+    """Токен ~10 мин жарамды — мерзімі өтерден 2 мин бұрын жаңартылады."""
+    with _TOK_LOCK:
+        return _token_locked()
+
+
+def _token_locked() -> str:
+    if _TOK["v"] and time.time() < _TOK["exp"] - 120:
+        return _TOK["v"]
     cid, sec = os.environ.get("SENTINELHUB_CLIENT_ID"), os.environ.get("SENTINELHUB_CLIENT_SECRET")
     if not (cid and sec):
         raise SystemExit("CDSE кілттері жоқ — валидация жүргізілмейді (жалған дерек жоқ).")
     body = urllib.parse.urlencode({"grant_type": "client_credentials", "client_id": cid, "client_secret": sec}).encode()
-    return json.loads(http(TOKEN_URL, body))["access_token"]
+    j = json.loads(http(TOKEN_URL, body))
+    _TOK.update(v=j["access_token"], exp=time.time() + j.get("expires_in", 600))
+    return _TOK["v"]
 
 
 def centroid() -> tuple[float, float]:
@@ -100,7 +116,7 @@ function setup(){return{input:[{bands:["%s","dataMask"]}],output:[{id:"v",bands:
 function evaluatePixel(s){return{v:[s.%s],dataMask:[s.dataMask]};}"""
 
 
-def daily_stats(tok: str, gas: str, name: str, ring: list) -> pd.Series:
+def daily_stats(gas: str, name: str, ring: list) -> pd.Series:
     cache = DATA / f"{gas}_{name}.csv"
     if cache.exists():
         return pd.read_csv(cache, index_col=0, parse_dates=True).iloc[:, 0]
@@ -118,7 +134,7 @@ def daily_stats(tok: str, gas: str, name: str, ring: list) -> pd.Series:
                             "resx": RES_DEG, "resy": RES_DEG},
         }
         j = json.loads(http(STATS_URL, json.dumps(body).encode(),
-                            {"Content-Type": "application/json", "Authorization": f"Bearer {tok}"}))
+                            {"Content-Type": "application/json", "Authorization": f"Bearer {token()}"}))
         for d in j.get("data", []):
             st = d.get("outputs", {}).get("v", {}).get("bands", {}).get("B0", {}).get("stats", {})
             n_valid = (st.get("sampleCount") or 0) - (st.get("noDataCount") or 0)
@@ -189,14 +205,16 @@ def test(gas: str, sect: pd.DataFrame, core: pd.Series, w: pd.DataFrame, rng) ->
 def main() -> None:
     lat0, lon0 = centroid()
     geoms = geometries(lat0, lon0)
-    tok = token()
+    token()  # кілттерді ерте тексеру
     w = wind(lat0, lon0)
     rng = np.random.default_rng(20261102)
     out = {"protocol": "validation/s5p/PROTOCOL.md v1.0",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "center": [lat0, lon0], "wind_days": int(len(w))}
     for gas, label in (("NO2", "H3"), ("SO2", "H4")):
-        series = {name: daily_stats(tok, gas, name, ring) for name, ring in geoms.items()}
+        with ThreadPoolExecutor(max_workers=3) as pool:
+            futs = {name: pool.submit(daily_stats, gas, name, ring) for name, ring in geoms.items()}
+            series = {name: f.result() for name, f in futs.items()}
         sect = pd.concat([series[f"s{k}"].rename(f"s{k}") for k in range(N_SECTORS)], axis=1)
         out[label] = {"gas": gas} | test(gas, sect, series["core"], w, rng)
     (HERE / "results.json").write_text(json.dumps(out, ensure_ascii=False, indent=2, default=float))
