@@ -13,7 +13,7 @@ export const revalidate = 3600;
 const SRC_URL = (points: { lat: number; lng: number }[]) => `https://air-quality-api.open-meteo.com/v1/air-quality` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
-  `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,methane,carbon_monoxide,ammonia,aerosol_optical_depth,uv_index` +
+  `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,methane,carbon_monoxide,nitrogen_monoxide,ammonia,aerosol_optical_depth,uv_index` +
   `&hourly=european_aqi&forecast_days=2&timezone=auto`;
 
 const cache = new Map<string, { at: number; data: unknown }>();
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
           current?: {
             european_aqi?: number; pm2_5?: number; pm10?: number;
             nitrogen_dioxide?: number; sulphur_dioxide?: number; ozone?: number; dust?: number;
-            methane?: number; carbon_monoxide?: number;
+            methane?: number; carbon_monoxide?: number; nitrogen_monoxide?: number;
             ammonia?: number; aerosol_optical_depth?: number; uv_index?: number;
           };
           hourly?: { time?: string[]; european_aqi?: (number | null)[] };
@@ -68,6 +68,7 @@ export async function GET(req: Request) {
           dust: d.current?.dust ?? null,
           ch4: d.current?.methane ?? null,
           co: d.current?.carbon_monoxide ?? null,
+          no: d.current?.nitrogen_monoxide ?? null,
           nh3: d.current?.ammonia ?? null,
           aod: d.current?.aerosol_optical_depth ?? null,
           uv: d.current?.uv_index ?? null,

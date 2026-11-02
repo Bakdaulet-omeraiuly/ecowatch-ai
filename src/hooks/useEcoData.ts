@@ -19,6 +19,7 @@ export interface AirGridPoint {
   dust?: number | null;
   ch4?: number | null;
   co?: number | null;
+  no?: number | null;
   nh3?: number | null;
   aod?: number | null;
   uv?: number | null;

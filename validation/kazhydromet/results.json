@@ -1,0 +1,58 @@
+{
+  "protocol": "validation/kazhydromet/PROTOCOL.md v1.1",
+  "generated_at": "2026-11-02T22:31:42+00:00",
+  "bulletins": 28,
+  "parse_errors": 0,
+  "summary": {
+    "so2": {
+      "n": 28,
+      "obs_mean_ug": 10.571428571428571,
+      "cams_mean_ug": 5.430613167518584,
+      "nmb": -0.48629334901851234,
+      "nme": 0.561620789918812,
+      "r": 0.17658740435808076,
+      "median_obs_over_cams": 2.2948549348781047,
+      "pass": false,
+      "jan2026_seen_before_protocol": true
+    },
+    "co": {
+      "n": 28,
+      "obs_mean_ug": 154.64285714285714,
+      "cams_mean_ug": 199.57294406546453,
+      "nmb": 0.29054097779053273,
+      "nme": 0.5836786891814291,
+      "r": -0.4954097854911335,
+      "median_obs_over_cams": 0.7156793006574281,
+      "pass": false,
+      "jan2026_seen_before_protocol": true
+    },
+    "no2": {
+      "n": 26,
+      "obs_mean_ug": 60.0,
+      "cams_mean_ug": 2.318448011441963,
+      "nmb": -0.9613591998093007,
+      "nme": 0.9613591998093007,
+      "r": 0.17096006510371273,
+      "median_obs_over_cams": 13.415005788020833,
+      "pass": false,
+      "jan2026_seen_before_protocol": true
+    },
+    "no": {
+      "n": 19,
+      "obs_mean_ug": 13.178947368421053,
+      "cams_mean_ug": 0.14332524860538443,
+      "nmb": -0.9891246816154062,
+      "nme": 0.9891246816154062,
+      "r": 0.3096124215671039,
+      "median_obs_over_cams": 95.1838056680162,
+      "pass": false,
+      "jan2026_seen_before_protocol": true
+    },
+    "h2s": {
+      "cams": null,
+      "months": 28,
+      "obs_mean_ug": 1.6214285714285714,
+      "max_x_pdk_mr_max": 19.7
+    }
+  }
+}

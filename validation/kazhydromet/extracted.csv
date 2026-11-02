@@ -1,0 +1,141 @@
+month,gas,page,mean_mg_m3,mean_x_pdk_ss,max_mg_m3,max_x_pdk_mr,raw,source_url
+2024-01,so2,5,0.001,0.03,0.016,0.0,"0,001 | 0,03 | 0,0160 | 0,0",https://www.kazhydromet.kz/uploads/files_calendar/4495/file/6682a00ef07e5atyrauskaya-oblast-yanvar-2024.pdf
+2024-01,co,5,0.05,0.02,2.1,0.4,"0,05 | 0,02 | 2,10 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/4495/file/6682a00ef07e5atyrauskaya-oblast-yanvar-2024.pdf
+2024-01,no2,5,0.0,0.07,0.11,0.5,"0,00 | 0,07 | 0,11 | 0,5",https://www.kazhydromet.kz/uploads/files_calendar/4495/file/6682a00ef07e5atyrauskaya-oblast-yanvar-2024.pdf
+2024-01,no,6,0.0113,0.19,0.07,0.2,"0,0113 | 0,19 | 0,07 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/4495/file/6682a00ef07e5atyrauskaya-oblast-yanvar-2024.pdf
+2024-01,h2s,6,0.0003,0.01,1.3,1.3,"0,0003 | 0,0100 | 1,3 | 1,3",https://www.kazhydromet.kz/uploads/files_calendar/4495/file/6682a00ef07e5atyrauskaya-oblast-yanvar-2024.pdf
+2024-02,so2,5,0.002,0.03,0.025,0.1,"0,002 | 0,03 | 0,0250 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/4601/file/6682a465baf96atyrauskaya-oblast-fevral-rus.pdf
+2024-02,co,5,0.04,0.01,1.7,0.3,"0,04 | 0,01 | 1,70 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/4601/file/6682a465baf96atyrauskaya-oblast-fevral-rus.pdf
+2024-02,no2,6,0.0,0.07,0.12,0.6,"0,00 | 0,07 | 0,12 | 0,6",https://www.kazhydromet.kz/uploads/files_calendar/4601/file/6682a465baf96atyrauskaya-oblast-fevral-rus.pdf
+2024-02,no,6,0.0085,0.14,0.13,0.3,"0,0085 | 0,14 | 0,13 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/4601/file/6682a465baf96atyrauskaya-oblast-fevral-rus.pdf
+2024-02,h2s,6,0.0002,0.006,0.8,0.0,"0,0002 | 0,0060 | 0,8 | 0,0",https://www.kazhydromet.kz/uploads/files_calendar/4601/file/6682a465baf96atyrauskaya-oblast-fevral-rus.pdf
+2024-03,so2,6,0.01,0.19,0.031,0.1,"0,010 | 0,19 | 0,0310 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/4710/file/6682a83789165atyrauskaya-oblast-mart-rus.pdf
+2024-03,co,6,0.17,0.06,0.8,0.2,"0,17 | 0,06 | 0,80 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/4710/file/6682a83789165atyrauskaya-oblast-mart-rus.pdf
+2024-03,no2,6,0.02,0.41,0.11,0.5,"0,02 | 0,41 | 0,11 | 0,5",https://www.kazhydromet.kz/uploads/files_calendar/4710/file/6682a83789165atyrauskaya-oblast-mart-rus.pdf
+2024-03,no,6,0.0209,0.35,0.09,0.2,"0,0209 | 0,35 | 0,09 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/4710/file/6682a83789165atyrauskaya-oblast-mart-rus.pdf
+2024-03,h2s,6,0.0015,0.014,1.8,3.0,"0,0015 | 0,0140 | 1,8 | 3,0",https://www.kazhydromet.kz/uploads/files_calendar/4710/file/6682a83789165atyrauskaya-oblast-mart-rus.pdf
+2024-04,so2,6,0.011,0.22,0.047,0.1,"0,011 | 0,22 | 0,0470 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/4836/file/6682ab58c2e79atyrauskaya-obl-aprel-rus.pdf
+2024-04,co,6,0.19,0.06,1.41,0.3,"0,19 | 0,06 | 1,41 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/4836/file/6682ab58c2e79atyrauskaya-obl-aprel-rus.pdf
+2024-04,no2,6,0.02,0.46,0.68,3.4,"0,02 | 0,46 | 0,68 | 3,4",https://www.kazhydromet.kz/uploads/files_calendar/4836/file/6682ab58c2e79atyrauskaya-obl-aprel-rus.pdf
+2024-04,no,6,0.0274,0.46,0.06,0.2,"0,0274 | 0,46 | 0,06 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/4836/file/6682ab58c2e79atyrauskaya-obl-aprel-rus.pdf
+2024-04,h2s,6,0.0018,0.014,1.8,10.3,"0,0018 | 0,0140 | 1,8 | 10,3",https://www.kazhydromet.kz/uploads/files_calendar/4836/file/6682ab58c2e79atyrauskaya-obl-aprel-rus.pdf
+2024-05,so2,6,0.006,0.13,0.016,0.0,"0,006 | 0,13 | 0,0160 | 0,0",https://www.kazhydromet.kz/uploads/files_calendar/5717/file/6682ada66df2catyrauskaya-oblast-may-rus.pdf
+2024-05,co,6,0.27,0.09,2.14,0.4,"0,27 | 0,09 | 2,14 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/5717/file/6682ada66df2catyrauskaya-oblast-may-rus.pdf
+2024-05,no2,6,0.02,0.39,0.16,0.8,"0,02 | 0,39 | 0,16 | 0,8",https://www.kazhydromet.kz/uploads/files_calendar/5717/file/6682ada66df2catyrauskaya-oblast-may-rus.pdf
+2024-05,no,6,0.0156,0.26,0.15,0.4,"0,0156 | 0,26 | 0,15 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/5717/file/6682ada66df2catyrauskaya-oblast-may-rus.pdf
+2024-05,h2s,6,0.0018,0.012,1.5,4.2,"0,0018 | 0,0120 | 1,5 | 4,2",https://www.kazhydromet.kz/uploads/files_calendar/5717/file/6682ada66df2catyrauskaya-oblast-may-rus.pdf
+2024-06,so2,6,0.01,0.2,0.027,0.1,"0,010 | 0,20 | 0,0270 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/5832/file/669669bdd2a21atyrau-russ-byulleten-za-iyun-2024.pdf
+2024-06,co,6,0.21,0.07,1.53,0.3,"0,21 | 0,07 | 1,53 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/5832/file/669669bdd2a21atyrau-russ-byulleten-za-iyun-2024.pdf
+2024-06,no2,6,0.02,0.45,0.25,1.2,"0,02 | 0,45 | 0,25 | 1,2",https://www.kazhydromet.kz/uploads/files_calendar/5832/file/669669bdd2a21atyrau-russ-byulleten-za-iyun-2024.pdf
+2024-06,no,6,0.02,0.33,0.35,0.9,"0,0200 | 0,33 | 0,35 | 0,9",https://www.kazhydromet.kz/uploads/files_calendar/5832/file/669669bdd2a21atyrau-russ-byulleten-za-iyun-2024.pdf
+2024-06,h2s,6,0.0022,,0.014,1.8,"0,0022 |  | 0,0140 | 1,8",https://www.kazhydromet.kz/uploads/files_calendar/5832/file/669669bdd2a21atyrau-russ-byulleten-za-iyun-2024.pdf
+2024-07,so2,6,0.009,0.18,0.025,0.1,"0,009 | 0,18 | 0,0250 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/5970/file/66bf25db9b37aatyrau-russ-byulleten-za-iyul-2024.pdf
+2024-07,co,6,0.26,0.09,8.0,1.6,"0,26 | 0,09 | 8,00 | 1,6",https://www.kazhydromet.kz/uploads/files_calendar/5970/file/66bf25db9b37aatyrau-russ-byulleten-za-iyul-2024.pdf
+2024-07,no2,6,0.02,0.43,0.14,0.7,"0,02 | 0,43 | 0,14 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/5970/file/66bf25db9b37aatyrau-russ-byulleten-za-iyul-2024.pdf
+2024-07,no,6,0.0056,0.09,0.21,0.5,"0,0056 | 0,09 | 0,21 | 0,5",https://www.kazhydromet.kz/uploads/files_calendar/5970/file/66bf25db9b37aatyrau-russ-byulleten-za-iyul-2024.pdf
+2024-07,h2s,6,0.003,,0.018,2.3,"0,0030 |  | 0,0180 | 2,3",https://www.kazhydromet.kz/uploads/files_calendar/5970/file/66bf25db9b37aatyrau-russ-byulleten-za-iyul-2024.pdf
+2024-08,so2,6,0.012,0.23,0.07,0.1,"0,012 | 0,23 | 0,0700 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/6090/file/66e82117e86a8atyrau-russ-byulleten-za-avgust-2024.pdf
+2024-08,co,6,0.33,0.11,6.0,1.2,"0,33 | 0,11 | 6,00 | 1,2",https://www.kazhydromet.kz/uploads/files_calendar/6090/file/66e82117e86a8atyrau-russ-byulleten-za-avgust-2024.pdf
+2024-08,no2,6,0.02,0.4,0.08,0.4,"0,02 | 0,40 | 0,08 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/6090/file/66e82117e86a8atyrau-russ-byulleten-za-avgust-2024.pdf
+2024-08,no,6,0.0137,0.23,0.1,0.3,"0,0137 | 0,23 | 0,10 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/6090/file/66e82117e86a8atyrau-russ-byulleten-za-avgust-2024.pdf
+2024-08,h2s,6,0.0024,,0.02,2.5,"0,0024 |  | 0,0200 | 2,5",https://www.kazhydromet.kz/uploads/files_calendar/6090/file/66e82117e86a8atyrau-russ-byulleten-za-avgust-2024.pdf
+2024-09,so2,6,0.01,0.21,0.031,0.1,"0,010 | 0,21 | 0,0310 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/6195/file/67126209ac550atyrau-russ-byulleten-za-sentyabr-2024-1.pdf
+2024-09,co,6,0.3,0.1,2.17,0.4,"0,30 | 0,10 | 2,17 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/6195/file/67126209ac550atyrau-russ-byulleten-za-sentyabr-2024-1.pdf
+2024-09,no2,6,0.02,0.43,0.19,1.0,"0,02 | 0,43 | 0,19 | 1,0",https://www.kazhydromet.kz/uploads/files_calendar/6195/file/67126209ac550atyrau-russ-byulleten-za-sentyabr-2024-1.pdf
+2024-09,no,6,0.0086,0.14,0.29,0.7,"0,0086 | 0,14 | 0,29 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/6195/file/67126209ac550atyrau-russ-byulleten-za-sentyabr-2024-1.pdf
+2024-09,h2s,6,0.0023,,0.008,1.0,"0,0023 |  | 0,0080 | 1,0",https://www.kazhydromet.kz/uploads/files_calendar/6195/file/67126209ac550atyrau-russ-byulleten-za-sentyabr-2024-1.pdf
+2024-10,so2,6,0.012,0.25,0.13,0.3,"0,012 | 0,25 | 0,1300 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/6305/file/673712c648df0atyrau-russ-byulleten-za-oktyabr-2024.pdf
+2024-10,co,6,0.2,0.07,1.31,0.3,"0,20 | 0,07 | 1,31 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/6305/file/673712c648df0atyrau-russ-byulleten-za-oktyabr-2024.pdf
+2024-10,no2,6,0.02,0.62,0.21,1.1,"0,02 | 0,62 | 0,21 | 1,1",https://www.kazhydromet.kz/uploads/files_calendar/6305/file/673712c648df0atyrau-russ-byulleten-za-oktyabr-2024.pdf
+2024-10,no,6,0.009,0.15,0.29,0.7,"0,0090 | 0,15 | 0,29 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/6305/file/673712c648df0atyrau-russ-byulleten-za-oktyabr-2024.pdf
+2024-10,h2s,6,0.0022,,0.009,1.1,"0,0022 |  | 0,0090 | 1,1",https://www.kazhydromet.kz/uploads/files_calendar/6305/file/673712c648df0atyrau-russ-byulleten-za-oktyabr-2024.pdf
+2024-11,so2,6,0.01,0.2,0.032,0.1,"0,010 | 0,20 | 0,0320 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/6567/file/675c361a4e90datyrau-russ-byulleten-za-noyabr-2024.pdf
+2024-11,co,6,0.23,0.08,1.8,0.4,"0,23 | 0,08 | 1,80 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/6567/file/675c361a4e90datyrau-russ-byulleten-za-noyabr-2024.pdf
+2024-11,no2,6,0.02,0.41,0.19,1.0,"0,02 | 0,41 | 0,19 | 1,0",https://www.kazhydromet.kz/uploads/files_calendar/6567/file/675c361a4e90datyrau-russ-byulleten-za-noyabr-2024.pdf
+2024-11,no,6,0.0083,0.14,0.29,0.7,"0,0083 | 0,14 | 0,29 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/6567/file/675c361a4e90datyrau-russ-byulleten-za-noyabr-2024.pdf
+2024-11,h2s,6,0.0021,,0.021,2.6,"0,0021 |  | 0,0210 | 2,6",https://www.kazhydromet.kz/uploads/files_calendar/6567/file/675c361a4e90datyrau-russ-byulleten-za-noyabr-2024.pdf
+2024-12,so2,6,0.009,0.18,0.026,0.1,"0,009 | 0,18 | 0,0260 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/6706/file/678906891fb90atyrau-russ-byulleten-za-dekabr-2024.pdf
+2024-12,co,6,0.19,0.06,1.2,0.2,"0,19 | 0,06 | 1,20 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/6706/file/678906891fb90atyrau-russ-byulleten-za-dekabr-2024.pdf
+2024-12,no2,6,0.02,0.38,0.08,0.4,"0,02 | 0,38 | 0,08 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/6706/file/678906891fb90atyrau-russ-byulleten-za-dekabr-2024.pdf
+2024-12,no,6,0.0066,0.11,0.08,0.2,"0,0066 | 0,11 | 0,08 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/6706/file/678906891fb90atyrau-russ-byulleten-za-dekabr-2024.pdf
+2024-12,h2s,6,0.0014,,0.008,1.0,"0,0014 |  | 0,0080 | 1,0",https://www.kazhydromet.kz/uploads/files_calendar/6706/file/678906891fb90atyrau-russ-byulleten-za-dekabr-2024.pdf
+2025-01,so2,6,0.006,0.13,0.1602,0.3,"0,006 | 0,13 | 0,1602 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/6880/file/68272811a5b6fatyrau-russ-byulleten-za-yanvar-3.pdf
+2025-01,co,6,0.12,0.04,3.55,0.7,"0,12 | 0,04 | 3,55 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/6880/file/68272811a5b6fatyrau-russ-byulleten-za-yanvar-3.pdf
+2025-01,no2,6,0.17,4.27,1.65,8.3,"0,17 | 4,27 | 1,65 | 8,3",https://www.kazhydromet.kz/uploads/files_calendar/6880/file/68272811a5b6fatyrau-russ-byulleten-za-yanvar-3.pdf
+2025-01,no,6,0.0142,0.24,0.06,0.1,"0,0142 | 0,24 | 0,06 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/6880/file/68272811a5b6fatyrau-russ-byulleten-za-yanvar-3.pdf
+2025-01,h2s,6,0.0011,,0.009,1.1,"0,0011 |  | 0,0090 | 1,1",https://www.kazhydromet.kz/uploads/files_calendar/6880/file/68272811a5b6fatyrau-russ-byulleten-za-yanvar-3.pdf
+2025-02,so2,6,0.01,0.2,0.2164,0.4,"0,010 | 0,20 | 0,2164 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/7270/file/67d427f67e83eatyrau-russ-byulleten-za-fevral-2025g.pdf
+2025-02,co,6,0.1,0.03,1.0,0.2,"0,10 | 0,03 | 1,00 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/7270/file/67d427f67e83eatyrau-russ-byulleten-za-fevral-2025g.pdf
+2025-02,no2,6,0.33,8.14,2.0,9.98,"0,33 | 8,14 | 2,00 | 9,98",https://www.kazhydromet.kz/uploads/files_calendar/7270/file/67d427f67e83eatyrau-russ-byulleten-za-fevral-2025g.pdf
+2025-02,no,6,0.0122,0.2,0.04,0.1,"0,0122 | 0,20 | 0,04 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/7270/file/67d427f67e83eatyrau-russ-byulleten-za-fevral-2025g.pdf
+2025-02,h2s,6,0.0031,,0.0139,1.7,"0,0031 |  | 0,0139 | 1,7",https://www.kazhydromet.kz/uploads/files_calendar/7270/file/67d427f67e83eatyrau-russ-byulleten-za-fevral-2025g.pdf
+2025-03,so2,6,0.01,0.19,0.219,0.4,"0,010 | 0,19 | 0,2190 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/7880/file/68078de4b7a08atyrau-russ-byulleten-za-mart-2025g.pdf
+2025-03,co,6,0.12,0.04,42.01,8.4,"0,12 | 0,04 | 42,01 | 8,4",https://www.kazhydromet.kz/uploads/files_calendar/7880/file/68078de4b7a08atyrau-russ-byulleten-za-mart-2025g.pdf
+2025-03,no2,6,0.21,5.18,2.22,11.11,"0,21 | 5,18 | 2,22 | 11,11",https://www.kazhydromet.kz/uploads/files_calendar/7880/file/68078de4b7a08atyrau-russ-byulleten-za-mart-2025g.pdf
+2025-03,no,6,0.0134,0.22,0.07,0.2,"0,0134 | 0,22 | 0,07 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/7880/file/68078de4b7a08atyrau-russ-byulleten-za-mart-2025g.pdf
+2025-03,h2s,6,0.0031,,0.0135,1.7,"0,0031 |  | 0,0135 | 1,7",https://www.kazhydromet.kz/uploads/files_calendar/7880/file/68078de4b7a08atyrau-russ-byulleten-za-mart-2025g.pdf
+2025-04,so2,6,0.01,0.2,0.2164,0.4,"0,010 | 0,20 | 0,2164 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/8370/file/682c6502c5c49atyrau-russ-byulleten-za-aprel-2025g-2.pdf
+2025-04,co,6,0.1,0.03,17.47,3.5,"0,10 | 0,03 | 17,47 | 3,5",https://www.kazhydromet.kz/uploads/files_calendar/8370/file/682c6502c5c49atyrau-russ-byulleten-za-aprel-2025g-2.pdf
+2025-04,no2,6,0.11,2.81,1.42,7.12,"0,11 | 2,81 | 1,42 | 7,12",https://www.kazhydromet.kz/uploads/files_calendar/8370/file/682c6502c5c49atyrau-russ-byulleten-za-aprel-2025g-2.pdf
+2025-04,no,6,0.0127,0.21,0.37,0.9,"0,0127 | 0,21 | 0,37 | 0,9",https://www.kazhydromet.kz/uploads/files_calendar/8370/file/682c6502c5c49atyrau-russ-byulleten-za-aprel-2025g-2.pdf
+2025-04,h2s,6,0.003,,0.0145,1.8,"0,0030 |  | 0,0145 | 1,8",https://www.kazhydromet.kz/uploads/files_calendar/8370/file/682c6502c5c49atyrau-russ-byulleten-za-aprel-2025g-2.pdf
+2025-05,so2,6,0.01,0.21,1.6347,3.3,"0,010 | 0,21 | 1,6347 | 3,3",https://www.kazhydromet.kz/uploads/files_calendar/8606/file/6850158c0099catyrau-russ-byulleten-za-may-2025g.pdf
+2025-05,co,6,0.13,0.04,35.24,7.0,"0,13 | 0,04 | 35,24 | 7,0",https://www.kazhydromet.kz/uploads/files_calendar/8606/file/6850158c0099catyrau-russ-byulleten-za-may-2025g.pdf
+2025-05,no2,6,0.06,1.6,1.15,5.77,"0,06 | 1,60 | 1,15 | 5,77",https://www.kazhydromet.kz/uploads/files_calendar/8606/file/6850158c0099catyrau-russ-byulleten-za-may-2025g.pdf
+2025-05,no,6,0.0137,0.23,0.48,1.2,"0,0137 | 0,23 | 0,48 | 1,2",https://www.kazhydromet.kz/uploads/files_calendar/8606/file/6850158c0099catyrau-russ-byulleten-za-may-2025g.pdf
+2025-05,h2s,6,0.0028,,0.0143,1.8,"0,0028 |  | 0,0143 | 1,8",https://www.kazhydromet.kz/uploads/files_calendar/8606/file/6850158c0099catyrau-russ-byulleten-za-may-2025g.pdf
+2025-06,so2,6,0.015,0.3,7.0495,14.1,"0,015 | 0,30 | 7,0495 | 14,1",https://www.kazhydromet.kz/uploads/files_calendar/8798/file/6878de8ae1848atyrau-russ-byulleten-za-iyun-2025g-1.pdf
+2025-06,co,6,0.17,0.06,80.06,16.0,"0,17 | 0,06 | 80,06 | 16,0",https://www.kazhydromet.kz/uploads/files_calendar/8798/file/6878de8ae1848atyrau-russ-byulleten-za-iyun-2025g-1.pdf
+2025-06,no2,6,0.07,1.83,1.23,6.15,"0,07 | 1,83 | 1,23 | 6,15",https://www.kazhydromet.kz/uploads/files_calendar/8798/file/6878de8ae1848atyrau-russ-byulleten-za-iyun-2025g-1.pdf
+2025-06,no,6,0.0136,0.23,0.03,0.1,"0,0136 | 0,23 | 0,03 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/8798/file/6878de8ae1848atyrau-russ-byulleten-za-iyun-2025g-1.pdf
+2025-06,h2s,6,0.0031,,0.1575,19.7,"0,0031 |  | 0,1575 | 19,7",https://www.kazhydromet.kz/uploads/files_calendar/8798/file/6878de8ae1848atyrau-russ-byulleten-za-iyun-2025g-1.pdf
+2025-07,so2,6,0.013,0.26,0.3288,0.7,"0,013 | 0,26 | 0,3288 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/8985/file/68a2c53ea8e8aatyrau-russ-byulleten-za-iyul-2025g-3.pdf
+2025-07,co,6,0.12,0.04,1.31,0.3,"0,12 | 0,04 | 1,31 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/8985/file/68a2c53ea8e8aatyrau-russ-byulleten-za-iyul-2025g-3.pdf
+2025-07,no2,6,0.01,0.29,0.69,3.46,"0,01 | 0,29 | 0,69 | 3,46",https://www.kazhydromet.kz/uploads/files_calendar/8985/file/68a2c53ea8e8aatyrau-russ-byulleten-za-iyul-2025g-3.pdf
+2025-07,no,6,0.0135,0.22,0.2,0.5,"0,0135 | 0,22 | 0,20 | 0,5",https://www.kazhydromet.kz/uploads/files_calendar/8985/file/68a2c53ea8e8aatyrau-russ-byulleten-za-iyul-2025g-3.pdf
+2025-07,h2s,6,0.0013,,0.016,2.0,"0,0013 |  | 0,0160 | 2,0",https://www.kazhydromet.kz/uploads/files_calendar/8985/file/68a2c53ea8e8aatyrau-russ-byulleten-za-iyul-2025g-3.pdf
+2025-08,so2,6,0.01,0.2,1.8142,3.6,"0,010 | 0,20 | 1,8142 | 3,6",https://www.kazhydromet.kz/uploads/files_calendar/9180/file/68c945a9d6f03atyrau-russ-byulleten-za-avgust-2025g.pdf
+2025-08,co,6,0.14,0.05,28.62,5.7,"0,14 | 0,05 | 28,62 | 5,7",https://www.kazhydromet.kz/uploads/files_calendar/9180/file/68c945a9d6f03atyrau-russ-byulleten-za-avgust-2025g.pdf
+2025-08,no2,6,0.02,0.61,1.02,5.12,"0,02 | 0,61 | 1,02 | 5,12",https://www.kazhydromet.kz/uploads/files_calendar/9180/file/68c945a9d6f03atyrau-russ-byulleten-za-avgust-2025g.pdf
+2025-08,no,6,0.0136,0.23,0.1,0.3,"0,0136 | 0,23 | 0,10 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/9180/file/68c945a9d6f03atyrau-russ-byulleten-za-avgust-2025g.pdf
+2025-08,h2s,6,0.0008,,0.022,2.8,"0,0008 |  | 0,0220 | 2,8",https://www.kazhydromet.kz/uploads/files_calendar/9180/file/68c945a9d6f03atyrau-russ-byulleten-za-avgust-2025g.pdf
+2025-09,so2,6,0.012,0.24,0.4385,0.9,"0,012 | 0,24 | 0,4385 | 0,9",https://www.kazhydromet.kz/uploads/files_calendar/9344/file/68f0e81dcc3caatyrau-russ-byulleten-za-sentyabr-2025g.pdf
+2025-09,co,6,0.11,0.04,28.62,5.7,"0,11 | 0,04 | 28,62 | 5,7",https://www.kazhydromet.kz/uploads/files_calendar/9344/file/68f0e81dcc3caatyrau-russ-byulleten-za-sentyabr-2025g.pdf
+2025-09,no2,6,0.03,0.7,1.02,5.12,"0,03 | 0,70 | 1,02 | 5,12",https://www.kazhydromet.kz/uploads/files_calendar/9344/file/68f0e81dcc3caatyrau-russ-byulleten-za-sentyabr-2025g.pdf
+2025-09,no,6,0.0135,0.22,0.08,0.2,"0,0135 | 0,22 | 0,08 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/9344/file/68f0e81dcc3caatyrau-russ-byulleten-za-sentyabr-2025g.pdf
+2025-09,h2s,6,0.0009,,0.014,1.8,"0,0009 |  | 0,0140 | 1,8",https://www.kazhydromet.kz/uploads/files_calendar/9344/file/68f0e81dcc3caatyrau-russ-byulleten-za-sentyabr-2025g.pdf
+2025-10,so2,6,0.013,0.25,0.4397,0.9,"0,013 | 0,25 | 0,4397 | 0,9",https://www.kazhydromet.kz/uploads/files_calendar/9460/file/69171c1da26aaatyrau-russ-byulleten-za-oktyabr-2025g.pdf
+2025-10,co,6,0.13,0.04,32.25,6.5,"0,13 | 0,04 | 32,25 | 6,5",https://www.kazhydromet.kz/uploads/files_calendar/9460/file/69171c1da26aaatyrau-russ-byulleten-za-oktyabr-2025g.pdf
+2025-10,no2,6,0.05,1.2,0.76,3.79,"0,05 | 1,20 | 0,76 | 3,79",https://www.kazhydromet.kz/uploads/files_calendar/9460/file/69171c1da26aaatyrau-russ-byulleten-za-oktyabr-2025g.pdf
+2025-10,no,6,0.0146,0.24,0.17,0.4,"0,0146 | 0,24 | 0,17 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/9460/file/69171c1da26aaatyrau-russ-byulleten-za-oktyabr-2025g.pdf
+2025-10,h2s,6,0.0007,,0.0702,8.8,"0,0007 |  | 0,0702 | 8,8",https://www.kazhydromet.kz/uploads/files_calendar/9460/file/69171c1da26aaatyrau-russ-byulleten-za-oktyabr-2025g.pdf
+2025-11,so2,6,0.015,0.29,0.3291,0.7,"0,015 | 0,29 | 0,3291 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/9610/file/693fff82b14c1atyrau-russ-byulleten-za-noyabr-2025g.pdf
+2025-11,co,6,0.13,0.04,9.53,1.9,"0,13 | 0,04 | 9,53 | 1,9",https://www.kazhydromet.kz/uploads/files_calendar/9610/file/693fff82b14c1atyrau-russ-byulleten-za-noyabr-2025g.pdf
+2025-11,no2,6,0.06,1.53,0.64,3.18,"0,06 | 1,53 | 0,64 | 3,18",https://www.kazhydromet.kz/uploads/files_calendar/9610/file/693fff82b14c1atyrau-russ-byulleten-za-noyabr-2025g.pdf
+2025-11,no,6,0.0175,0.29,0.05,0.1,"0,0175 | 0,29 | 0,05 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/9610/file/693fff82b14c1atyrau-russ-byulleten-za-noyabr-2025g.pdf
+2025-11,h2s,6,0.0008,,0.01,1.3,"0,0008 |  | 0,0100 | 1,3",https://www.kazhydromet.kz/uploads/files_calendar/9610/file/693fff82b14c1atyrau-russ-byulleten-za-noyabr-2025g.pdf
+2025-12,so2,6,0.013,0.27,0.3271,0.7,"0,013 | 0,27 | 0,3271 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/9780/file/696f0dc396466atyrau-russ-byulleten-za-dekabr-2025g.pdf
+2025-12,co,6,0.11,0.04,13.08,2.6,"0,11 | 0,04 | 13,08 | 2,6",https://www.kazhydromet.kz/uploads/files_calendar/9780/file/696f0dc396466atyrau-russ-byulleten-za-dekabr-2025g.pdf
+2025-12,no2,6,0.05,1.31,0.98,4.91,"0,05 | 1,31 | 0,98 | 4,91",https://www.kazhydromet.kz/uploads/files_calendar/9780/file/696f0dc396466atyrau-russ-byulleten-za-dekabr-2025g.pdf
+2025-12,no,6,0.0158,0.26,0.07,0.2,"0,0158 | 0,26 | 0,07 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/9780/file/696f0dc396466atyrau-russ-byulleten-za-dekabr-2025g.pdf
+2025-12,h2s,6,0.0007,,0.02,2.5,"0,0007 |  | 0,0200 | 2,5",https://www.kazhydromet.kz/uploads/files_calendar/9780/file/696f0dc396466atyrau-russ-byulleten-za-dekabr-2025g.pdf
+2026-01,so2,6,0.015,0.31,0.4334,0.9,"0,015 | 0,31 | 0,4334 | 0,9",https://www.kazhydromet.kz/uploads/files_calendar/9950/file/69952ec73a1fdatyrau-russ-byulleten-za-yanvar-2026g-1.pdf
+2026-01,co,6,0.1,0.03,5.98,1.2,"0,10 | 0,03 | 5,98 | 1,2",https://www.kazhydromet.kz/uploads/files_calendar/9950/file/69952ec73a1fdatyrau-russ-byulleten-za-yanvar-2026g-1.pdf
+2026-01,no2,6,0.07,1.71,1.15,5.8,"0,07 | 1,71 | 1,15 | 5,8",https://www.kazhydromet.kz/uploads/files_calendar/9950/file/69952ec73a1fdatyrau-russ-byulleten-za-yanvar-2026g-1.pdf
+2026-01,no,6,0.0163,0.27,0.07,0.2,"0,0163 | 0,27 | 0,07 | 0,2",https://www.kazhydromet.kz/uploads/files_calendar/9950/file/69952ec73a1fdatyrau-russ-byulleten-za-yanvar-2026g-1.pdf
+2026-01,h2s,6,0.0008,,0.017,2.1,"0,0008 |  | 0,0170 | 2,1",https://www.kazhydromet.kz/uploads/files_calendar/9950/file/69952ec73a1fdatyrau-russ-byulleten-za-yanvar-2026g-1.pdf
+2026-02,so2,6,0.016,0.33,0.3272,0.7,"0,016 | 0,33 | 0,3272 | 0,7",https://www.kazhydromet.kz/uploads/files_calendar/10438/file/69b805abdd433atyrau-russ-byulleten-za-fevral-2026g-2.pdf
+2026-02,co,6,0.1,0.03,1.45,0.3,"0,10 | 0,03 | 1,45 | 0,3",https://www.kazhydromet.kz/uploads/files_calendar/10438/file/69b805abdd433atyrau-russ-byulleten-za-fevral-2026g-2.pdf
+2026-02,no2,6,0.05,1.21,0.63,3.2,"0,05 | 1,21 | 0,63 | 3,2",https://www.kazhydromet.kz/uploads/files_calendar/10438/file/69b805abdd433atyrau-russ-byulleten-za-fevral-2026g-2.pdf
+2026-02,no,6,0.0146,0.24,0.03,0.1,"0,0146 | 0,24 | 0,03 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/10438/file/69b805abdd433atyrau-russ-byulleten-za-fevral-2026g-2.pdf
+2026-02,h2s,6,0.0007,,0.003,0.4,"0,0007 |  | 0,0030 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/10438/file/69b805abdd433atyrau-russ-byulleten-za-fevral-2026g-2.pdf
+2026-03,so2,5,0.014,0.28,0.25,0.5,"0,014 | 0,28 | 0,2500 | 0,5",https://www.kazhydromet.kz/uploads/files_calendar/11071/file/69e0cd2fb0d50atyrau-russ-byulleten-za-mart-2026g.pdf
+2026-03,co,5,0.09,0.03,1.87,0.4,"0,09 | 0,03 | 1,87 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/11071/file/69e0cd2fb0d50atyrau-russ-byulleten-za-mart-2026g.pdf
+2026-03,no2,5,0.04,1.02,0.63,3.2,"0,04 | 1,02 | 0,63 | 3,2",https://www.kazhydromet.kz/uploads/files_calendar/11071/file/69e0cd2fb0d50atyrau-russ-byulleten-za-mart-2026g.pdf
+2026-03,no,5,0.0134,0.22,0.05,0.1,"0,0134 | 0,22 | 0,05 | 0,1",https://www.kazhydromet.kz/uploads/files_calendar/11071/file/69e0cd2fb0d50atyrau-russ-byulleten-za-mart-2026g.pdf
+2026-03,h2s,5,0.0006,,0.003,0.4,"0,0006 |  | 0,0030 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/11071/file/69e0cd2fb0d50atyrau-russ-byulleten-za-mart-2026g.pdf
+2026-04,so2,5,0.012,0.24,0.2159,0.4,"0,012 | 0,24 | 0,2159 | 0,4",https://www.kazhydromet.kz/uploads/files_calendar/11441/file/6a07120d0f768atyrau-russ-byulleten-za-aprel-2026g-1.pdf
+2026-04,co,5,0.12,0.04,39.25,7.9,"0,12 | 0,04 | 39,25 | 7,9",https://www.kazhydromet.kz/uploads/files_calendar/11441/file/6a07120d0f768atyrau-russ-byulleten-za-aprel-2026g-1.pdf
+2026-04,no2,5,0.03,0.74,0.4,2.0,"0,03 | 0,74 | 0,40 | 2,0",https://www.kazhydromet.kz/uploads/files_calendar/11441/file/6a07120d0f768atyrau-russ-byulleten-za-aprel-2026g-1.pdf
+2026-04,no,5,0.0139,0.23,0.2,0.5,"0,0139 | 0,23 | 0,20 | 0,5",https://www.kazhydromet.kz/uploads/files_calendar/11441/file/6a07120d0f768atyrau-russ-byulleten-za-aprel-2026g-1.pdf
+2026-04,h2s,5,0.0007,,0.034,4.3,"0,0007 |  | 0,0340 | 4,3",https://www.kazhydromet.kz/uploads/files_calendar/11441/file/6a07120d0f768atyrau-russ-byulleten-za-aprel-2026g-1.pdf

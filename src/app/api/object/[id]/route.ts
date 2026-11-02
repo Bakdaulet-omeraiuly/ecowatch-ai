@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { FACILITIES } from "@/data/facilities";
+import { FACILITIES, FOOTPRINT_BUFFER_KM } from "@/data/facilities";
+import { distanceToFootprintKm } from "@/lib/footprint";
 import { checkCompliance } from "@/lib/compliance";
 import { LEGAL_DISCLAIMER } from "@/data/legalNorms";
 
@@ -12,7 +13,8 @@ import { LEGAL_DISCLAIMER } from "@/data/legalNorms";
 //   3. Заңға сәйкестік — ҚР/WHO/EU нормаларымен салыстыру
 //   4. Дәлелдер тізбегі — әр сан қай спутниктен/модельден, қай уақытта
 //   5. Спутник суреттерінің уақыт шкаласы (2016 → бүгін)
-//   6. Маңайдағы жылу аномалиялары (FIRMS)
+//   6. Жылу аномалиялары (FIRMS): нысанға ТЕК контур + 375 м ішіндегілері
+//      телінеді; 10 км ішіндегі қалғаны «маңайдағы, телінбейді» деп бөлек
 //
 // ⚠️ Мұнда AI ЖОҚ. Барлығы — өлшем немесе ресми модель.
 // ⚠️ Ластану көзін АНЫҚТАМАЙДЫ: нүктедегі ауа сапасы — сол нысанның
@@ -82,13 +84,40 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   }));
   const kzViolations = compliance.filter((c) => c.kzViolation).length;
 
-  // --- Маңайдағы жылу аномалиялары (10 км) ---
+  // --- Жылу аномалиялары ---
+  // ⚠️ Нысанға телу ТЕК контур + 375 м ішінде. Бұрынғы 10 км ереже
+  // АМӨЗ-ге телінген детекциялардың 96%-ын қате телитін — бәрі дала/қамыс
+  // өрттері еді (validation/firms/results.md). 10 км ішіндегі қалған
+  // детекциялар тек КОНТЕКСТ ретінде, «телінбейді» белгісімен беріледі.
   type F = { lat: number; lng: number; frp: number; acqDate: string; confidence: string; dayNight: string };
+  const fp = fac.footprint;
   const nearby = ((flares?.flares ?? []) as F[])
-    .map((f) => ({ ...f, distanceKm: Math.round(distanceKm([fac.lat, fac.lng], [f.lat, f.lng]) * 10) / 10 }))
-    .filter((f) => f.distanceKm <= 10)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
+    .map((f) => {
+      const toFootprint = fp ? distanceToFootprintKm(f.lat, f.lng, fp) : null;
+      return {
+        ...f,
+        distanceKm: Math.round(distanceKm([fac.lat, fac.lng], [f.lat, f.lng]) * 10) / 10,
+        onSite: toFootprint != null && toFootprint <= FOOTPRINT_BUFFER_KM,
+      };
+    })
+    .filter((f) => f.onSite || f.distanceKm <= 10)
+    .sort((a, b) => Number(b.onSite) - Number(a.onSite) || a.distanceKm - b.distanceKm)
     .slice(0, 10);
+  const onSite = nearby.filter((f) => f.onSite);
+  const flareAttribution = fp
+    ? {
+        rule: `Нысанға тек аумақ контуры + ${FOOTPRINT_BUFFER_KM * 1000} м ішіндегі детекция телінеді (${fac.footprintSource}).`,
+        onSiteCount: onSite.length,
+        validation:
+          "Тексеру (2024–2026, VIIRS): АМӨЗ аумағында жылына ~1 детекция-күн ғана — " +
+          "спутник бұл нысанның факелін тұрақты көрмейді. Детекцияның болмауы факелдің " +
+          "болмауын ДӘЛЕЛДЕМЕЙДІ.",
+      }
+    : {
+        rule: "Бұл нысанның аумақ контуры тізілімде жоқ — жылу аномалиялары нысанға ТЕЛІНБЕЙДІ.",
+        onSiteCount: 0,
+        validation: null,
+      };
 
   // --- Дәлелдер тізбегі: әр сан қайдан келді ---
   const evidence = [
@@ -101,13 +130,14 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
       note: "Модель шығысы. Нысанның нақты шығарынды мөлшері емес.",
       tier: "model",
     },
-    nearby.length > 0 && {
-      kind: "Жылу аномалиясы",
+    // Дәлелге ТЕК нысан аумағындағы детекция кіреді
+    onSite.length > 0 && {
+      kind: "Жылу аномалиясы (нысан аумағында)",
       instrument: "NASA VIIRS (Suomi-NPP), 375 м",
       resolution: "375 м",
-      time: nearby[0].acqDate,
-      values: `${nearby.length} детекция 10 км радиуста · ең жақыны ${nearby[0].distanceKm} км, FRP ${Math.round(nearby[0].frp)} МВт`,
-      note: "Газ факелі мен дала өртін алгоритм АЖЫРАТПАЙДЫ.",
+      time: onSite[0].acqDate,
+      values: `${onSite.length} детекция аумақ контурында · FRP ${Math.round(onSite[0].frp)} МВт`,
+      note: "Газ факелі мен өртті алгоритм АЖЫРАТПАЙДЫ. Контур: " + (fac.footprintSource ?? "—"),
       tier: "measurement",
     },
     wind?.current && {
@@ -159,8 +189,9 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
       source: y >= 2024 ? "Mapbox Satellite" : "Sentinel-2 мозаикасы (EOX)",
     })),
 
-    // 6. Маңайдағы детекциялар
+    // 6. Жылу аномалиялары: onSite=true — нысанға телінген; false — тек контекст
     nearbyFlares: nearby,
+    flareAttribution,
 
     aiIncluded: false,
     disclaimer: LEGAL_DISCLAIMER,

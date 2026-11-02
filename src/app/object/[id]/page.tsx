@@ -37,7 +37,8 @@ interface ObjData {
   compliance: { results: ComplianceItem[]; kzViolations: number; checked: number };
   evidence: { kind: string; instrument: string; resolution: string; time: string; values: string; note: string; tier: Tier }[];
   timeline: { year: number; imageUrl: string; source: string }[];
-  nearbyFlares: { lat: number; lng: number; frp: number; acqDate: string; confidence: string; distanceKm: number }[];
+  nearbyFlares: { lat: number; lng: number; frp: number; acqDate: string; confidence: string; distanceKm: number; onSite?: boolean }[];
+  flareAttribution?: { rule: string; onSiteCount: number; validation: string | null };
   disclaimer: string;
   causalityWarning: string;
 }
@@ -215,13 +216,17 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
         )}
       </Section>
 
-      {/* 3. Маңайдағы жылу аномалиялары */}
+      {/* 3. Жылу аномалиялары — нысанға тек аумақ контурындағылар телінеді */}
       {d.nearbyFlares.length > 0 && (
-        <Section n={3} title={tr("Маңайдағы жылу аномалиялары (10 км)")} icon={Satellite}>
+        <Section n={3} title={tr("Жылу аномалиялары")} icon={Satellite}>
+          {d.flareAttribution && (
+            <p className="mb-2 text-[12px] text-neutral-400">{tr(d.flareAttribution.rule)}</p>
+          )}
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[440px] text-left text-[13px]">
+            <table className="w-full min-w-[520px] text-left text-[13px]">
               <thead className="text-neutral-400">
                 <tr className="border-b border-white/10">
+                  <th className="py-1.5 pr-3 font-medium">{tr("Нысанға")}</th>
                   <th className="py-1.5 pr-3 font-medium">{tr("Қашықтық")}</th>
                   <th className="py-1.5 pr-3 font-medium">FRP</th>
                   <th className="py-1.5 pr-3 font-medium">{tr("Сенімділік")}</th>
@@ -232,6 +237,13 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
               <tbody>
                 {d.nearbyFlares.map((f, i) => (
                   <tr key={i} className="border-b border-white/5 last:border-0">
+                    <td className="py-1.5 pr-3">
+                      {f.onSite ? (
+                        <span className="text-orange-300">{tr("аумақ ішінде")}</span>
+                      ) : (
+                        <span className="text-neutral-500">{tr("маңайда — телінбейді")}</span>
+                      )}
+                    </td>
                     <td className="py-1.5 pr-3 text-neutral-200">{f.distanceKm} км</td>
                     <td className="py-1.5 pr-3 text-neutral-300">{Math.round(f.frp)} МВт</td>
                     <td className="py-1.5 pr-3 text-neutral-400">{f.confidence}</td>
@@ -247,6 +259,9 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
           <p className="mt-1.5 text-[12px] text-amber-200/70">
             ⚠ {tr("VIIRS газ факелін дала өртінен ажыратпайды — жердегі тексеру қажет.")}
           </p>
+          {d.flareAttribution?.validation && (
+            <p className="mt-1 text-[12px] text-neutral-400">{tr(d.flareAttribution.validation)}</p>
+          )}
         </Section>
       )}
 

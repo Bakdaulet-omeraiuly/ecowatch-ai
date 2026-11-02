@@ -1,0 +1,190 @@
+{
+  "protocol": "validation/air/PROTOCOL.md v1.0",
+  "generated_at": "2026-11-02T21:26:54+00:00",
+  "station": {
+    "id": 7094,
+    "name": "АҚШ елшілігі, Астана (AirNow, BAM-1020)",
+    "lat": 51.125287,
+    "lon": 71.467217
+  },
+  "period": [
+    "2024-01-01",
+    "2024-12-31"
+  ],
+  "cams": {
+    "url": "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=51.125287&longitude=71.467217&hourly=pm2_5&start_date=2024-01-01&end_date=2024-12-31&timezone=GMT",
+    "grid_lat": 51.100006,
+    "grid_lon": 71.5,
+    "hours": 8784
+  },
+  "qc": {
+    "raw_rows": 8608,
+    "pm25_rows": 8608,
+    "dropped_out_of_range": 961,
+    "dropped_duplicate_hours": 0,
+    "clean_hours": 7641,
+    "paired_hours": 7641,
+    "valid_days": 322
+  },
+  "hourly": {
+    "n": 7641,
+    "mean_obs": 19.14605418138987,
+    "mean_mod": 9.111385944248136,
+    "nmb": -0.5241115554188455,
+    "nme": 0.6284145049386514,
+    "mae": 12.03165815992671,
+    "rmse": 24.03596629422038,
+    "r": 0.3638632054606854,
+    "spearman": 0.30234323314628875,
+    "fac2": 0.5153775683811019
+  },
+  "daily": {
+    "n": 322,
+    "mean_obs": 19.119224406311158,
+    "mean_mod": 9.12003661090344,
+    "nmb": -0.5229912878739493,
+    "nme": 0.5649167057246485,
+    "mae": 10.800769267623597,
+    "rmse": 17.51538820817005,
+    "r": 0.4766189302025519,
+    "spearman": 0.39233183871761423,
+    "fac2": 0.5838509316770186
+  },
+  "daily_verdict": {
+    "levels": {
+      "nmb": "fail",
+      "nme": "fail",
+      "r": "criteria"
+    },
+    "pass": false
+  },
+  "by_season_daily": {
+    "heating": {
+      "n": 195,
+      "mean_obs": 23.593197553781078,
+      "mean_mod": 9.278504754335419,
+      "nmb": -0.6067296629384417,
+      "nme": 0.62836873695458,
+      "mae": 14.825227747589302,
+      "rmse": 21.64654560638106,
+      "r": 0.5074654729753905,
+      "spearman": 0.5454442096072045,
+      "fac2": 0.4153846153846154,
+      "verdict": {
+        "levels": {
+          "nmb": "fail",
+          "nme": "fail",
+          "r": "criteria"
+        },
+        "pass": false
+      }
+    },
+    "warm": {
+      "n": 127,
+      "mean_obs": 12.249738077518758,
+      "mean_mod": 8.876719382799223,
+      "nmb": -0.27535435234405903,
+      "nme": 0.3772719543806498,
+      "mae": 4.621482625156566,
+      "rmse": 7.640690233647787,
+      "r": 0.3844261259436446,
+      "spearman": 0.1860934495279175,
+      "fac2": 0.84251968503937,
+      "verdict": {
+        "levels": {
+          "nmb": "criteria",
+          "nme": "criteria",
+          "r": "fail"
+        },
+        "pass": false
+      }
+    }
+  },
+  "monthly_mean": {
+    "obs": {
+      "1": 27.5,
+      "2": 26.6,
+      "3": 26.2,
+      "4": 22.4,
+      "5": 9.9,
+      "6": 12.3,
+      "7": 12.0,
+      "8": 11.0,
+      "9": 31.7,
+      "10": 21.2,
+      "11": 23.8,
+      "12": 16.9
+    },
+    "cams": {
+      "1": 7.9,
+      "2": 7.4,
+      "3": 9.0,
+      "4": 9.5,
+      "5": 7.9,
+      "6": 9.1,
+      "7": 9.4,
+      "8": 8.5,
+      "9": 12.1,
+      "10": 7.8,
+      "11": 11.5,
+      "12": 11.4
+    }
+  },
+  "exceedance": {
+    "kz_daily_35": {
+      "threshold": 35.0,
+      "hits": 2,
+      "misses": 35,
+      "false_alarms": 0,
+      "correct_negatives": 285,
+      "obs_exceed_days": 37,
+      "mod_exceed_days": 2,
+      "pod": 0.05405405405405406,
+      "far": 0.0,
+      "csi": 0.05405405405405406
+    },
+    "who_daily_15": {
+      "threshold": 15.0,
+      "hits": 28,
+      "misses": 106,
+      "false_alarms": 3,
+      "correct_negatives": 185,
+      "obs_exceed_days": 134,
+      "mod_exceed_days": 31,
+      "pod": 0.208955223880597,
+      "far": 0.0967741935483871,
+      "csi": 0.20437956204379562
+    }
+  },
+  "screening_signal_kz35": false,
+  "fixation_audit": {
+    "available": true,
+    "days": 30,
+    "records": 351,
+    "kz_violations": 0,
+    "by_norm": [
+      {
+        "indicator": "pm25",
+        "averaging": "орташа жылдық",
+        "limit": 5,
+        "jurisdiction": "WHO",
+        "count": 346
+      },
+      {
+        "indicator": "pm10",
+        "averaging": "орташа тәуліктік",
+        "limit": 45,
+        "jurisdiction": "WHO",
+        "count": 4
+      },
+      {
+        "indicator": "ozone",
+        "averaging": "8 сағаттық",
+        "limit": 100,
+        "jurisdiction": "WHO",
+        "count": 1
+      }
+    ],
+    "hourly_value_vs_longer_averaging_norm": 351
+  }
+}

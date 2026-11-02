@@ -2,8 +2,10 @@
 // Ойдан дерек жоқ. Атырау үшін жаһандық CAMS қолжетімді айнымалылар ғана.
 // `key` — AirGridPoint өрісі; `maxRef` — heatmap нормалау шегі (µg/m³ немесе индекс).
 
+import type { KzhGas } from "@/data/kazhydrometAtyrau";
+
 export interface AtmosElement {
-  key: "aqi" | "pm2_5" | "pm10" | "no2" | "so2" | "ozone" | "co" | "nh3" | "ch4" | "dust" | "aod" | "uv";
+  key: "aqi" | "pm2_5" | "pm10" | "no2" | "so2" | "ozone" | "co" | "no" | "h2s" | "nh3" | "ch4" | "dust" | "aod" | "uv";
   short: string;
   label: string;
   unit: string;
@@ -11,6 +13,10 @@ export interface AtmosElement {
   maxRef: number;
   ramp: [string, string, string, string];
   s5p?: string; // Sentinel-5P спутрик тайл кілті (болса — спутрик көрінісі қосуға болады)
+  /** Қазгидромет Атырау посттары өлшейтін газ — соңғы айлық өлшем қатар көрсетіледі */
+  kzh?: KzhGas;
+  /** CAMS/спутник бұл затты МҮЛДЕМ бермейді — тор да, карта да жоқ, тек жердегі өлшем */
+  noModel?: boolean;
 }
 
 const RAMP: [string, string, string, string] = [
@@ -22,10 +28,13 @@ export const ATMOS_ELEMENTS: AtmosElement[] = [
 
   { key: "pm2_5", short: "PM₂.₅", label: "Ұсақ шаң (2.5 мкм)", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 75, ramp: RAMP },
   { key: "pm10",  short: "PM₁₀",  label: "Ірі шаң (10 мкм)", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP },
-  { key: "no2",   short: "NO₂",   label: "Азот диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP, s5p: "no2" },
-  { key: "so2",   short: "SO₂",   label: "Күкірт диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP, s5p: "so2" },
+  { key: "no2",   short: "NO₂",   label: "Азот диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP, s5p: "no2", kzh: "no2" },
+  { key: "so2",   short: "SO₂",   label: "Күкірт диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP, s5p: "so2", kzh: "so2" },
   { key: "ozone", short: "O₃",    label: "Озон", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 160, ramp: RAMP },
-  { key: "co",    short: "CO",    label: "Көміртек тотығы", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 4000, ramp: RAMP, s5p: "co" },
+  { key: "co",    short: "CO",    label: "Көміртек тотығы", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 4000, ramp: RAMP, s5p: "co", kzh: "co" },
+  { key: "no",    short: "NO",    label: "Азот оксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 60, ramp: RAMP, kzh: "no" },
+  // H₂S: спутник те, CAMS та өлшемейді — тек Қазгидромет посттары
+  { key: "h2s",   short: "H₂S",   label: "Күкіртсутек", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 8, ramp: RAMP, kzh: "h2s", noModel: true },
 
   { key: "nh3",   short: "NH₃",   label: "Аммиак", unit: "µg/m³", category: "Қосымша газдар", maxRef: 30, ramp: RAMP },
   { key: "ch4",   short: "CH₄",   label: "Метан", unit: "µg/m³", category: "Қосымша газдар", maxRef: 2200, ramp: RAMP, s5p: "ch4" },

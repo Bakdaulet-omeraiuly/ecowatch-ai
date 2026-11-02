@@ -1,0 +1,86 @@
+{
+  "protocol": "validation/firms/PROTOCOL.md v1.0",
+  "generated_at": "2026-11-02T22:15:04+00:00",
+  "period": [
+    "2024-01-01",
+    "2026-10-31"
+  ],
+  "years": 2.833675564681725,
+  "bbox": [
+    51.7,
+    46.95,
+    52.2,
+    47.25
+  ],
+  "total_detections": 350,
+  "by_source": {
+    "VIIRS_SNPP_SP": 132,
+    "VIIRS_NOAA20_SP": 109,
+    "VIIRS_NOAA21_SP": 98,
+    "VIIRS_NOAA21_NRT": 4,
+    "VIIRS_NOAA20_NRT": 4,
+    "VIIRS_SNPP_NRT": 3
+  },
+  "background": {
+    "detections": 347,
+    "area_km2": 1250.0628747267535,
+    "density_per_km2": 0.27758603748299415
+  },
+  "anpz": {
+    "detections": 3,
+    "detection_days": 3,
+    "detection_days_per_year": 1.058695652173913,
+    "area_km2_buffered": 5.11875,
+    "osm_area_km2": 2.340510560884468,
+    "density_per_km2": 0.586080586080586,
+    "density_ratio_vs_background": 2.1113474993009733,
+    "night_share": 0.6666666666666666,
+    "confidence": {
+      "n": 3
+    },
+    "firms_type": {
+      "0.0": 2,
+      "nan": 1
+    },
+    "frp_median_mw": 0.91,
+    "frp_p90_mw": 4.63,
+    "monthly_detection_days": {
+      "2024-03": 1,
+      "2025-10": 1,
+      "2026-08": 1
+    }
+  },
+  "tets": {
+    "detections": 0,
+    "detection_days": 0,
+    "detection_days_per_year": 0.0,
+    "area_km2_buffered": 2.1493750000000005,
+    "osm_area_km2": 0.4915968901859742,
+    "density_per_km2": 0.0,
+    "density_ratio_vs_background": 0.0,
+    "night_share": null,
+    "confidence": {},
+    "firms_type": {},
+    "frp_median_mw": null,
+    "frp_p90_mw": null,
+    "monthly_detection_days": {}
+  },
+  "H1": {
+    "days_per_year": 1.058695652173913,
+    "density_ratio": 2.1113474993009733,
+    "pass": false
+  },
+  "H2": {
+    "attributed": 69,
+    "breakdown": {
+      "anpz_footprint": 3,
+      "tets_footprint": 0,
+      "elsewhere": 66
+    },
+    "precision": 0.043478260869565216,
+    "attributed_days": 48,
+    "days_with_any_anpz_detection": 3,
+    "pass": false
+  },
+  "persistent_clusters": []
+}

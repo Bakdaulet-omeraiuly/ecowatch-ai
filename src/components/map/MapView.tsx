@@ -16,6 +16,7 @@ import { MIN_VISUAL_HALF_ANGLE } from "@/lib/dispersion";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { ATMOS_ELEMENTS, ATMOS_CATEGORIES, type AtmosElement } from "@/data/atmosElements";
+import { KzhPanel } from "@/components/map/KzhPanel";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
 import { MapSearch } from "./MapSearch";
@@ -315,7 +316,11 @@ export function MapView() {
   // Атмосфера элементі — қай нақты газ/бөлшек көрсетілсін (әдепкі: AQI)
   const [airElem, setAirElem] = useState<AtmosElement>(ATMOS_ELEMENTS[0]);
   const elemVal = (p: AirGridPoint): number | null =>
-    airElem.key === "aqi" ? airHourAqi(p) : ((p[airElem.key] as number | null | undefined) ?? null);
+    airElem.noModel
+      ? null // CAMS/спутник бұл затты бермейді — картаға ештеңе салынбайды
+      : airElem.key === "aqi"
+        ? airHourAqi(p)
+        : ((p[airElem.key as keyof AirGridPoint] as number | null | undefined) ?? null);
 
   const { soilGrid, soilMeta, soilError } = useSoilGrid(activeLayer === "soil");
 
@@ -2641,6 +2646,11 @@ export function MapView() {
                       {tr("Нақты дерек: Copernicus CAMS · Open-Meteo · тор бойынша")}
                     </p>
                   </>
+                )}
+
+                {/* Жердегі өлшем (Қазгидромет) + CAMS-тың дәлелденген ауытқуы */}
+                {(airElem.kzh || airElem.noModel) && (
+                  <KzhPanel elem={airElem} regionId={region.id} />
                 )}
 
                 {airStats && airElem.key === "aqi" && (() => {
