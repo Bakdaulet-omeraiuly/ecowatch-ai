@@ -1,7 +1,7 @@
-// FIRMS АРХИВІ (P4.4) — 1 жылдық тарихи терезе, 10 күндік бөліктермен.
+// FIRMS АРХИВІ (P4.4) — 1 жылдық тарихи терезе, 5 күндік бөліктермен.
 //
-// FIRMS area API бір сұраныста ең көбі 10 күн береді, сондықтан 365 күн =
-// 37 сұраныс. Соңғы ~60 күн үшін NRT өнімі (SP әлі жарияланбаған), одан
+// FIRMS area API бір сұраныста ең көбі 5 күн береді (құжаттама: DAY_RANGE 1..5;
+// 10 күн сұраса — HTTP 400), сондықтан 365 күн = 73 сұраныс. Соңғы ~60 күн үшін NRT өнімі (SP әлі жарияланбаған), одан
 // ертерек — VIIRS SNPP Standard Processing (SP). Бөліктер бір-бірінен
 // тәуелсіз: бір бөлік сәтсіз болса, қалғаны қайтады, `complete: false`.
 //
@@ -10,7 +10,7 @@
 
 import { fetchFirmsWindow, FirmsKeyError, pointInPolygon, ATYRAU_OBLAST, type FirmsDetection } from "./firms";
 
-export const ARCHIVE_CHUNK_DAYS = 10;
+export const ARCHIVE_CHUNK_DAYS = 5;
 const NRT_RECENT_DAYS = 60;
 const CONCURRENCY = 4;
 export const ARCHIVE_TTL_MS = 6 * 3600_000;
@@ -24,7 +24,7 @@ export interface ArchiveWindow {
 const iso = (d: Date) => d.toISOString().slice(0, 10);
 const addDays = (d: Date, n: number) => new Date(d.getTime() + n * 86400_000);
 
-/** [from, to] аралығын 10 күндік терезелерге бөлу (to — қоса) */
+/** [from, to] аралығын 5 күндік терезелерге бөлу (to — қоса) */
 export function archiveWindows(fromISO: string, toISO: string, now = new Date()): ArchiveWindow[] {
   const out: ArchiveWindow[] = [];
   const nrtFrom = addDays(now, -NRT_RECENT_DAYS);

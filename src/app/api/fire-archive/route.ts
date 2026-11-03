@@ -14,6 +14,8 @@ import { classifyAnomaly, ANOMALY_LABEL } from "@/lib/fireClassify";
 // `acqDate` бойынша жүреді, сондықтан бір сұраныс бәрін қамтиды.
 
 export const revalidate = 3600;
+// 365 күн = 73 FIRMS сұранысы (бір сұраныста ≤5 күн), 4 параллель — уақыт қоры
+export const maxDuration = 60;
 
 const TEXT = {
   disclaimer: {
