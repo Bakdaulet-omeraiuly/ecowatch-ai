@@ -26,7 +26,7 @@ DATA.mkdir(exist_ok=True)
 UA = {"User-Agent": "Mozilla/5.0 (jaiyq-validation research)"}
 SITE = "https://www.kazhydromet.kz"
 LIST = SITE + "/ru/ecology/ezhemesyachnyy-informacionnyy-byulleten-o-sostoyanii-okruzhayuschey-sredy/{y}"
-YEARS = (2024, 2025, 2026)
+YEARS = tuple(range(2024, datetime.now(timezone.utc).year + 1))  # жаңа жыл өздігінен қосылады
 LAT, LON = 47.1167, 51.8833  # сайттағы Атырау координатасы
 MONTHS = {"yanvar": 1, "fevral": 2, "mart": 3, "aprel": 4, "may": 5, "iyun": 6, "iyul": 7,
           "avgust": 8, "sentyabr": 9, "oktyabr": 10, "noyabr": 11, "dekabr": 12}
@@ -38,6 +38,26 @@ GASES = {  # бюллетеньдегі атауы → (id, CAMS айнымал�
     "Сероводород": ("h2s", None),
 }
 NMB_MAX, NME_MAX, MIN_N_FOR_R = 0.30, 0.50, 8
+# ҚР ШРК с.с., мкг/м³ — сезімталдық талдауы үшін (PROTOCOL.md v1.2)
+PDK_SS_UG = {"so2": 50, "co": 3000, "no2": 40, "no": 60}
+
+
+def sensitivity(ex: pd.DataFrame, cams: pd.DataFrame) -> dict:
+    """Бюллетень мг/м³-ді 0,01-ге дөңгелектейді; дәлірек мән ×ШРК бағанынан."""
+    out = {}
+    for name, (gid, var) in GASES.items():
+        if gid not in PDK_SS_UG:
+            continue
+        o = ex[ex["gas"] == gid].set_index("month")["mean_x_pdk_ss"] * PDK_SS_UG[gid]
+        j = pd.concat({"o": o, "m": cams[var]}, axis=1).dropna()
+        j = j[j["o"] > 0]
+        if not len(j):
+            continue
+        nmb = float((j.m - j.o).sum() / j.o.sum())
+        nme = float((j.m - j.o).abs().sum() / j.o.sum())
+        out[gid] = {"n": int(len(j)), "obs": float(j.o.mean()), "cams": float(j.m.mean()), "nmb": nmb, "nme": nme,
+                    "ratio": float(np.median(j.o / j.m)), "pass": bool(abs(nmb) < NMB_MAX and nme < NME_MAX)}
+    return out
 
 
 def get(url: str) -> bytes:
@@ -106,12 +126,13 @@ def parse(pdf: Path, month: str) -> list[dict]:
     return rows
 
 
-def cams_monthly() -> pd.DataFrame:
-    cache = DATA / "cams_atyrau.json"
+def cams_monthly(last_month: str) -> pd.DataFrame:
+    end = (pd.Period(last_month, "M").end_time.date()).isoformat()  # соңғы бюллетень айының соңы
+    cache = DATA / f"cams_atyrau_{last_month}.json"
     if not cache.exists():
         vars_ = ",".join(v for _, v in GASES.values() if v)
         url = ("https://air-quality-api.open-meteo.com/v1/air-quality"
-               f"?latitude={LAT}&longitude={LON}&hourly={vars_}&start_date=2024-01-01&end_date=2026-04-30&timezone=Asia%2FAqtobe")
+               f"?latitude={LAT}&longitude={LON}&hourly={vars_}&start_date=2024-01-01&end_date={end}&timezone=Asia%2FAqtobe")
         cache.write_bytes(get(url))
     h = json.loads(cache.read_text())["hourly"]
     df = pd.DataFrame({k: v for k, v in h.items() if k != "time"}, index=pd.to_datetime(h["time"]))
@@ -136,7 +157,7 @@ def main() -> None:
     ex = pd.DataFrame(rows)
     ex.to_csv(HERE / "extracted.csv", index=False)
 
-    cams = cams_monthly()
+    cams = cams_monthly(max(links))
     pairs, summary = [], {}
     for name, (gid, var) in GASES.items():
         obs = ex[ex["gas"] == gid].set_index("month")["mean_mg_m3"] * 1000  # → мкг/м³
@@ -167,7 +188,7 @@ def main() -> None:
     out = {"protocol": "validation/kazhydromet/PROTOCOL.md v1.1",
            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
            "bulletins": len(links), "parse_errors": int(ex.get("error", pd.Series(dtype=str)).notna().sum()),
-           "summary": summary}
+           "summary": summary, "sensitivity_pdk_multiple": sensitivity(ex, cams)}
     (HERE / "results.json").write_text(json.dumps(out, ensure_ascii=False, indent=2, default=float))
     (HERE / "results.md").write_text(render(out, ex))
     print(json.dumps(out, ensure_ascii=False, indent=1, default=float))
@@ -189,7 +210,12 @@ def render(o: dict, ex: pd.DataFrame) -> str:
                      f"{s['nmb']*100:+.0f}% | {s['nme']*100:.0f}% | {r} | {s['median_obs_over_cams']:.1f}× | "
                      f"{'✅ ӨТТІ' if s['pass'] else '❌ ӨТПЕДІ'} |")
     L += ["", "Шарт: |NMB| < 30% және NME < 50%. Әр мән `extracted.csv`-те бет нөмірімен — қолмен тексеруге болады.", "",
-          "## H₂S (тек посттар өлшейді)", ""]
+          "## Сезімталдық (×ШРК бағанынан, дөңгелектеусіз — PROTOCOL.md v1.2)", "",
+          "| Газ | Ай | Посттар, мкг/м³ | CAMS, мкг/м³ | NMB | NME | Пост/CAMS | Нәтиже |", "|---|---|---|---|---|---|---|---|"]
+    for gid, s in o.get("sensitivity_pdk_multiple", {}).items():
+        L.append(f"| {names[gid]} | {s['n']} | {s['obs']:.1f} | {s['cams']:.2f} | {s['nmb']*100:+.0f}% | {s['nme']*100:.0f}% | "
+                 f"{s['ratio']:.1f}× | {'✅' if s['pass'] else '❌'} |")
+    L += ["", "## H₂S (тек посттар өлшейді)", ""]
     h = ex[ex["gas"] == "h2s"].dropna(subset=["mean_mg_m3"])
     L += ["| Ай | Орташа, мкг/м³ | Макс. бір реттік, мкг/м³ | × ШРК м.р. |", "|---|---|---|---|"]
     for _, r in h.iterrows():

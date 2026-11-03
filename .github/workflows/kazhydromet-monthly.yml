@@ -1,0 +1,70 @@
+name: Қазгидромет бюллетені — ай сайынғы жаңарту
+
+# Атырау посттарының өлшемі (SO₂, CO, NO₂, NO, H₂S) сайттың «Ауа»
+# қабатында Қазгидромет бюллетенінен көрсетіледі. Бюллетень ай сайын
+# ~1–1.5 ай кешігіп шығады, сондықтан бұл жұмыс аптасына бір рет тексереді:
+# жаңа бюллетень болса — оқиды, CAMS-пен валидацияны қайта есептейді,
+# src/data/kazhydrometAtyrau.ts-ті жаңартады да, коммиттейді (Vercel өзі
+# деплойлайды). Жаңа бюллетень жоқ болса — ештеңе өзгермейді.
+#
+# Дереккөз қолжетімсіз немесе кесте оқылмаса — жұмыс СӘТСІЗ аяқталады,
+# ескі дерек өзгеріссіз қалады. Ойдан сан ешқашан коммиттелмейді.
+
+on:
+  schedule:
+    - cron: "41 4 * * 1" # әр дүйсенбі 04:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kazhydromet-monthly
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Тәуелділіктер
+        run: pip install -r validation/kazhydromet/requirements.txt
+
+      - name: Бюллетеньдерді оқу + CAMS валидациясы
+        working-directory: validation/kazhydromet
+        run: python validate_kazhydromet.py
+
+      - name: Оқу қатесі жоқ екенін тексеру
+        working-directory: validation/kazhydromet
+        run: |
+          python - <<'PY'
+          import json, sys
+          r = json.load(open("results.json"))
+          if r["parse_errors"]:
+              sys.exit(f"Бюллетеньнен {r['parse_errors']} мән оқылмады — жаңарту тоқтатылды")
+          print(f"OK: {r['bulletins']} бюллетень, оқу қатесі жоқ")
+          PY
+
+      - name: Сайт тізілімін жасау
+        working-directory: validation/kazhydromet
+        run: python export_ts.py
+
+      - name: Өзгерісті коммиттеу (тек жаңа бюллетень болса)
+        run: |
+          # Есептеу уақыты әр жүрісте өзгереді — оны «өзгеріс» деп санамаймыз.
+          if git diff --quiet -- src/data/kazhydrometAtyrau.ts validation/kazhydromet/extracted.csv; then
+            echo "Жаңа бюллетень жоқ — коммит керек емес"
+            exit 0
+          fi
+          LAST=$(python -c "import pandas as pd; print(pd.read_csv('validation/kazhydromet/extracted.csv').month.max())")
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data/kazhydrometAtyrau.ts validation/kazhydromet/
+          git commit -m "Қазгидромет: Атырау бюллетені жаңартылды (соңғы ай: ${LAST})"
+          git push origin HEAD:${GITHUB_REF_NAME}

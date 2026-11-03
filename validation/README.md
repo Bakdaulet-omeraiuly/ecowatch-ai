@@ -19,6 +19,9 @@
 | 7 | JAIYQ-MRI маса | тұзақ деректері (СЭС) | хаттама жоспарда |
 
 Іске қосу: `cd validation/<модуль> && python3 -I validate_*.py`.
-Жаңа Қазгидромет бюллетені шыққанда: `validate_kazhydromet.py` → `export_ts.py`
-(→ `src/data/kazhydrometAtyrau.ts`, сайт өзі жаңарады).
+Қазгидромет бюллетені **автоматты**: `.github/workflows/kazhydromet-monthly.yml` әр дүйсенбі
+жаңа бюллетеньді тексереді → `validate_kazhydromet.py` → `export_ts.py` → коммит → Vercel.
+Қолмен: GitHub → Actions → «Қазгидромет бюллетені» → Run workflow.
+⚠️ `indicatorRegistry.ts`-тегі валидация мәтіндері (ай саны, еселік) автоматты жаңармайды —
+сандар айтарлықтай өзгерсе, қолмен жаңарту керек.
 (numpy, pandas; шикі дерек `data/` ішіне кэштеледі, git-ке кірмейді).
