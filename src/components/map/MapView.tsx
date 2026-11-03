@@ -12,6 +12,9 @@ import {
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
 import { plumeCone } from "@/lib/pollutionSource";
+import { FacilityCardView } from "@/components/object/FacilityCardView";
+import { buildFacilityCard } from "@/lib/facilityCard";
+import { FACILITIES } from "@/data/facilities";
 import { MIN_VISUAL_HALF_ANGLE } from "@/lib/dispersion";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
@@ -67,6 +70,8 @@ function yearTileConfig(year: number): { tiles: string[]; maxzoom: number; attri
 import { AnalysisDrawer } from "@/components/analysis/AnalysisDrawer";
 import { MosquitoIcon } from "./MosquitoIcon";
 import { PollutionTimeline } from "./PollutionTimeline";
+import { DispersionFrame } from "./DispersionFrame";
+import { isDispersionWindMissing, type WindHourlySeries } from "@/lib/windGrid";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares,
@@ -352,16 +357,20 @@ export function MapView() {
   const [windData, setWindData] = useState<{
     grid: { lat: number; lng: number; speed: number | null; dir: number | null }[];
     avgSpeed: number | null; maxSpeed: number | null; dominantDir: number | null;
+    /** P2.3: өткен 24 сағ / алдағы 24 сағ (kind белгісімен). Ескі жауапта жоқ. */
+    hourly?: WindHourlySeries;
   } | null>(null);
   const [windError, setWindError] = useState(false);
+  // Жел қабаты белсенді болғанда ЖӘНE таралу панелі ашылғанда (P2.4 слайдері жел
+  // деректеріне тәуелді — сұрланатынын шешу үшін) жүктеледі
   useEffect(() => {
-    if (activeLayer !== "wind") return;
+    if (activeLayer !== "wind" && !sourceMode) return;
     setWindError(false);
     fetch("/api/windgrid")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setWindData)
       .catch(() => setWindError(true));
-  }, [activeLayer]);
+  }, [activeLayer, sourceMode]);
 
   // Құрғақшылық (SPI) — қабат белсенді болғанда жүктеледі
   const [droughtData, setDroughtData] = useState<{
@@ -1393,6 +1402,15 @@ export function MapView() {
               </div>
 
               {/* Объект картасы — прокуратура/эколог үшін толық құжат */}
+              {/* P2.1: нысан карточкасының ықшам нұсқасы */}
+              <div className="mb-1.5 rounded border border-white/10 bg-white/[0.03] p-1.5">
+                {(() => {
+                  // Карточка тек тізілімдегі нысанға ғана (PollutionSourceCandidate → Facility)
+                  const reg = FACILITIES.find((f) => f.id === facAir.fac.id);
+                  return reg ? <FacilityCardView card={buildFacilityCard(reg)} compact /> : null;
+                })()}
+              </div>
+
               <a
                 href={`/object/${facAir.fac.id}`}
                 className="mb-1.5 block rounded border border-sky-400/40 bg-sky-500/10 px-1.5 py-1 text-center text-[12px] font-medium text-sky-200 transition hover:bg-sky-500/20"
@@ -1998,8 +2016,16 @@ export function MapView() {
                 )}
 
                 {/* УАҚЫТ БАСҚАРУЫ · ХРОНОЛОГИЯ · ҚҰЖАТ */}
-                <div className="mt-2">
-                  <PollutionTimeline
+                {/* P2.4: таралу слайдері — МОДЕЛЬ нәтижесі. Жел деректері жоқ болса сұрланады */}
+                {(() => {
+                  const windMissing = isDispersionWindMissing({
+                    sourceSpeed: source.wind?.speed,
+                    windState: windError ? "error" : windData ? "ok" : "loading",
+                    hourly: windData?.hourly,
+                  });
+                  return (
+                    <DispersionFrame windMissing={windMissing}>
+                      <PollutionTimeline
                     source={source}
                     frameIdx={tlIdx}
                     onFrame={(i) => { setTlTime(timeline[i]?.time ?? null); setTlPlaying(false); }}
@@ -2009,8 +2035,10 @@ export function MapView() {
                     onAt={(v) => { setSrcAt(v); setTlTime(null); setTlPlaying(false); }}
                     loading={sourceLoading}
                     regionId={region.id}
-                  />
-                </div>
+                      />
+                    </DispersionFrame>
+                  );
+                })()}
 
                 {/* АТМОСФЕРАЛЫҚ ОРНЫҚТЫЛЫҚ — конустың пішінін БЕЛГІЛЕЙТІН фактор.
                     Бұрын мүлдем ескерілмейтін: конус ені тек жел жылдамдығынан

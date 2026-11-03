@@ -7,6 +7,8 @@ import {
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { TierBadge, type Tier } from "@/components/ui/TierBadge";
+import { FacilityCardView } from "@/components/object/FacilityCardView";
+import type { FacilityCard } from "@/lib/facilityCard";
 import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
 
 // ОБЪЕКТ КАРТАСЫ — бір өнеркәсіп нысанының толық құжаты.
@@ -39,6 +41,7 @@ interface ObjData {
   timeline: { year: number; imageUrl: string; source: string }[];
   nearbyFlares: { lat: number; lng: number; frp: number; acqDate: string; confidence: string; distanceKm: number; onSite?: boolean }[];
   flareAttribution?: { rule: string; onSiteCount: number; validation: string | null };
+  card: FacilityCard;
   disclaimer: string;
   causalityWarning: string;
 }
@@ -299,6 +302,10 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
           <dt className="text-neutral-400">{tr("Координата дәлдігі")}</dt>
           <dd className="text-neutral-300">{d.general.coordsNote}</dd>
         </dl>
+
+        <div className="mt-3">
+          <FacilityCardView card={d.card} />
+        </div>
 
         <div className="mt-3">
           <div className="text-[12px] font-semibold uppercase tracking-wider text-neutral-400">

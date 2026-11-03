@@ -4,6 +4,7 @@ import { FACILITIES, FOOTPRINT_BUFFER_KM } from "@/data/facilities";
 import { distanceToFootprintKm } from "@/lib/footprint";
 import { checkCompliance, HOURLY_BASIS } from "@/lib/compliance";
 import { LEGAL_DISCLAIMER } from "@/data/legalNorms";
+import { buildFacilityCard } from "@/lib/facilityCard";
 
 // ОБЪЕКТ КАРТАСЫ — бір өнеркәсіп нысанының толық экологиялық кескіні.
 //
@@ -157,6 +158,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     short: fac.short,
     kind: fac.kind,
     coords: { lat: fac.lat, lng: fac.lng, approx: Boolean(fac.approx) },
+    // P2.1: нысан карточкасы — дерек жоқ өрістер null + «Дерек жоқ»
+    card: buildFacilityCard(fac),
     fetchedAt: new Date().toISOString(),
 
     // 1. Жалпы ақпарат

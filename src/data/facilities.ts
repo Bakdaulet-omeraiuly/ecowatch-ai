@@ -6,6 +6,27 @@
 
 export type PollutantKey = "so2" | "no2" | "pm" | "voc";
 
+/** Дереккөзі мен күні көрсетілген дерек. Екеуі де жоқ болса — қолданылмайды. */
+export interface Cited {
+  source: string;
+  date: string;
+}
+
+/**
+ * Нысанның расталған ашық деректері (P2.1). Бұл өріс ТЕК нақты, дереккөзі бар
+ * мәндермен толтырылады. Жоқ болса — карточкада «Дерек жоқ» көрсетіледі.
+ * ⚠️ Шығарынды саны (көздер саны) мен шығарынды массасы БӨЛЕК өрістер.
+ */
+export interface FacilityRecord {
+  /** Шығарынды көздерінің саны (дана). Масса емес. */
+  emissionSources?: Cited & { count: number };
+  /** Шығарынды массасы — тек бірлік пен есептік кезеңімен бірге */
+  emissionMass?: Cited & { value: number; unit: string; period: string };
+  substances?: (Cited & { name: string; amount: number; unit: string; period: string })[];
+  monitoringPosts?: (Cited & { name: string })[];
+  verifiedEvents?: (Cited & { description: string })[];
+}
+
 export interface Facility {
   id: string;
   name: string;
@@ -24,6 +45,12 @@ export interface Facility {
   footprint?: [number, number][];
   footprintSource?: string;
   // Сипаттамалы эмиссия профілі (0..1): осы көз қай ластаушыны басым шығарады
+  /** Координатаның дереккөзі (атауы). Күні белгісіз болса — карточкада «Дерек жоқ». */
+  coordSource?: string;
+  /** Координатаның дереккөз күні. Нақты белгілі болмаса жазылмайды — карточкада «Дерек жоқ». */
+  coordDate?: string;
+  /** Расталған ашық деректер (P2.1). Бос — карточкада «Дерек жоқ». */
+  record?: FacilityRecord;
   profile: Record<PollutantKey, number>;
 }
 
@@ -40,6 +67,7 @@ export const FACILITIES: Facility[] = [
     short: "АМӨЗ",
     lat: 47.0736,
     lng: 51.9257,
+    coordSource: "Global Energy Monitor",
     kind: "Мұнай өңдеу",
     // Дереккөз: Global Energy Monitor (жоғары дәлдік)
     profile: { so2: 0.9, no2: 0.6, pm: 0.5, voc: 0.9 },
@@ -60,6 +88,7 @@ export const FACILITIES: Facility[] = [
     lat: 47.0818,
     lng: 51.9422,
     kind: "Жылу электр станциясы",
+    coordSource: "Global Energy Monitor",
     // Дереккөз: Global Energy Monitor (жоғары дәлдік) — МӨЗ-дің солтүстігінде
     profile: { so2: 0.5, no2: 0.8, pm: 0.7, voc: 0.2 },
     footprintSource: "OpenStreetMap way 332522696",
@@ -84,6 +113,7 @@ export const FACILITIES: Facility[] = [
     short: "KPI",
     lat: 47.3403,
     lng: 52.2681,
+    coordSource: "VisitAtyrau (орналасуы)",
     kind: "Газ-химия",
     // Дереккөз: VisitAtyrau — Атырау–Доссор тас жолы, ~35 км
     profile: { so2: 0.7, no2: 0.5, pm: 0.4, voc: 0.8 },
@@ -105,6 +135,7 @@ export const FACILITIES: Facility[] = [
     short: "Теңіз",
     lat: 46.1528,
     lng: 53.3833,
+    coordSource: "Wikipedia (кен орны орталығы)",
     approx: true,
     kind: "Мұнай-газ өндіру + күкірт",
     // Дереккөз: Wikipedia — кен орнының орталығы (зауыт ауданы бірнеше км)
