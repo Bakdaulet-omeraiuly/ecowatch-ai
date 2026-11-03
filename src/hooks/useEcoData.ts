@@ -33,6 +33,7 @@ export interface Dominant {
   source: string;
   value: number;
 }
+/** NRT жылу аномалиясы. ⚠️ Расталған өрт емес — `category` арқылы жіктеледі. */
 export interface Flare {
   lat: number;
   lng: number;
@@ -41,6 +42,11 @@ export interface Flare {
   confidence: string;
   acqDate: string;
   dayNight: string;
+  category: "industrial_flare" | "unconfirmed_anomaly";
+  label: { kk: string; ru: string };
+  facilityId: string | null;
+  facilityName: string | null;
+  distanceToFootprintKm: number | null;
 }
 export interface FloodPoint {
   lat: number;
@@ -351,7 +357,7 @@ export function useFlood(enabled: boolean) {
   return { flood, river, floodError, floodMissing: missing };
 }
 
-// Gas-flare detections (NASA FIRMS)
+// NRT жылу аномалиялары (NASA FIRMS) — расталған өрт емес
 export function useFlares(enabled: boolean) {
   const region = useRegion();
   // Қай аймақ үшін жүктелді — аймақ ауысса қайта сұралады
@@ -370,4 +376,63 @@ export function useFlares(enabled: boolean) {
       .finally(() => setLoadedFor(region.id));
   }, [enabled, loadedFor, region.id]);
   return { flares, flaresError };
+}
+
+// FIRMS архиві (P4.4) — Атырау бойынша 365 күн. Уақыт сүзгісі клиентте
+// (туынды мән), сондықтан бір сұраныс барлық пресетті қамтиды.
+// ⚠️ Жылу аномалиясы — расталған өрт емес. 503 → себебі `error.reason` ішінде.
+export interface FireArchiveAnomaly {
+  lat: number;
+  lng: number;
+  frp: number;
+  brightness: number;
+  confidence: string;
+  acqDate: string;
+  dayNight: string;
+  category: "industrial_flare" | "unconfirmed_anomaly";
+  label: { kk: string; ru: string };
+  facilityId: string | null;
+  facilityName: string | null;
+  distanceToFootprintKm: number | null;
+}
+export interface FireArchive {
+  fetchedAt: string;
+  source: string;
+  days: number;
+  window: { from: string; to: string };
+  complete: boolean;
+  failedWindows: { date: string; reason: string }[];
+  windowCount: number;
+  count: number;
+  byCategory: { industrial_flare: number; unconfirmed_anomaly: number };
+  disclaimer: { kk: string; ru: string };
+  anomalies: FireArchiveAnomaly[];
+}
+export interface FireArchiveError {
+  error: string;
+  reason?: string;
+}
+
+export function useFireArchive(enabled: boolean) {
+  const region = useRegion();
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [archive, setArchive] = useState<FireArchive | null>(null);
+  const [archiveError, setArchiveError] = useState<FireArchiveError | null>(null);
+  useEffect(() => {
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/fire-archive?region=${region.id}&days=365`)
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (ok) {
+          setArchive(d as FireArchive);
+          setArchiveError(null);
+        } else {
+          setArchive(null);
+          setArchiveError({ error: d.error ?? "Қолжетімсіз", reason: d.reason });
+        }
+      })
+      .catch(() => setArchiveError({ error: "Қолжетімсіз" }))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
+  return { archive, archiveError };
 }

@@ -47,7 +47,7 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   "Дала/орман өрті қаупі — тірі": { ru: "Риск степного/лесного пожара — live", en: "Wildfire risk — live" },
   "Құрғақшылық индексі — SPI-3": { ru: "Индекс засухи — SPI-3", en: "Drought index — SPI-3" },
   "Маса қолайлылығы — тірі": { ru: "Комфортность для комаров — live", en: "Mosquito suitability — live" },
-  "Газ факелдері — тірі": { ru: "Газовые факелы — live", en: "Gas flares — live" },
+  "Жылу аномалиялары — тірі": { ru: "Тепловые аномалии — live", en: "Thermal anomalies — live" },
   "Қоқыс нүктелері": { ru: "Точки мусора", en: "Waste points" },
   "Топырақ жағдайы — тірі": { ru: "Состояние почвы — live", en: "Soil condition — live" },
   "Жайық өзені — тірі ағын": { ru: "Река Урал — живой сток", en: "Ural river — live flow" },
@@ -111,9 +111,9 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   "сағ": { ru: "ч", en: "h" },
 
   // Факелдер
-  "NASA FIRMS кілті қажет (тегін). Қосылғанша факелдер көрсетілмейді.": { ru: "Нужен ключ NASA FIRMS (бесплатно). До подключения факелы не показываются.", en: "NASA FIRMS key required (free). Flares hidden until connected." },
-  "Соңғы 2 күнде жану нүктесі анықталмады.": { ru: "За последние 2 дня очаги горения не обнаружены.", en: "No fire spots detected in the last 2 days." },
-  "анықталған жану нүктесі (2 күн)": { ru: "обнаруженных очагов (2 дня)", en: "detected fire spots (2 days)" },
+  "NASA FIRMS кілті қажет (тегін). Қосылғанша жылу аномалиялары көрсетілмейді.": { ru: "Нужен ключ NASA FIRMS (бесплатно). До подключения тепловые аномалии не показываются.", en: "NASA FIRMS key required (free). Thermal anomalies hidden until connected." },
+  "Соңғы 2 күнде жылу аномалиясы анықталмады.": { ru: "За последние 2 дня тепловых аномалий не обнаружено.", en: "No thermal anomalies detected in the last 2 days." },
+  "жылу аномалиясы (2 күн, расталмаған)": { ru: "тепловых аномалий (2 дня, не подтверждено)", en: "thermal anomalies (2 days, unconfirmed)" },
 
   // Қоқыс
   "Әзірге қоқыс нүктесі жоқ. Картаны басып AI талдаңыз немесе фото-хабарлама жіберіңіз.": { ru: "Пока нет точек мусора. Нажмите на карту для AI-анализа или отправьте фото.", en: "No waste points yet. Click the map for AI analysis or send a photo." },
@@ -162,9 +162,9 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
     en: "(reeds, standing water) + temperature + rain + city. Methodology: Mordecai 2017 (WHO/ECDC) + hydrology. Source: Open-Meteo.",
   },
   "Тірі деректер қолжетімсіз": { ru: "Живые данные недоступны", en: "Live data unavailable" },
-  "🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері спутниктен жылулық аномалия ретінде көрінеді. Дереккөз: NASA FIRMS (VIIRS 375м).": {
-    ru: "🔥 размер иконки соответствует мощности горения (FRP). Факелы нефтегазовых месторождений видны со спутника как тепловые аномалии. Источник: NASA FIRMS (VIIRS 375м).",
-    en: "🔥 icon size reflects fire power (FRP). Oil & gas field flares appear from space as thermal anomalies. Source: NASA FIRMS (VIIRS 375m).",
+  "🔥 иконка өлшемі — жылу қуатына (FRP) сай. Жылу аномалиясы — спутниктің жылу сигналы, расталған өрт емес: өндірістік факел, далалық өрт немесе жалын болуы мүмкін. Дереккөз: NASA FIRMS (VIIRS 375м).": {
+    ru: "🔥 размер иконки соответствует тепловой мощности (FRP). Тепловая аномалия — сигнал теплового датчика спутника, не подтверждённый пожар: может быть промышленный факел, полевой пожар или пламя. Источник: NASA FIRMS (VIIRS 375м).",
+    en: "🔥 icon size reflects radiative power (FRP). A thermal anomaly is not a confirmed fire: it may be an industrial flare, a field fire or flames. Source: NASA FIRMS (VIIRS 375m).",
   },
   "Қоқыс — жергілікті мәселе, спутник API-ы жоқ. Сондықтан ол AI спутник талдауы мен азаматтық фото-хабарламалардан жинақталады (краудсорсинг).": {
     ru: "Мусор — локальная проблема, спутникового API нет. Поэтому он собирается из AI-анализа спутника и фото-сообщений граждан (краудсорсинг).",
@@ -608,9 +608,9 @@ Object.assign(UI_TR, {
   "Орташа стресс — құрғау мен тұздану басталуы мүмкін.": { ru: "Умеренный стресс — возможны иссушение и засоление.", en: "Moderate stress — drying and salinization may begin." },
   "Жоғары стресс — топырақ құрғаған, шөлейттену қаупі бар.": { ru: "Высокий стресс — почва иссушена, риск опустынивания.", en: "High stress — soil is dry, desertification risk." },
   // Факел
-  "Бірнеше факел — қалыпты мұнай-газ белсенділігі.": { ru: "Несколько факелов — нормальная нефтегазовая активность.", en: "A few flares — normal oil & gas activity." },
-  "Факел саны орташа — ауаға жану өнімдері бөлінуде.": { ru: "Среднее число факелов — продукты горения попадают в воздух.", en: "Moderate flares — combustion products are released into the air." },
-  "Факел көп — ауа сапасына әсер ететін қарқынды жану.": { ru: "Много факелов — интенсивное горение, влияет на качество воздуха.", en: "Many flares — intense burning affecting air quality." },
+  "Бірнеше жылу аномалиясы — расталған өрт емес, тек спутниктің жылу сигналы.": { ru: "Несколько тепловых аномалий — не подтверждённые пожары, только сигнал датчика.", en: "A few thermal anomalies — not confirmed fires, only a sensor heat signal." },
+  "Жылу аномалиялары орташа — факел, өрт немесе жалынды спутник ажыратпайды.": { ru: "Умеренное число тепловых аномалий — спутник не отличает факел, пожар или пламя.", en: "Moderate thermal anomalies — the satellite cannot tell a flare, fire or flames apart." },
+  "Жылу аномалиялары көп — бұл расталған өрт емес; себебін жердегі тексеру анықтайды.": { ru: "Много тепловых аномалий — это не подтверждённые пожары; причину покажет проверка на месте.", en: "Many thermal anomalies — not confirmed fires; on-site checks determine the cause." },
   // Су
   "Тасқын қаупі жоғары — өзен жайылмасынан аулақ болыңыз.": { ru: "Высокий риск паводка — держитесь подальше от поймы.", en: "High flood risk — stay away from the floodplain." },
   "Су деңгейі көтерілуде — жағада сақ болыңыз.": { ru: "Уровень воды растёт — будьте осторожны у берега.", en: "Water level is rising — be careful near the bank." },
@@ -646,6 +646,25 @@ Object.assign(UI_TR, {
     ru: "Нет данных о ветре — слайдер распространения недоступен.",
     en: "No wind data — dispersion slider unavailable.",
   },
+
+  // FIRMS архиві — жылу аномалиялары (P4.4)
+  "Жылу аномалиялары — архив": { ru: "Тепловые аномалии — архив", en: "Thermal anomalies — archive" },
+  "Жылу аномалиясы расталған өрт емес": { ru: "Тепловая аномалия — не подтверждённый пожар", en: "Thermal anomaly is not a confirmed fire" },
+  "FIRMS архиві қолжетімсіз": { ru: "Архив FIRMS недоступен", en: "FIRMS archive unavailable" },
+  // /api/fire-archive 503 мәтіндері — сервер жолымен дәл сәйкес (reason аударылмайды)
+  "FIRMS кілті бапталмаған — архив қолжетімсіз. Жалған дерек көрсетілмейді.": { ru: "Ключ FIRMS не настроен — архив недоступен. Ложные данные не показываются.", en: "FIRMS key is not configured — archive unavailable. No fake data is shown." },
+  "FIRMS кілті жарамсыз": { ru: "Ключ FIRMS недействителен", en: "FIRMS key is invalid" },
+  "FIRMS архиві уақытша қолжетімсіз — жалған дерек көрсетілмейді": { ru: "Архив FIRMS временно недоступен — ложные данные не показываются", en: "FIRMS archive temporarily unavailable — no fake data is shown" },
+  "Қолжетімсіз": { ru: "Недоступно", en: "Unavailable" },
+  "Себебі": { ru: "Причина", en: "Reason" },
+  "Архив толық емес": { ru: "Архив неполный", en: "Archive incomplete" },
+  "терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.": { ru: "окон завершились с ошибкой — часть дней не показана.", en: "window(s) failed — some days are not shown." },
+  "Уақыт аралығы": { ru: "Период", en: "Time range" },
+  "өндірістік алау (контур ішінде)": { ru: "промышленный факел (в контуре)", en: "industrial flare (within footprint)" },
+  "жылу аномалиясы (расталмаған)": { ru: "тепловая аномалия (не подтверждена)", en: "thermal anomaly (unconfirmed)" },
+  "Таңдалған кезеңде жылу аномалиясы табылмады.": { ru: "За выбранный период тепловых аномалий не найдено.", en: "No thermal anomalies found for the selected period." },
+  "Легенда": { ru: "Легенда", en: "Legend" },
+  "Шеңбер өлшемі — жылу қуатына (FRP) сай. Дереккөз: NASA FIRMS (VIIRS 375м), архив.": { ru: "Размер круга — по мощности теплового излучения (FRP). Источник: NASA FIRMS (VIIRS 375м), архив.", en: "Circle size reflects radiative power (FRP). Source: NASA FIRMS (VIIRS 375m), archive." },
 });
 
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {

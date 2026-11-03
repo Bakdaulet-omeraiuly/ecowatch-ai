@@ -46,6 +46,63 @@ const WATER = [
   },
 ];
 
+// ЖЫЛУ АНОМАЛИЯСЫ — ӨРТ — ФАКЕЛ: айырмашылық (P4.4).
+// Үш ұғым бір-бірімен шатастырылмауы керек; сондықтан әр қатар дереккөз мен
+// сенімділік деңгейін бірден көрсетеді.
+const FIRE_METH = {
+  kk: {
+    title: "Жылу аномалиясы, өрт және өндірістік факел — айырмашылық",
+    rows: [
+      { k: "Жылу аномалиясы", v: "NASA FIRMS (VIIRS, 375 м) спутниктің жылу датчигі тіркеген сигнал. Бұл — өлшем. Расталған өрт емес: факел, далалық өрт, күйдірілген алқап немесе жалын болуы мүмкін." },
+      { k: "Өрт", v: "Жер бетінде расталған жану оқиғасы. FIRMS оны өзі растамайды — растау үшін жердегі немесе әкімшілік тексеру қажет." },
+      { k: "Өндірістік факел", v: "Нысан контурының (және шағын буферінің) ішінде тіркелген аномалия «өндірістік алау» деп жіктеледі. Бұл — модельдің жіктеуі (📊), растау емес: контур дәл болмауы мүмкін." },
+      { k: "Контурдан тыс аномалия", v: "«Расталмаған» деп белгіленеді. Оның өндірістік емес екені дәлелденбеген — сондықтан «өрт» деп те, «факел емес» деп те айтуға болмайды." },
+    ],
+    note: "Шектеу: 375 м пиксельді спутник тек өткен сәтте (тәулігіне бірнеше рет) түсіреді; бұлт пен түтін сигналды жасыруы мүмкін. Уақыт сүзгісі — аномалия күні (acq_date) бойынша.",
+  },
+  ru: {
+    title: "Тепловая аномалия, пожар и промышленный факел — различие",
+    rows: [
+      { k: "Тепловая аномалия", v: "Сигнал теплового датчика спутника NASA FIRMS (VIIRS, 375 м). Это измерение. Не подтверждённый пожар: может быть факел, полевой пожар, выжженный участок или пламя." },
+      { k: "Пожар", v: "Подтверждённое горение на земле. FIRMS сам его не подтверждает — для подтверждения нужна проверка на месте или административная." },
+      { k: "Промышленный факел", v: "Аномалия внутри контура объекта (и малого буфера) относится к категории «промышленный факел». Это классификация модели (📊), а не подтверждение: контур может быть неточным." },
+      { k: "Аномалия вне контура", v: "Помечается как «не подтверждённая». Что она не промышленная, не доказано — поэтому её нельзя называть ни пожаром, ни «не факелом»." },
+    ],
+    note: "Ограничение: пиксель 375 м снимается только во время пролёта спутника (несколько раз в сутки); облака и дым могут скрывать сигнал. Фильтр периода — по дате аномалии (acq_date).",
+  },
+  en: {
+    title: "Thermal anomaly, fire and industrial flare — the difference",
+    rows: [
+      { k: "Thermal anomaly", v: "A signal recorded by the satellite thermal sensor (NASA FIRMS, VIIRS, 375 m). This is a measurement. It is not a confirmed fire: it may be a flare, a field fire, a burned area or flames." },
+      { k: "Fire", v: "A confirmed burning event on the ground. FIRMS does not confirm it by itself — on-site or administrative verification is required." },
+      { k: "Industrial flare", v: "An anomaly inside a facility footprint (plus a small buffer) is classified as an industrial flare. This is a model classification (📊), not a confirmation: the footprint may be imprecise." },
+      { k: "Anomaly outside the footprint", v: "Labelled as unconfirmed. It has not been shown to be non-industrial, so it cannot be called either a fire or 'not a flare'." },
+    ],
+    note: "Limitation: each 375 m pixel is imaged only during a satellite overpass (several times a day); clouds and smoke can hide the signal. The period filter uses the anomaly date (acq_date).",
+  },
+} as const;
+
+function FireAnomalyMethodology() {
+  const { lang } = useLang();
+  const c = FIRE_METH[lang];
+  return (
+    <section className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4" aria-labelledby="fire-meth-title">
+      <h2 id="fire-meth-title" className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
+        {c.title} <TierBadge tier="measurement" />
+      </h2>
+      <dl className="space-y-2 text-[13px] leading-relaxed text-neutral-300">
+        {c.rows.map((r) => (
+          <div key={r.k}>
+            <dt className="font-semibold text-neutral-100">{r.k}</dt>
+            <dd className="text-neutral-400">{r.v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-3 text-[12px] leading-snug text-neutral-500">{c.note}</p>
+    </section>
+  );
+}
+
 export default function MethodologyPage() {
   const { t } = useLang();
   const validated = INDICATORS.filter((i) => i.validated).length;
@@ -107,6 +164,8 @@ export default function MethodologyPage() {
           Толық құжатты ашу →
         </Link>
       </div>
+
+      <FireAnomalyMethodology />
 
       <div className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4">
         <h2 className="mb-2 text-sm font-semibold text-white">Сенімділік деңгейлері</h2>

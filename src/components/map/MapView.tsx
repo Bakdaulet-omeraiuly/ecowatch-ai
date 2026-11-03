@@ -74,12 +74,13 @@ import { DispersionFrame } from "./DispersionFrame";
 import { isDispersionWindMissing, type WindHourlySeries } from "@/lib/windGrid";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
-  useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares,
+  useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares, useFireArchive,
   usePollutionSource,
   type AirGridPoint, type MosquitoGridPoint, type PollutionSourceCandidate,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
 import { LayerDrawer } from "@/components/map/LayerDrawer";
+import { TierBadge } from "@/components/ui/TierBadge";
 import type { LayerKey as DrawerKey } from "@/data/ecoLayers";
 import { useRegion } from "@/store/useRegionStore";
 import { ModuleMissing } from "@/components/ui/ModuleMissing";
@@ -146,9 +147,9 @@ function soilAdvice(stress: number): string {
   return "Жоғары стресс — топырақ құрғаған, шөлейттену қаупі бар.";
 }
 function flaresAdvice(count: number): string {
-  if (count <= 3) return "Бірнеше факел — қалыпты мұнай-газ белсенділігі.";
-  if (count <= 10) return "Факел саны орташа — ауаға жану өнімдері бөлінуде.";
-  return "Факел көп — ауа сапасына әсер ететін қарқынды жану.";
+  if (count <= 3) return "Бірнеше жылу аномалиясы — расталған өрт емес, тек спутниктің жылу сигналы.";
+  if (count <= 10) return "Жылу аномалиялары орташа — факел, өрт немесе жалынды спутник ажыратпайды.";
+  return "Жылу аномалиялары көп — бұл расталған өрт емес; себебін жердегі тексеру анықтайды.";
 }
 function compassKz(deg: number): string {
   const dirs = ["Солтүстік", "Солтүстік-шығыс", "Шығыс", "Оңтүстік-шығыс", "Оңтүстік", "Оңтүстік-батыс", "Батыс", "Солтүстік-батыс"];
@@ -239,6 +240,18 @@ const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
   water: "riverFlow",
   mosquito: "mosquito",
 };
+
+// FIRMS архиві — уақыт пресеттері (күн) және категория түстері.
+// Түстер легендамен бірдей: өндірістік алау — қызыл, расталмаған аномалия — сары.
+const FIRE_PRESETS = [30, 90, 180, 365] as const;
+const FIRE_CATEGORY_COLOR = { industrial_flare: "#ef4444", unconfirmed_anomaly: "#facc15" } as const;
+
+/** YYYY-MM-DD датасынан `days` күн шегеру (UTC) — туынды мән үшін таза функция */
+function shiftIsoDate(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
+}
 
 export function MapView() {
   const { lang, tr, t } = useLang();
@@ -336,6 +349,34 @@ export function MapView() {
   const { flood, river, floodError, floodMissing } = useFlood(activeLayer === "water");
 
   const { flares, flaresError } = useFlares(activeLayer === "oil");
+
+  // FIRMS архиві — 365 күн жүктеледі; пресет уақыт сүзгісі туынды мән ретінде есептеледі
+  const { archive: fireArchive, archiveError: fireArchiveError } = useFireArchive(activeLayer === "oil");
+  const [firePreset, setFirePreset] = useState<number>(365);
+  const fireAnomalies = useMemo(() => {
+    if (!fireArchive) return [];
+    const to = fireArchive.window.to;
+    const from = shiftIsoDate(to, -(firePreset - 1));
+    return fireArchive.anomalies.filter((a) => a.acqDate >= from && a.acqDate <= to);
+  }, [fireArchive, firePreset]);
+  const fireCounts = useMemo(
+    () => ({
+      industrial_flare: fireAnomalies.filter((a) => a.category === "industrial_flare").length,
+      unconfirmed_anomaly: fireAnomalies.filter((a) => a.category === "unconfirmed_anomaly").length,
+    }),
+    [fireAnomalies]
+  );
+  const fireGeo = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: fireAnomalies.map((a) => ({
+        type: "Feature" as const,
+        properties: { category: a.category, frp: a.frp, date: a.acqDate },
+        geometry: { type: "Point" as const, coordinates: [a.lng, a.lat] },
+      })),
+    }),
+    [fireAnomalies]
+  );
 
   // Өрт қаупі (FWI) — қабат белсенді болғанда жүктеледі
   const [fireData, setFireData] = useState<{
@@ -1178,7 +1219,7 @@ export function MapView() {
           flares?.map((f, i) => (
             <Marker key={`flare-${i}`} latitude={f.lat} longitude={f.lng}>
               <div
-                title={`Жану нүктесі · FRP ${f.frp}МВт · ${f.acqDate} · сенімділік ${f.confidence}`}
+                title={`Жылу аномалиясы (расталмаған) · FRP ${f.frp}МВт · ${f.acqDate} · сенімділік ${f.confidence}`}
                 className="flex items-center justify-center"
               >
                 <Flame
@@ -1189,6 +1230,29 @@ export function MapView() {
               </div>
             </Marker>
           ))}
+
+        {/* FIRMS архиві — категория бойынша түсті шеңбер (расталған өрт емес) */}
+        {activeLayer === "oil" && fireAnomalies.length > 0 && (
+          <Source id="fire-archive" type="geojson" data={fireGeo}>
+            <Layer
+              id="fire-archive-circle"
+              type="circle"
+              paint={{
+                "circle-radius": ["interpolate", ["linear"], ["get", "frp"], 0, 4, 50, 8, 200, 14],
+                "circle-color": [
+                  "match",
+                  ["get", "category"],
+                  "industrial_flare",
+                  FIRE_CATEGORY_COLOR.industrial_flare,
+                  FIRE_CATEGORY_COLOR.unconfirmed_anomaly,
+                ],
+                "circle-opacity": 0.75,
+                "circle-stroke-width": 1,
+                "circle-stroke-color": "#111827",
+              }}
+            />
+          </Source>
+        )}
 
         {/* Analysis points (non-photo) for the current imagery year */}
         {allSites
@@ -2405,33 +2469,112 @@ export function MapView() {
           </div>
         )}
 
+        {/* FIRMS архиві — жылу аномалиялары (расталған өрт емес) */}
+        {activeLayer === "oil" && (
+          <div className="w-full rounded-lg border border-neutral-800 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="text-[13px] font-semibold text-neutral-100">{tr("Жылу аномалиялары — архив")}</span>
+              <TierBadge tier="measurement" />
+            </div>
+            <div className="mb-2 rounded-md border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-[12px] leading-snug">
+              <div className="font-semibold text-neutral-100">{tr("Жылу аномалиясы расталған өрт емес")}</div>
+              {lang === "kk" && <div className="text-neutral-400">Тепловая аномалия — не подтверждённый пожар</div>}
+            </div>
+
+            {fireArchiveError ? (
+              <div className="rounded-md border border-red-500/40 bg-red-500/10 p-2 text-[12px] leading-snug text-red-200">
+                <div>{tr("FIRMS архиві қолжетімсіз")}: {tr(fireArchiveError.error)}</div>
+                {fireArchiveError.reason && <div className="mt-1 text-red-300/80">{tr("Себебі")}: {fireArchiveError.reason}</div>}
+                <div className="mt-1 text-neutral-400">{tr("Жалған дерек көрсетілмейді.")}</div>
+              </div>
+            ) : !fireArchive ? (
+              <p className="text-[13px] text-neutral-400">{tr("Жүктелуде…")}</p>
+            ) : (
+              <>
+                {!fireArchive.complete && (
+                  <div className="mb-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-[12px] leading-snug text-amber-200">
+                    ⚠️ {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
+                  </div>
+                )}
+
+                <div role="group" aria-label={tr("Уақыт аралығы")} className="mb-2 grid grid-cols-4 gap-1">
+                  {FIRE_PRESETS.map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      aria-pressed={firePreset === d}
+                      onClick={() => setFirePreset(d)}
+                      className={`rounded-md border px-1 py-1 text-[12px] font-medium transition ${
+                        firePreset === d
+                          ? "border-brand bg-brand text-white"
+                          : "border-neutral-700 bg-neutral-950 text-neutral-300 hover:bg-neutral-800"
+                      }`}
+                    >
+                      {d} {tr("күн")}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mb-2 grid grid-cols-2 gap-1.5 text-center">
+                  <div className="rounded-md border border-neutral-700 bg-neutral-950 p-1.5">
+                    <div className="text-xl font-bold text-red-300">{fireCounts.industrial_flare}</div>
+                    <div className="text-[11px] text-neutral-400">{tr("өндірістік алау (контур ішінде)")}</div>
+                  </div>
+                  <div className="rounded-md border border-neutral-700 bg-neutral-950 p-1.5">
+                    <div className="text-xl font-bold text-yellow-200">{fireCounts.unconfirmed_anomaly}</div>
+                    <div className="text-[11px] text-neutral-400">{tr("жылу аномалиясы (расталмаған)")}</div>
+                  </div>
+                </div>
+
+                {fireAnomalies.length === 0 && (
+                  <p className="mb-2 text-[12px] text-neutral-400">{tr("Таңдалған кезеңде жылу аномалиясы табылмады.")}</p>
+                )}
+
+                <div className="space-y-1 text-[12px] text-neutral-300" aria-label={tr("Легенда")}>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-3 w-3 rounded-full border border-neutral-900" style={{ background: FIRE_CATEGORY_COLOR.industrial_flare }} />
+                    {tr("өндірістік алау (контур ішінде)")}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="inline-block h-3 w-3 rounded-full border border-neutral-900" style={{ background: FIRE_CATEGORY_COLOR.unconfirmed_anomaly }} />
+                    {tr("жылу аномалиясы (расталмаған)")}
+                  </div>
+                  <p className="pt-1 text-[11px] leading-snug text-neutral-400">
+                    {tr("Шеңбер өлшемі — жылу қуатына (FRP) сай. Дереккөз: NASA FIRMS (VIIRS 375м), архив.")}
+                  </p>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Live gas-flare panel — oil layer */}
         {activeLayer === "oil" && (
           <div className="w-full rounded-lg border border-orange-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-orange-300">
-              <Flame className="h-3 w-3" /> {tr("Газ факелдері — тірі")}
+              <Flame className="h-3 w-3" /> {tr("Жылу аномалиялары — тірі")}
             </div>
             {flaresError ? (
               <p className="text-[13px] text-neutral-400">
                 {flaresError === "FIRMS кілті бапталмаған"
-                  ? tr("NASA FIRMS кілті қажет (тегін). Қосылғанша факелдер көрсетілмейді.")
+                  ? tr("NASA FIRMS кілті қажет (тегін). Қосылғанша жылу аномалиялары көрсетілмейді.")
                   : `${tr("Тірі деректер қолжетімсіз")}: ${flaresError}. ${tr("Жалған дерек көрсетілмейді.")}`}
               </p>
             ) : !flares ? (
               <p className="text-[13px] text-neutral-400">{tr("Жүктелуде…")}</p>
             ) : flares.length === 0 ? (
-              <p className="text-[13px] text-neutral-400">{tr("Соңғы 2 күнде жану нүктесі анықталмады.")}</p>
+              <p className="text-[13px] text-neutral-400">{tr("Соңғы 2 күнде жылу аномалиясы анықталмады.")}</p>
             ) : (
               <>
                 <div className="rounded-lg bg-orange-500/10 p-2 text-center">
                   <div className="text-2xl font-bold text-orange-300">{flares.length}</div>
-                  <div className="text-[12px] text-neutral-400">{tr("анықталған жану нүктесі (2 күн)")}</div>
+                  <div className="text-[12px] text-neutral-400">{tr("жылу аномалиясы (2 күн, расталмаған)")}</div>
                 </div>
                 <div className="mt-2 rounded-md bg-white/5 p-2 text-[12px] leading-snug text-neutral-200">
                   💡 {tr(flaresAdvice(flares.length))}
                 </div>
                 <p className="mt-1.5 text-[12px] leading-snug text-neutral-400">
-                  {tr("🔥 иконка өлшемі — жану қуатына (FRP) сай. Мұнай-газ кен орындарының факелдері спутниктен жылулық аномалия ретінде көрінеді. Дереккөз: NASA FIRMS (VIIRS 375м).")}
+                  {tr("🔥 иконка өлшемі — жылу қуатына (FRP) сай. Жылу аномалиясы — спутниктің жылу сигналы, расталған өрт емес: өндірістік факел, далалық өрт немесе жалын болуы мүмкін. Дереккөз: NASA FIRMS (VIIRS 375м).")}
                 </p>
               </>
             )}
