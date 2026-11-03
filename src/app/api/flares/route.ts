@@ -10,7 +10,7 @@ export const revalidate = 3600;
 
 // FIRMS query bbox (must be rectangular): west,south,east,north
 // Approximate Atyrau oblast boundary [lng, lat] — flares outside it are dropped
-// so neighbouring oblasts (Mangystau, West Kazakhstan, Astrakhan) are excluded.
+// so neighbouring oblasts (other oblasts and neighbouring regions) are excluded.
 const ATYRAU_OBLAST: [number, number][] = [
   [50.2, 47.3], [50.4, 48.2], [51.6, 48.9], [53.4, 48.7], [54.7, 47.9],
   [54.6, 46.9], [53.9, 46.2], [52.2, 45.6], [50.6, 46.3], [50.1, 47.0],

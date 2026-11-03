@@ -13,7 +13,7 @@ import { getRegion, hasModule, moduleUnavailable, type ModuleKey } from "@/data/
 // Су басқан аумақ бөлек: /api/flood-extent?format=csv
 //
 // `?region=<id>` — таңдалған аймақ. Ішкі эндпоинттерге де беріледі,
-// сондықтан Алматыны таңдағанда Атыраудың саны түспейді.
+// сондықтан басқа аймақтың саны араласпайды.
 
 export const dynamic = "force-dynamic";
 

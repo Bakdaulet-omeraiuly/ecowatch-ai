@@ -218,7 +218,7 @@ export function AnalysisDrawer({
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={{ type: "spring", damping: 28, stiffness: 280 }}
-          className="fixed right-0 top-14 z-40 flex h-[calc(100vh-3.5rem)] w-full max-w-md flex-col overflow-y-auto border-l border-white/10 bg-neutral-950/95 backdrop-blur"
+          className="absolute inset-y-0 right-0 z-40 flex w-full max-w-md flex-col overflow-y-auto border-l border-white/10 bg-neutral-950/95 backdrop-blur"
         >
           <div className="flex items-start justify-between p-4">
             <div>

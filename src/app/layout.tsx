@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import {
   GOOGLE_VERIFICATION, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL, siteJsonLd,
 } from "@/lib/seo";
-import { Geist, Geist_Mono } from "next/font/google";
+import { PT_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Navbar } from "@/components/layout/Navbar";
@@ -12,10 +12,15 @@ import { DisclaimerBanner } from "@/components/layout/DisclaimerBanner";
 import { Toaster } from "@/components/ui/sonner";
 import { PWARegister } from "@/components/layout/PWARegister";
 import { LanguageProvider } from "@/lib/i18n";
+import { SkipLink } from "@/components/layout/SkipLink";
+import { ScaleScope } from "@/components/layout/ScaleScope";
+import { AppFrame } from "@/components/layout/AppFrame";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+// PT Sans: кириллица мен қазақ әріптері (Ә, І, Ң, Ғ, Ү, Ұ, Қ, Ө, Һ) бар
+const ptSans = PT_Sans({
+  variable: "--font-pt-sans",
+  subsets: ["latin", "cyrillic", "cyrillic-ext"],
+  weight: ["400", "700"],
 });
 
 const geistMono = Geist_Mono({
@@ -69,7 +74,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#059669",
+  themeColor: "#0b3a6b",
 };
 
 export default function RootLayout({
@@ -80,7 +85,7 @@ export default function RootLayout({
   return (
     <html
       lang="kk"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${ptSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         {/* Құрылымдық дерек (JSON-LD) — Google-ге «бұл қандай сайт, қандай
@@ -91,14 +96,17 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd()) }}
         />
       </head>
-      <body className="flex min-h-full flex-col bg-neutral-950 text-neutral-100">
+      <body className="flex min-h-full flex-col bg-white text-neutral-900">
         <LanguageProvider>
-          <Navbar />
-          <main className="flex-1 pt-14">
-            <DisclaimerBanner />
-            {children}
-          </main>
-          <Footer />
+          <SkipLink />
+          <AppFrame>
+            <Navbar />
+            <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col">
+              <DisclaimerBanner />
+              <ScaleScope>{children}</ScaleScope>
+            </main>
+            <Footer />
+          </AppFrame>
           <FloatingReportButton />
           <Toaster position="top-center" richColors />
           <PWARegister />

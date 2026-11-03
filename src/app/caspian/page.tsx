@@ -8,14 +8,12 @@ import { TierBadge } from "@/components/ui/TierBadge";
 import { COUNTRY_FLAG, CASPIAN_FACTS, type CountryCode } from "@/data/regions";
 import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
 
-// КАСПИЙ ЖАҒАЛАУЫ — бес мемлекеттің қалаларын салыстыру.
+// КАСПИЙ ТЕҢІЗІ — анықтама беті.
 //
-// Бұл бет форум/презентация үшін жасалған: бір экранда бүкіл Каспий
-// жағалауының ауа сапасы, бір дереккөзден, бір уақытта.
-//
-// Ең маңызды әдістемелік нүкте: салыстыру ТЕҢ болуы керек. Барлық қала
-// бір сұраныспен, бір модельден алынған — сондықтан айырма нақты
-// жағдайдан туындайды, өлшеу әдісінен емес.
+// 2026-11: жүйе тек Атырау мен Каспий теңізіне шектелді. Бет Каспий туралы
+// ортақ мәтінді (CASPIAN_FACTS) және жағалаудағы Атырау қаласының тірі
+// ауа сапасын көрсетеді. Теңіз деңгейі мен су сапасы дереккөзі әлі
+// жалғанбаған — олар үшін ешқандай мән көрсетілмейді.
 
 interface Compliance {
   value: number | null; worst: ComplianceLevel; summary: string;
@@ -32,9 +30,8 @@ interface City {
 
 interface Data {
   fetchedAt: string; source: string; method: string;
-  littoralStates: number; citiesTotal: number; citiesWithData: number;
-  worst: string | null; best: string | null;
-  cities: City[];
+  littoralStates: number;
+  city: City;
   legalNote: string; caveats: string[];
 }
 
@@ -65,9 +62,6 @@ export default function CaspianPage() {
     return () => { cancelled = true; };
   }, []);
 
-  const sorted = d?.cities.slice().sort((a, b) => (b.values.aqi ?? -1) - (a.values.aqi ?? -1)) ?? [];
-  const maxAqi = Math.max(...sorted.map((c) => c.values.aqi ?? 0), 1);
-
   return (
     <main className="mx-auto max-w-5xl px-4 py-10 print:max-w-none print:py-0">
       <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
@@ -77,8 +71,8 @@ export default function CaspianPage() {
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-neutral-400">
             {tr(
-              "Бес мемлекеттің жағалау қалаларының ауа сапасы — бір дереккөзден, " +
-              "бір уақытта, бір әдіспен."
+              "Каспий — бес мемлекеттің ортақ су айдыны. Жағалаудағы Атырау " +
+              "қаласының ауа сапасы — тірі дерек."
             )}
           </p>
         </div>
@@ -92,7 +86,7 @@ export default function CaspianPage() {
 
       {loading ? (
         <div className="flex items-center gap-2 py-10 text-sm text-neutral-400">
-          <Loader2 className="h-4 w-4 animate-spin" /> {tr("Бес елдің деректері жиналуда…")}
+          <Loader2 className="h-4 w-4 animate-spin" /> {tr("Атырау деректері жүктелуде…")}
         </div>
       ) : err || !d ? (
         <p className="py-8 text-sm text-neutral-400">
@@ -100,31 +94,23 @@ export default function CaspianPage() {
         </p>
       ) : (
         <>
-          {/* Жиынтық */}
-          <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Stat label={tr("Жағалау мемлекеті")} value={String(d.littoralStates)} />
-            <Stat label={tr("Қала салыстырылды")} value={`${d.citiesWithData}/${d.citiesTotal}`} />
-            <Stat label={tr("Ең жоғары AQI")} value={d.worst ?? "—"} warn />
-            <Stat label={tr("Ең төмен AQI")} value={d.best ?? "—"} good />
-          </div>
-
           {/* Әдістеме — форумда ең жиі сұралатын нәрсе */}
           <div className="mb-6 rounded-xl border border-white/10 bg-white/[0.02] p-4">
             <div className="mb-1.5 flex items-center gap-2">
               <TierBadge tier="model" />
-              <span className="text-sm font-semibold text-sky-100">{tr("Салыстыру неге тең")}</span>
+              <span className="text-sm font-semibold text-sky-100">{tr("Дереккөз мен әдіс")}</span>
             </div>
             <p className="text-[13px] leading-relaxed text-sky-100/85">{d.method}</p>
             <p className="mt-1.5 text-[13px] text-neutral-400">{d.source}</p>
           </div>
 
-          {/* Рейтинг */}
+          {/* Атырау */}
           <section className="mb-8">
             <h2 className="mb-3 text-lg font-semibold text-white">
-              {tr("Ауа сапасы индексі бойынша")}
+              {tr("Атырау — ауа сапасы")}
             </h2>
             <div className="space-y-1.5">
-              {sorted.map((c) => (
+              {[d.city].map((c) => (
                 <div key={c.id} className="rounded-lg bg-white/[0.02] p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base">{COUNTRY_FLAG[c.country]}</span>
@@ -139,18 +125,6 @@ export default function CaspianPage() {
                       {c.values.aqi ?? "—"}
                       <span className="ml-1 text-[12px] font-normal text-neutral-400">AQI</span>
                     </span>
-                  </div>
-
-                  {/* Салыстырмалы жолақ */}
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/5">
-                    <div
-                      className={`h-full ${
-                        (c.values.aqi ?? 0) > 80 ? "bg-red-500"
-                        : (c.values.aqi ?? 0) > 50 ? "bg-orange-500"
-                        : (c.values.aqi ?? 0) > 25 ? "bg-amber-400" : "bg-emerald-500"
-                      }`}
-                      style={{ width: `${((c.values.aqi ?? 0) / maxAqi) * 100}%` }}
-                    />
                   </div>
 
                   <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
@@ -186,6 +160,13 @@ export default function CaspianPage() {
               {d.caveats.map((c, i) => (
                 <li key={i}>⚠ {c}</li>
               ))}
+              <li>
+                ⚠{" "}
+                {tr(
+                  "Каспий теңізінің деңгейі мен су сапасы бойынша дереккөз әлі " +
+                  "жалғанбаған — жалған дерек көрсетілмейді."
+                )}
+              </li>
             </ul>
             <p className="mt-2 text-[13px] leading-relaxed text-neutral-400">
               {CASPIAN_FACTS.note}
@@ -211,17 +192,6 @@ export default function CaspianPage() {
         }
       `}</style>
     </main>
-  );
-}
-
-function Stat({ label, value, warn, good }: { label: string; value: string; warn?: boolean; good?: boolean }) {
-  return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.02] px-3 py-2">
-      <div className="text-[12px] uppercase tracking-wide text-neutral-400">{label}</div>
-      <div className={`truncate text-base font-bold ${warn ? "text-orange-300" : good ? "text-emerald-300" : "text-white"}`}>
-        {value}
-      </div>
-    </div>
   );
 }
 

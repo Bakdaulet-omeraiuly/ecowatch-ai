@@ -946,7 +946,7 @@ export function MapView() {
 
   if (!token) {
     return (
-      <div className="flex h-[calc(100vh-3.5rem)] items-center justify-center">
+      <div className="flex min-h-0 flex-1 items-center justify-center">
         <div className="max-w-md rounded-xl border border-white/10 bg-amber-500/5 p-6 text-center">
           <Satellite className="mx-auto mb-3 h-8 w-8 text-amber-400" />
           <h2 className="mb-2 font-semibold text-white">Mapbox токені керек</h2>
@@ -961,7 +961,7 @@ export function MapView() {
   }
 
   return (
-    <div className="relative h-[calc(100dvh-3.5rem)] overflow-hidden">
+    <div className="relative min-h-0 flex-1 overflow-hidden">
       <Map
         ref={mapRef}
         mapboxAccessToken={token}

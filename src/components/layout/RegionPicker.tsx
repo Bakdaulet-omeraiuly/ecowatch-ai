@@ -1,17 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MapPin, ChevronDown, Check, Waves } from "lucide-react";
+import { MapPin, ChevronDown, Check } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useRegionStore } from "@/store/useRegionStore";
 import { COUNTRY_FLAG, MODULE_KZ, REGIONS, getRegion, missingModules } from "@/data/regions";
 
 // АЙМАҚ ТАҢДАҒЫШ — навигация жолағында.
 //
-// Аймақтар екі топқа бөлінген:
-//   · Қазақстан — толық немесе ішінара қолдау
-//   · Каспий жағалауы (басқа елдер) — тек ауа сапасы, ҚР нормативтері
-//     ҚОЛДАНЫЛМАЙДЫ (әр елдің өз нормасы бар, бізде олар жоқ)
+// 2026-11: жүйе тек Атырау мен Каспий теңізіне шектелді — тізімде тек
+// Атырау бар, Каспий теңізі бетіне сілтеме төменде.
 //
 // Қолдау деңгейі әр жолда ашық жазылады — пайдаланушы қандай дерек бар
 // екенін алдын ала біледі. Аймақта ЖОҚ модульдер де сол жерде тізіледі:
@@ -34,7 +32,6 @@ export function RegionPicker({ compact }: { compact?: boolean }) {
   }, []);
 
   const kz = REGIONS.filter((r) => r.country === "KZ");
-  const caspian = REGIONS.filter((r) => r.country !== "KZ");
 
   return (
     <div ref={ref} className="relative">
@@ -56,20 +53,7 @@ export function RegionPicker({ compact }: { compact?: boolean }) {
           <Group title={tr("Қазақстан")}>
             {kz.map((r) => (
               <Row
-                key={r.id} region={r} active={r.id === regionId} tr={tr}
-                onPick={() => { setRegion(r.id); setOpen(false); }}
-              />
-            ))}
-          </Group>
-
-          <Group
-            title={tr("Каспий жағалауы — басқа елдер")}
-            icon={Waves}
-            note={tr("ҚР нормативтері қолданылмайды — тек WHO эталоны")}
-          >
-            {caspian.map((r) => (
-              <Row
-                key={r.id} region={r} active={r.id === regionId} tr={tr}
+                key={r.id} region={r} active={r.id === current.id} tr={tr}
                 onPick={() => { setRegion(r.id); setOpen(false); }}
               />
             ))}
@@ -79,7 +63,7 @@ export function RegionPicker({ compact }: { compact?: boolean }) {
             href="/caspian"
             className="block border-t border-white/10 px-3 py-2 text-[13px] text-sky-300 transition hover:bg-white/5"
           >
-            🌊 {tr("Каспий бойынша салыстыру бетін ашу")} →
+            🌊 {tr("Каспий теңізі бетін ашу")} →
           </a>
         </div>
       )}
