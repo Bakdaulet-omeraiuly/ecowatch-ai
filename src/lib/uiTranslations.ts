@@ -665,6 +665,29 @@ Object.assign(UI_TR, {
   "Таңдалған кезеңде жылу аномалиясы табылмады.": { ru: "За выбранный период тепловых аномалий не найдено.", en: "No thermal anomalies found for the selected period." },
   "Легенда": { ru: "Легенда", en: "Legend" },
   "Шеңбер өлшемі — жылу қуатына (FRP) сай. Дереккөз: NASA FIRMS (VIIRS 375м), архив.": { ru: "Размер круга — по мощности теплового излучения (FRP). Источник: NASA FIRMS (VIIRS 375м), архив.", en: "Circle size reflects radiative power (FRP). Source: NASA FIRMS (VIIRS 375m), archive." },
+  // /api/flares 503 мәтіндері — сервер жолымен дәл сәйкес
+  "FIRMS кілті бапталмаған": { ru: "Ключ FIRMS не настроен", en: "FIRMS key is not configured" },
+  "FIRMS деректері уақытша қолжетімсіз": { ru: "Данные FIRMS временно недоступны", en: "FIRMS data temporarily unavailable" },
+
+  // Қамыс өрті тәуекелі — түтін бағыты (P4.5)
+  "Қамыс өрті — түтін бағыты": { ru: "Пожар в тростнике — направление дыма", en: "Reed fire — smoke direction" },
+  "Өндірістік алаулар қамыс өртіне саналмайды.": { ru: "Промышленные факелы не считаются пожарами в тростнике.", en: "Industrial flares are never counted as reed fires." },
+  "жел деректері жоқ — бағыт есептелмеді": { ru: "нет данных о ветре — направление не рассчитано", en: "no wind data — direction not calculated" },
+  "Қамыс мекені деректері қолжетімсіз": { ru: "Данные о тростниковых угодьях недоступны", en: "Reed habitat data unavailable" },
+  "FIRMS NRT (соңғы 2 тәулік) қолжетімсіз": { ru: "FIRMS NRT (последние 2 суток) недоступен", en: "FIRMS NRT (last 2 days) unavailable" },
+  "қамыс терезесі (NDVI)": { ru: "окна тростника (NDVI)", en: "reed windows (NDVI)" },
+  "қамыс аймағындағы аномалия (365 күн)": { ru: "аномалий в зоне тростника (365 дней)", en: "anomalies in reed zones (365 days)" },
+  "соңғы 2 тәулік": { ru: "последние 2 суток", en: "last 2 days" },
+  "Соңғы 2 тәулікте қамыс аймағында аномалия жоқ — конус сызылмайды.": { ru: "За последние 2 суток аномалий в зоне тростника нет — конус не строится.", en: "No anomalies in reed zones in the last 2 days — no cone is drawn." },
+  "Конус ішіндегі елді мекендер": { ru: "Населённые пункты в конусе", en: "Settlements inside the cone" },
+  "Конус ішінде елді мекен жоқ": { ru: "В конусе нет населённых пунктов", en: "No settlements inside the cone" },
+  "Қамыс аймағы — Sentinel-2 NDVI проксиі (бақылау терезесі), қамыс картасы емес. Конус: Pasquill D класы + жел бағытының ауытқуы. Жел: Open-Meteo, ағымдағы жел — өрт кезіндегі жел емес.": {
+    ru: "Зона тростника — прокси Sentinel-2 NDVI (окно наблюдения), а не карта тростника. Конус: класс Pasquill D + разброс направления ветра. Ветер: Open-Meteo, текущий ветер — не ветер в момент пожара.",
+    en: "Reed zone — Sentinel-2 NDVI proxy (monitoring window), not a reed map. Cone: Pasquill class D + wind-direction spread. Wind: Open-Meteo, current wind — not the wind at the time of the fire.",
+  },
+  // /api/reed-habitat 503 мәтіндері — сервер жолымен дәл сәйкес
+  "Copernicus кілттері бапталмаған — жалған дерек көрсетілмейді": { ru: "Ключи Copernicus не настроены — ложные данные не показываются", en: "Copernicus keys are not configured — no fake data is shown" },
+  "Қамыс мекені деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді": { ru: "Данные о тростниковых угодьях временно недоступны — ложные данные не показываются", en: "Reed habitat data temporarily unavailable — no fake data is shown" },
 });
 
 export function translate(s: string, lang: "kk" | "ru" | "en"): string {

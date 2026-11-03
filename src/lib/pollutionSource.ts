@@ -477,7 +477,7 @@ function buildForecastFrames(
 }
 
 // Берілген нүктеден bearing бағытымен distKm қашықтықтағы нүкте (жергілікті жуықтау)
-function destPoint(lat: number, lng: number, bearingDeg: number, distKm: number): [number, number] {
+export function destPoint(lat: number, lng: number, bearingDeg: number, distKm: number): [number, number] {
   const b = (bearingDeg * Math.PI) / 180;
   const dLat = (distKm / 111) * Math.cos(b);
   const dLng = (distKm / (111 * Math.cos((lat * Math.PI) / 180))) * Math.sin(b);

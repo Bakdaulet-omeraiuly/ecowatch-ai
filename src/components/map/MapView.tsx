@@ -15,7 +15,11 @@ import { plumeCone } from "@/lib/pollutionSource";
 import { FacilityCardView } from "@/components/object/FacilityCardView";
 import { buildFacilityCard } from "@/lib/facilityCard";
 import { FACILITIES } from "@/data/facilities";
-import { MIN_VISUAL_HALF_ANGLE } from "@/lib/dispersion";
+import { MIN_VISUAL_HALF_ANGLE, bearingStdDev } from "@/lib/dispersion";
+import {
+  reedPolygons, reedFireAnomalies, reedAnomalyKey, smokeCone, noWindRing,
+  type SmokeCone, type ReedFireAnomaly,
+} from "@/lib/reedFire";
 import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { ATMOS_ELEMENTS, ATMOS_CATEGORIES, type AtmosElement } from "@/data/atmosElements";
@@ -75,7 +79,7 @@ import { isDispersionWindMissing, type WindHourlySeries } from "@/lib/windGrid";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares, useFireArchive,
-  usePollutionSource,
+  usePollutionSource, useReedHabitat,
   type AirGridPoint, type MosquitoGridPoint, type PollutionSourceCandidate,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
@@ -88,6 +92,8 @@ import { LayerIndexNote } from "@/components/map/LayerIndexNote";
 import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
+/** Қамыс өрті: карта белгілері мен панель тізімі шектеледі — карта толып кетпеуі үшін */
+const REED_MARKER_CAP = 20;
 
 const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
   mosquito: Bug,
@@ -150,6 +156,20 @@ function flaresAdvice(count: number): string {
   if (count <= 3) return "Бірнеше жылу аномалиясы — расталған өрт емес, тек спутниктің жылу сигналы.";
   if (count <= 10) return "Жылу аномалиялары орташа — факел, өрт немесе жалынды спутник ажыратпайды.";
   return "Жылу аномалиялары көп — бұл расталған өрт емес; себебін жердегі тексеру анықтайды.";
+}
+/** Дереккөз 503 қайтарғанда — себебімен қызыл қорап (жалған дерек көрсетілмейді) */
+function SourceErrorBox({ title, err, tr }: {
+  title: string;
+  err: { error: string; reason?: string };
+  tr: (s: string) => string;
+}) {
+  return (
+    <div className="mb-2 rounded-md border border-red-500/40 bg-red-500/10 p-2 text-[12px] leading-snug text-red-200">
+      <div>{title}: {tr(err.error)}</div>
+      {err.reason && <div className="mt-1 text-red-300/80">{tr("Себебі")}: {tr(err.reason)}</div>}
+      <div className="mt-1 text-neutral-400">{tr("Жалған дерек көрсетілмейді.")}</div>
+    </div>
+  );
 }
 function compassKz(deg: number): string {
   const dirs = ["Солтүстік", "Солтүстік-шығыс", "Шығыс", "Оңтүстік-шығыс", "Оңтүстік", "Оңтүстік-батыс", "Батыс", "Солтүстік-батыс"];
@@ -348,10 +368,16 @@ export function MapView() {
 
   const { flood, river, floodError, floodMissing } = useFlood(activeLayer === "water");
 
-  const { flares, flaresError } = useFlares(activeLayer === "oil");
+  // FIRMS NRT + архив: «oil» қабатында көрсетіледі, «fire» қабатында қамыс өрті
+  // тәуекелі (P4.5) үшін де қажет
+  const firmsWanted = activeLayer === "oil" || activeLayer === "fire";
+  const { flares, flaresError, flaresReason } = useFlares(firmsWanted);
 
   // FIRMS архиві — 365 күн жүктеледі; пресет уақыт сүзгісі туынды мән ретінде есептеледі
-  const { archive: fireArchive, archiveError: fireArchiveError } = useFireArchive(activeLayer === "oil");
+  const { archive: fireArchive, archiveError: fireArchiveError } = useFireArchive(firmsWanted);
+
+  // Қамыс мекені (Sentinel-2 NDVI проксиі) — тек «fire» қабатында
+  const { reed, reedError } = useReedHabitat(activeLayer === "fire");
   const [firePreset, setFirePreset] = useState<number>(365);
   const fireAnomalies = useMemo(() => {
     if (!fireArchive) return [];
@@ -404,14 +430,95 @@ export function MapView() {
   const [windError, setWindError] = useState(false);
   // Жел қабаты белсенді болғанда ЖӘНE таралу панелі ашылғанда (P2.4 слайдері жел
   // деректеріне тәуелді — сұрланатынын шешу үшін) жүктеледі
+  // «fire» қабатында да: қамыс өрті түтінінің бағыты (P4.5) желге тәуелді
   useEffect(() => {
-    if (activeLayer !== "wind" && !sourceMode) return;
+    if (activeLayer !== "wind" && activeLayer !== "fire" && !sourceMode) return;
     setWindError(false);
     fetch("/api/windgrid")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then(setWindData)
       .catch(() => setWindError(true));
   }, [activeLayer, sourceMode]);
+
+  // ҚАМЫС ӨРТІ ТӘУЕКЕЛІ (P4.5) — 📊 модель (src/lib/reedFire.ts).
+  // Қамыс «полигоны» — NDVI проксиі бар бақылау терезесі. Өндірістік алау
+  // ЕШҚАШАН саналмайды. Конус — тек соңғы 2 тәуліктегі (NRT) аномалияға:
+  // бүгінгі желмен бірнеше ай бұрынғы өрттің түтінін сызу жаңылыстырады.
+  const reedPolys = useMemo(() => reedPolygons(reed ?? []), [reed]);
+  const reedAnoms = useMemo(
+    () => reedFireAnomalies([...(fireArchive?.anomalies ?? []), ...(flares ?? [])], reedPolys),
+    [fireArchive, flares, reedPolys]
+  );
+  const reedRecent = useMemo(() => {
+    const recentKeys = new Set((flares ?? []).map(reedAnomalyKey));
+    return reedAnoms.filter((a) => recentKeys.has(reedAnomalyKey(a)));
+  }, [reedAnoms, flares]);
+  // Жел әлі жүктелуде — конус та, «жел жоқ» белгісі де салынбайды
+  const reedWindLoading = !windData && !windError;
+  const reedCones = useMemo((): { a: ReedFireAnomaly; cone: SmokeCone }[] => {
+    if (reedWindLoading) return [];
+    const dirSigmaDeg = bearingStdDev(
+      (windData?.hourly?.past ?? [])
+        .slice(-12)
+        .map((h) => h.dominantDir)
+        .filter((n): n is number => n != null)
+    );
+    const grid = windError ? null : windData?.grid;
+    return reedRecent.map((a) => ({ a, cone: smokeCone(a, grid, { dirSigmaDeg }) }));
+  }, [reedRecent, reedWindLoading, windData, windError]);
+  const reedZonesGeo = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: reedPolys.map((p) => ({
+        type: "Feature" as const,
+        properties: { id: p.id, denseFraction: p.denseFraction },
+        geometry: { type: "Polygon" as const, coordinates: [p.ring] },
+      })),
+    }),
+    [reedPolys]
+  );
+  const reedAnomGeo = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: reedAnoms.map((a) => ({
+        type: "Feature" as const,
+        properties: { frp: a.frp, date: a.acqDate },
+        geometry: { type: "Point" as const, coordinates: [a.lng, a.lat] },
+      })),
+    }),
+    [reedAnoms]
+  );
+  const reedConeGeo = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: reedCones.flatMap(({ cone }) =>
+        cone.status === "ok"
+          ? [{
+              type: "Feature" as const,
+              properties: {},
+              geometry: { type: "Polygon" as const, coordinates: [cone.ring] },
+            }]
+          : []
+      ),
+    }),
+    [reedCones]
+  );
+  const reedNoWindGeo = useMemo(
+    () => ({
+      type: "FeatureCollection" as const,
+      features: reedCones.flatMap(({ a, cone }) =>
+        cone.status === "no-wind"
+          ? [{
+              type: "Feature" as const,
+              properties: {},
+              geometry: { type: "LineString" as const, coordinates: noWindRing(a) },
+            }]
+          : []
+      ),
+    }),
+    [reedCones]
+  );
+  const reedNoWind = reedCones.length > 0 && reedCones.every((c) => c.cone.status === "no-wind");
 
   // Құрғақшылық (SPI) — қабат белсенді болғанда жүктеледі
   const [droughtData, setDroughtData] = useState<{
@@ -1254,6 +1361,72 @@ export function MapView() {
           </Source>
         )}
 
+        {/* ҚАМЫС ӨРТІ ТӘУЕКЕЛІ (P4.5): қамыс терезелері (NDVI проксиі) */}
+        {activeLayer === "fire" && reedPolys.length > 0 && (
+          <Source id="reed-zones" type="geojson" data={reedZonesGeo}>
+            <Layer id="reed-zones-fill" type="fill" paint={{ "fill-color": "#22c55e", "fill-opacity": 0.12 }} />
+            <Layer id="reed-zones-outline" type="line" paint={{ "line-color": "#22c55e", "line-width": 1.5, "line-opacity": 0.7 }} />
+          </Source>
+        )}
+        {/* Түтін конусы — 📊 модель нәтижесі (тек соңғы 2 тәулік) */}
+        {activeLayer === "fire" && reedConeGeo.features.length > 0 && (
+          <Source id="reed-smoke-cones" type="geojson" data={reedConeGeo}>
+            <Layer id="reed-smoke-cones-fill" type="fill" paint={{ "fill-color": "#7dd3fc", "fill-opacity": 0.15 }} />
+            <Layer
+              id="reed-smoke-cones-outline"
+              type="line"
+              paint={{ "line-color": "#7dd3fc", "line-width": 2, "line-opacity": 0.55, "line-dasharray": [3, 2] }}
+            />
+          </Source>
+        )}
+        {/* Жел жоқ — бағыт есептелмеді: сұр үзік шеңбер (конус сызылмайды) */}
+        {activeLayer === "fire" && reedNoWindGeo.features.length > 0 && (
+          <Source id="reed-no-wind" type="geojson" data={reedNoWindGeo}>
+            <Layer
+              id="reed-no-wind-ring"
+              type="line"
+              paint={{ "line-color": "#9ca3af", "line-width": 1.5, "line-dasharray": [2, 2] }}
+            />
+          </Source>
+        )}
+        {/* Қамыс аймағындағы жылу аномалиялары (өндірістік алаусыз) */}
+        {activeLayer === "fire" && reedAnoms.length > 0 && (
+          <Source id="reed-anomalies" type="geojson" data={reedAnomGeo}>
+            <Layer
+              id="reed-anomalies-circle"
+              type="circle"
+              paint={{
+                "circle-radius": ["interpolate", ["linear"], ["get", "frp"], 0, 4, 50, 8, 200, 14],
+                "circle-color": "#fb923c",
+                "circle-opacity": 0.85,
+                "circle-stroke-width": 1,
+                "circle-stroke-color": "#111827",
+              }}
+            />
+          </Source>
+        )}
+        {activeLayer === "fire" &&
+          reedCones.slice(0, REED_MARKER_CAP).map(({ a, cone }) => (
+            <Marker
+              key={`reed-lbl-${reedAnomalyKey(a)}`}
+              latitude={a.lat}
+              longitude={a.lng}
+              anchor="bottom"
+              offset={[0, -10]}
+            >
+              {cone.status === "ok" ? (
+                <div className="flex items-center gap-1 rounded-md border border-sky-400/40 bg-neutral-900/90 px-1.5 py-0.5 text-[11px] text-sky-200 shadow">
+                  <TierBadge tier="model" />
+                  <span>{tr("Модель нәтижесі")}</span>
+                </div>
+              ) : (
+                <div className="rounded-md border border-dashed border-neutral-500 bg-neutral-900/90 px-1.5 py-0.5 text-[11px] text-neutral-300 shadow">
+                  {tr("жел деректері жоқ — бағыт есептелмеді")}
+                </div>
+              )}
+            </Marker>
+          ))}
+
         {/* Analysis points (non-photo) for the current imagery year */}
         {allSites
           .filter((s) => !s.photoThumb)
@@ -1857,6 +2030,109 @@ export function MapView() {
               </>
             )}
             <LayerIndexNote layer="fire" />
+          </div>
+        )}
+
+        {/* Қамыс өрті — түтін бағыты (P4.5) — 📊 модель */}
+        {activeLayer === "fire" && (
+          <div className="w-full rounded-lg border border-neutral-800 bg-neutral-900/95 p-3 backdrop-blur">
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="text-[13px] font-semibold text-neutral-100">{tr("Қамыс өрті — түтін бағыты")}</span>
+              <span className="flex items-center gap-1 text-[11px] text-neutral-400">
+                <TierBadge tier="model" /> {tr("Модель нәтижесі")}
+              </span>
+            </div>
+            <div className="mb-2 rounded-md border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-[12px] leading-snug">
+              <div className="font-semibold text-neutral-100">{tr("Жылу аномалиясы расталған өрт емес")}</div>
+              <div className="text-neutral-400">{tr("Өндірістік алаулар қамыс өртіне саналмайды.")}</div>
+            </div>
+
+            {reedError && (
+              <SourceErrorBox title={tr("Қамыс мекені деректері қолжетімсіз")} err={reedError} tr={tr} />
+            )}
+            {fireArchiveError && (
+              <SourceErrorBox title={tr("FIRMS архиві қолжетімсіз")} err={fireArchiveError} tr={tr} />
+            )}
+            {flaresError && (
+              <SourceErrorBox
+                title={tr("FIRMS NRT (соңғы 2 тәулік) қолжетімсіз")}
+                err={{ error: flaresError, reason: flaresReason ?? undefined }}
+                tr={tr}
+              />
+            )}
+
+            {!reedError && (!reed || (!fireArchive && !fireArchiveError) || (!flares && !flaresError)) ? (
+              <p className="text-[13px] text-neutral-400">{tr("Жүктелуде…")}</p>
+            ) : reed ? (
+              <>
+                {fireArchive && !fireArchive.complete && (
+                  <div className="mb-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-2 text-[12px] leading-snug text-amber-200">
+                    ⚠️ {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
+                  </div>
+                )}
+                {/* Әр тақта ӨЗ дереккөзіне тәуелді: дереккөз сәтсіз болса — «—»,
+                    ешқашан 0 немесе басқа дереккөздің саны емес */}
+                <div className="mb-2 grid grid-cols-3 gap-1 text-center">
+                  <div className="rounded bg-white/5 p-1.5">
+                    <div className="text-sm font-bold text-green-300">{reedPolys.length}</div>
+                    <div className="text-[11px] leading-tight text-neutral-400">{tr("қамыс терезесі (NDVI)")}</div>
+                  </div>
+                  <div className="rounded bg-white/5 p-1.5">
+                    {/* Архив сәтсіз → reedAnoms тек NRT-тен құралған, 365 күн емес */}
+                    <div className="text-sm font-bold text-orange-300">{fireArchiveError ? "—" : reedAnoms.length}</div>
+                    <div className="text-[11px] leading-tight text-neutral-400">{tr("қамыс аймағындағы аномалия (365 күн)")}</div>
+                  </div>
+                  <div className="rounded bg-white/5 p-1.5">
+                    {/* NRT сәтсіз → саны белгісіз, 0 емес */}
+                    <div className="text-sm font-bold text-orange-200">{flaresError ? "—" : reedRecent.length}</div>
+                    <div className="text-[11px] leading-tight text-neutral-400">{tr("соңғы 2 тәулік")}</div>
+                  </div>
+                </div>
+
+                {flaresError ? null : reedRecent.length === 0 ? (
+                  <p className="text-[12px] text-neutral-400">
+                    {tr("Соңғы 2 тәулікте қамыс аймағында аномалия жоқ — конус сызылмайды.")}
+                  </p>
+                ) : reedWindLoading ? (
+                  <p className="text-[12px] text-neutral-400">{tr("Жүктелуде…")}</p>
+                ) : windError || reedNoWind ? (
+                  <div className="flex items-center gap-2 text-[12px] text-neutral-300">
+                    <span className="inline-block h-3.5 w-3.5 shrink-0 rounded-full border-[1.5px] border-dashed border-[#9ca3af]" />
+                    {tr("жел деректері жоқ — бағыт есептелмеді")}
+                  </div>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {reedCones.slice(0, REED_MARKER_CAP).map(({ a, cone }) => (
+                      <li key={reedAnomalyKey(a)} className="rounded-md bg-white/5 p-2 text-[12px] leading-snug">
+                        <div className="text-neutral-400">
+                          {a.acqDate} · {a.zoneName} · FRP {a.frp} MW
+                        </div>
+                        {cone.status === "ok" ? (
+                          <>
+                            <div className="text-neutral-100">
+                              → {tr(compassKz(cone.downwind))} ({Math.round(cone.downwind)}°) · {cone.lengthKm} км · ±{cone.halfAngleDeg}°
+                            </div>
+                            <div className="mt-0.5 text-neutral-300">
+                              {cone.settlements.length > 0
+                                ? `${tr("Конус ішіндегі елді мекендер")}: ${cone.settlements
+                                    .map((s) => `${s.name} (${s.distanceKm} км)`)
+                                    .join(", ")}`
+                                : tr("Конус ішінде елді мекен жоқ")}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="text-neutral-300">{tr("жел деректері жоқ — бағыт есептелмеді")}</div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : null}
+
+            <p className="mt-2 text-[11px] leading-snug text-neutral-500">
+              {tr("Қамыс аймағы — Sentinel-2 NDVI проксиі (бақылау терезесі), қамыс картасы емес. Конус: Pasquill D класы + жел бағытының ауытқуы. Жел: Open-Meteo, ағымдағы жел — өрт кезіндегі жел емес.")}
+            </p>
           </div>
         )}
 

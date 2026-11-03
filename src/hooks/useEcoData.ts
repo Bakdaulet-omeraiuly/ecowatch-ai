@@ -364,18 +364,24 @@ export function useFlares(enabled: boolean) {
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [flares, setFlares] = useState<Flare[] | null>(null);
   const [flaresError, setFlaresError] = useState<string | null>(null);
+  // 503 себебі (`reason`) — бөлек сақталады, `flaresError` жолы өзгермейді
+  // (MapView оны нақты мәтінмен салыстырады)
+  const [flaresReason, setFlaresReason] = useState<string | null>(null);
   useEffect(() => {
     if (!enabled || loadedFor === region.id) return;
     fetch(`/api/flares?region=${region.id}`)
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) => {
         if (ok) setFlares(d.flares ?? []);
-        else setFlaresError(d.error ?? "Қолжетімсіз");
+        else {
+          setFlaresError(d.error ?? "Қолжетімсіз");
+          setFlaresReason(typeof d.reason === "string" ? d.reason : null);
+        }
       })
       .catch(() => setFlaresError("Қолжетімсіз"))
       .finally(() => setLoadedFor(region.id));
   }, [enabled, loadedFor, region.id]);
-  return { flares, flaresError };
+  return { flares, flaresError, flaresReason };
 }
 
 // FIRMS архиві (P4.4) — Атырау бойынша 365 күн. Уақыт сүзгісі клиентте
@@ -435,4 +441,45 @@ export function useFireArchive(enabled: boolean) {
       .finally(() => setLoadedFor(region.id));
   }, [enabled, loadedFor, region.id]);
   return { archive, archiveError };
+}
+
+// Қамыс мекені (Sentinel-2 NDVI проксиі) — бақылау терезелері бойынша.
+// ⚠️ Қамыс картасы емес. 503 → себебі (`error` + бар болса `reason`), мок жоқ.
+export interface ReedHabitatZone {
+  id: string;
+  name: string;
+  bbox: [number, number, number, number];
+  denseFraction: number | null;
+  suitability: number | null;
+  observedDate: string | null;
+  usableDates: number;
+  status: "ok" | "no-data";
+}
+export interface ReedHabitatError {
+  error: string;
+  reason?: string;
+}
+
+export function useReedHabitat(enabled: boolean) {
+  const region = useRegion();
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [reed, setReed] = useState<ReedHabitatZone[] | null>(null);
+  const [reedError, setReedError] = useState<ReedHabitatError | null>(null);
+  useEffect(() => {
+    if (!enabled || loadedFor === region.id) return;
+    fetch(`/api/reed-habitat?region=${region.id}`)
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (ok && d.available !== false) {
+          setReed((d.zones ?? []) as ReedHabitatZone[]);
+          setReedError(null);
+        } else {
+          setReed(null);
+          setReedError({ error: d.error ?? "Қолжетімсіз", reason: d.reason });
+        }
+      })
+      .catch(() => setReedError({ error: "Қолжетімсіз" }))
+      .finally(() => setLoadedFor(region.id));
+  }, [enabled, loadedFor, region.id]);
+  return { reed, reedError };
 }
