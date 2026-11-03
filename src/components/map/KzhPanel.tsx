@@ -16,7 +16,7 @@ import { useLang } from "@/lib/i18n";
 const fmt = (v: number) => (v >= 100 ? Math.round(v).toString() : v.toFixed(1));
 
 export function KzhPanel({ elem, regionId }: { elem: AtmosElement; regionId: string }) {
-  const { tr } = useLang();
+  const { tr, t } = useLang();
   const noModelNote = elem.noModel && (
     <p className="mb-1.5 text-[12px] leading-snug text-amber-200/80">
       ⚠ {tr("Бұл затты спутник те, CAMS моделі де ӨЛШЕМЕЙДІ — картада тор жоқ. «Дерек жоқ» ≠ «ауа таза».")}
@@ -68,6 +68,14 @@ export function KzhPanel({ elem, regionId }: { elem: AtmosElement; regionId: str
               {tr("бюллетень")}, {tr("бет")} {last.page}
             </a>
           </p>
+          <dl className="mt-1.5 grid grid-cols-[auto_1fr] gap-x-2 gap-y-0.5 text-[11px] leading-snug text-neutral-400">
+            <dt className="font-semibold text-neutral-300">{t("air.freq")}</dt>
+            <dd>{t("air.freq.kzh")}</dd>
+            <dt className="font-semibold text-neutral-300">{t("air.quality")}</dt>
+            <dd>{t("air.q.kzh")}</dd>
+            <dt className="font-semibold text-neutral-300">{t("air.uncertainty")}</dt>
+            <dd>{t("air.u.kzh")}</dd>
+          </dl>
         </>
       ) : (
         <p className="text-[12px] text-neutral-400">{tr("Бюллетеньде бұл зат бойынша дерек жоқ.")}</p>

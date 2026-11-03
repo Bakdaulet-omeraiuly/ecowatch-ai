@@ -1,5 +1,5 @@
 import { PLACES } from "@/data/facilities";
-import { checkCompliance, type ComplianceLevel } from "@/lib/compliance";
+import { checkCompliance, HOURLY_BASIS, type ComplianceLevel } from "@/lib/compliance";
 import type { PlumeFrame } from "@/lib/pollutionSource";
 
 // ЛАСТАНУ ОҚИҒАСЫНЫҢ САҒАТТЫҚ ХРОНОЛОГИЯСЫ.
@@ -133,12 +133,12 @@ export function buildTimeline(
     // гигиеналық нормасы жоқ: біріншісі PM₁₀ арқылы реттеледі, екіншісі
     // уыттылық емес, ағу көрсеткіші. Сондықтан олар тек ӨЛШЕМ ретінде.
     const c = {
-      so2: checkCompliance("so2", air.so2, jurisdiction),
-      no2: checkCompliance("no2", air.no2, jurisdiction),
-      pm: checkCompliance("pm10", air.pm, jurisdiction),
-      pm25: checkCompliance("pm25", air.pm25 ?? null, jurisdiction),
-      ozone: checkCompliance("ozone", air.ozone ?? null, jurisdiction),
-      co: checkCompliance("co", air.co ?? null, jurisdiction),
+      so2: checkCompliance("so2", air.so2, jurisdiction, HOURLY_BASIS),
+      no2: checkCompliance("no2", air.no2, jurisdiction, HOURLY_BASIS),
+      pm: checkCompliance("pm10", air.pm, jurisdiction, HOURLY_BASIS),
+      pm25: checkCompliance("pm25", air.pm25 ?? null, jurisdiction, HOURLY_BASIS),
+      ozone: checkCompliance("ozone", air.ozone ?? null, jurisdiction, HOURLY_BASIS),
+      co: checkCompliance("co", air.co ?? null, jurisdiction, HOURLY_BASIS),
     };
 
     return {

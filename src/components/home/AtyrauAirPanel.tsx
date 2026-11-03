@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLang } from "@/lib/i18n";
 import type { AirReading, Pollutant } from "@/lib/airReading";
 import type { RiskAssessment, RiskLevel } from "@/lib/atyrauAir";
+import { Badge, BADGE } from "@/components/air/SourceBadge";
 
 // Атырау ауа панелі: 7 көрсеткіш (SO₂, CO, NO₂, H₂S, NO, PM₂.₅, PM₁₀).
 // Мәндер ТЕК /api/atyrau-air-дан (CAMS модель + OpenAQ станса). Мок, кездейсоқ
@@ -40,13 +41,6 @@ const RISK_STYLE: Record<RiskLevel, string> = {
   "insufficient-data": "border-neutral-500 bg-neutral-100 text-neutral-900",
 };
 
-const BADGE = {
-  ground: "border-emerald-800 bg-emerald-50 text-emerald-900",
-  model: "border-sky-800 bg-sky-50 text-sky-900",
-  satellite: "border-violet-800 bg-violet-50 text-violet-900",
-  none: "border-neutral-500 bg-white text-neutral-900",
-} as const;
-
 const LOCALE: Record<string, string> = { kk: "kk-KZ", ru: "ru-RU", en: "en-GB" };
 
 const AVG_KEY: Record<string, string> = {
@@ -57,14 +51,6 @@ const AVG_KEY: Record<string, string> = {
   "8h": "air.avg.8h",
   unknown: "air.avg.unknown",
 };
-
-function Badge({ kind, children }: { kind: keyof typeof BADGE; children: React.ReactNode }) {
-  return (
-    <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-bold ${BADGE[kind]}`}>
-      {children}
-    </span>
-  );
-}
 
 export function AtyrauAirPanel() {
   const { t, lang } = useLang();

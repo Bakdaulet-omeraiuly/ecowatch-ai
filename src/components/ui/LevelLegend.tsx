@@ -14,7 +14,7 @@ import { LEVEL_COLOR, LEVEL_MEANING, type ComplianceLevel } from "@/lib/complian
 // Ең маңыздысы — «расталмаған» деңгейді ажырату: ол заңдық тұжырым емес.
 
 const ORDER: ComplianceLevel[] = [
-  "ok", "approaching", "exceeded", "exceeded-unverified", "unknown",
+  "ok", "approaching", "exceeded", "exceeded-unverified", "not-comparable", "unknown",
 ];
 
 export function LevelLegend({

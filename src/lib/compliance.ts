@@ -10,21 +10,37 @@
 
 import {
   ACTS, AVERAGING_KZ, LEGAL_DISCLAIMER, normsFor,
-  type LegalAct, type LegalNorm,
+  type Averaging, type LegalAct, type LegalNorm,
 } from "@/data/legalNorms";
+
+/**
+ * Мәннің орташалау базасы: ол НЕНІҢ орташасы екенін білдіреді.
+ * Норма тек бірдей кезеңде салыстырылады (Г.2): сағаттық мәнді тәуліктік,
+ * 8 сағаттық немесе жылдық шекпен салыстыруға БОЛМАЙДЫ.
+ */
+export interface ComparisonBasis {
+  averaging: Averaging;
+  /** Орташаланған терезенің ұзындығы, сағатпен (сағаттық = 1, тәуліктік = 24) */
+  windowHours: number;
+}
+
+/** Лездік/сағаттық мән (CAMS сағаттық қатар, ағымдағы өлшем). */
+export const HOURLY_BASIS: ComparisonBasis = { averaging: "hourly", windowHours: 1 };
 
 export type ComplianceLevel =
   | "ok" // нормадан төмен
   | "approaching" // нормаға жақындады (≥80%)
   | "exceeded" // расталған норма асқан — заңдық белгі
   | "exceeded-unverified" // норма асқан, бірақ шек расталмаған — алдын ала белгі
+  | "not-comparable" // мән бар, бірақ норманың орташалау кезеңі сәйкес емес — асу ЕМЕС
   | "unknown"; // дерек жоқ
 
 export interface NormCheck {
   norm: LegalNorm;
   act: LegalAct;
   averagingKz: string;
-  ratio: number; // мән / шек
+  /** мән / шек; салыстыруға жарамаса null */
+  ratio: number | null;
   level: ComplianceLevel;
   /** Асу еселігі — «ШРК-дан 2.4 есе жоғары» деп жазу үшін */
   timesOver: number | null;
@@ -34,6 +50,8 @@ export interface ComplianceResult {
   indicatorId: string;
   value: number | null;
   checks: NormCheck[];
+  /** Салыстырылған орташалау базасы */
+  basis: ComparisonBasis;
   /** Ең ауыр күй */
   worst: ComplianceLevel;
   /** ҚР заңнамасы бойынша расталған асу бар ма — дашбордтағы ескерту осыған сүйенеді */
@@ -45,10 +63,11 @@ export interface ComplianceResult {
 
 const SEVERITY: Record<ComplianceLevel, number> = {
   unknown: 0,
-  ok: 1,
-  approaching: 2,
-  "exceeded-unverified": 3,
-  exceeded: 4,
+  "not-comparable": 1,
+  ok: 2,
+  approaching: 3,
+  "exceeded-unverified": 4,
+  exceeded: 5,
 };
 
 export const LEVEL_KZ: Record<ComplianceLevel, string> = {
@@ -56,6 +75,7 @@ export const LEVEL_KZ: Record<ComplianceLevel, string> = {
   approaching: "нормаға жақындады",
   exceeded: "НОРМА АСҚАН",
   "exceeded-unverified": "норма асқан (шек расталмаған)",
+  "not-comparable": "салыстыруға жарамайды",
   unknown: "дерек жоқ",
 };
 
@@ -65,6 +85,7 @@ export const LEVEL_COLOR: Record<ComplianceLevel, string> = {
   approaching: "text-amber-300 border-amber-400/30 bg-amber-500/10",
   exceeded: "text-red-300 border-red-400/40 bg-red-500/15",
   "exceeded-unverified": "text-orange-300 border-orange-400/30 bg-orange-500/10",
+  "not-comparable": "text-neutral-300 border-white/15 bg-white/[0.04]",
   unknown: "text-neutral-400 border-white/10 bg-white/5",
 };
 
@@ -96,6 +117,11 @@ export const LEVEL_MEANING: Record<ComplianceLevel, { short: string; full: strin
     full: "Мән жүйедегі шектен асты, БІРАҚ сол шектің саны бастапқы құқықтық актімен әлі тексерілмеген.",
     action: "Тек АЛДЫН АЛА белгі. «Заң бұзылды» деген тұжырым ШЫҒАРЫЛМАЙДЫ — алдымен норманың мәтінін растау қажет.",
   },
+  "not-comparable": {
+    short: "салыстыруға жарамайды",
+    full: "Мән бар, бірақ нормалардың орташалау кезеңі оған сәйкес емес (мысалы, сағаттық мән тәуліктік немесе жылдық шекпен салыстырылмайды).",
+    action: "Асу туралы тұжырым жасалмайды. Сәйкес кезеңдегі (тәуліктік/жылдық) дерек қажет.",
+  },
   unknown: {
     short: "дерек жоқ",
     full: "Көрсеткіш өлшенбеді немесе дереккөз қолжетімсіз болды.",
@@ -111,11 +137,14 @@ const APPROACHING = 0.8;
  *   қолданылады — ҚР-дан тыс аймақ үшін ҚР ШРК-мен салыстыру
  *   заңсыз әрі мағынасыз болар еді. ҚР-дан тыс жерде тек WHO эталоны
  *   қолданылады (заңдық күші жоқ, бірақ жаһандық денсаулық нұсқаулығы).
+ * @param basis мәннің орташалау кезеңі. МІНДЕТТІ: тек бірдей кезеңдегі норма
+ *   салыстырылады, қалғаны `not-comparable` болады және асу ретінде ЕСЕПТЕЛМЕЙДІ.
  */
 export function checkCompliance(
   indicatorId: string,
   value: number | null,
-  jurisdiction: "KZ" | "OTHER" = "KZ"
+  jurisdiction: "KZ" | "OTHER",
+  basis: ComparisonBasis
 ): ComplianceResult {
   const all = normsFor(indicatorId);
   // ҚР-дан тыс аймақта ұлттық нормативтер алынып тасталады
@@ -126,6 +155,7 @@ export function checkCompliance(
       indicatorId,
       value,
       checks: [],
+      basis,
       worst: "unknown",
       kzViolation: false,
       summary:
@@ -140,6 +170,11 @@ export function checkCompliance(
 
   const checks: NormCheck[] = norms.map((norm) => {
     const act = ACTS[norm.actId];
+    const averagingKz = AVERAGING_KZ[norm.averaging];
+    // Г.2: тек бірдей орташалау кезеңі салыстырылады
+    if (norm.averaging !== basis.averaging) {
+      return { norm, act, averagingKz, ratio: null, level: "not-comparable", timesOver: null };
+    }
     const ratio = value / norm.limit;
     let level: ComplianceLevel;
     if (ratio > 1) {
@@ -153,7 +188,7 @@ export function checkCompliance(
     return {
       norm,
       act,
-      averagingKz: AVERAGING_KZ[norm.averaging],
+      averagingKz,
       ratio,
       level,
       timesOver: ratio > 1 ? Math.round(ratio * 10) / 10 : null,
@@ -162,7 +197,7 @@ export function checkCompliance(
 
   const worst = checks.reduce<ComplianceLevel>(
     (acc, c) => (SEVERITY[c.level] > SEVERITY[acc] ? c.level : acc),
-    "ok"
+    "not-comparable"
   );
 
   const kzViolation =
@@ -173,22 +208,26 @@ export function checkCompliance(
     indicatorId,
     value,
     checks,
+    basis,
     worst,
     kzViolation,
-    summary: buildSummary(checks, worst),
+    summary: buildSummary(checks, worst, basis),
     disclaimer: LEGAL_DISCLAIMER,
   };
 }
 
-function buildSummary(checks: NormCheck[], worst: ComplianceLevel): string {
+function buildSummary(checks: NormCheck[], worst: ComplianceLevel, basis: ComparisonBasis): string {
+  if (worst === "not-comparable") {
+    return `Мән ${AVERAGING_KZ[basis.averaging]} — бұл кезеңге норма салыстырылмайды, асу туралы тұжырым жоқ`;
+  }
   const over = checks
     .filter((c) => c.level === "exceeded" || c.level === "exceeded-unverified")
-    .sort((a, b) => b.ratio - a.ratio);
+    .sort((a, b) => (b.ratio ?? 0) - (a.ratio ?? 0));
 
   if (!over.length) {
     if (worst === "approaching") {
       const near = checks.filter((c) => c.level === "approaching")[0];
-      return `Барлық норма шегінде, бірақ ${near.act.jurisdiction === "KZ" ? "ҚР" : near.act.jurisdiction} ${near.averagingKz} шегінің ${Math.round(near.ratio * 100)}%-на жетті`;
+      return `Барлық норма шегінде, бірақ ${near.act.jurisdiction === "KZ" ? "ҚР" : near.act.jurisdiction} ${near.averagingKz} шегінің ${Math.round((near.ratio ?? 0) * 100)}%-на жетті`;
     }
     return "Барлық норма шегінде";
   }

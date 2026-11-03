@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { CASPIAN_FACTS, DEFAULT_REGION_ID, getRegion } from "@/data/regions";
-import { checkCompliance } from "@/lib/compliance";
+import { checkCompliance, HOURLY_BASIS } from "@/lib/compliance";
 
 // КАСПИЙ АНЫҚТАМАСЫ — жағалаудағы Атырау қаласының ауа сапасы.
 //
@@ -56,10 +56,10 @@ export async function GET() {
       pressure: r.pressure,
       values: vals,
       compliance: {
-        pm25: checkCompliance("pm25", vals.pm25, jur),
-        pm10: checkCompliance("pm10", vals.pm10, jur),
-        no2: checkCompliance("no2", vals.no2, jur),
-        so2: checkCompliance("so2", vals.so2, jur),
+        pm25: checkCompliance("pm25", vals.pm25, jur, HOURLY_BASIS),
+        pm10: checkCompliance("pm10", vals.pm10, jur, HOURLY_BASIS),
+        no2: checkCompliance("no2", vals.no2, jur, HOURLY_BASIS),
+        so2: checkCompliance("so2", vals.so2, jur, HOURLY_BASIS),
       },
       jurisdiction: jur,
     };

@@ -28,10 +28,11 @@ const LEVEL_CLS: Record<ComplianceLevelLite, string> = {
   approaching: "text-amber-300",
   exceeded: "text-red-300 font-semibold",
   "exceeded-unverified": "text-orange-300",
+  "not-comparable": "text-neutral-500",
   unknown: "text-neutral-500",
 };
 const LEVEL_MARK: Record<ComplianceLevelLite, string> = {
-  ok: "", approaching: "~", exceeded: "⚠", "exceeded-unverified": "⚠?", unknown: "",
+  ok: "", approaching: "~", exceeded: "⚠", "exceeded-unverified": "⚠?", "not-comparable": "", unknown: "",
 };
 
 /** "2026-08-14T15:00" → datetime-local қабылдайтын пішін (сол қалпы) */

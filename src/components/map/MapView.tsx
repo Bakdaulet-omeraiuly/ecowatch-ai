@@ -17,6 +17,10 @@ import { mosquitoRiskIndex } from "@/lib/mosquito";
 import { LAYERS, type LayerKey } from "@/data/historyFactors";
 import { ATMOS_ELEMENTS, ATMOS_CATEGORIES, type AtmosElement } from "@/data/atmosElements";
 import { KzhPanel } from "@/components/map/KzhPanel";
+import { Badge } from "@/components/air/SourceBadge";
+import { ModelCaption } from "@/components/air/ModelCaption";
+import { SatColumnNote } from "@/components/air/SatColumnNote";
+import { satNoteGasFor, type SatGas } from "@/data/satelliteColumns";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
 import { MapSearch } from "./MapSearch";
@@ -232,7 +236,7 @@ const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
 };
 
 export function MapView() {
-  const { lang, tr } = useLang();
+  const { lang, tr, t } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
   const mapRef = useRef<MapRef>(null);
   const userSites = useSitesStore((s) => s.userSites);
@@ -300,7 +304,7 @@ export function MapView() {
     });
   }, [userSites, sharedReports]);
   const layerDef = LAYERS.find((l) => l.key === activeLayer);
-  const { airGrid, airDominant, airError } = useAirGrid(activeLayer === "air");
+  const { airGrid, airDominant, airError, airFetchedAt } = useAirGrid(activeLayer === "air");
   const [airHour, setAirHour] = useState(0); // 0 = now … 23 = +23h
   const [airPlaying, setAirPlaying] = useState(false);
 
@@ -344,9 +348,10 @@ export function MapView() {
   }, [activeLayer]);
 
   // Жел бағыты — қабат белсенді болғанда жүктеледі
+  // Дерек жоқ нүкте/жиынтық — null (P1.10): 0 м/с деп көрсетілмейді
   const [windData, setWindData] = useState<{
-    grid: { lat: number; lng: number; speed: number; dir: number }[];
-    avgSpeed: number; maxSpeed: number; dominantDir: number;
+    grid: { lat: number; lng: number; speed: number | null; dir: number | null }[];
+    avgSpeed: number | null; maxSpeed: number | null; dominantDir: number | null;
   } | null>(null);
   const [windError, setWindError] = useState(false);
   useEffect(() => {
@@ -580,26 +585,6 @@ export function MapView() {
   const [panelOpen, setPanelOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 768);
   const [gibsKey, setGibsKey] = useState<string | null>(null);
 
-  // Атмосфера газ қабаты белсенді болса CAMS деректерін жүктеу
-  const ATMOS_GAS_KEYS = ["no2", "so2", "ch4", "co"] as const;
-  type AtmosGasKey = typeof ATMOS_GAS_KEYS[number];
-  const atmosGasActive = ATMOS_GAS_KEYS.includes(gibsKey as AtmosGasKey);
-  const { airGrid: atmosAirGrid } = useAirGrid(atmosGasActive);
-
-  // Белсенді газдың Атырау облысы бойынша орташа мәні
-  const atmosLevel = useMemo(() => {
-    if (!gibsKey || !ATMOS_GAS_KEYS.includes(gibsKey as AtmosGasKey) || !atmosAirGrid) return null;
-    const key = gibsKey as AtmosGasKey;
-    const vals = atmosAirGrid.map((p) => p[key] ?? 0).filter((v) => v > 0);
-    if (!vals.length) return null;
-    const avg = vals.reduce((a, b) => a + b, 0) / vals.length;
-    const max = Math.max(...vals);
-    const units: Record<AtmosGasKey, string> = {
-      no2: "мкг/м³", so2: "мкг/м³", ch4: "мкг/м³", co: "мкг/м³"
-    };
-    return { avg: avg.toFixed(1), max: max.toFixed(1), unit: units[key] };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gibsKey, atmosAirGrid]);
 
   const [gibsPanelOpen, setGibsPanelOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 1024); // оң жақ спутник панелі — мобильде жиналған
   // Сағаттық режим: 0..23 (әдепкі — қазіргі сағат). Иконкалар сағат сайын
@@ -1095,18 +1080,21 @@ export function MapView() {
         )}
 
         {/* Жел бағыты — стрелкалар (желдің КЕТЕТІН бағытын көрсетеді) */}
-        {activeLayer === "wind" && windData?.grid.map((w, i) => (
-          <Marker key={`wind-${i}`} latitude={w.lat} longitude={w.lng}>
-            <div
-              title={`${Math.round(w.speed)} км/сағ`}
-              style={{ transform: `rotate(${w.dir + 180}deg)`, opacity: Math.min(1, 0.45 + w.speed / 30) }}
-            >
-              <svg width={14 + Math.min(14, w.speed / 2)} height={14 + Math.min(14, w.speed / 2)} viewBox="0 0 24 24" className="drop-shadow">
-                <path d="M12 2 L18 20 L12 16 L6 20 Z" fill="#67e8f9" stroke="#0e7490" strokeWidth="1" />
-              </svg>
-            </div>
-          </Marker>
-        ))}
+        {/* Дерек жоқ нүктеге стрелка салынбайды (P1.10) */}
+        {activeLayer === "wind" && windData?.grid.map((w, i) =>
+          w.speed == null || w.dir == null ? null : (
+            <Marker key={`wind-${i}`} latitude={w.lat} longitude={w.lng}>
+              <div
+                title={`${Math.round(w.speed)} км/сағ`}
+                style={{ transform: `rotate(${w.dir + 180}deg)`, opacity: Math.min(1, 0.45 + w.speed / 30) }}
+              >
+                <svg width={14 + Math.min(14, w.speed / 2)} height={14 + Math.min(14, w.speed / 2)} viewBox="0 0 24 24" className="drop-shadow">
+                  <path d="M12 2 L18 20 L12 16 L6 20 Z" fill="#67e8f9" stroke="#0e7490" strokeWidth="1" />
+                </svg>
+              </div>
+            </Marker>
+          )
+        )}
 
         {/* Тірі маса swarm — тығыздық FPEB индексіне сай, әр иконка дірілдеп қозғалады */}
         {mosquitoSwarm.map((m, i) => (
@@ -1550,22 +1538,9 @@ export function MapView() {
                   <Wind className="h-3.5 w-3.5 flex-shrink-0" />
                   <span className="text-left leading-tight">{tr(g.labelKz)}</span>
                 </button>
-                {gibsKey === g.key && atmosLevel && (
-                  <div className="mx-1 mb-1 rounded-md bg-fuchsia-950/50 px-2.5 py-1.5 text-[12px]">
-                    <div className="flex justify-between text-neutral-400">
-                      <span>Орташа · Атырау</span>
-                      <span className="font-medium text-fuchsia-200">{atmosLevel.avg} {atmosLevel.unit}</span>
-                    </div>
-                    <div className="flex justify-between text-neutral-400">
-                      <span>Максимум</span>
-                      <span className="font-medium text-orange-300">{atmosLevel.max} {atmosLevel.unit}</span>
-                    </div>
-                  </div>
-                )}
-                {gibsKey === g.key && atmosGasActive && !atmosLevel && (
-                  <div className="mx-1 mb-1 rounded-md bg-fuchsia-950/30 px-2.5 py-1 text-[12px] text-neutral-400">
-                    Деңгей жүктелуде…
-                  </div>
+                {/* Тек Sentinel-5P қабаттары: MODIS snow / GIBS қабаттарына S5P метадерегі берілмейді */}
+                {gibsKey === g.key && satNoteGasFor(g) !== null && (
+                  <SatColumnNote gas={g.key} tone="dark" />
                 )}
               </div>
             ))}
@@ -1866,6 +1841,11 @@ export function MapView() {
               <p className="text-[13px] text-neutral-400">{tr("Тірі ауа райы деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}</p>
             ) : !windData ? (
               <p className="text-[13px] text-neutral-400">{tr("Жүктелуде…")}</p>
+            ) : windData.avgSpeed == null ? (
+              // Бірде-бір жарамды жылдамдық жоқ — «0» көрсетпейміз (P1.10)
+              <p className="text-[13px] text-neutral-400">
+                <b className="text-neutral-200">{tr("Дерек жоқ")}</b> — {tr("желдің жылдамдығы келмеді, нөл деп есептелмейді.")}
+              </p>
             ) : (
               <>
                 <div className="flex items-center justify-between">
@@ -1874,15 +1854,23 @@ export function MapView() {
                     <div className="text-[12px] text-neutral-400">км/сағ · {tr("орташа")}</div>
                   </div>
                   <div className="flex flex-col items-center">
-                    <svg width="34" height="34" viewBox="0 0 24 24" style={{ transform: `rotate(${windData.dominantDir + 180}deg)` }}>
-                      <path d="M12 2 L18 20 L12 16 L6 20 Z" fill="#67e8f9" stroke="#0e7490" strokeWidth="1" />
-                    </svg>
-                    <div className="text-[12px] text-neutral-400">{tr(compassKz(windData.dominantDir))}</div>
+                    {windData.dominantDir != null ? (
+                      <>
+                        <svg width="34" height="34" viewBox="0 0 24 24" style={{ transform: `rotate(${windData.dominantDir + 180}deg)` }}>
+                          <path d="M12 2 L18 20 L12 16 L6 20 Z" fill="#67e8f9" stroke="#0e7490" strokeWidth="1" />
+                        </svg>
+                        <div className="text-[12px] text-neutral-400">{tr(compassKz(windData.dominantDir))}</div>
+                      </>
+                    ) : (
+                      <div className="text-[12px] text-neutral-400">{tr("Дерек жоқ")}</div>
+                    )}
                   </div>
                 </div>
-                <div className="mt-2 rounded-md bg-white/5 p-2 text-[12px] leading-snug text-neutral-200">
-                  💡 {tr(windAdvice(windData.maxSpeed))}
-                </div>
+                {windData.maxSpeed != null && (
+                  <div className="mt-2 rounded-md bg-white/5 p-2 text-[12px] leading-snug text-neutral-200">
+                    💡 {tr(windAdvice(windData.maxSpeed))}
+                  </div>
+                )}
                 <p className="mt-1.5 text-[12px] leading-snug text-neutral-400">
                   {tr("Стрелка — желдің кететін бағыты. Дереккөз: Open-Meteo (ECMWF).")}
                 </p>
@@ -2579,7 +2567,7 @@ export function MapView() {
         {activeLayer === "air" && (
           <div className="w-full rounded-lg border border-sky-500/30 bg-neutral-900/95 p-3 backdrop-blur">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sky-300">
-              <Radio className="h-3 w-3 animate-pulse" /> {tr("Ауа сапасы — тірі")}
+              <Radio className="h-3 w-3 animate-pulse" /> {tr("Ауа сапасы · дерек түрлері бөлек")}
             </div>
             {airError ? (
               <p className="text-[13px] text-neutral-400">{tr("Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}</p>
@@ -2611,25 +2599,12 @@ export function MapView() {
                     </div>
                   ))}
                 </div>
-                <div className="mb-1.5 flex items-center justify-between gap-1">
-                  <span className="text-[12px] font-medium text-neutral-300">
-                    {tr(airElem.label)}{airElem.unit ? ` · ${airElem.unit}` : ""}
-                  </span>
-                  {airElem.s5p && (
-                    <button
-                      onClick={() => setGibsKey((k) => (k === airElem.s5p ? null : airElem.s5p!))}
-                      title="Sentinel-5P спутрик растрын қосу/өшіру"
-                      className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-[12px] font-semibold transition-colors ${
-                        gibsKey === airElem.s5p
-                          ? "border-sky-400 bg-sky-500/30 text-sky-100"
-                          : "border-sky-500/40 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20"
-                      }`}
-                    >
-                      <Satellite className="h-2.5 w-2.5" /> {gibsKey === airElem.s5p ? tr("Спутрик қосулы") : tr("Спутрик")}
-                    </button>
-                  )}
+                <div className="mb-1.5 text-[12px] font-medium text-neutral-300">{tr(airElem.label)}</div>
+                {/* МОДЕЛЬ тобы: Copernicus CAMS — өлшем емес */}
+                <div className="mb-1 flex items-center gap-1.5">
+                  <Badge kind="model">{t("air.type.model")}</Badge>
+                  <span className="text-[12px] font-semibold text-sky-200">{t("air.group.model")}</span>
                 </div>
-
                 {airStats && airElem.key !== "aqi" && (
                   <>
                     <div className="mb-2 rounded-lg bg-white/5 p-2 text-center">
@@ -2643,14 +2618,9 @@ export function MapView() {
                       <span>макс {airStats.max}</span>
                     </div>
                     <p className="mt-1.5 text-[12px] leading-snug text-neutral-400">
-                      {tr("Нақты дерек: Copernicus CAMS · Open-Meteo · тор бойынша")}
+                      {tr("Дерек: Copernicus CAMS · Open-Meteo · тор бойынша (модель, өлшем емес)")}
                     </p>
                   </>
-                )}
-
-                {/* Жердегі өлшем (Қазгидромет) + CAMS-тың дәлелденген ауытқуы */}
-                {(airElem.kzh || airElem.noModel) && (
-                  <KzhPanel elem={airElem} regionId={region.id} />
                 )}
 
                 {airStats && airElem.key === "aqi" && (() => {
@@ -2741,7 +2711,7 @@ export function MapView() {
                       }}
                       className="w-full accent-sky-400"
                     />
-                    <p className="mt-0.5 text-[12px] text-neutral-400">{tr("Алдағы 24 сағат — нақты CAMS болжамы")}</p>
+                    <p className="mt-0.5 text-[12px] text-neutral-400">{tr("Алдағы 24 сағат — CAMS модельдік болжамы")}</p>
                   </div>
                 )}
 
@@ -2768,6 +2738,44 @@ export function MapView() {
                 <p className="mt-1.5 text-[12px] leading-snug text-neutral-400">
                   {tr("EU AQI (EAQI), Copernicus CAMS — сағат сайын. Аудандар CAMS ажыратымдылығымен (~10км) бағаланады.")}
                 </p>
+                <div className="mt-2 rounded-lg bg-sky-500/[0.06] p-2">
+                  <ModelCaption fetchedAt={airFetchedAt} unit={airElem.unit || null} tone="dark" />
+                </div>
+
+                {/* ЖЕРҮСТІ СТАНСА тобы: Қазгидромет (тірі емес) */}
+                <div className="mt-3 mb-1 flex items-center gap-1.5">
+                  <Badge kind="ground">{t("air.type.ground")}</Badge>
+                  <span className="text-[12px] font-semibold text-emerald-200">{t("air.group.ground")}</span>
+                </div>
+                {airElem.kzh || airElem.noModel ? (
+                  <KzhPanel elem={airElem} regionId={region.id} />
+                ) : (
+                  <p className="text-[12px] text-neutral-400">{t("air.ground.noLink")}</p>
+                )}
+
+                {/* СПУТНИК БАҒАН тобы: Sentinel-5P (тек спутниктік қабаты бар газ үшін) */}
+                {airElem.s5p && (
+                  <div className="mt-3 rounded-lg border border-violet-500/30 bg-violet-500/[0.06] p-2">
+                    <div className="mb-1 flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5">
+                        <Badge kind="satellite">{t("air.type.satellite")}</Badge>
+                        <span className="text-[12px] font-semibold text-violet-200">{t("air.group.sat")}</span>
+                      </div>
+                      <button
+                        onClick={() => setGibsKey((k) => (k === airElem.s5p ? null : airElem.s5p!))}
+                        title="Sentinel-5P спутник растрын қосу/өшіру"
+                        className={`flex items-center gap-1 rounded border px-1.5 py-0.5 text-[12px] font-semibold transition-colors ${
+                          gibsKey === airElem.s5p
+                            ? "border-sky-400 bg-sky-500/30 text-sky-100"
+                            : "border-sky-500/40 bg-sky-500/10 text-sky-200 hover:bg-sky-500/20"
+                        }`}
+                      >
+                        <Satellite className="h-2.5 w-2.5" /> {gibsKey === airElem.s5p ? tr("Спутник қосулы") : tr("Спутник")}
+                      </button>
+                    </div>
+                    <SatColumnNote gas={airElem.s5p as SatGas} tone="dark" />
+                  </div>
+                )}
               </>
             )}
             <LayerIndexNote layer="air" />

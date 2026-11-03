@@ -96,7 +96,9 @@ export async function GET(req: Request) {
     };
     for (const r of compliance.results as R[]) {
       if (r.value == null) continue;
-      if (r.worst === "ok") continue;
+      // Тек нақты тәуекел деңгейлері оқиға болады. `not-comparable` (норма бұл кезеңге
+      // сәйкес емес) және `unknown` — «нормадан асты» оқиғасы ЕМЕС (P1.2).
+      if (r.worst !== "approaching" && r.worst !== "exceeded" && r.worst !== "exceeded-unverified") continue;
 
       const worstCheck = r.checks
         .filter((c) => c.level === "exceeded" || c.level === "exceeded-unverified")

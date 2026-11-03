@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { LAYER_BY_KEY, SERIES_BASE, type EcoLayer } from "@/data/ecoLayers";
 import { INDICATORS, resolvePath } from "@/data/indicatorRegistry";
-import { checkCompliance, aggregate, type ComplianceResult } from "@/lib/compliance";
+import { checkCompliance, aggregate, HOURLY_BASIS, type ComplianceResult } from "@/lib/compliance";
 import { getRegion, hasModule, MODULE_REASON, type Region } from "@/data/regions";
 
 // БІР ЭКО ҚАБАТТЫҢ ТОЛЫҚ КЕСКІНІ.
@@ -71,7 +71,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
       } else if (current.extra?.[ind.endpoint]) {
         value = resolvePath(current.extra[ind.endpoint], ind.path);
       }
-      compliance.push({ ...checkCompliance(id, value, jurisdiction), name: ind.name, unit: ind.unit });
+      compliance.push({ ...checkCompliance(id, value, jurisdiction, HOURLY_BASIS), name: ind.name, unit: ind.unit });
     }
     const agg = aggregate(compliance);
 

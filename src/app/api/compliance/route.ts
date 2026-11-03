@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { INDICATORS, resolvePath } from "@/data/indicatorRegistry";
 import { normsFor } from "@/data/legalNorms";
-import { aggregate, checkCompliance, type ComplianceResult } from "@/lib/compliance";
+import { aggregate, checkCompliance, HOURLY_BASIS, type ComplianceResult } from "@/lib/compliance";
 import { evaluateAllGroups } from "@/lib/summation";
 import type { SubstanceId } from "@/data/summationGroups";
 import { getRegion } from "@/data/regions";
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     const src = byEp.get(ind.endpoint);
     const value = src?.ok ? resolvePath(src.d, ind.path) : null;
     return {
-      ...checkCompliance(ind.id, value, jurisdiction),
+      ...checkCompliance(ind.id, value, jurisdiction, HOURLY_BASIS),
       name: ind.name,
       unit: ind.unit,
       section: ind.section,

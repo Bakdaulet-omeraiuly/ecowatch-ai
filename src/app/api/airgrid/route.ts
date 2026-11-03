@@ -1,19 +1,21 @@
 import { NextResponse } from "next/server";
 import { regionPoints } from "@/lib/regionGrid";
 import { dominantPollutant } from "@/lib/pollutant";
+import { AIRGRID_UNAVAILABLE, airgridValues, type AirgridCurrent } from "@/lib/airgridPoint";
 
 // Таңдалған аймақ бойынша тірі ауа сапасы торы — картаның «Ауа» қабаты үшін.
 // Тор аймақтың bbox-ынан құрылады (src/lib/regionGrid.ts), сондықтан қала
 // ауысқанда деректер де сол қаланікі болады.
 // Source: Open-Meteo Air Quality API (Copernicus CAMS) — real model data.
 // Adds: full pollutant components, 24h hourly forecast, city districts.
+// H₂S және NO: модель көзі жоқ → мән null, себебі `unavailable` өрісінде (P1.3).
 
 export const revalidate = 3600;
 
 const SRC_URL = (points: { lat: number; lng: number }[]) => `https://air-quality-api.open-meteo.com/v1/air-quality` +
   `?latitude=${points.map((p) => p.lat).join(",")}` +
   `&longitude=${points.map((p) => p.lng).join(",")}` +
-  `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,methane,carbon_monoxide,nitrogen_monoxide,ammonia,aerosol_optical_depth,uv_index` +
+  `&current=european_aqi,pm2_5,pm10,nitrogen_dioxide,sulphur_dioxide,ozone,dust,methane,carbon_monoxide,ammonia,aerosol_optical_depth,uv_index` +
   `&hourly=european_aqi&forecast_days=2&timezone=auto`;
 
 const cache = new Map<string, { at: number; data: unknown }>();
@@ -34,12 +36,7 @@ export async function GET(req: Request) {
         d: {
           latitude: number;
           longitude: number;
-          current?: {
-            european_aqi?: number; pm2_5?: number; pm10?: number;
-            nitrogen_dioxide?: number; sulphur_dioxide?: number; ozone?: number; dust?: number;
-            methane?: number; carbon_monoxide?: number; nitrogen_monoxide?: number;
-            ammonia?: number; aerosol_optical_depth?: number; uv_index?: number;
-          };
+          current?: AirgridCurrent;
           hourly?: { time?: string[]; european_aqi?: (number | null)[] };
         },
         idx: number
@@ -59,19 +56,7 @@ export async function GET(req: Request) {
           lng: d.longitude,
           dense: meta.dense,
           name: meta.name,
-          aqi: d.current?.european_aqi ?? null,
-          pm2_5: d.current?.pm2_5 ?? null,
-          pm10: d.current?.pm10 ?? null,
-          no2: d.current?.nitrogen_dioxide ?? null,
-          so2: d.current?.sulphur_dioxide ?? null,
-          ozone: d.current?.ozone ?? null,
-          dust: d.current?.dust ?? null,
-          ch4: d.current?.methane ?? null,
-          co: d.current?.carbon_monoxide ?? null,
-          no: d.current?.nitrogen_monoxide ?? null,
-          nh3: d.current?.ammonia ?? null,
-          aod: d.current?.aerosol_optical_depth ?? null,
-          uv: d.current?.uv_index ?? null,
+          ...airgridValues(d.current),
           hourly,
         };
       }
@@ -92,6 +77,8 @@ export async function GET(req: Request) {
       source: "Open-Meteo / Copernicus CAMS",
       dominant,
       grid,
+      // Модель көзі жоқ газдар: өріс мәні null, себебі осы жерде (P1.3)
+      unavailable: AIRGRID_UNAVAILABLE,
     };
     cache.set(region.id, { at: Date.now(), data });
     return NextResponse.json(data);

@@ -17,6 +17,7 @@ const STATIC: { path: string; priority: number; freq: MetadataRoute.Sitemap[0]["
   { path: "/eco-passport", priority: 0.8, freq: "daily" },
   { path: "/methodology", priority: 0.8, freq: "weekly" },
   { path: "/methodology/jaiyq-mri", priority: 0.7, freq: "monthly" },
+  { path: "/validation", priority: 0.7, freq: "weekly" },
   { path: "/legislation", priority: 0.7, freq: "monthly" },
   { path: "/caspian", priority: 0.7, freq: "daily" },
   { path: "/alerts", priority: 0.6, freq: "hourly" },

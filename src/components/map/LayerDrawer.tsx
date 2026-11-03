@@ -34,7 +34,7 @@ interface ComplianceItem {
   checks: {
     norm: { limit: number; unit: string; status: string; statusNote: string };
     act: { jurisdiction: string; number: string; title: string; url?: string };
-    averagingKz: string; ratio: number; level: ComplianceLevel; timesOver: number | null;
+    averagingKz: string; ratio: number | null; level: ComplianceLevel; timesOver: number | null;
   }[];
   disclaimer: string;
 }
@@ -415,10 +415,10 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
                     </td>
                     <td
                       className={`py-1 text-right font-medium ${
-                        c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"
+                        c.ratio == null ? "text-neutral-400" : c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"
                       }`}
                     >
-                      {Math.round(c.ratio * 100)}%
+                      {c.ratio == null ? tr(LEVEL_KZ["not-comparable"]) : `${Math.round(c.ratio * 100)}%`}
                     </td>
                   </tr>
                 ))}

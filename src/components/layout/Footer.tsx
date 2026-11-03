@@ -27,6 +27,7 @@ export function Footer() {
       title: t("foot.methodology"),
       items: [
         { href: "/methodology", label: t("nav.methodology"), ext: false },
+        { href: "/validation", label: t("foot.validation"), ext: false },
         { href: "/eco-passport", label: t("nav.passport"), ext: false },
         { href: "/legislation", label: t("foot.legislation"), ext: false },
         { href: "/caspian", label: t("foot.caspian"), ext: false },

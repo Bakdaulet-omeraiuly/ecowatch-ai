@@ -12,7 +12,7 @@ export interface AtmosElement {
   category: "Индекс" | "Негізгі ластаушылар" | "Қосымша газдар" | "Аэрозоль / басқа";
   maxRef: number;
   ramp: [string, string, string, string];
-  s5p?: string; // Sentinel-5P спутрик тайл кілті (болса — спутрик көрінісі қосуға болады)
+  s5p?: string; // Sentinel-5P спутник тайл кілті (болса — спутник көрінісі қосуға болады)
   /** Қазгидромет Атырау посттары өлшейтін газ — соңғы айлық өлшем қатар көрсетіледі */
   kzh?: KzhGas;
   /** CAMS/спутник бұл затты МҮЛДЕМ бермейді — тор да, карта да жоқ, тек жердегі өлшем */
@@ -32,7 +32,8 @@ export const ATMOS_ELEMENTS: AtmosElement[] = [
   { key: "so2",   short: "SO₂",   label: "Күкірт диоксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 100, ramp: RAMP, s5p: "so2", kzh: "so2" },
   { key: "ozone", short: "O₃",    label: "Озон", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 160, ramp: RAMP },
   { key: "co",    short: "CO",    label: "Көміртек тотығы", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 4000, ramp: RAMP, s5p: "co", kzh: "co" },
-  { key: "no",    short: "NO",    label: "Азот оксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 60, ramp: RAMP, kzh: "no" },
+  // NO: CAMS-та валидацияланған модель көзі жоқ (NO₂-ден көшірілмейді) — тек жердегі пост
+  { key: "no",    short: "NO",    label: "Азот оксиді", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 60, ramp: RAMP, kzh: "no", noModel: true },
   // H₂S: спутник те, CAMS та өлшемейді — тек Қазгидромет посттары
   { key: "h2s",   short: "H₂S",   label: "Күкіртсутек", unit: "µg/m³", category: "Негізгі ластаушылар", maxRef: 8, ramp: RAMP, kzh: "h2s", noModel: true },
 

@@ -26,6 +26,9 @@ import { useRegion } from "@/store/useRegionStore";
 import { MissingModulesNote, ModuleMissing } from "@/components/ui/ModuleMissing";
 import { IndicatorHelp, IndicatorSummary, indicatorName } from "@/components/ui/IndicatorHelp";
 import { LevelLegend } from "@/components/ui/LevelLegend";
+import { AirSourceGroups } from "@/components/air/AirSourceGroups";
+import { ModelCaption } from "@/components/air/ModelCaption";
+import { Badge } from "@/components/air/SourceBadge";
 import { missingModules, hasModule } from "@/data/regions";
 import type { FloodSignal, MosquitoDynamics } from "@/hooks/useEcoData";
 
@@ -329,15 +332,11 @@ export default function DashboardPage() {
             <p className="text-sm text-neutral-400">{tr("Тірі деректер жүктелуде…")}</p>
           ) : (
             <>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 <LiveStat icon={Thermometer} label={tr("Температура")} value={env.current.temperature} unit="°C" indicatorId="temperature" />
                 <LiveStat icon={Wind} label={tr("Жел")} value={env.current.windSpeed} unit="км/сағ" indicatorId="wind" />
                 <LiveStat icon={Droplets} label={tr("Ылғалдылық")} value={env.current.humidity} unit="%" indicatorId="humidity" />
                 <LiveStat icon={Gauge} label="EU AQI" value={env.current.europeanAqi} unit="" highlight={(env.current.europeanAqi ?? 0) > 50} indicatorId="aqi" />
-                <LiveStat label="PM2.5" value={env.current.pm2_5} unit="µg/m³" highlight={(env.current.pm2_5 ?? 0) > WHO_PM25_DAILY} indicatorId="pm25" />
-                <LiveStat label="PM10" value={env.current.pm10} unit="µg/m³" indicatorId="pm10" />
-                <LiveStat label="NO₂" value={env.current.no2} unit="µg/m³" indicatorId="no2" />
-                <LiveStat label="SO₂" value={env.current.so2} unit="µg/m³" indicatorId="so2" />
               </div>
               {env.current.europeanAqi != null && (() => {
                 const cat = aqiCategory(env.current.europeanAqi);
@@ -355,6 +354,11 @@ export default function DashboardPage() {
                   </div>
                 );
               })()}
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Badge kind="model">{tr("CAMS моделі")}</Badge>
+                <span className="text-[12px] text-neutral-300">{tr("EU AQI — модель, өлшем емес")}</span>
+              </div>
+              <ModelCaption fetchedAt={env.fetchedAt} unit="EU AQI" tone="dark" />
               {/* КӨРСЕТКІШТЕР НЕНІ БІЛДІРЕДІ — плиткалар кішкентай
                   болғандықтан анықтамалар осында, толық тізіммен тұрады */}
               <div className="mt-3 rounded-lg bg-white/[0.02] p-3">
@@ -387,6 +391,9 @@ export default function DashboardPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Ауа көрсеткіштері үш топқа бөлек: жерүсті станса / модель (CAMS) / спутник баған */}
+      <AirSourceGroups />
 
       {/* Бұл қалада ҚАНДАЙ модуль жоқ — алдын ала ашық жазылады, сонда
           төмендегі бос блоктар «бәрі тыныш» деп оқылмайды */}
@@ -474,6 +481,7 @@ export default function DashboardPage() {
           </ChartCard>
 
           {env && env.forecastHourly?.length > 0 && (
+            <>
             <ChartCard
               title={tr("Ауа сапасы болжамы — алдағы 48 сағат (Copernicus CAMS моделі)")}
               className="lg:col-span-2"
@@ -500,11 +508,16 @@ export default function DashboardPage() {
                 <Line type="monotone" dataKey="pm10" name="PM10 µg/m³" stroke="#f97316" strokeWidth={2} dot={false} />
               </LineChart>
             </ChartCard>
+            <div className="lg:col-span-2">
+              <ModelCaption fetchedAt={env.fetchedAt} unit="µg/m³ · EU AQI" tone="dark" />
+            </div>
+            </>
           )}
 
           {env && env.daily.length > 0 && (
+            <>
             <ChartCard
-              title={tr("Ауа сапасы — соңғы 30 күн, нақты өлшем (Copernicus CAMS)")}
+              title={tr("Ауа сапасы — соңғы 30 күн, CAMS моделі (өлшем емес)")}
               className="lg:col-span-2"
             >
               <AreaChart data={env.daily.map((d) => ({ ...d, date: d.date.slice(5) }))}>
@@ -523,6 +536,10 @@ export default function DashboardPage() {
                 <Area type="monotone" dataKey="pm10" name="PM10 µg/m³" stroke="#f97316" fill="#f9731622" strokeWidth={2} />
               </AreaChart>
             </ChartCard>
+            <div className="lg:col-span-2">
+              <ModelCaption fetchedAt={env.fetchedAt} unit="µg/m³" tone="dark" />
+            </div>
+            </>
           )}
         </TabsContent>
 
@@ -1008,7 +1025,7 @@ function DistrictRating({ allSites, env }: { allSites: { district: string; analy
             <p className="text-sm text-neutral-300">
               Қазіргі Атырау EU AQI:{" "}
               <span className={`font-bold ${aqi > 50 ? "text-orange-400" : "text-emerald-400"}`}>{aqi}</span>
-              {" "}— Copernicus CAMS тірі деректері бойынша.
+              {" "}— Copernicus CAMS моделі бойынша (өлшем емес).
             </p>
           </CardContent>
         </Card>

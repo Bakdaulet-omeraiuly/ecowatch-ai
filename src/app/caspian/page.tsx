@@ -17,7 +17,7 @@ import { LEVEL_COLOR, LEVEL_KZ, type ComplianceLevel } from "@/lib/compliance";
 
 interface Compliance {
   value: number | null; worst: ComplianceLevel; summary: string;
-  checks: { act: { jurisdiction: string; number: string }; averagingKz: string; norm: { limit: number; unit: string }; ratio: number; level: ComplianceLevel }[];
+  checks: { act: { jurisdiction: string; number: string }; averagingKz: string; norm: { limit: number; unit: string }; ratio: number | null; level: ComplianceLevel }[];
 }
 
 interface City {
@@ -198,12 +198,13 @@ export default function CaspianPage() {
 function Pol({
   label, v, c, tr,
 }: { label: string; v: number | null; c: Compliance; tr: (s: string) => string }) {
-  const who = c.checks.find((x) => x.act.jurisdiction === "WHO");
+  // Тек салыстырылатын WHO нормасы (ratio != null). not-comparable WHO-ны «0%» деп көрсетпейміз.
+  const who = c.checks.find((x) => x.act.jurisdiction === "WHO" && x.ratio != null);
   return (
     <span className="inline-flex items-center gap-1">
       <span className="text-neutral-400">{label}</span>
       <span className="font-medium text-neutral-100">{fmt(v)}</span>
-      {who && (
+      {who && who.ratio != null && (
         <span
           className={`rounded border px-1 py-px text-[12px] ${LEVEL_COLOR[c.worst]}`}
           title={`${tr("WHO шегі")}: ${who.norm.limit} ${who.norm.unit} · ${c.summary}`}

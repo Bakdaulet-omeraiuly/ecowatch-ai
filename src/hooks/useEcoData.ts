@@ -153,6 +153,8 @@ export function useAirGrid(enabled: boolean) {
   const [airGrid, setAirGrid] = useState<AirGridPoint[] | null>(null);
   const [airDominant, setAirDominant] = useState<Dominant | null>(null);
   const [airError, setAirError] = useState(false);
+  // Модель деректі қашан жүктегені (CAMS сервері fetchedAt қайтарады)
+  const [airFetchedAt, setAirFetchedAt] = useState<string | null>(null);
   useEffect(() => {
     if (!enabled || loadedFor === region.id) return;
     fetch(`/api/airgrid?region=${region.id}`)
@@ -160,11 +162,12 @@ export function useAirGrid(enabled: boolean) {
       .then((d) => {
         setAirGrid(d.grid);
         setAirDominant(d.dominant ?? null);
+        setAirFetchedAt(d.fetchedAt ?? null);
       })
       .catch(() => setAirError(true))
       .finally(() => setLoadedFor(region.id));
   }, [enabled, loadedFor, region.id]);
-  return { airGrid, airDominant, airError };
+  return { airGrid, airDominant, airError, airFetchedAt };
 }
 
 // Mosquito climate-suitability grid (Open-Meteo)
@@ -244,7 +247,7 @@ export interface PollutionSourceData {
 }
 
 export type ComplianceLevelLite =
-  | "ok" | "approaching" | "exceeded" | "exceeded-unverified" | "unknown";
+  | "ok" | "approaching" | "exceeded" | "exceeded-unverified" | "not-comparable" | "unknown";
 
 export interface PollutionTimelineHour {
   time: string;

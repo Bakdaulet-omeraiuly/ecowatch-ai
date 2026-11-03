@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { FACILITIES, FOOTPRINT_BUFFER_KM } from "@/data/facilities";
 import { distanceToFootprintKm } from "@/lib/footprint";
-import { checkCompliance } from "@/lib/compliance";
+import { checkCompliance, HOURLY_BASIS } from "@/lib/compliance";
 import { LEGAL_DISCLAIMER } from "@/data/legalNorms";
 
 // ОБЪЕКТ КАРТАСЫ — бір өнеркәсіп нысанының толық экологиялық кескіні.
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     { id: "aqi", name: "EU AQI", unit: "", value: air?.aqi ?? null },
   ];
   const compliance = indicatorMap.map((m) => ({
-    ...checkCompliance(m.id, m.value),
+    ...checkCompliance(m.id, m.value, "KZ", HOURLY_BASIS),
     name: m.name,
     unit: m.unit,
   }));

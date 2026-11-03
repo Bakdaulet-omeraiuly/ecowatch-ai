@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRegion, hasModule } from "@/data/regions";
-import { checkCompliance, LEVEL_KZ, type ComplianceResult } from "@/lib/compliance";
+import { checkCompliance, HOURLY_BASIS, LEVEL_KZ, type ComplianceResult } from "@/lib/compliance";
 import { LEGAL_DISCLAIMER, ACTS } from "@/data/legalNorms";
 import { formatKz } from "@/lib/pollutionTime";
 import { summarizeTimeline, NOT_MEASURABLE, type TimelineHour } from "@/lib/pollutionTimeline";
@@ -117,7 +117,7 @@ export async function GET(req: Request) {
     { id: "pm25", label: "PM₂.₅ (ұсақ дисперсті шаң)", value: peakOf("pm25") },
     { id: "ozone", label: "O₃ (жер бетіндегі озон)", value: peakOf("ozone") },
     { id: "co", label: "CO (көміртек оксиді)", value: peakOf("co") },
-  ].map((c) => ({ ...c, res: checkCompliance(c.id, c.value, jur) }));
+  ].map((c) => ({ ...c, res: checkCompliance(c.id, c.value, jur, HOURLY_BASIS) }));
 
   const periodLabel = d.atLabel ?? "соңғы 48 сағат (тірі режим)";
 
@@ -302,7 +302,7 @@ ${checks
           <td>${esc(x.act.number)}</td>
           <td>${esc(x.averagingKz)}</td>
           <td class="num">${x.norm.limit} ${esc(x.norm.unit)}</td>
-          <td class="num">${x.timesOver != null ? `×${x.timesOver.toFixed(2)}` : (x.ratio * 100).toFixed(0) + "%"}</td>
+          <td class="num">${x.timesOver != null ? `×${x.timesOver.toFixed(2)}` : x.ratio != null ? (x.ratio * 100).toFixed(0) + "%" : "—"}</td>
           <td>${esc(LEVEL_KZ[x.level])}</td>
           <td>${esc(x.norm.status)}</td></tr>`
         )

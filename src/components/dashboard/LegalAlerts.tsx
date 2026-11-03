@@ -22,7 +22,8 @@ interface Check {
   norm: { limit: number; unit: string; status: string; statusNote: string; allowedExceedances?: number };
   act: { jurisdiction: string; title: string; number: string; date: string; authority: string; url?: string; note?: string };
   averagingKz: string;
-  ratio: number;
+  /** null = норма бұл орташалау кезеңіне салыстырылмайды (not-comparable) */
+  ratio: number | null;
   level: ComplianceLevel;
   timesOver: number | null;
 }
@@ -71,7 +72,7 @@ interface Data {
 }
 
 const ORDER: Record<ComplianceLevel, number> = {
-  exceeded: 0, "exceeded-unverified": 1, approaching: 2, ok: 3, unknown: 4,
+  exceeded: 0, "exceeded-unverified": 1, approaching: 2, ok: 3, "not-comparable": 4, unknown: 5,
 };
 
 export function LegalAlerts() {
@@ -225,10 +226,10 @@ export function LegalAlerts() {
                               </td>
                               <td
                                 className={`py-1 text-right font-medium ${
-                                  c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"
+                                  c.ratio == null ? "text-neutral-400" : c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"
                                 }`}
                               >
-                                {Math.round(c.ratio * 100)}%
+                                {c.ratio == null ? tr(LEVEL_KZ["not-comparable"]) : `${Math.round(c.ratio * 100)}%`}
                               </td>
                             </tr>
                           ))}

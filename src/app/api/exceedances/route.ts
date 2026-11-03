@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { getRegion } from "@/data/regions";
+import { splitLegacy } from "@/lib/exceedanceBasis";
 
 // НОРМА АСУЫНЫҢ ЖУРНАЛЫ — тіркелген асулар, уақытымен.
 //
 // Оқу anon кілтімен жүреді (RLS-те SELECT ашық). Жазу тек `/api/fixate`
 // арқылы, серверлік кілтпен.
+//
+// ⚠️ ЕСКІ НЕГІЗ: миграцияға дейінгі жолдар (`legacy_invalid_basis`) — сағаттық
+// мән тәуліктік/жылдық нормамен салыстырылған, дәлел бола алмайды. Олар
+// `records`-қа КІРМЕЙДІ, бөлек `legacyRecords` тізімінде және `legacyCount`-та
+// көрсетіледі. Ешқандай жол жойылмайды (supabase/exceedances_basis.sql).
 //
 // ⚠️ ЕҢ МАҢЫЗДЫСЫ: жауапта `coverage` өрісі бар — соңғы тексеру қашан
 // жүргені. Журнал бос болса, ол «асу болмады» дегенді БІЛДІРМЕЙДІ:
@@ -49,7 +55,8 @@ export async function GET(req: Request) {
     ]);
     if (error) throw new Error(error.message);
 
-    const list = rows ?? [];
+    // Ағымдағы негіздегі жолдар — журналдың өзі; ескілері — бөлек
+    const { current: list, legacy: legacyRows } = splitLegacy(rows ?? []);
     const lastRun = runs?.[0] ?? null;
 
     // Бақылаудың үзілуі: соңғы тексеруден бері неше сағат өтті
@@ -82,6 +89,8 @@ export async function GET(req: Request) {
       kzViolations: list.filter((r) => r.kz_violation).length,
       summary: summary.sort((a, b) => b.hours - a.hours),
       records: list,
+      legacyCount: legacyRows.length,
+      legacyRecords: legacyRows,
       coverage: {
         lastRunAt: lastRun?.ran_at ?? null,
         lastRunOk: lastRun?.ok ?? null,
@@ -106,7 +115,8 @@ export async function GET(req: Request) {
       },
       note:
         "Әр жазба — деректің ӨЗ САҒАТЫ бойынша тіркелген асу. `observed_hour` — " +
-        "оқиғаның уақыты, `recorded_at` — тіркеудің уақыты.",
+        "оқиғаның уақыты, `recorded_at` — тіркеудің уақыты. `legacyRecords` — " +
+        "орташалау негізі дұрыс емес ескі жазбалар; олар дәлел ретінде саналмайды.",
     });
   } catch (err) {
     console.error("exceedances error:", err);

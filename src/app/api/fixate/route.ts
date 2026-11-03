@@ -2,8 +2,14 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { REGIONS } from "@/data/regions";
 import { INDICATORS } from "@/data/indicatorRegistry";
-import { normsFor } from "@/data/legalNorms";
-import { checkCompliance, type ComplianceLevel } from "@/lib/compliance";
+import { normsFor, type Averaging } from "@/data/legalNorms";
+import {
+  checkCompliance, HOURLY_BASIS, type ComparisonBasis, type ComplianceLevel, type ComplianceResult,
+} from "@/lib/compliance";
+import {
+  DAILY_MIN_HOURS_DEFAULT, EIGHT_HOUR_MIN_COUNT_DEFAULT, LOCAL_TIME_ZONE,
+  dailyWindows, parseUtcMs, rollingWindows, type SeriesPoint,
+} from "@/lib/fixateWindows";
 
 // НОРМА АСУЫН ФИКСАЦИЯЛАУ — тәуліктік cron, ӨТКЕН 48 САҒАТТЫ ТОЛЫҚ ТІРКЕЙДІ.
 //
@@ -13,30 +19,30 @@ import { checkCompliance, type ComplianceLevel } from "@/lib/compliance";
 // сақталмайды. Ал прокуратура үшін керегі дәл сол — «қашан, қай жерде,
 // қандай мән, қандай нормадан асты».
 //
-// ═══ ⚠️ НЕГЕ ЛЕЗДІК ЕМЕС, САҒАТТЫҚ ҚАТАР ═══
-// Бұрын эндпоинт `/api/compliance`-тен ТЕК ЛЕЗДІК мәнді алып, бір жазба
-// жасайтын, әрі сағат сайынғы cron-ға есептелген еді. Ал Vercel Hobby
-// жоспарында cron ТӘУЛІГІНЕ БІР РЕТ қана жүреді — сонда тәуліктің 24
-// сағатының 23-і тіркелмей қалар еді. Бос журналды «асу болмады» деп оқу
-// қате болар еді.
+// ═══ НЕГІЗ ЕРЕЖЕСІ (Г.2, P1.2) ═══
+// Мән ТЕК өзінің орташалау кезеңіндегі нормамен салыстырылады:
+//   • сағаттық мән       → тек `hourly` нормасы (қазір: NO₂ ЕО 200)
+//   • тәуліктік орта     → жергілікті күн бойынша 24 сағаттық орта → `daily` нормасы
+//   • O₃ 8 сағаттық орта → жылжымалы 8 сағат → `8h` нормасы
+// Басқа нормалар `not-comparable` болады және журналға ЖАЗЫЛМАЙДЫ.
+// Жеткіліксіз тәулік/терезе — «тексерілмеді», асу емес; санағышы
+// `fixation_runs.insufficient_days`-та.
 //
-// Шешім: жүгіріс сайын CAMS-тың САҒАТТЫҚ қатарын алып, өткен 48 сағаттың
-// ӘР САҒАТЫН бөлек тексереміз. Кестедегі (region, indicator, hour)
-// бірегейлігі қайталауды өзі болдырмайды, сондықтан қайта жүгірту
-// қауіпсіз әрі үзіліс болса кейінгі жүгіріс оны ЖАБАДЫ.
+// ═══ ЖАЗБА КІЛТІ ═══
+// (region_id, indicator_id, averaging, window_end) — бірегей. Қайта жүгірту
+// қауіпсіз: бар жазба қайталанбайды, ескі (негізсіз) жолдар ЖОЙЫЛМАЙДЫ
+// (supabase/exceedances_basis.sql — `legacy_invalid_basis`).
 //
-// Заңдық нормасы бар БАРЛЫҚ көрсеткіш (PM₂.₅, PM₁₀, NO₂, SO₂, O₃) —
-// сағаттық CAMS деректері бар ауа ластаушылары, сондықтан тәуліктік
-// жүгіріс заңдық жағынан ТОЛЫҚ қамтуды береді.
+// ═══ УАҚЫТ ═══
+// Сұрау `timezone=GMT` (UTC). Тәулік — Атырау жергілікті күні (Asia/Atyrau,
+// UTC+5; Open-Meteo utc_offset_seconds=18000 растайды). Қараңыз: src/lib/fixateWindows.ts.
 //
-// ═══ ЕКІ УАҚЫТ ═══
-// `observed_hour` — ДЕРЕКТІҢ өз сағаты (UTC)
-// `recorded_at`   — біздің жазған сәтіміз
-// Екеуін шатастыруға болмайды. Кідіріс болса, айырма көрініп тұрады.
+// `observed_hour` — ДЕРЕКТІҢ өз уақыты (терезенің соңғы сағаты, UTC)
+// `recorded_at`   — біздің жазған сәтіміз. Екеуін шатастыруға болмайды.
 //
 // ═══ ҚАУІПСІЗДІК ═══
-// Жазу үшін SUPABASE_SERVICE_ROLE_KEY керек (anon кілтіне RLS жазуға
-// рұқсат бермейді). Кілт жоқ болса — 503, жалған «жазылды» жауабы емес.
+// Жазу үшін серверлік кілт керек (anon кілтіне RLS жазуға рұқсат бермейді).
+// Кілт жоқ болса — 503, жалған «жазылды» жауабы емес.
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -47,8 +53,13 @@ const TRACKED = REGIONS.filter((r) => r.country === "KZ");
 /** Тіркелетін деңгейлер. `approaching` жазылмайды — ол әлі асу емес. */
 const RECORDED_LEVELS: ComplianceLevel[] = ["exceeded", "exceeded-unverified"];
 
-/** Артқа қарай қанша сағат тексеріледі. Тәуліктік cron + қор = 48. */
+/** Артқа қарай қанша сағат тексеріледі (сағаттық/8 сағаттық терезелер үшін). */
 const BACKFILL_HOURS = 48;
+
+/** Тәуліктік норма үшін базис: 24 сағаттық орта. */
+const DAILY_BASIS: ComparisonBasis = { averaging: "daily", windowHours: 24 };
+/** O₃ 8 сағаттық норма үшін базис. */
+const EIGHT_HOUR_BASIS: ComparisonBasis = { averaging: "8h", windowHours: 8 };
 
 /**
  * Заңдық нормасы бар көрсеткіштер ↔ CAMS сағаттық өріс аттары.
@@ -65,6 +76,8 @@ const HOURLY_FIELD: Record<string, string> = {
 const TRACKED_INDICATORS = INDICATORS.filter(
   (i) => normsFor(i.id).length > 0 && HOURLY_FIELD[i.id]
 );
+
+type IndicatorDef = (typeof INDICATORS)[number];
 
 interface HourlyAir {
   time?: string[];
@@ -136,16 +149,20 @@ export async function GET(req: Request) {
   let checked = 0;
   let found = 0;
   let written = 0;
+  /** Толық өткен, бірақ жеткіліксіз дерекпен тәулік (көрсеткіш × күн). «Асу болмады» емес — тексерілмеді. */
+  let insufficientDays = 0;
   const failed: string[] = [];
   const perRegion: { region: string; hours: number; found: number }[] = [];
 
-  const cutoff = Date.now() - BACKFILL_HOURS * 3600_000;
+  const nowMs = Date.now();
+  const cutoff = nowMs - BACKFILL_HOURS * 3600_000;
 
   for (const region of TRACKED) {
     try {
       // ⚠️ timezone=GMT — жауаптағы уақыттар UTC болады. Бұл маңызды:
       // `observed_hour` — timestamptz бағаны. Жергілікті уақытты офсетсіз
       // жазсақ, база оны UTC деп оқып, сағат 5-ке жылжып кетер еді.
+      // Тәулік шекарасын жергілікті күн бойынша `fixateWindows` есептейді.
       const api =
         `https://air-quality-api.open-meteo.com/v1/air-quality` +
         `?latitude=${region.lat}&longitude=${region.lng}` +
@@ -154,9 +171,8 @@ export async function GET(req: Request) {
         // `forecast_days=0` болғанда Open-Meteo тек өткен ТОЛЫҚ күндерді
         // қайтарады, яғни бүгін таңертеңнен бергі сағаттар жауапқа мүлдем
         // кірмейтін: бүгінгі асу ертеңгі жүгіріске дейін тіркелмей тұратын.
-        // Прокуратураға арналған журнал үшін мұндай кідіріс жарамайды.
-        // Болашақ сағаттар төмендегі `tMs > Date.now()` тексерісімен
-        // сүзіледі — болжам ешқашан «тіркелген асу» болып жазылмайды.
+        // Болашақ сағаттар төмендегі `tMs > nowMs` тексерісімен сүзіледі —
+        // болжам ешқашан «тіркелген асу» болып жазылмайды.
         `&past_days=2&forecast_days=1&timezone=GMT`;
       const res = await fetch(api, { cache: "no-store" });
       if (!res.ok) {
@@ -173,55 +189,98 @@ export async function GET(req: Request) {
       const rows: Record<string, unknown>[] = [];
       let regionFound = 0;
 
-      for (let h = 0; h < times.length; h++) {
-        const tMs = new Date(`${times[h]}Z`).getTime();
-        // Болашақ немесе тым ескі сағат — өткізіп жібереміз
-        if (!Number.isFinite(tMs) || tMs > Date.now() || tMs < cutoff) continue;
-        const observedHour = new Date(tMs).toISOString();
+      /** Бір бекітілген асуды жолға айналдырады. Мән мен оның терезесі бірге жазылады. */
+      const record = (
+        ind: IndicatorDef,
+        c: ComplianceResult,
+        value: number,
+        win: { start: string; end: string; count: number },
+        averaging: Averaging
+      ) => {
+        if (!RECORDED_LEVELS.includes(c.worst)) return;
+        found++;
+        regionFound++;
 
-        for (const ind of TRACKED_INDICATORS) {
-          const series = j.hourly?.[HOURLY_FIELD[ind.id]] as (number | null)[] | undefined;
-          const value = series?.[h];
-          if (value == null || !Number.isFinite(value)) continue;
-          checked++;
+        // Ең ауыр тексеру — қай нормадан асқаны сол
+        const worstCheck = c.checks
+          .filter((x) => RECORDED_LEVELS.includes(x.level))
+          .sort((a, b) => (b.timesOver ?? 0) - (a.timesOver ?? 0))[0];
 
-          const c = checkCompliance(ind.id, value, "KZ");
-          if (!RECORDED_LEVELS.includes(c.worst)) continue;
-          found++;
-          regionFound++;
+        rows.push({
+          region_id: region.id,
+          region_name: region.name,
+          indicator_id: ind.id,
+          indicator_name: nameById.get(ind.id) ?? ind.id,
+          unit: unitById.get(ind.id) ?? "µg/m³",
+          value,
+          level: c.worst,
+          kz_violation: c.kzViolation,
+          act_jurisdiction: worstCheck?.act.jurisdiction ?? null,
+          act_number: worstCheck?.act.number ?? null,
+          // Кілт (hourly | daily | 8h) — машина оқиды; адам мәтіні UI-да AVERAGING_KZ-тен шығады
+          averaging,
+          norm_limit: worstCheck?.norm.limit ?? null,
+          times_over: worstCheck?.timesOver ?? null,
+          tier: tierById.get(ind.id) ?? null,
+          summary: c.summary,
+          observed_hour: win.end,
+          window_start: win.start,
+          window_end: win.end,
+          sample_count: win.count,
+          legacy_invalid_basis: false,
+        });
+      };
 
-          // Ең ауыр тексеру — қай нормадан асқаны сол
-          const worstCheck = c.checks
-            .filter((x) => RECORDED_LEVELS.includes(x.level))
-            .sort((a, b) => (b.timesOver ?? 0) - (a.timesOver ?? 0))[0];
+      for (const ind of TRACKED_INDICATORS) {
+        const series = j.hourly?.[HOURLY_FIELD[ind.id]] as (number | null)[] | undefined;
+        const points: SeriesPoint[] = times.map((time, h) => ({ time, value: series?.[h] }));
+        const hasNorm = (a: Averaging) => normsFor(ind.id).some((n) => n.averaging === a);
 
-          rows.push({
-            region_id: region.id,
-            region_name: region.name,
-            indicator_id: ind.id,
-            indicator_name: nameById.get(ind.id) ?? ind.id,
-            unit: unitById.get(ind.id) ?? "µg/m³",
-            value,
-            level: c.worst,
-            kz_violation: c.kzViolation,
-            act_jurisdiction: worstCheck?.act.jurisdiction ?? null,
-            act_number: worstCheck?.act.number ?? null,
-            averaging: worstCheck?.averagingKz ?? null,
-            norm_limit: worstCheck?.norm.limit ?? null,
-            times_over: worstCheck?.timesOver ?? null,
-            tier: tierById.get(ind.id) ?? null,
-            summary: c.summary,
-            observed_hour: observedHour,
-          });
+        // 1) САҒАТТЫҚ мән — тек сағаттық нормамен
+        if (hasNorm("hourly")) {
+          for (const p of points) {
+            const tMs = parseUtcMs(p.time);
+            if (!Number.isFinite(tMs) || tMs > nowMs || tMs < cutoff) continue;
+            if (p.value == null || !Number.isFinite(p.value)) continue;
+            checked++;
+            const iso = new Date(tMs).toISOString();
+            const c = checkCompliance(ind.id, p.value, "KZ", HOURLY_BASIS);
+            record(ind, c, p.value, { start: iso, end: iso, count: 1 }, "hourly");
+          }
+        }
+
+        // 2) ТӘУЛІКТІК орта — жергілікті күн бойынша, тек АЯҚТАЛҒАН тәулік
+        if (hasNorm("daily")) {
+          for (const d of dailyWindows(points, { minHours: DAILY_MIN_HOURS_DEFAULT, nowMs, timeZone: LOCAL_TIME_ZONE })) {
+            if (!d.complete) continue; // тәулік әлі өтпеген — фиксацияланбайды
+            if (!d.sufficient || d.mean == null) {
+              insufficientDays++; // тексерілмеді, асу емес
+              continue;
+            }
+            checked++;
+            const c = checkCompliance(ind.id, d.mean, "KZ", DAILY_BASIS);
+            record(ind, c, d.mean, { start: d.windowStart, end: d.windowEnd, count: d.count }, "daily");
+          }
+        }
+
+        // 3) O₃ 8 сағаттық жылжымалы орта — тек аяқталған терезе
+        if (hasNorm("8h")) {
+          for (const w of rollingWindows(points, { windowHours: 8, minCount: EIGHT_HOUR_MIN_COUNT_DEFAULT })) {
+            const endMs = parseUtcMs(w.windowEnd);
+            if (endMs > nowMs || endMs < cutoff) continue;
+            if (!w.sufficient || w.mean == null) continue; // жеткіліксіз терезе — жазылмайды
+            checked++;
+            const c = checkCompliance(ind.id, w.mean, "KZ", EIGHT_HOUR_BASIS);
+            record(ind, c, w.mean, { start: w.windowStart, end: w.windowEnd, count: w.count }, "8h");
+          }
         }
       }
 
       // Топтап жазу — сағат сайын жеке сұраныс жіберудің қажеті жоқ.
-      // Бірегейлік (region, indicator, hour) қайталауды өзі кесіп тастайды,
-      // сондықтан қайта жүгірту қауіпсіз.
+      // Бірегейлік (region, indicator, averaging, window_end) қайталауды өзі кесіп тастайды.
       if (rows.length) {
         const { error } = await db.from("exceedances").upsert(rows, {
-          onConflict: "region_id,indicator_id,observed_hour",
+          onConflict: "region_id,indicator_id,averaging,window_end",
           ignoreDuplicates: true,
         });
         if (error) failed.push(`${region.id}: ${error.message}`);
@@ -234,11 +293,13 @@ export async function GET(req: Request) {
   }
 
   // ⚠️ Жүгірістің ӨЗІН тіркеу — журналдағы бос кезең «асу болмады» ма,
-  // әлде «тексеру жүрмеген» бе, соны ажырату үшін
+  // әлде «тексеру жүрмеген» бе, соны ажырату үшін. Жеткіліксіз тәуліктер де
+  // осында есептеледі: олар «тексерілмеді», «асу жоқ» емес.
   await db.from("fixation_runs").insert({
     regions: TRACKED.length,
     checked,
     found,
+    insufficient_days: insufficientDays,
     ok: failed.length === 0,
     error: failed.length ? failed.slice(0, 5).join(" · ") : null,
   });
@@ -248,17 +309,21 @@ export async function GET(req: Request) {
     ranAt: new Date().toISOString(),
     regions: TRACKED.length,
     backfillHours: BACKFILL_HOURS,
+    timeZone: LOCAL_TIME_ZONE,
+    dailyMinHours: DAILY_MIN_HOURS_DEFAULT,
+    eightHourMinCount: EIGHT_HOUR_MIN_COUNT_DEFAULT,
     indicators: TRACKED_INDICATORS.map((i) => i.id),
     checked,
     found,
     written,
+    insufficientDays,
     keyEnvName: foundKeyName,
     perRegion,
     failed,
     note:
-      `Әр жүгіріс өткен ${BACKFILL_HOURS} сағаттың ӘР САҒАТЫН бөлек тексереді, ` +
-      "сондықтан тәуліктік cron да толық қамту береді. Тіркелетін деңгейлер: " +
-      "норма асқан (расталған) және асқан (шек расталмаған). «Нормаға жақын» " +
-      "жазылмайды — ол әлі асу емес.",
+      "Әр мән өз орташалау кезеңінің нормасымен салыстырылады: сағаттық — сағаттық нормамен, " +
+      `тәуліктік — ${DAILY_MIN_HOURS_DEFAULT}+ сағаты бар толық жергілікті күнмен, O₃ — 8 сағаттық ` +
+      "тереземен. Жеткіліксіз тәулік «тексерілмеді» деп санала­ды. Тіркелетін деңгейлер: " +
+      "норма асқан (расталған) және асқан (шек расталмаған). «Нормаға жақын» жазылмайды.",
   });
 }

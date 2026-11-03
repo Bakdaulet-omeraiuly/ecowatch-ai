@@ -370,6 +370,7 @@ P3.1 → P3.2 → (P3.3, P3.8, P3.9, P5.2); P3.3 → P3.4; P4.4 → (P4.5, P4.6)
    (мысалы, 24-тің 18-і) **иесінің шешімі**, ойдан бекітілмейді; жеткіліксіз тәулік — «тексерілмеді», асу емес.
 3. Уақыт белдеуі: қазір `timezone=GMT`. Тәуліктік орта үшін Атыраудың жергілікті күні керек (IANA `Asia/Atyrau`). Офсетті
    орындаушы Open-Meteo жауабындағы `utc_offset_seconds` арқылы тексеріп, шешімді осы құжатқа жазады (жорамал UTC+5 — расталмаған).
+   **Орындалған шешім (2026-11-03):** сұрау `timezone=GMT` күйінде қалады; жергілікті күн `Intl` арқылы `Asia/Atyrau` бойынша есептеледі (`src/lib/fixateWindows.ts`). Open-Meteo `timezone=Asia/Atyrau` сұрауында `utc_offset_seconds=18000` (UTC+5) тексерілді, `Intl` офсеті де GMT+05:00. Тәуліктік минимум `DAILY_MIN_HOURS_DEFAULT=18` — иесі бекітпейінше ұсыныс ретінде қалады.
 4. `exceedances` кестесі: `averaging` бағаны бар (`supabase/exceedances.sql:38`); оған `window_start`, `window_end`, `sample_count` қосу;
    бірегей кілтті `(region_id, indicator_id, averaging, window_end)` етіп өзгерту. Миграция жаңа файлмен жасалады; ескі жолдарды
    ЖОЮҒА болмайды — оларға `legacy_invalid_basis` белгісі қойылады және `/api/exceedances` оларды бөлек көрсетеді.

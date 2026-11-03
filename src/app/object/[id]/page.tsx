@@ -23,7 +23,7 @@ interface ComplianceItem {
   checks: {
     norm: { limit: number; unit: string; status: string; statusNote: string };
     act: { jurisdiction: string; number: string; title: string; url?: string };
-    averagingKz: string; ratio: number; level: ComplianceLevel;
+    averagingKz: string; ratio: number | null; level: ComplianceLevel;
   }[];
   disclaimer: string;
 }
@@ -164,8 +164,8 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
                       <span key={i}>
                         {c.act.jurisdiction === "KZ" ? "ҚР" : c.act.jurisdiction} {c.averagingKz}:{" "}
                         {c.norm.limit} {c.norm.unit} —{" "}
-                        <span className={c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"}>
-                          {Math.round(c.ratio * 100)}%
+                        <span className={c.ratio == null ? "text-neutral-400" : c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"}>
+                          {c.ratio == null ? tr(LEVEL_KZ["not-comparable"]) : `${Math.round(c.ratio * 100)}%`}
                         </span>
                         {c.norm.status !== "verified" && (
                           <span className="ml-0.5 text-amber-300/80" title={c.norm.statusNote}>⚠</span>

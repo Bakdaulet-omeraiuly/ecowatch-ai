@@ -134,7 +134,7 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   "🩺 Денсаулық кеңесі": { ru: "🩺 Совет по здоровью", en: "🩺 Health advice" },
   "Сезімтал топтар:": { ru: "Чувствительные группы:", en: "Sensitive groups:" },
   "Басты ластаушы": { ru: "Главный загрязнитель", en: "Main pollutant" },
-  "Алдағы 24 сағат — нақты CAMS болжамы": { ru: "Ближайшие 24 ч — реальный прогноз CAMS", en: "Next 24h — real CAMS forecast" },
+  "Алдағы 24 сағат — CAMS модельдік болжамы": { ru: "Ближайшие 24 ч — модельный прогноз CAMS", en: "Next 24h — CAMS model forecast" },
   "Қала аудандары": { ru: "Районы города", en: "City districts" },
 
   // Нүкте қосу / тарих
@@ -212,7 +212,12 @@ Object.assign(UI_TR, {
   "Мәселе түрлері": { ru: "Типы проблем", en: "Issue types" },
   "Аудандар бойынша орташа тәуекел (платформа талдаулары)": { ru: "Средний риск по районам (анализы платформы)", en: "Average risk by district (platform analyses)" },
   "Ауа сапасы болжамы — алдағы 48 сағат (Copernicus CAMS моделі)": { ru: "Прогноз качества воздуха — 48 ч (модель Copernicus CAMS)", en: "Air quality forecast — next 48h (Copernicus CAMS model)" },
-  "Ауа сапасы — соңғы 30 күн, нақты өлшем (Copernicus CAMS)": { ru: "Качество воздуха — 30 дней, реальные измерения (Copernicus CAMS)", en: "Air quality — last 30 days, real measurements (Copernicus CAMS)" },
+  "Ауа сапасы — соңғы 30 күн, CAMS моделі (өлшем емес)": { ru: "Качество воздуха — последние 30 дней, модель CAMS (не измерение)", en: "Air quality — last 30 days, CAMS model (not a measurement)" },
+  "Ауа сапасы · дерек түрлері бөлек": { ru: "Качество воздуха · типы данных отдельно", en: "Air quality · data types separate" },
+  "Дерек: Copernicus CAMS · Open-Meteo · тор бойынша (модель, өлшем емес)": { ru: "Данные: Copernicus CAMS · Open-Meteo · по сетке (модель, не измерение)", en: "Data: Copernicus CAMS · Open-Meteo · grid (model, not a measurement)" },
+  "CAMS моделі": { ru: "Модель CAMS", en: "CAMS model" },
+  "EU AQI — модель, өлшем емес": { ru: "EU AQI — модель, не измерение", en: "EU AQI — model, not a measurement" },
+  "Спутник қосулы": { ru: "Спутник включён", en: "Satellite on" },
   "Аймақтық тәуекел: тарих + 6 айлық AI болжамы": { ru: "Региональный риск: история + AI-прогноз на 6 мес.", en: "Regional risk: history + 6-month AI forecast" },
   "Маса белсенділігінің маусымдық болжамы — математикалық модель (тасқын маусымы + климат)": { ru: "Сезонный прогноз активности комаров — мат. модель (паводок + климат)", en: "Seasonal mosquito activity forecast — math model (flood season + climate)" },
   "Жылдық орташа температура: 2000–2050 (IPCC CMIP6 проекциясы)": { ru: "Среднегодовая температура: 2000–2050 (проекция IPCC CMIP6)", en: "Annual mean temperature: 2000–2050 (IPCC CMIP6 projection)" },
@@ -426,6 +431,12 @@ Object.assign(UI_TR, {
   // Жел қабаты
   "Жел": { ru: "Ветер", en: "Wind" },
   "Жел бағыты — тірі": { ru: "Направление ветра — live", en: "Wind direction — live" },
+  "Дерек жоқ": { ru: "Нет данных", en: "No data" },
+  "салыстыруға жарамайды": { ru: "не сравнимо", en: "not comparable" },
+  "желдің жылдамдығы келмеді, нөл деп есептелмейді.": {
+    ru: "скорость ветра не получена, за ноль не принимается.",
+    en: "wind speed was not received, it is not treated as zero.",
+  },
   "Стрелка — желдің кететін бағыты. Дереккөз: Open-Meteo (ECMWF).": { ru: "Стрелка — куда дует ветер. Источник: Open-Meteo (ECMWF).", en: "Arrow — where the wind blows to. Source: Open-Meteo (ECMWF)." },
   "Жел әлсіз — қалыпты жағдай.": { ru: "Ветер слабый — обычные условия.", en: "Wind is weak — normal conditions." },
   "Жел орташа — шаң аздап көтеріледі.": { ru: "Ветер умеренный — немного поднимается пыль.", en: "Moderate wind — some dust is raised." },

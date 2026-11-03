@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { TierBadge, TierLegend, type Tier } from "@/components/ui/TierBadge";
 import { INDICATORS, SECTIONS } from "@/data/indicatorRegistry";
+import { useLang } from "@/lib/i18n";
 
 // ӘДІСТЕМЕ ЖӘНЕ ВАЛИДАЦИЯ КҮЙІ
 //
@@ -46,6 +47,7 @@ const WATER = [
 ];
 
 export default function MethodologyPage() {
+  const { t } = useLang();
   const validated = INDICATORS.filter((i) => i.validated).length;
 
   return (
@@ -77,6 +79,12 @@ export default function MethodologyPage() {
         >
           PDF (11 бет)
         </a>
+        <Link
+          href="/validation"
+          className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sky-200 transition hover:bg-sky-500/20"
+        >
+          {t("val.link.validationHub")}
+        </Link>
       </div>
 
       {/* Маса моделі — жеке құжат. Ол басқа көрсеткіштерден бөлек, себебі
