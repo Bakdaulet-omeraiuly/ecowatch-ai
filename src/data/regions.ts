@@ -28,6 +28,7 @@ export type CountryCode = "KZ" | "AZ" | "RU" | "TM" | "IR";
  * жалған дерек. Сондықтан «бұл аймақта әлі жоқ» деп ашық жазылады.
  */
 export type ModuleKey =
+  | "greenery"       // Атыраудың қалалық терезесі және NDVI торы
   | "air"            // CAMS — жаһандық
   | "weather"        // ECMWF — жаһандық
   | "fire"           // FWI, метеорологиядан есептеледі — жаһандық
@@ -50,10 +51,12 @@ export const GLOBAL_MODULES: ModuleKey[] = [
 
 /** Аймаққа арнайы тізілім қажет ететін модульдер */
 export const REGISTRY_MODULES: ModuleKey[] = [
+  "greenery",
   "mosquito", "riverFlow", "floodExtent", "pollutionSource", "mlForecast", "objects",
 ];
 
 export const MODULE_KZ: Record<ModuleKey, string> = {
+  greenery: "Көгалдандыру",
   air: "Ауа сапасы",
   weather: "Ауа райы",
   fire: "Өрт қаупі",
@@ -72,6 +75,7 @@ export const MODULE_KZ: Record<ModuleKey, string> = {
 
 /** Модуль неге жоқ екенін түсіндіру — UI-де сол жазылады */
 export const MODULE_REASON: Record<ModuleKey, string> = {
+  greenery: "Қалалық бақылау терезесі мен NDVI торы тек Атырау үшін анықталған.",
   air: "", weather: "", fire: "", drought: "", wind: "", soil: "",
   flares: "", climate: "",
   mosquito:
@@ -137,6 +141,7 @@ export const REGIONS: Region[] = [
     // Тек Атырауда: зауыттар тізілімі, тасқын аймақтары, Жайық нүктелері,
     // оқытылған JAIYQ-ML моделі
     extraModules: [
+      "greenery",
       "mosquito", "riverFlow", "floodExtent", "pollutionSource", "mlForecast", "objects",
     ],
   },

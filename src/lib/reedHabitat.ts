@@ -52,7 +52,7 @@ function evaluatePixel(s) {
   return { reed: [ndvi > ${NDVI_DENSE} ? 1 : 0], dataMask: [1] };
 }`;
 
-function toMercator(lng: number, lat: number): [number, number] {
+export function toMercator(lng: number, lat: number): [number, number] {
   const x = (lng * 20037508.342789244) / 180;
   const y =
     (Math.log(Math.tan(((90 + lat) * Math.PI) / 360)) / (Math.PI / 180)) *

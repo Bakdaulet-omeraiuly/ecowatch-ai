@@ -106,6 +106,49 @@ function FireAnomalyMethodology() {
   );
 }
 
+// P4.1 / P4.2 — шектердің негізі мен жетіспейтін жергілікті деректер ашық жазылады.
+const GREEN_METH = {
+  kk: {
+    title: "Көгалдандыру: OSM, NDVI және ұсыныстар",
+    rows: [
+      { k: "OSM картографиясы · ODbL 1.0", v: "OpenStreetMap саябақ, бақ, орман, шөп, ағаш қатары мен жеке ағаш белгілері Overpass арқылы алынады. © OpenStreetMap contributors, ODbL: https://www.openstreetmap.org/copyright. Толықтығы тексерілмеген: картада объект жоқтығы жасыл аумақ жоқ деген сөз емес. Аудандар қабаттасуын шегермей қосылады; қатынастың тек жабық сыртқы контурлары алынады, ішкі тесіктер шегерілмейді; ашық контурлар өткізіліп, саны көрсетіледі." },
+      { k: "Спутник индексі — жердегі шындық емес", v: "Sentinel-2 L2A: NDVI = (B08 − B04)/(B08 + B04). SCL 3, 8, 9, 10, 11 және dataMask=0 пиксельдері алынады, бөлім ≤0 болса да есептелмейді. 60 м, P7D; қамту ≥0.6 болған кемінде екі аптаның медианасы. Соңғы толық маусым–тамыз бен одан бес жыл бұрынғы жаз салыстырылады; қыркүйекке дейін былтырғы жаз алынады. Атырау терезесі [51.72, 47.00, 52.12, 47.30], 3×3 тор; әкімшілік шекара емес. Әр кезеңнің үлестері мен NDVI медианалары бөлек есептеледі." },
+      { k: "Шектер және өзгеріс", v: "NDVI ≥0.2 — өсімдік, >0.4 — тығыз өсімдік; өсімдік үлесінің өзгерісі ≥+0.05 — өсу, ≤−0.05 — азаю, әйтпесе тұрақты. Бұл — жоба болжамдары, Атырауда валидацияланбаған. NDVI су пиксельдерін қамтиды (waterFraction). Жауын-шашын, суару мен құрылыс өзгеріске әсер етеді; бұл ағаш отырғызу/кесу дәлелі емес. Бұлтты апталар алынады, жоқ мән нөл емес." },
+      { k: "Ұсыныс ережелері · AI қолданылмаған", v: "NDVI жоқ → ұсыныс жоқ. OSM жер мақсаты жоқ → жер мақсаты ескерілмейді. OSM объектілерінің кемінде жартысы бір санатта болса, сол басым (тең болса аралас); ауданмен өлшенбейді. Тұрғын аумақ + өсімдік үлесі <0.15 → көше/аула ағаштарын қарастыру; өнеркәсіп → қорғаныш белдеуін қарастыру; азаю → себебін жерде тексеру. SCL=6 су үлесі ≥0.01 немесе OSM су объектісі ≥1 → суару мүмкіндігін тексеру. Екі су кірісі белгілі және бұл шарт орындалмаса → құрғаққа төзімді өсімдік/тамшылатып суаруды қарастыру. Басқа ереже болмаса басым ұсыныс жоқ. 0.15 және 0.01 — жоба болжамдары, валидацияланбаған. Су объектісінің болуы қолжетімді, жарамды не рұқсат етілген суаруды білдірмейді." },
+      { k: "Жетіспейтін жергілікті жағдайлар", v: "Топырақ тұздылығы — Дерек жоқ (әр карточкада көрсетіледі). Жер иелігі, су сапасы, суаруға рұқсат және жергілікті түрлер тізімі тексерілмеген; түр атаулары ұсынылмайды. Барлық ұсыныс жобалауға дейін жердегі тексеруді қажет етеді. OSM мен спутник санауыштары дереккөз істемесе бөлек «—» көрсетеді." },
+    ],
+  },
+  ru: {
+    title: "Озеленение: OSM, NDVI и рекомендации",
+    rows: [
+      { k: "Картография OSM · ODbL 1.0", v: "Метки OpenStreetMap: парки, сады, леса, травяные участки, ряды деревьев и отдельные деревья — через Overpass. © OpenStreetMap contributors, ODbL: https://www.openstreetmap.org/copyright. Полнота не проверена: отсутствие объекта на карте не означает отсутствия зелени. Площади суммируются без вычитания перекрытий; у отношений берутся только замкнутые внешние контуры, внутренние отверстия не вычитаются; незамкнутые контуры пропускаются и считаются." },
+      { k: "Спутниковый индекс — не наземная истина", v: "Sentinel-2 L2A: NDVI = (B08 − B04)/(B08 + B04). Исключены SCL 3, 8, 9, 10, 11, dataMask=0 и знаменатель ≤0. 60 м, P7D; медианы минимум двух недель с покрытием ≥0.6. Сравниваются последний полный июнь–август и лето на пять лет раньше; до сентября берётся прошлогоднее лето. Окно Атырау [51.72, 47.00, 52.12, 47.30], сетка 3×3; это не административная граница. Медианы долей и NDVI каждого сезона считаются отдельно." },
+      { k: "Пороги и изменение", v: "NDVI ≥0.2 — растительность, >0.4 — густая; изменение доли растительности ≥+0.05 — рост, ≤−0.05 — снижение, иначе стабильно. Это допущения проекта, не валидированные в Атырау. NDVI включает водные пиксели (waterFraction). Осадки, полив и строительство влияют на изменение; это не доказательство посадки/вырубки. Облачные недели исключены, отсутствие значения не означает ноль." },
+      { k: "Правила рекомендаций · без ИИ", v: "Нет NDVI → нет рекомендации. Нет землепользования OSM → оно не учитывается. Категория с не менее чем половиной объектов OSM считается преобладающей (при равенстве — смешанная); это не площадь. Жилая территория + доля растительности <0.15 → рассмотреть уличные/дворовые деревья; промышленная → защитный пояс; снижение → проверить причину на месте. Доля воды SCL=6 ≥0.01 или ≥1 водного объекта OSM → проверить возможность полива. Если оба водных входа известны и условие не выполнено → рассмотреть засухоустойчивые растения/капельный полив. Без иных правил нет приоритетной рекомендации. 0.15 и 0.01 — допущения проекта, не валидированы. Наличие воды не означает доступность, пригодность или разрешение на полив." },
+      { k: "Недостающие местные условия", v: "Засолённость почвы — Нет данных (в каждой карточке). Землевладение, качество воды, разрешение на полив и местный список видов не проверены; виды не рекомендуются. Перед проектированием нужна проверка на месте. Счётчики OSM и спутника независимо показывают «—» при отказе своего источника." },
+    ],
+  },
+  en: {
+    title: "Greening: OSM, NDVI and recommendations",
+    rows: [
+      { k: "OSM mapping · ODbL 1.0", v: "OpenStreetMap parks, gardens, woods, grass, tree rows and individual trees are fetched through Overpass. © OpenStreetMap contributors, ODbL: https://www.openstreetmap.org/copyright. Completeness is unverified: an unmapped object does not mean greenery is absent. Areas are summed without subtracting overlaps; only closed outer relation rings are used, without subtracting inner holes; open rings are skipped and counted." },
+      { k: "Satellite index — not ground truth", v: "Sentinel-2 L2A: NDVI = (B08 − B04)/(B08 + B04). SCL 3, 8, 9, 10, 11, dataMask=0 and denominators ≤0 are excluded. 60 m, P7D; medians of at least two weeks with coverage ≥0.6. The latest complete June–August is compared with summer five years earlier; before September, last year's summer is used. Atyrau window [51.72, 47.00, 52.12, 47.30], 3×3 grid; not an administrative boundary. Fraction and NDVI medians are calculated independently for each season." },
+      { k: "Thresholds and change", v: "NDVI ≥0.2 means vegetation, >0.4 dense vegetation; vegetated share change ≥+0.05 means increase, ≤−0.05 decrease, otherwise stable. These are project assumptions, not validated in Atyrau. NDVI includes water pixels (waterFraction). Rainfall, irrigation and construction affect change; this does not prove tree planting/removal. Cloudy weeks are excluded; missing is not zero." },
+      { k: "Recommendation rules · no AI used", v: "No NDVI → no recommendation. No OSM land use → land use is not considered. A category with at least half of OSM objects dominates (ties are mixed); counts are not area. Residential land + vegetated share <0.15 → consider street/courtyard trees; industrial land → protective belt; decline → check the cause on site. SCL=6 water share ≥0.01 or ≥1 OSM water object → assess irrigation feasibility. If both water inputs are known and the condition fails → consider drought-tolerant plants/drip irrigation. With no other rule there is no priority recommendation. 0.15 and 0.01 are unvalidated project assumptions. Water presence does not imply availability, suitability or permission to irrigate." },
+      { k: "Missing local conditions", v: "Soil salinity — No data (shown in every card). Ownership, water quality, irrigation permission and a local species list are unverified; species are not recommended. All advice requires on-site checks before design. OSM and satellite tiles independently show ‘—’ when their own source fails." },
+    ],
+  },
+} as const;
+
+function GreeneryMethodology() {
+  const { lang } = useLang();
+  const c = GREEN_METH[lang];
+  return <section className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4" aria-labelledby="green-meth-title">
+    <h2 id="green-meth-title" className="mb-2 text-sm font-semibold text-white">{c.title}</h2>
+    <dl className="space-y-3 text-[13px] leading-relaxed">{c.rows.map((row) => <div key={row.k}><dt className="font-semibold text-neutral-100">{row.k}</dt><dd className="text-neutral-400">{row.v}</dd></div>)}</dl>
+  </section>;
+}
+
 export default function MethodologyPage() {
   const { t } = useLang();
   const validated = INDICATORS.filter((i) => i.validated).length;
@@ -169,6 +212,7 @@ export default function MethodologyPage() {
       </div>
 
       <FireAnomalyMethodology />
+      <GreeneryMethodology />
 
       <div className="mb-10 rounded-xl border border-neutral-300 bg-neutral-50 p-4">
         <h2 className="mb-2 text-sm font-semibold text-neutral-900">Сенімділік деңгейлері</h2>

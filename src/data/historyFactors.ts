@@ -2,11 +2,12 @@
 // Seeded realistic trajectory: oil extraction grew sharply after Tengiz
 // expansion, waste grew with urbanization, mosquito risk follows flood cycles.
 
-export type LayerKey = "mosquito" | "air" | "soil" | "oil" | "waste" | "water" | "fire" | "drought" | "wind";
+export type LayerKey = "mosquito" | "air" | "soil" | "oil" | "waste" | "water" | "fire" | "drought" | "wind" | "green";
 
 export const YEARS = [1995, 2000, 2005, 2010, 2015, 2020, 2026] as const;
 
 export const historyFactors: Record<LayerKey, number[]> = {
+  green:    [1, 1, 1, 1, 1, 1, 1], // тарихсыз — өзгеріс NDVI арқылы бөлек (wind сияқты)
   //        1995  2000  2005  2010  2015  2020  2026
   oil:      [0.35, 0.45, 0.60, 0.72, 0.85, 0.95, 1.0],
   air:      [0.40, 0.48, 0.60, 0.70, 0.82, 0.93, 1.0],
@@ -34,6 +35,11 @@ export interface LayerDef {
 }
 
 export const LAYERS: LayerDef[] = [
+  {
+    key: "green", label: "Көгалдандыру", emoji: "🌳",
+    ramp: ["rgba(22,163,74,0.2)", "rgba(22,163,74,0.4)", "rgba(34,197,94,0.7)", "rgba(134,239,172,0.9)"],
+    activeCls: "border-green-500/50 bg-green-500/20 text-green-200",
+  },
   {
     key: "mosquito", label: "Маса", emoji: "🦟",
     ramp: ["rgba(124,58,237,0.35)", "rgba(168,85,247,0.6)", "rgba(217,70,239,0.8)", "rgba(232,121,249,0.95)"],
