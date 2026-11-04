@@ -3,6 +3,7 @@
 import { Factory, Flame, Wind, X, ExternalLink, Pause, Play } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import type { Facility } from "@/data/facilities";
+import type { FacilityNo2Signal } from "@/lib/facilityS5p";
 
 export interface FacilityBarAir { so2: number | null; no2: number | null }
 export interface FacilityBarWind { fromLabel: string; speed: number; toBearing: number }
@@ -14,8 +15,8 @@ const fmt = (v: number | null | undefined) => (v == null ? "—" : v.toFixed(1))
  * values a reader needs at a glance; the full registry card lives on /object/[id].
  * Each value carries its tier icon (📊 model / 🛰 measurement).
  */
-export function FacilityBar({ facility, name, share, wind, air, airError, flares, flaresError, animating, onToggle, onClose }: {
-  facility: Facility | undefined; name: string; share: number | null; wind: FacilityBarWind | null;
+export function FacilityBar({ facility, name, no2, share, wind, air, airError, flares, flaresError, animating, onToggle, onClose }: {
+  facility: Facility | undefined; name: string; no2: FacilityNo2Signal; share: number | null; wind: FacilityBarWind | null;
   air: FacilityBarAir | null; airError: boolean; flares: { count: number; days: number } | null; flaresError: boolean;
   animating: boolean; onToggle: () => void; onClose: () => void;
 }) {
@@ -31,6 +32,22 @@ export function FacilityBar({ facility, name, share, wind, air, airError, flares
         <span className="flex min-w-0 items-center gap-1.5 text-[13px] font-semibold">
           <Factory className="h-4 w-4 shrink-0 text-red-800" aria-hidden />
           <span className="truncate">{name}</span>
+        </span>
+
+        {sep}
+        <span
+          className={`flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${no2.status === "detected" ? "bg-red-100/80 text-red-900" : "bg-neutral-100/80 text-neutral-800"}`}
+          title={[
+            tr("Sentinel-5P TROPOMI, 2024–2026: желдің ығындағы NO₂ жел жақтағыдан артық па (алдын ала тіркелген хаттама, validation/s5p). Мөлшерін (т/жыл) емес, сигналдың барын көрсетеді."),
+            no2.clusterKey ? tr(no2.clusterKey) : null,
+            no2.neighbours.length ? `${tr("Сақинада көрші нысан бар")}: ${no2.neighbours.map((n) => `${n.id} ${n.km} ${tr("км")}`).join(", ")}` : null,
+            no2.status === "not-detected" ? tr("Анықталмауы шығарынды жоқ дегенді білдірмейді — шағын көз спутник сезімталдығынан төмен болуы мүмкін.") : null,
+          ].filter(Boolean).join("\n")}
+        >
+          🛰 NO₂{" "}
+          {no2.status === "detected" ? <>{tr("ығында")} <strong className="tabular-nums">+{no2.relativePct}%</strong>{no2.clusterKey ? " *" : ""}</>
+            : no2.status === "not-detected" ? tr("сигнал анықталмады")
+            : tr("әлі тексерілмеген")}
         </span>
 
         {share != null && (<>{sep}

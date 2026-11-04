@@ -100,6 +100,7 @@ import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 import { GreeneryPanel } from "./GreeneryPanel";
 import { SourceErrorBox } from "./SourceErrorBox";
 import { FacilityBar } from "./FacilityBar";
+import { facilityNo2Signal } from "@/lib/facilityS5p";
 import { LandusePanel, LANDUSE_COLOR } from "./LandusePanel";
 import { NaturePanel, reserveGeo } from "./NaturePanel";
 
@@ -1778,6 +1779,7 @@ export function MapView() {
         <FacilityBar
           facility={FACILITIES.find((f) => f.id === facAir.fac.id)}
           name={facAir.fac.name}
+          no2={facilityNo2Signal(facAir.fac.id)}
           share={facAir.fac.confidence ?? null}
           wind={source?.wind ?? null}
           air={facAir.data}

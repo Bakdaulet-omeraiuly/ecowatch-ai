@@ -30,6 +30,13 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   "жылу нүктесі": { ru: "тепловых точек", en: "heat detections" },
   "Таралу": { ru: "Распространение", en: "Dispersion" },
   "Толығырақ": { ru: "Подробнее", en: "Details" },
+  "Sentinel-5P TROPOMI, 2024–2026: желдің ығындағы NO₂ жел жақтағыдан артық па (алдын ала тіркелген хаттама, validation/s5p). Мөлшерін (т/жыл) емес, сигналдың барын көрсетеді.": { ru: "Sentinel-5P TROPOMI, 2024–2026: выше ли NO₂ с подветренной стороны, чем с наветренной (заранее зарегистрированный протокол, validation/s5p). Показывает наличие сигнала, а не объём выбросов (т/год).", en: "Sentinel-5P TROPOMI, 2024–2026: is downwind NO₂ higher than upwind (pre-registered protocol, validation/s5p). Shows that a signal exists, not the emission amount (t/yr)." },
+  "* АМӨЗ + ЖЭО + қаланың шығыс бөлігі (спутник бөлек көрмейді)": { ru: "* АНПЗ + ТЭЦ + восточная часть города (спутник не разделяет)", en: "* Refinery + CHP + eastern part of the city (the satellite cannot separate them)" },
+  "Сақинада көрші нысан бар": { ru: "В кольце есть соседний объект", en: "Neighbouring facility in the ring" },
+  "Анықталмауы шығарынды жоқ дегенді білдірмейді — шағын көз спутник сезімталдығынан төмен болуы мүмкін.": { ru: "Отсутствие сигнала не означает отсутствия выбросов — небольшой источник может быть ниже чувствительности спутника.", en: "No detection does not mean no emissions — a small source may be below the satellite's sensitivity." },
+  "ығында": { ru: "с подветренной стороны", en: "downwind" },
+  "сигнал анықталмады": { ru: "сигнал не обнаружен", en: "no signal detected" },
+  "әлі тексерілмеген": { ru: "ещё не проверено", en: "not yet tested" },
   "басу: нысан туралы қысқаша": { ru: "нажмите: кратко об объекте", en: "click: facility summary" },
   "басу: таралу анимациясы + нысан туралы қысқаша": { ru: "нажмите: анимация распространения + кратко об объекте", en: "click: dispersion animation + facility summary" },
   // P5.4/P5.5 nature
