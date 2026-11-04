@@ -17,9 +17,9 @@ export const metadata = {
     "Тасқын-импульсті жұмыртқа банкіне негізделген маса тәуекел моделі: формула, дереккөздер, әлемдік модельдермен салыстыру, шектеулер.",
 };
 
-const OK = "text-emerald-300";
-const NO = "text-red-300";
-const PARTIAL = "text-amber-300";
+const OK = "text-emerald-800";
+const NO = "text-red-800";
+const PARTIAL = "text-amber-800";
 
 const LAYERS: { id: string; what: string; state: string; cls: string; how: string }[] = [
   { id: "L1", what: "Гидро-мекен: су басуды анықтау", state: "істейді", cls: OK,
@@ -179,7 +179,7 @@ const REFS: { label: string; url?: string }[] = [
 
 function Eqn({ children }: { children: React.ReactNode }) {
   return (
-    <pre className="my-3 overflow-x-auto rounded-lg border border-white/10 border-l-2 border-l-emerald-400 bg-black/40 p-3 font-mono text-[13px] leading-relaxed text-emerald-100 print:border-gray-300 print:bg-gray-50 print:text-black">
+    <pre className="my-3 overflow-x-auto rounded-lg border border-neutral-300 border-l-2 border-l-emerald-400 bg-black/40 p-3 font-mono text-[13px] leading-relaxed text-emerald-800 print:border-gray-300 print:bg-gray-50 print:text-black">
       {children}
     </pre>
   );
@@ -187,26 +187,26 @@ function Eqn({ children }: { children: React.ReactNode }) {
 
 function H2({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="mt-10 border-b border-emerald-500/30 pb-1.5 text-lg font-semibold text-emerald-300 print:border-gray-400 print:text-black">
+    <h2 className="mt-10 border-b border-emerald-300 pb-1.5 text-lg font-semibold text-emerald-800 print:border-gray-400 print:text-black">
       {children}
     </h2>
   );
 }
 
 function H3({ children }: { children: React.ReactNode }) {
-  return <h3 className="mt-5 text-[15px] font-semibold text-white print:text-black">{children}</h3>;
+  return <h3 className="mt-5 text-[15px] font-semibold text-neutral-900 print:text-black">{children}</h3>;
 }
 
 function Table({ children }: { children: React.ReactNode }) {
   return (
-    <div className="my-3 overflow-x-auto rounded-lg border border-white/10 print:border-gray-300">
+    <div className="my-3 overflow-x-auto rounded-lg border border-neutral-300 print:border-gray-300">
       <table className="w-full min-w-[540px] text-left text-[13px]">{children}</table>
     </div>
   );
 }
 
-const TH = "bg-white/[0.05] px-2.5 py-1.5 font-medium text-neutral-300 print:bg-gray-100 print:text-black";
-const TD = "border-t border-white/5 px-2.5 py-1.5 align-top text-neutral-300 print:border-gray-200 print:text-black";
+const TH = "bg-neutral-50 px-2.5 py-1.5 font-medium text-neutral-700 print:bg-gray-100 print:text-black";
+const TD = "border-t border-neutral-300 px-2.5 py-1.5 align-top text-neutral-700 print:border-gray-200 print:text-black";
 
 export default function MriMethodologyPage() {
   return (
@@ -214,79 +214,79 @@ export default function MriMethodologyPage() {
       <div className="mb-6 flex flex-wrap items-center gap-2 print:hidden">
         <Link
           href="/methodology"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[13px] text-neutral-300 transition hover:bg-white/10"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-[13px] text-neutral-700 transition hover:bg-neutral-100"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Әдістемеге қайту
         </Link>
         <a
           href="/JAIYQ-MRI-adistemesi.pdf"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[13px] text-emerald-300 transition hover:bg-emerald-500/20"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-[13px] text-emerald-800 transition hover:bg-emerald-100"
         >
           <Download className="h-3.5 w-3.5" /> PDF жүктеу (11 бет)
         </a>
-        <span className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-[13px] text-neutral-400">
+        <span className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-[13px] text-neutral-600">
           <Printer className="h-3.5 w-3.5" /> Ctrl+P — басып шығару
         </span>
       </div>
 
       {/* Титул */}
-      <header className="border-b-2 border-emerald-500/50 pb-5 print:border-gray-400">
-        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-emerald-400 print:text-emerald-800">
+      <header className="border-b-2 border-emerald-300 pb-5 print:border-gray-400">
+        <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-emerald-800 print:text-emerald-800">
           Ғылыми-техникалық әдістеме · Jaiyq экологиялық мониторинг платформасы
         </div>
-        <h1 className="mt-2 text-4xl font-bold tracking-tight text-white print:text-black">
+        <h1 className="mt-2 text-4xl font-bold tracking-tight text-neutral-900 print:text-black">
           JAIYQ-MRI
         </h1>
-        <p className="mt-2 text-[15px] leading-relaxed text-neutral-300 print:text-gray-700">
+        <p className="mt-2 text-[15px] leading-relaxed text-neutral-700 print:text-gray-700">
           Тасқын-импульсті жұмыртқа банкіне негізделген маса тәуекел моделі
           <br />
           Атырау қаласы және Жайық өзенінің атырауы, Солтүстік Каспий
         </p>
-        <dl className="mt-4 grid gap-x-6 gap-y-1 text-[13px] text-neutral-400 sm:grid-cols-2 print:text-gray-600">
-          <div><span className="text-neutral-400">Толық аты:</span>{" "}
-            <span className="text-neutral-200 print:text-black">Jaiyq Flood-pulse Mosquito Risk Intelligence</span></div>
-          <div><span className="text-neutral-400">Ядросы:</span>{" "}
-            <span className="text-neutral-200 print:text-black">FPEB — Flood-Pulse Egg-Bank engine</span></div>
-          <div><span className="text-neutral-400">Түрі:</span>{" "}
-            <span className="text-neutral-200 print:text-black">механистік компартмент моделі + қашықтан зондтау</span></div>
-          <div><span className="text-neutral-400">Валидация күйі:</span>{" "}
-            <span className="font-semibold text-red-300 print:text-red-700">валидацияланбаған</span></div>
-          <div><span className="text-neutral-400">Аумағы:</span>{" "}
-            <span className="text-neutral-200 print:text-black">Атырау облысы, 90 есептеу нүктесі</span></div>
-          <div><span className="text-neutral-400">Жаңару жиілігі:</span>{" "}
-            <span className="text-neutral-200 print:text-black">сағат сайын</span></div>
+        <dl className="mt-4 grid gap-x-6 gap-y-1 text-[13px] text-neutral-600 sm:grid-cols-2 print:text-gray-600">
+          <div><span className="text-neutral-600">Толық аты:</span>{" "}
+            <span className="text-neutral-900 print:text-black">Jaiyq Flood-pulse Mosquito Risk Intelligence</span></div>
+          <div><span className="text-neutral-600">Ядросы:</span>{" "}
+            <span className="text-neutral-900 print:text-black">FPEB — Flood-Pulse Egg-Bank engine</span></div>
+          <div><span className="text-neutral-600">Түрі:</span>{" "}
+            <span className="text-neutral-900 print:text-black">механистік компартмент моделі + қашықтан зондтау</span></div>
+          <div><span className="text-neutral-600">Валидация күйі:</span>{" "}
+            <span className="font-semibold text-red-800 print:text-red-700">валидацияланбаған</span></div>
+          <div><span className="text-neutral-600">Аумағы:</span>{" "}
+            <span className="text-neutral-900 print:text-black">Атырау облысы, 90 есептеу нүктесі</span></div>
+          <div><span className="text-neutral-600">Жаңару жиілігі:</span>{" "}
+            <span className="text-neutral-900 print:text-black">сағат сайын</span></div>
         </dl>
       </header>
 
-      <div className="mt-5 rounded-lg border-l-2 border-red-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
-        <b className="text-white print:text-black">Құжаттың мәртебесі.</b> Бұл — жұмыс істеп
+      <div className="mt-5 rounded-lg border-l-2 border-red-400 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700 print:bg-red-50 print:text-black">
+        <b className="text-neutral-900 print:text-black">Құжаттың мәртебесі.</b> Бұл — жұмыс істеп
         тұрған жүйенің техникалық сипаттамасы, жарнамалық материал емес. Модельдің әлі
         тексерілмегені, параметрлерінің калибрленбегені және қандай тұжырым жасауға
         жарамайтыны ашық жазылған. Әр сан қай дереккөзден келетіні көрсетілген.
       </div>
 
       <H2>1. Модель нені өлшейді және нені өлшемейді</H2>
-      <p className="mt-2 text-[14px] leading-relaxed text-neutral-300 print:text-black">
-        <b className="text-white print:text-black">Өлшейді:</b> маса көбеюіне жағдайдың
+      <p className="mt-2 text-[14px] leading-relaxed text-neutral-700 print:text-black">
+        <b className="text-neutral-900 print:text-black">Өлшейді:</b> маса көбеюіне жағдайдың
         қаншалық қолайлы екенін — уақыт пен кеңістік бойынша салыстыруға жарайтын 0–100 индекс.
       </p>
-      <p className="mt-2 text-[14px] leading-relaxed text-neutral-300 print:text-black">
-        <b className="text-white print:text-black">Өлшемейді:</b> маса САНЫН. Индекс 70 деген
+      <p className="mt-2 text-[14px] leading-relaxed text-neutral-700 print:text-black">
+        <b className="text-neutral-900 print:text-black">Өлшемейді:</b> маса САНЫН. Индекс 70 деген
         жерде бір шаршы метрде қанша маса бар екенін бұл модель айта алмайды. Ол үшін далалық
         тұзақ деректері қажет, олар Атырау бойынша жинақталмаған.
       </p>
-      <p className="mt-2 text-[14px] leading-relaxed text-neutral-300 print:text-black">
-        Сондықтан индекс <b className="text-white print:text-black">реттік</b> (ordinal):
+      <p className="mt-2 text-[14px] leading-relaxed text-neutral-700 print:text-black">
+        Сондықтан индекс <b className="text-neutral-900 print:text-black">реттік</b> (ordinal):
         «А ауданы Б ауданынан қауіптірек» деген тұжырым жасауға жарайды, «А ауданында 500 маса
         бар» деген тұжырымға жарамайды.
       </p>
 
       <H3>Неге бұл модель керек болды</H3>
-      <p className="mt-1 text-[14px] leading-relaxed text-neutral-300 print:text-black">
+      <p className="mt-1 text-[14px] leading-relaxed text-neutral-700 print:text-black">
         Дайын модельдердің басым бөлігі <b>ыдыс-су</b> (container-breeding) масаларына —{" "}
         <i>Aedes aegypti</i>, <i>Ae. albopictus</i> — арналған. Олардың ажыратқышы: адам жинаған
         су (шина, ыдыс, науа). Ал Жайық атырауында басты драйвер мүлдем басқа:{" "}
-        <b className="text-white print:text-black">көктемгі қар суы тасқыны</b>. Су басқанда
+        <b className="text-neutral-900 print:text-black">көктемгі қар суы тасқыны</b>. Су басқанда
         құрғақ жатқан диапаузалы жұмыртқа банкі жарылады. Ыдыс-су модельдері бұл механизмді
         мүлдем қамтымайды.
       </p>
@@ -314,20 +314,20 @@ export default function MriMethodologyPage() {
           </tr>
         </tbody>
       </Table>
-      <p className="text-[13px] text-neutral-400">
+      <p className="text-[13px] text-neutral-600">
         Батыс Қазақстан / Жайық-Ақжайық аулау жинақтары бойынша. Атырау қаласының өз тұзақ базасы жоқ.
       </p>
 
-      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-amber-50 print:text-black">
-        <b className="text-white print:text-black">Модельге тікелей әсер еткен түзету.</b> Әдетте
+      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700 print:bg-amber-50 print:text-black">
+        <b className="text-neutral-900 print:text-black">Модельге тікелей әсер еткен түзету.</b> Әдетте
         «Атырауда Aedes caspius басым» деп болжанады. Ал аулау деректерінде{" "}
-        <b className="text-white print:text-black">Culex modestus доминант (56 %)</b>. Сондықтан
+        <b className="text-neutral-900 print:text-black">Culex modestus доминант (56 %)</b>. Сондықтан
         модель екі экологияны БӨЛЕК ұстайды: тасқын-су Aedes (импульсті шыңдар) және тұрақты-су
         Culex (WNV, жаз ортасы), айлық салмақпен ауысады.
       </div>
 
       <H3>2.2 Басты драйверлер (дәлелденген реті бойынша)</H3>
-      <ol className="mt-1 list-decimal space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-300 marker:text-emerald-400 print:text-black">
+      <ol className="mt-1 list-decimal space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-700 marker:text-emerald-800 print:text-black">
         <li><b>Көктемгі тасқынның көлемі мен уақыты</b> — жұмыртқа су басумен жарылады</li>
         <li><b>Гидропериод</b> — көлшік дернәсілдің дамуын аяқтауға жеткілікті ұзақ тұруы қажет</li>
         <li><b>Қамыс алқаптары</b> (<i>Phragmites</i>) — Culex modestus үшін ең күшті мекен предикторы</li>
@@ -337,8 +337,8 @@ export default function MriMethodologyPage() {
       </ol>
 
       <H2>3. Модельдің архитектурасы</H2>
-      <p className="mt-2 text-[14px] leading-relaxed text-neutral-300 print:text-black">
-        Жеті қабат. Әрқайсысының <b className="text-white print:text-black">іске асу күйі</b> ашық
+      <p className="mt-2 text-[14px] leading-relaxed text-neutral-700 print:text-black">
+        Жеті қабат. Әрқайсысының <b className="text-neutral-900 print:text-black">іске асу күйі</b> ашық
         көрсетілген — жоба құжатында сипатталғанның бәрі кодта бар емес.
       </p>
       <Table>
@@ -365,8 +365,8 @@ export default function MriMethodologyPage() {
   C   — тұрақты-су Culex индексі
   U   — қалалық амплификация (елді мекенге жақындық, 0…1)
   W   — тасқын мүшесі = бейімділік × өлшенген импульс`}</Eqn>
-      <p className="text-[13px] leading-relaxed text-neutral-400 print:text-gray-700">
-        Тұрақты мүше <code className="font-mono text-neutral-200 print:text-black">0,15</code> —
+      <p className="text-[13px] leading-relaxed text-neutral-600 print:text-gray-700">
+        Тұрақты мүше <code className="font-mono text-neutral-900 print:text-black">0,15</code> —
         температура рұқсат еткен кездегі фондық белсенділік: су режимі нашар болса да маса мүлдем
         нөл болмайды.
       </p>
@@ -376,14 +376,14 @@ export default function MriMethodologyPage() {
 Φ_T(T) = 0                                    әйтпесе
 
   T₀ = 16,8 °C     Tm = 34,9 °C     шыңы = 25,9 °C`}</Eqn>
-      <p className="text-[13px] leading-relaxed text-neutral-400 print:text-gray-700">
+      <p className="text-[13px] leading-relaxed text-neutral-600 print:text-gray-700">
         Шектер Mordecai т.б. (2019) Батыс Нил вирусы жүйесі үшін жариялаған мәндерден. Нормалау
         шыңда дәл 1 береді. Мақаладағы Brière фитінің дәл көшірмесі емес — симметриялы жуықтау,
         бірақ шыңы (25,9 °C) мақалада хабарланған ~25 °C оптимумына сәйкес келеді.
       </p>
 
       <H3>4.3 FPEB ядросы — тасқын-импульсті жұмыртқа банкі</H3>
-      <p className="mt-1 text-[14px] leading-relaxed text-neutral-300 print:text-black">
+      <p className="mt-1 text-[14px] leading-relaxed text-neutral-700 print:text-black">
         Модельдің жүрегі. Тәуліктік қадаммен интегралданатын үш теңдеу:
       </p>
       <Eqn>{`dE/dt = f · (φ_egg(ай) − E)  −  h(W) · E
@@ -397,8 +397,8 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
   τ(T) = DD / (T − T_base)  даму ұзақтығы, тәулік
   s(hydro)                  гидропериодтан шыққан тірі қалу
   φ_egg(ай)                 маусымдық банк сыйымдылығы`}</Eqn>
-      <div className="my-3 rounded-lg border-l-2 border-emerald-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-emerald-50 print:text-black">
-        <b className="text-white print:text-black">Осы теңдеулердің мәні — КІДІРІС.</b> Су басқан
+      <div className="my-3 rounded-lg border-l-2 border-emerald-400 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700 print:bg-emerald-50 print:text-black">
+        <b className="text-neutral-900 print:text-black">Осы теңдеулердің мәні — КІДІРІС.</b> Су басқан
         күні маса пайда болмайды: алдымен жұмыртқа жарылады, содан кейін дернәсіл τ(T) күн дамиды.
         25 °C-та бұл ≈ 10 тәулік. Кідіріссіз модель шыңды дұрыс емес күнге қояды әрі «массалық
         шығу қашан күтіледі» деген ең пайдалы сұраққа жауап бере алмайды.
@@ -412,13 +412,13 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
             <tr key={a}>
               <td className={`${TD} font-mono`}>{a}</td><td className={TD}>{b}</td>
               <td className={TD}>{c}</td>
-              <td className={`${TD} ${d.includes("✓") ? "text-emerald-300" : ""}`}>{d}</td>
+              <td className={`${TD} ${d.includes("✓") ? "text-emerald-800" : ""}`}>{d}</td>
             </tr>
           ))}
         </tbody>
       </Table>
-      <div className="my-3 rounded-lg border-l-2 border-red-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
-        Жеті параметрдің <b className="text-white print:text-black">тек біреуі</b> (термиялық
+      <div className="my-3 rounded-lg border-l-2 border-red-400 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700 print:bg-red-50 print:text-black">
+        Жеті параметрдің <b className="text-neutral-900 print:text-black">тек біреуі</b> (термиялық
         шектер) нақты жарияланған зерттеуден алынған. Қалғандары — кулициндік әдебиеттегі жалпы
         шамалар мен модель баптаулары. <i>Aedes caspius</i> үшін жергілікті калибрлеу ЖОҚ.
         Бұл — модельдің басты әлсіздігі.
@@ -431,7 +431,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
   ИМПУЛЬС    — 0,65 · SAR + 0,35 · GloFAS  (өлшенген, күн сайын өзгереді)
   SAR        = min(1, артық су ауданы % / 5%)
   GloFAS     = ағынның өз терезесіндегі қатынасы`}</Eqn>
-      <p className="text-[13px] leading-relaxed text-neutral-400 print:text-gray-700">
+      <p className="text-[13px] leading-relaxed text-neutral-600 print:text-gray-700">
         Бұл бөліну маңызды: бейімділік «қай жер су басуға бейім» дегенді, импульс «бүгін су басты
         ма» дегенді көрсетеді. Бұрын екеуі араласып, сәуірде де, қаңтарда да бірдей мән беретін.
       </p>
@@ -463,7 +463,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
       </Table>
 
       <H3>Есептеу тізбегі</H3>
-      <ol className="mt-1 list-decimal space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-300 marker:text-emerald-400 print:text-black">
+      <ol className="mt-1 list-decimal space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-700 marker:text-emerald-800 print:text-black">
         <li>90 нүкте бойынша ECMWF метеорологиясы алынады (өткен 30 + алдағы 14 тәулік)</li>
         <li>GloFAS күндік ағыны → күндік тасқын импульсі W(t)</li>
         <li>Sentinel-1 бақылау терезелерінде артық су ауданы мен гидропериод өлшенеді</li>
@@ -474,8 +474,8 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
         <li>Температура гейті мен амплификация қолданылып, 0–100 шкаласына келтіріледі</li>
       </ol>
 
-      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-amber-50 print:text-black">
-        <b className="text-white print:text-black">Күй дерекқорда сақталмайды.</b> Әр сұраныста
+      <div className="my-3 rounded-lg border-l-2 border-amber-400 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700 print:bg-amber-50 print:text-black">
+        <b className="text-neutral-900 print:text-black">Күй дерекқорда сақталмайды.</b> Әр сұраныста
         нөлден қайта интегралданады. Артықшылығы: нәтиже детерминистік, қайталанады, күй жылжып
         кетпейді. Жобадағы өрт қаупі индексі (FWI) де дәл осылай есептеледі — бұл салада
         қалыптасқан тәсіл.
@@ -487,7 +487,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
         <tbody>
           {COMPARE.map((c) => (
             <tr key={c.model}>
-              <td className={`${TD} font-semibold text-white print:text-black`}>{c.model}</td>
+              <td className={`${TD} font-semibold text-neutral-900 print:text-black`}>{c.model}</td>
               <td className={TD}>{c.approach}</td>
               <td className={TD}>{c.strong}</td>
               <td className={TD}>{c.why}</td>
@@ -502,7 +502,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
           <tr>
             <th className={TH}>Қасиет</th>
             {MATRIX_COLS.map((c, i) => (
-              <th key={c} className={`${TH} text-center ${i === 0 ? "text-emerald-300" : ""}`}>{c}</th>
+              <th key={c} className={`${TH} text-center ${i === 0 ? "text-emerald-800" : ""}`}>{c}</th>
             ))}
           </tr>
         </thead>
@@ -514,8 +514,8 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
                 <td
                   key={i}
                   className={`${TD} text-center font-medium ${
-                    v === "ЖОҚ" ? "text-red-300" : v === "иә" ? "text-emerald-300"
-                      : v === "жоқ" ? "text-neutral-400" : "text-amber-300"
+                    v === "ЖОҚ" ? "text-red-800" : v === "иә" ? "text-emerald-800"
+                      : v === "жоқ" ? "text-neutral-600" : "text-amber-800"
                   }`}
                 >
                   {v}
@@ -528,11 +528,11 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
 
       <H2>7. Уникальділік — шыншыл баға</H2>
       <H3>Не жаңа ЕМЕС</H3>
-      <p className="mt-1 text-[14px] leading-relaxed text-neutral-300 print:text-black">
-        Модельдің <b className="text-white print:text-black">бірде-бір компоненті</b> жаңа емес.
+      <p className="mt-1 text-[14px] leading-relaxed text-neutral-700 print:text-black">
+        Модельдің <b className="text-neutral-900 print:text-black">бірде-бір компоненті</b> жаңа емес.
         Барлығы жарияланған, белгілі әдістер:
       </p>
-      <ul className="mt-1 list-disc space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-300 marker:text-neutral-400 print:text-black">
+      <ul className="mt-1 list-disc space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-700 marker:text-neutral-600 print:text-black">
         <li>Компартмент моделі (E–L–A) — вектор экологиясында ондаған жылдан бері</li>
         <li>Градус-күн даму жуықтауы — энтомологияның классикалық құралы</li>
         <li>SAR табалдырығымен су картасын жасау — Copernicus EMS-тің операциялық тәсілі</li>
@@ -542,34 +542,34 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
       </ul>
 
       <H3>Не жаңа</H3>
-      <p className="mt-1 text-[14px] leading-relaxed text-neutral-300 print:text-black">
-        Жаңалық — <b className="text-white print:text-black">компоненттерде емес, олардың
+      <p className="mt-1 text-[14px] leading-relaxed text-neutral-700 print:text-black">
+        Жаңалық — <b className="text-neutral-900 print:text-black">компоненттерде емес, олардың
         ЖИНАҚТАЛУЫНДА және ОПЕРАЦИЯЛЫҚ ІСКЕ АСУЫНДА</b>:
       </p>
-      <ol className="mt-1 list-decimal space-y-1.5 pl-5 text-[14px] leading-relaxed text-neutral-300 marker:text-emerald-400 print:text-black">
+      <ol className="mt-1 list-decimal space-y-1.5 pl-5 text-[14px] leading-relaxed text-neutral-700 marker:text-emerald-800 print:text-black">
         <li>
-          <b className="text-white print:text-black">Спутниктен ӨЛШЕНГЕН тасқын импульсі мен
+          <b className="text-neutral-900 print:text-black">Спутниктен ӨЛШЕНГЕН тасқын импульсі мен
           гидропериод механистік жұмыртқа банкі теңдеулерінің тікелей драйвері ретінде.</b>{" "}
           Камарг моделі тасқынды есептейді, бірақ спутникпен байланыспаған. MAMOTH спутникті
           қолданады, бірақ жұмыртқа банкі динамикасы жоқ әрі тұзақпен оқытылады. Екеуін
           біріктірген жүйе әдебиетте табылмады.
         </li>
         <li>
-          <b className="text-white print:text-black">Қос түрдің фазаға тәуелді салмағы</b> —
+          <b className="text-neutral-900 print:text-black">Қос түрдің фазаға тәуелді салмағы</b> —
           көктемде тасқын-су Aedes, жаз ортасында WNV-тасымалдаушы Culex — бір архитектурада.
         </li>
         <li>
-          <b className="text-white print:text-black">Тұзақ деректерінсіз операциялық жұмыс.</b>{" "}
+          <b className="text-neutral-900 print:text-black">Тұзақ деректерінсіз операциялық жұмыс.</b>{" "}
           Ең жақын аналог (MAMOTH) тұзақсыз іске қосыла алмайды.
         </li>
         <li>
-          <b className="text-white print:text-black">Солтүстік Каспий атырауына арнайы
+          <b className="text-neutral-900 print:text-black">Солтүстік Каспий атырауына арнайы
           бейімделу</b> — бұл аймақ үшін жарияланған операциялық маса моделі табылмады.
         </li>
       </ol>
 
-      <div className="my-4 rounded-lg border-l-2 border-red-400 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-300 print:bg-red-50 print:text-black">
-        <b className="text-white print:text-black">
+      <div className="my-4 rounded-lg border-l-2 border-red-400 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700 print:bg-red-50 print:text-black">
+        <b className="text-neutral-900 print:text-black">
           Бірақ: «үздік» немесе «дәлірек» деген тұжырым ЖАСАЛМАЙДЫ.
         </b>{" "}
         Модель валидацияланбаған. Салыстыру кестесіндегі «иә» белгілері <i>мүмкіндіктің
@@ -583,13 +583,13 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
       {GAPS.map((g) => (
         <div key={g.title} className="mt-5">
           <H3>{g.title}</H3>
-          <p className="mt-1 text-[14px] leading-relaxed text-neutral-300 print:text-black">
-            <b className="text-white print:text-black">Мәселе:</b> {g.problem}
+          <p className="mt-1 text-[14px] leading-relaxed text-neutral-700 print:text-black">
+            <b className="text-neutral-900 print:text-black">Мәселе:</b> {g.problem}
           </p>
-          <p className="mt-1.5 text-[14px] font-medium text-emerald-300 print:text-emerald-800">
+          <p className="mt-1.5 text-[14px] font-medium text-emerald-800 print:text-emerald-800">
             Шешу жолы:
           </p>
-          <ul className="mt-0.5 list-disc space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-300 marker:text-emerald-400 print:text-black">
+          <ul className="mt-0.5 list-disc space-y-1 pl-5 text-[14px] leading-relaxed text-neutral-700 marker:text-emerald-800 print:text-black">
             {g.fix.map((f, i) => <li key={i}>{f}</li>)}
           </ul>
         </div>
@@ -602,7 +602,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
           {PRIORITY.map(([n, w, e, d]) => (
             <tr key={n}>
               <td className={`${TD} font-mono`}>{n}</td>
-              <td className={`${TD} ${n === "1" ? "font-semibold text-white print:text-black" : ""}`}>{w}</td>
+              <td className={`${TD} ${n === "1" ? "font-semibold text-neutral-900 print:text-black" : ""}`}>{w}</td>
               <td className={TD}>{e}</td><td className={TD}>{d}</td>
             </tr>
           ))}
@@ -610,7 +610,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
       </Table>
 
       <H2>9. Шектеулер — қысқаша тізім</H2>
-      <ul className="mt-1 list-disc space-y-1 pl-5 text-[14px] leading-relaxed text-amber-200/80 marker:text-amber-400 print:text-black">
+      <ul className="mt-1 list-disc space-y-1 pl-5 text-[14px] leading-relaxed text-amber-800 marker:text-amber-800 print:text-black">
         <li>Индекс климаттық ҚОЛАЙЛЫЛЫҚТЫ өлшейді, маса САНЫН емес</li>
         <li>Модель валидацияланбаған — тұзақ деректері жоқ</li>
         <li>Жеті параметрдің алтауы түрге калибрленбеген</li>
@@ -626,12 +626,12 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
       </ul>
 
       <H2>10. Дереккөздер</H2>
-      <ol className="mt-1 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed text-neutral-400 marker:text-neutral-500 print:text-black">
+      <ol className="mt-1 list-decimal space-y-1 pl-5 text-[13px] leading-relaxed text-neutral-600 marker:text-neutral-600 print:text-black">
         {REFS.map((r, i) => (
           <li key={i}>
             {r.url ? (
               <a href={r.url} target="_blank" rel="noopener noreferrer"
-                 className="text-sky-300 underline-offset-2 hover:underline print:text-sky-700">
+                 className="text-sky-800 underline-offset-2 hover:underline print:text-sky-700">
                 {r.label}
               </a>
             ) : r.label}
@@ -639,8 +639,8 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
         ))}
       </ol>
 
-      <footer className="mt-10 border-t border-white/10 pt-4 text-[13px] leading-relaxed text-neutral-400 print:border-gray-300 print:text-gray-600">
-        <b className="text-neutral-300 print:text-black">Jaiyq</b> · ecojaiyq.com · Қазақстан мен
+      <footer className="mt-10 border-t border-neutral-300 pt-4 text-[13px] leading-relaxed text-neutral-600 print:border-gray-300 print:text-gray-600">
+        <b className="text-neutral-700 print:text-black">Jaiyq</b> · ecojaiyq.com · Қазақстан мен
         Каспий жағалауының экологиялық AI мониторинг платформасы
         <br />
         Бұл құжат жүйенің ағымдағы техникалық күйін сипаттайды. Модель валидацияланбаған: шығысы

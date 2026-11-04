@@ -23,7 +23,7 @@ export default function ReportPage() {
 
 const LocationPicker = dynamic(
   () => import("@/components/report/LocationPicker").then((m) => m.LocationPicker),
-  { ssr: false, loading: () => <div className="h-64 rounded-lg bg-white/5" /> }
+  { ssr: false, loading: () => <div className="h-64 rounded-lg bg-neutral-50" /> }
 );
 
 const WasteDetector = dynamic(
@@ -141,14 +141,14 @@ function ReportPageInner() {
   return (
     <div className="mx-auto max-w-xl space-y-4 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">{tr("Экологиялық мәселе туралы хабарлау")}</h1>
-        <p className="text-sm text-neutral-400">
+        <h1 className="text-2xl font-bold text-neutral-900">{tr("Экологиялық мәселе туралы хабарлау")}</h1>
+        <p className="text-sm text-neutral-600">
           {tr("Фото түсіріңіз — AI оны талдап, сол нүктенің спутник суретімен салыстырып растайды")}
         </p>
       </div>
 
-      <Card className="border-white/10 bg-white/[0.03]">
-        <CardHeader><CardTitle className="text-sm text-white">📸 {tr("Фото")}</CardTitle></CardHeader>
+      <Card className="border-neutral-300 bg-neutral-50">
+        <CardHeader><CardTitle className="text-sm text-neutral-900">📸 {tr("Фото")}</CardTitle></CardHeader>
         <CardContent>
           {/* Gallery: no capture attr → opens photo library / file picker */}
           <input
@@ -185,14 +185,14 @@ function ReportPageInner() {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => galleryRef.current?.click()}
-                className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/15 p-6 text-neutral-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 p-6 text-neutral-600 transition-colors hover:border-emerald-300 hover:text-emerald-800"
               >
                 <ImageIcon className="h-7 w-7" />
                 <span className="text-xs">{tr("Галереядан таңдау")}</span>
               </button>
               <button
                 onClick={() => cameraRef.current?.click()}
-                className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-white/15 p-6 text-neutral-400 transition-colors hover:border-emerald-500/40 hover:text-emerald-300"
+                className="flex flex-col items-center gap-2 rounded-lg border-2 border-dashed border-neutral-300 p-6 text-neutral-600 transition-colors hover:border-emerald-300 hover:text-emerald-800"
               >
                 <Camera className="h-7 w-7" />
                 <span className="text-xs">{tr("Камерадан түсіру")}</span>
@@ -202,8 +202,8 @@ function ReportPageInner() {
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-white/[0.03]">
-        <CardHeader><CardTitle className="text-sm text-white">📍 {tr("Орналасу — картадан белгілеңіз")}</CardTitle></CardHeader>
+      <Card className="border-neutral-300 bg-neutral-50">
+        <CardHeader><CardTitle className="text-sm text-neutral-900">📍 {tr("Орналасу — картадан белгілеңіз")}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <LocationPicker
             lat={parseFloat(lat) || null}
@@ -219,19 +219,19 @@ function ReportPageInner() {
               {tr("GPS арқылы анықтау")}
             </Button>
             <div className="flex-1 space-y-1">
-              <Label htmlFor="lat" className="text-xs text-neutral-400">{tr("Ендік (lat)")}</Label>
+              <Label htmlFor="lat" className="text-xs text-neutral-600">{tr("Ендік (lat)")}</Label>
               <Input id="lat" value={lat} onChange={(e) => setLat(e.target.value)} placeholder="47.1167" />
             </div>
             <div className="flex-1 space-y-1">
-              <Label htmlFor="lng" className="text-xs text-neutral-400">{tr("Бойлық (lng)")}</Label>
+              <Label htmlFor="lng" className="text-xs text-neutral-600">{tr("Бойлық (lng)")}</Label>
               <Input id="lng" value={lng} onChange={(e) => setLng(e.target.value)} placeholder="51.9014" />
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <Card className="border-white/10 bg-white/[0.03]">
-        <CardHeader><CardTitle className="text-sm text-white">📝 {tr("Сипаттама (міндетті емес)")}</CardTitle></CardHeader>
+      <Card className="border-neutral-300 bg-neutral-50">
+        <CardHeader><CardTitle className="text-sm text-neutral-900">📝 {tr("Сипаттама (міндетті емес)")}</CardTitle></CardHeader>
         <CardContent>
           <Textarea
             value={desc}
@@ -294,31 +294,31 @@ function Leaderboard() {
   const medals = ["🥇", "🥈", "🥉"];
 
   return (
-    <Card className="border-white/10 bg-amber-500/5">
+    <Card className="border-neutral-300 bg-amber-50">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-sm text-white">
-          <Trophy className="h-4 w-4 text-amber-400" />
+        <CardTitle className="flex items-center gap-2 text-sm text-neutral-900">
+          <Trophy className="h-4 w-4 text-amber-800" />
           {tr("Азамат белсенділерінің лидерборды")}
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
           {ranked.map((r, i) => (
-            <div key={r.name} className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2">
+            <div key={r.name} className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2">
               <span className="text-base">{medals[i] ?? `${i + 1}.`}</span>
               <div className="flex-1 truncate">
-                <div className="truncate text-sm text-white">{r.name.slice(0, 50)}</div>
-                <div className="text-[13px] text-neutral-400">
+                <div className="truncate text-sm text-neutral-900">{r.name.slice(0, 50)}</div>
+                <div className="text-[13px] text-neutral-600">
                   {r.count} {tr("хабарлама")} · {r.confirmed} {tr("расталған")}
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xs font-semibold text-amber-300">+{r.confirmed * 10 + r.count * 2} XP</div>
+                <div className="text-xs font-semibold text-amber-800">+{r.confirmed * 10 + r.count * 2} XP</div>
               </div>
             </div>
           ))}
         </div>
-        <p className="mt-3 text-[13px] text-neutral-400">
+        <p className="mt-3 text-[13px] text-neutral-600">
           {tr("XP = расталған хабарлама × 10 + барлық хабарлама × 2. Лидерборд нақты уақытта жаңарады.")}
         </p>
       </CardContent>

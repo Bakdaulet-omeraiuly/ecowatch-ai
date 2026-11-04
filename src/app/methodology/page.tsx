@@ -89,19 +89,19 @@ function FireAnomalyMethodology() {
   const { lang } = useLang();
   const c = FIRE_METH[lang];
   return (
-    <section className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4" aria-labelledby="fire-meth-title">
-      <h2 id="fire-meth-title" className="mb-2 flex items-center gap-2 text-sm font-semibold text-white">
-        {c.title} <TierBadge tier="measurement" />
+    <section className="mb-10 rounded-xl border border-neutral-300 bg-neutral-50 p-4" aria-labelledby="fire-meth-title">
+      <h2 id="fire-meth-title" className="mb-2 flex items-center gap-2 text-sm font-semibold text-neutral-900">
+        {c.title} <TierBadge tone="light" tier="measurement" />
       </h2>
-      <dl className="space-y-2 text-[13px] leading-relaxed text-neutral-300">
+      <dl className="space-y-2 text-[13px] leading-relaxed text-neutral-700">
         {c.rows.map((r) => (
           <div key={r.k}>
-            <dt className="font-semibold text-neutral-100">{r.k}</dt>
-            <dd className="text-neutral-400">{r.v}</dd>
+            <dt className="font-semibold text-neutral-900">{r.k}</dt>
+            <dd className="text-neutral-600">{r.v}</dd>
           </div>
         ))}
       </dl>
-      <p className="mt-3 text-[12px] leading-snug text-neutral-500">{c.note}</p>
+      <p className="mt-3 text-[12px] leading-snug text-neutral-600">{c.note}</p>
     </section>
   );
 }
@@ -111,11 +111,11 @@ export default function MethodologyPage() {
   const validated = INDICATORS.filter((i) => i.validated).length;
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-12 text-neutral-200">
-      <h1 className="mb-2 text-3xl font-bold text-emerald-400">Әдістеме және валидация</h1>
-      <p className="mb-6 max-w-2xl text-sm leading-relaxed text-neutral-400">
+    <main className="mx-auto max-w-4xl px-4 py-12 text-neutral-900">
+      <h1 className="mb-2 text-3xl font-bold text-emerald-800">Әдістеме және валидация</h1>
+      <p className="mb-6 max-w-2xl text-sm leading-relaxed text-neutral-600">
         Бұл бетте сайттағы әр көрсеткіштің қайдан келетіні, қалай есептелетіні және{" "}
-        <span className="text-white">не тексерілмегені</span> жазылған. Валидация бағаны көбіне
+        <span className="text-neutral-900">не тексерілмегені</span> жазылған. Валидация бағаны көбіне
         «жоқ» деп тұр — себебі Атырауда жердегі бақылау деректері бізде жоқ. Оны жасыру жалған
         сенімділік беру болар еді.
       </p>
@@ -123,25 +123,25 @@ export default function MethodologyPage() {
       <div className="mb-8 flex flex-wrap gap-2 text-[13px]">
         <Link
           href="/eco-passport"
-          className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-300 transition hover:bg-emerald-500/20"
+          className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-emerald-800 transition hover:bg-emerald-100"
         >
           Толық эко-паспортты ашу (формулалармен) →
         </Link>
         <Link
           href="/methodology/jaiyq-mri"
-          className="rounded-lg border border-violet-500/30 bg-violet-500/10 px-3 py-2 text-violet-200 transition hover:bg-violet-500/20"
+          className="rounded-lg border border-violet-300 bg-violet-50 px-3 py-2 text-violet-800 transition hover:bg-violet-100"
         >
           🦟 JAIYQ-MRI маса моделінің толық әдістемесі →
         </Link>
         <a
           href="/JAIYQ-MRI-adistemesi.pdf"
-          className="rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-neutral-300 transition hover:bg-white/10"
+          className="rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-neutral-700 transition hover:bg-neutral-100"
         >
           PDF (11 бет)
         </a>
         <Link
           href="/validation"
-          className="rounded-lg border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sky-200 transition hover:bg-sky-500/20"
+          className="rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-sky-800 transition hover:bg-sky-100"
         >
           {t("val.link.validationHub")}
         </Link>
@@ -150,11 +150,11 @@ export default function MethodologyPage() {
       {/* Маса моделі — жеке құжат. Ол басқа көрсеткіштерден бөлек, себебі
           бұл жобаның ӨЗ моделі: формуласы, дәлелдері, әлемдік модельдермен
           салыстыруы және не жетіспейтіні толық жазылған. */}
-      <div className="mb-8 rounded-xl border border-white/10 bg-white/[0.02] p-4">
-        <h2 className="mb-1 text-sm font-semibold text-violet-200">
+      <div className="mb-8 rounded-xl border border-neutral-300 bg-neutral-50 p-4">
+        <h2 className="mb-1 text-sm font-semibold text-violet-800">
           🦟 JAIYQ-MRI — жобаның өз моделі
         </h2>
-        <p className="text-[13px] leading-relaxed text-neutral-300">
+        <p className="text-[13px] leading-relaxed text-neutral-700">
           Маса тәуекел индексі — сырттан алынған модель емес, осы жоба үшін жасалған
           тасқын-импульсті жұмыртқа банкі моделі. Толық әдістемесінде формулалар, дереккөздер,
           жеті әлемдік модельмен салыстыру, «шынымен жаңа ма» деген шыншыл баға және не
@@ -162,7 +162,7 @@ export default function MethodologyPage() {
         </p>
         <Link
           href="/methodology/jaiyq-mri"
-          className="mt-2 inline-block text-[13px] text-violet-300 underline-offset-2 hover:underline"
+          className="mt-2 inline-block text-[13px] text-violet-800 underline-offset-2 hover:underline"
         >
           Толық құжатты ашу →
         </Link>
@@ -170,12 +170,12 @@ export default function MethodologyPage() {
 
       <FireAnomalyMethodology />
 
-      <div className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4">
-        <h2 className="mb-2 text-sm font-semibold text-white">Сенімділік деңгейлері</h2>
-        <TierLegend className="!text-[13px]" />
-        <p className="mt-3 text-[13px] text-neutral-400">
-          Барлығы <span className="text-white">{INDICATORS.length}</span> көрсеткіш, оның{" "}
-          <span className="text-white">{validated}</span>-і валидацияланған.
+      <div className="mb-10 rounded-xl border border-neutral-300 bg-neutral-50 p-4">
+        <h2 className="mb-2 text-sm font-semibold text-neutral-900">Сенімділік деңгейлері</h2>
+        <TierLegend tone="light" className="!text-[13px]" />
+        <p className="mt-3 text-[13px] text-neutral-600">
+          Барлығы <span className="text-neutral-900">{INDICATORS.length}</span> көрсеткіш, оның{" "}
+          <span className="text-neutral-900">{validated}</span>-і валидацияланған.
         </p>
       </div>
 
@@ -184,28 +184,28 @@ export default function MethodologyPage() {
         if (!items.length) return null;
         return (
           <section key={section} className="mb-10">
-            <h2 className="mb-3 text-xl font-semibold text-white">{section}</h2>
+            <h2 className="mb-3 text-xl font-semibold text-neutral-900">{section}</h2>
             <div className="space-y-3">
               {items.map((it) => (
-                <div key={it.id} className="rounded-xl border border-white/10 bg-white/[0.02] p-4">
+                <div key={it.id} className="rounded-xl border border-neutral-300 bg-neutral-50 p-4">
                   <div className="mb-2 flex flex-wrap items-center gap-2">
-                    <TierBadge tier={it.tier} />
-                    <h3 className="text-sm font-semibold text-white">{it.name}</h3>
+                    <TierBadge tone="light" tier={it.tier} />
+                    <h3 className="text-sm font-semibold text-neutral-900">{it.name}</h3>
                     <span
                       className={`ml-auto rounded-full border px-2 py-0.5 text-[12px] ${
                         it.validated
-                          ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-200"
-                          : "border-amber-400/30 bg-amber-500/10 text-amber-200"
+                          ? "border-emerald-300 bg-emerald-50 text-emerald-800"
+                          : "border-amber-300 bg-amber-50 text-amber-800"
                       }`}
                     >
                       {it.validated ? "валидацияланған" : "валидацияланбаған"}
                     </span>
                   </div>
 
-                  <p className="mb-2 text-[13px] leading-relaxed text-neutral-300">{it.what}</p>
+                  <p className="mb-2 text-[13px] leading-relaxed text-neutral-700">{it.what}</p>
 
                   {it.formula && (
-                    <div className="mb-2 overflow-x-auto rounded-md border border-white/10 bg-black/30 px-2.5 py-1.5 font-mono text-[13px] text-emerald-200">
+                    <div className="mb-2 overflow-x-auto rounded-md border border-neutral-300 bg-neutral-50 px-2.5 py-1.5 font-mono text-[13px] text-emerald-800">
                       {it.formula}
                     </div>
                   )}
@@ -214,10 +214,10 @@ export default function MethodologyPage() {
                       әр қадам. Әдістеме бетінің ең негізгі бөлігі: эколог
                       санның қалай шыққанын қайталай алуы керек. */}
                   {it.steps.length > 0 && (
-                    <ol className="mb-2 space-y-0.5 rounded-md border border-white/10 bg-white/[0.02] px-3 py-2 text-[13px] leading-relaxed text-neutral-300">
+                    <ol className="mb-2 space-y-0.5 rounded-md border border-neutral-300 bg-neutral-50 px-3 py-2 text-[13px] leading-relaxed text-neutral-700">
                       {it.steps.map((st, i) => (
                         <li key={i} className="flex gap-2">
-                          <span className="shrink-0 font-mono text-[12px] text-neutral-400">
+                          <span className="shrink-0 font-mono text-[12px] text-neutral-600">
                             {i + 1}.
                           </span>
                           <span>{st}</span>
@@ -227,13 +227,13 @@ export default function MethodologyPage() {
                   )}
 
                   <dl className="grid gap-x-6 gap-y-1 text-[13px] leading-relaxed sm:grid-cols-[max-content_1fr]">
-                    <dt className="text-neutral-400">Аспап / модель</dt>
-                    <dd className="text-neutral-300">{it.instrument}</dd>
-                    <dt className="text-neutral-400">Ажыратымдылық</dt>
-                    <dd className="text-neutral-300">
+                    <dt className="text-neutral-600">Аспап / модель</dt>
+                    <dd className="text-neutral-700">{it.instrument}</dd>
+                    <dt className="text-neutral-600">Ажыратымдылық</dt>
+                    <dd className="text-neutral-700">
                       {it.spatial} · {it.temporal} · кідіріс {it.latency}
                     </dd>
-                    <dt className="text-neutral-400">Дереккөз құжаты</dt>
+                    <dt className="text-neutral-600">Дереккөз құжаты</dt>
                     <dd className="space-y-0.5">
                       {it.sources.map((s, i) =>
                         s.url ? (
@@ -242,22 +242,22 @@ export default function MethodologyPage() {
                             href={s.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block text-sky-300 underline-offset-2 hover:underline"
+                            className="block text-sky-800 underline-offset-2 hover:underline"
                           >
                             {s.label} <ExternalLink className="inline h-2.5 w-2.5" />
                           </a>
                         ) : (
-                          <span key={i} className="block text-neutral-300">
+                          <span key={i} className="block text-neutral-700">
                             {s.label}
                           </span>
                         )
                       )}
                     </dd>
-                    <dt className="text-neutral-400">Валидация</dt>
-                    <dd className="text-neutral-300">{it.validationNote}</dd>
+                    <dt className="text-neutral-600">Валидация</dt>
+                    <dd className="text-neutral-700">{it.validationNote}</dd>
                   </dl>
 
-                  <ul className="mt-2 space-y-0.5 border-t border-white/10 pt-2 text-[13px] text-amber-200/70">
+                  <ul className="mt-2 space-y-0.5 border-t border-neutral-300 pt-2 text-[13px] text-amber-800">
                     {it.limits.map((l, i) => (
                       <li key={i}>⚠ {l}</li>
                     ))}
@@ -270,15 +270,15 @@ export default function MethodologyPage() {
       })}
 
       <section className="mb-12">
-        <h2 className="mb-2 text-xl font-semibold text-white">Су туралы төрт көрсеткіш</h2>
-        <p className="mb-3 text-[13px] leading-relaxed text-neutral-400">
+        <h2 className="mb-2 text-xl font-semibold text-neutral-900">Су туралы төрт көрсеткіш</h2>
+        <p className="mb-3 text-[13px] leading-relaxed text-neutral-600">
           Сайтта суға қатысты төрт бөлек көрсеткіш бар. Олар бір-бірін қайталамайды — әрқайсысы
           басқа сұраққа жауап береді:
         </p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] text-left text-[13px]">
-            <thead className="text-neutral-400">
-              <tr className="border-b border-white/10">
+            <thead className="text-neutral-600">
+              <tr className="border-b border-neutral-300">
                 <th className="py-2 pr-3 font-medium">Көрсеткіш</th>
                 <th className="py-2 pr-3 font-medium">Нені өлшейді</th>
                 <th className="py-2 pr-3 font-medium">Уақыт ауқымы</th>
@@ -287,16 +287,16 @@ export default function MethodologyPage() {
             </thead>
             <tbody>
               {WATER.map((w) => (
-                <tr key={w.api} className="border-b border-white/5 last:border-0">
+                <tr key={w.api} className="border-b border-neutral-300 last:border-0">
                   <td className="py-2 pr-3">
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <TierBadge tier={w.tier} />
-                      <span className="text-neutral-100">{w.n}</span>
+                      <TierBadge tone="light" tier={w.tier} />
+                      <span className="text-neutral-900">{w.n}</span>
                     </div>
                   </td>
-                  <td className="py-2 pr-3 text-neutral-300">{w.what}</td>
-                  <td className="py-2 pr-3 text-neutral-400">{w.when}</td>
-                  <td className="py-2 font-mono text-[12px] text-neutral-400">{w.api}</td>
+                  <td className="py-2 pr-3 text-neutral-700">{w.what}</td>
+                  <td className="py-2 pr-3 text-neutral-600">{w.when}</td>
+                  <td className="py-2 font-mono text-[12px] text-neutral-600">{w.api}</td>
                 </tr>
               ))}
             </tbody>
@@ -305,12 +305,12 @@ export default function MethodologyPage() {
       </section>
 
       <section className="mb-12">
-        <h2 className="mb-2 text-xl font-semibold text-white">Жалған дерек көрсетілмейді</h2>
-        <p className="mb-2 text-[13px] leading-relaxed text-neutral-400">
+        <h2 className="mb-2 text-xl font-semibold text-neutral-900">Жалған дерек көрсетілмейді</h2>
+        <p className="mb-2 text-[13px] leading-relaxed text-neutral-600">
           Дерек көзі қолжетімсіз болса, сайт бос орынды толтыруға тырыспайды: тиісті блок
           «уақытша қолжетімсіз» деп жазады. Бұл жобаның негізгі ережесі.
         </p>
-        <ul className="list-inside list-disc space-y-1 text-[13px] text-neutral-400">
+        <ul className="list-inside list-disc space-y-1 text-[13px] text-neutral-600">
           <li>AI кілті жоқ немесе шақыру сәтсіз → талдау көрсетілмейді</li>
           <li>Спутник өтуі жоқ → сол аймақ «өлшенбеді» болып қалады</li>
           <li>Модель дәлдігі талапқа жетпесе → болжам автоматты түрде жасырылады</li>
@@ -319,8 +319,8 @@ export default function MethodologyPage() {
       </section>
 
       <section>
-        <h2 className="mb-2 text-xl font-semibold text-white">Не істеу керек (жоспар)</h2>
-        <ol className="list-inside list-decimal space-y-1 text-[13px] text-neutral-400">
+        <h2 className="mb-2 text-xl font-semibold text-neutral-900">Не істеу керек (жоспар)</h2>
+        <ol className="list-inside list-decimal space-y-1 text-[13px] text-neutral-600">
           <li>
             Qazhydromet станцияларының тарихи деректерін жинай бастау — сонда модельдерді нақты
             өлшеммен салыстыруға болады

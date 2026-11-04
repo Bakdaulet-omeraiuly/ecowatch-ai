@@ -8,9 +8,9 @@ export function FeatureUnavailable({ title }: { title: string }) {
   const { tr } = useLang();
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-3 px-4 py-24 text-center">
-      <Construction className="h-10 w-10 text-amber-400" />
-      <h1 className="text-xl font-bold text-white">{tr(title)}</h1>
-      <p className="text-sm leading-relaxed text-neutral-400">
+      <Construction className="h-10 w-10 text-amber-800" />
+      <h1 className="text-xl font-bold text-neutral-900">{tr(title)}</h1>
+      <p className="text-sm leading-relaxed text-neutral-600">
         {tr(
           "Бұл бөлім уақытша қолжетімсіз. Жүйе жүктемесін реттеу мақсатында азаматтық хабарлау кейінге қалдырылды — жақында қайта қосылады."
         )}

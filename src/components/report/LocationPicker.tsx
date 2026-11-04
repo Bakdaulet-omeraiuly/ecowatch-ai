@@ -22,14 +22,14 @@ export function LocationPicker({
 
   if (!token) {
     return (
-      <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-neutral-400">
+      <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-neutral-600">
         Mapbox токені жоқ — координатты қолмен енгізіңіз.
       </p>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-white/10">
+    <div className="overflow-hidden rounded-lg border border-neutral-300">
       <div className="h-64 w-full">
         <Map
           mapboxAccessToken={token}
@@ -44,12 +44,12 @@ export function LocationPicker({
         >
           {lat != null && lng != null && (
             <Marker latitude={lat} longitude={lng} anchor="bottom">
-              <MapPin className="h-7 w-7 fill-red-500/30 text-red-400 drop-shadow" />
+              <MapPin className="h-7 w-7 fill-red-500/30 text-red-800 drop-shadow" />
             </Marker>
           )}
         </Map>
       </div>
-      <div className="bg-neutral-900/80 px-3 py-1.5 text-[13px] text-neutral-400">
+      <div className="bg-white/80 px-3 py-1.5 text-[13px] text-neutral-600">
         {lat != null && lng != null
           ? `Таңдалды: ${lat.toFixed(5)}, ${lng.toFixed(5)} — басқа жерді басып өзгертуге болады`
           : hover

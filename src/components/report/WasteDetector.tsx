@@ -103,28 +103,28 @@ export function WasteDetector({ photo }: { photo: string }) {
         </Button>
       )}
       {status === "loading" && (
-        <div className="flex items-center justify-center gap-2 rounded-lg border border-white/10 bg-white/5 py-3 text-sm text-neutral-400">
+        <div className="flex items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-neutral-50 py-3 text-sm text-neutral-600">
           <Loader2 className="h-4 w-4 animate-spin" /> {tr("YOLO моделі жүктеліп, талдап жатыр…")}
         </div>
       )}
       {status === "error" && (
-        <p className="rounded-lg border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-300">
+        <p className="rounded-lg border border-red-300 bg-red-50 p-2 text-xs text-red-800">
           {tr("Модель жүктелмеді. Интернетті тексеріп, қайталаңыз.")}
         </p>
       )}
       {status === "done" && (
         <>
-          <canvas ref={canvasRef} className="w-full rounded-lg border border-white/10" />
-          <div className="rounded-lg bg-white/5 p-2 text-xs text-neutral-300">
-            <b className="text-orange-300">{wasteCount}</b> {tr("қоқысқа қатысты зат анықталды")}
+          <canvas ref={canvasRef} className="w-full rounded-lg border border-neutral-300" />
+          <div className="rounded-lg bg-neutral-50 p-2 text-xs text-neutral-700">
+            <b className="text-orange-800">{wasteCount}</b> {tr("қоқысқа қатысты зат анықталды")}
             {detections.length > wasteCount && ` (${tr("барлығы")} ${detections.length} ${tr("объект")})`}.
             {wasteCount > 0 && (
-              <span className="ml-1 text-neutral-400">
+              <span className="ml-1 text-neutral-600">
                 {[...new Set(detections.filter((d) => WASTE_LABELS.has(d.label)).map((d) => LABEL_KZ[d.label] ?? d.label))].join(", ")}
               </span>
             )}
           </div>
-          <p className="text-[12px] text-neutral-400">
+          <p className="text-[12px] text-neutral-600">
             {tr("YOLOS-tiny моделі браузерде on-device жұмыс істейді (transformers.js). Қызғылт сары — қоқысқа қатысты, көк — басқа объект.")}
           </p>
         </>

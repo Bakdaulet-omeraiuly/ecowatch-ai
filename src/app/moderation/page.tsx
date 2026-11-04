@@ -35,10 +35,10 @@ interface Report {
 type FilterType = "all" | "pending" | "confirmed" | "contradicted";
 
 const STATUS_CFG = {
-  confirmed:    { label: "Расталды",     cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
-  unconfirmed:  { label: "Тексеруде",    cls: "bg-amber-500/15  text-amber-300  border-amber-500/30"  },
-  contradicted: { label: "Өшірілген",    cls: "bg-red-500/15     text-red-300     border-red-500/30"     },
-  pending:      { label: "Күтілуде",     cls: "bg-neutral-500/15 text-neutral-300 border-neutral-500/30" },
+  confirmed:    { label: "Расталды",     cls: "bg-emerald-50 text-emerald-800 border-emerald-300" },
+  unconfirmed:  { label: "Тексеруде",    cls: "bg-amber-50  text-amber-800  border-amber-300"  },
+  contradicted: { label: "Өшірілген",    cls: "bg-red-50     text-red-800     border-red-300"     },
+  pending:      { label: "Күтілуде",     cls: "bg-neutral-500/15 text-neutral-700 border-neutral-500/30" },
 };
 
 const RISK_COLOR: Record<string, string> = {
@@ -132,11 +132,11 @@ function ModerationPageInner() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-            <Shield className="h-6 w-6 text-violet-400" />
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
+            <Shield className="h-6 w-6 text-violet-800" />
             {tr("Модерация панелі")}
           </h1>
-          <p className="text-sm text-neutral-400">{tr("Азаматтардың фото-хабарламаларын қарап, растаңыз немесе өшіріңіз")}</p>
+          <p className="text-sm text-neutral-600">{tr("Азаматтардың фото-хабарламаларын қарап, растаңыз немесе өшіріңіз")}</p>
         </div>
         <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-2">
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -148,17 +148,17 @@ function ModerationPageInner() {
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {(["all", "pending", "confirmed", "contradicted"] as FilterType[]).map((f) => {
           const labels: Record<FilterType, string> = { all: "Барлығы", pending: "Күтілуде", confirmed: "Расталған", contradicted: "Өшірілген" };
-          const colors: Record<FilterType, string> = { all: "text-white", pending: "text-amber-300", confirmed: "text-emerald-300", contradicted: "text-red-300" };
+          const colors: Record<FilterType, string> = { all: "text-neutral-900", pending: "text-amber-800", confirmed: "text-emerald-800", contradicted: "text-red-800" };
           return (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={`rounded-lg border p-3 text-center transition-colors ${
-                filter === f ? "border-violet-500/50 bg-violet-500/15" : "border-white/10 bg-white/[0.03] hover:bg-white/[0.06]"
+                filter === f ? "border-violet-300 bg-violet-50" : "border-neutral-300 bg-neutral-50 hover:bg-neutral-100"
               }`}
             >
               <div className={`text-2xl font-bold ${colors[f]}`}>{counts[f]}</div>
-              <div className="text-xs text-neutral-400">{tr(labels[f])}</div>
+              <div className="text-xs text-neutral-600">{tr(labels[f])}</div>
             </button>
           );
         })}
@@ -166,18 +166,18 @@ function ModerationPageInner() {
 
       {/* Filter info */}
       {filter !== "all" && (
-        <div className="flex items-center gap-2 text-sm text-neutral-400">
+        <div className="flex items-center gap-2 text-sm text-neutral-600">
           <Filter className="h-4 w-4" />
-          {tr("Сүзгі")}: <span className="text-white">{filter === "pending" ? "Күтілуде" : filter === "confirmed" ? "Расталған" : "Өшірілген"}</span>
-          <button onClick={() => setFilter("all")} className="ml-2 text-xs text-violet-400 hover:underline">{tr("Барлығын көру")}</button>
+          {tr("Сүзгі")}: <span className="text-neutral-900">{filter === "pending" ? "Күтілуде" : filter === "confirmed" ? "Расталған" : "Өшірілген"}</span>
+          <button onClick={() => setFilter("all")} className="ml-2 text-xs text-violet-800 hover:underline">{tr("Барлығын көру")}</button>
         </div>
       )}
 
       {/* Reports list */}
       {loading ? (
-        <div className="py-12 text-center text-sm text-neutral-400">{tr("Жүктелуде…")}</div>
+        <div className="py-12 text-center text-sm text-neutral-600">{tr("Жүктелуде…")}</div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] py-12 text-center text-sm text-neutral-400">
+        <div className="rounded-xl border border-neutral-300 bg-neutral-50 py-12 text-center text-sm text-neutral-600">
           {tr("Хабарламалар жоқ")}
         </div>
       ) : (
@@ -187,7 +187,7 @@ function ModerationPageInner() {
             const sc = STATUS_CFG[sk];
             const isBusy = !!busy[r.id];
             return (
-              <Card key={r.id} className="border-white/10 bg-white/[0.03]">
+              <Card key={r.id} className="border-neutral-300 bg-neutral-50">
                 <CardContent className="p-4">
                   <div className="flex gap-4">
                     {/* Photo */}
@@ -199,7 +199,7 @@ function ModerationPageInner() {
                         className="h-24 w-24 flex-shrink-0 rounded-lg object-cover"
                       />
                     ) : (
-                      <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-white/5 text-xs text-neutral-400">
+                      <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-lg bg-neutral-50 text-xs text-neutral-600">
                         {tr("Фото жоқ")}
                       </div>
                     )}
@@ -216,24 +216,24 @@ function ModerationPageInner() {
                         <Badge variant="outline" className={`text-[13px] ${sc.cls}`}>
                           {tr(sc.label)}
                         </Badge>
-                        <span className="ml-auto text-[13px] text-neutral-400">
+                        <span className="ml-auto text-[13px] text-neutral-600">
                           {new Date(r.created_at).toLocaleString("kk-KZ", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
                         </span>
                       </div>
 
                       {r.analysis?.summary && (
-                        <p className="text-sm text-neutral-300">{r.analysis.summary}</p>
+                        <p className="text-sm text-neutral-700">{r.analysis.summary}</p>
                       )}
 
                       {r.analysis?.detectedFeatures?.length ? (
-                        <p className="text-xs text-neutral-400">{r.analysis.detectedFeatures.slice(0, 3).join(" · ")}</p>
+                        <p className="text-xs text-neutral-600">{r.analysis.detectedFeatures.slice(0, 3).join(" · ")}</p>
                       ) : null}
 
                       <a
                         href={`https://maps.google.com/?q=${r.lat},${r.lng}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-violet-400 hover:underline"
+                        className="inline-flex items-center gap-1 text-xs text-violet-800 hover:underline"
                       >
                         <MapPin className="h-3 w-3" />
                         {r.lat.toFixed(4)}, {r.lng.toFixed(4)}
@@ -244,28 +244,28 @@ function ModerationPageInner() {
                         <button
                           onClick={() => update(r.id, "confirmed")}
                           disabled={isBusy || r.verification_status === "confirmed"}
-                          className="flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-40"
+                          className="flex items-center gap-1 rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs text-emerald-800 hover:bg-emerald-100 disabled:opacity-40"
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" /> {tr("Растау")}
                         </button>
                         <button
                           onClick={() => update(r.id, "unconfirmed")}
                           disabled={isBusy || r.verification_status === "unconfirmed"}
-                          className="flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs text-amber-300 hover:bg-amber-500/20 disabled:opacity-40"
+                          className="flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs text-amber-800 hover:bg-amber-100 disabled:opacity-40"
                         >
                           <Clock className="h-3.5 w-3.5" /> {tr("Тексеруде")}
                         </button>
                         <button
                           onClick={() => update(r.id, "contradicted")}
                           disabled={isBusy || r.verification_status === "contradicted"}
-                          className="flex items-center gap-1 rounded-md border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-xs text-red-300 hover:bg-red-500/20 disabled:opacity-40"
+                          className="flex items-center gap-1 rounded-md border border-red-300 bg-red-50 px-2.5 py-1 text-xs text-red-800 hover:bg-red-100 disabled:opacity-40"
                         >
                           <XCircle className="h-3.5 w-3.5" /> {tr("Қабылдамау")}
                         </button>
                         <button
                           onClick={() => remove(r.id)}
                           disabled={isBusy}
-                          className="ml-auto flex items-center gap-1 rounded-md border border-white/10 px-2.5 py-1 text-xs text-neutral-400 hover:border-red-500/30 hover:text-red-400 disabled:opacity-40"
+                          className="ml-auto flex items-center gap-1 rounded-md border border-neutral-300 px-2.5 py-1 text-xs text-neutral-600 hover:border-red-300 hover:text-red-800 disabled:opacity-40"
                         >
                           <Trash2 className="h-3.5 w-3.5" /> {tr("Жою")}
                         </button>
