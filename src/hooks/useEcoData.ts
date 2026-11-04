@@ -5,6 +5,8 @@ import type { Site, AnalysisResult } from "@/types/site";
 import { useSitesStore } from "@/store/useSitesStore";
 import { useRegion } from "@/store/useRegionStore";
 import { hasModule } from "@/data/regions";
+import type { GreeneryData } from "@/lib/osmGreen";
+import type { GreenChangeData } from "@/lib/greenNdvi";
 
 // Data types for the live eco-layers
 export interface AirGridPoint {
@@ -482,4 +484,42 @@ export function useReedHabitat(enabled: boolean) {
       .finally(() => setLoadedFor(region.id));
   }, [enabled, loadedFor, region.id]);
   return { reed, reedError };
+}
+
+// Әр дереккөздің күйі бөлек; аймақ ауысқаннан кейін ескі дерек көрсетілмейді.
+function useGreenSource<T>(enabled: boolean, path: string) {
+  const region = useRegion();
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
+  const [data, setData] = useState<T | null>(null);
+  const [error, setError] = useState<ReedHabitatError | null>(null);
+  useEffect(() => {
+    if (!enabled || loadedFor === region.id) return;
+    const controller = new AbortController();
+    fetch(`${path}?region=${region.id}`, { signal: controller.signal })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (controller.signal.aborted) return;
+        if (ok && d.available !== false) { setData(d as T); setError(null); }
+        else { setData(null); setError({ error: d.error ?? "Қолжетімсіз", reason: d.reason }); }
+        setLoadedFor(region.id);
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setData(null);
+        setError({ error: "Қолжетімсіз" });
+        setLoadedFor(region.id);
+      });
+    return () => controller.abort();
+  }, [enabled, loadedFor, region.id, path]);
+  return { data: loadedFor === region.id ? data : null, error: loadedFor === region.id ? error : null };
+}
+
+export function useGreenery(enabled: boolean) {
+  const { data, error } = useGreenSource<GreeneryData>(enabled, "/api/greenery");
+  return { osm: data, osmError: error };
+}
+
+export function useGreenChange(enabled: boolean) {
+  const { data, error } = useGreenSource<GreenChangeData>(enabled, "/api/green-change");
+  return { change: data, changeError: error };
 }

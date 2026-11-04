@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
   Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame, Droplets,
-  Factory, AlertTriangle, Navigation, BarChart3, FileText, Scale, BookOpen,
+  Factory, AlertTriangle, Navigation, BarChart3, FileText, Scale, BookOpen, Trees,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -79,7 +79,7 @@ import { isDispersionWindMissing, type WindHourlySeries } from "@/lib/windGrid";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares, useFireArchive,
-  usePollutionSource, useReedHabitat,
+  usePollutionSource, useReedHabitat, useGreenery, useGreenChange,
   type AirGridPoint, type MosquitoGridPoint, type PollutionSourceCandidate,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
@@ -90,12 +90,15 @@ import { useRegion } from "@/store/useRegionStore";
 import { ModuleMissing } from "@/components/ui/ModuleMissing";
 import { LayerIndexNote } from "@/components/map/LayerIndexNote";
 import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
+import { GreeneryPanel } from "./GreeneryPanel";
+import { SourceErrorBox } from "./SourceErrorBox";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
 /** Қамыс өрті: карта белгілері мен панель тізімі шектеледі — карта толып кетпеуі үшін */
 const REED_MARKER_CAP = 20;
 
 const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
+  green: Trees,
   mosquito: Bug,
   air: Wind,
   soil: Mountain,
@@ -112,6 +115,7 @@ const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
 function layerWeight(s: Site, layer: LayerKey): number {
   const a = s.analysis;
   switch (layer) {
+    case "green": return 0;
     case "mosquito": return s.mosquitoRiskIndex / 100;
     case "oil": return a.oilPollution ? a.riskScore / 100 : 0.05;
     case "air": return a.oilPollution ? a.riskScore / 110 : a.riskScore / 250; // air follows industry
@@ -156,20 +160,6 @@ function flaresAdvice(count: number): string {
   if (count <= 3) return "Бірнеше жылу аномалиясы — расталған өрт емес, тек спутниктің жылу сигналы.";
   if (count <= 10) return "Жылу аномалиялары орташа — факел, өрт немесе жалынды спутник ажыратпайды.";
   return "Жылу аномалиялары көп — бұл расталған өрт емес; себебін жердегі тексеру анықтайды.";
-}
-/** Дереккөз 503 қайтарғанда — себебімен қызыл қорап (жалған дерек көрсетілмейді) */
-function SourceErrorBox({ title, err, tr }: {
-  title: string;
-  err: { error: string; reason?: string };
-  tr: (s: string) => string;
-}) {
-  return (
-    <div className="mb-2 rounded-md border border-red-500/40 bg-red-500/10 p-2 text-[12px] leading-snug text-red-200">
-      <div>{title}: {tr(err.error)}</div>
-      {err.reason && <div className="mt-1 text-red-300/80">{tr("Себебі")}: {tr(err.reason)}</div>}
-      <div className="mt-1 text-neutral-400">{tr("Жалған дерек көрсетілмейді.")}</div>
-    </div>
-  );
 }
 function compassKz(deg: number): string {
   const dirs = ["Солтүстік", "Солтүстік-шығыс", "Шығыс", "Оңтүстік-шығыс", "Оңтүстік", "Оңтүстік-батыс", "Батыс", "Солтүстік-батыс"];
@@ -257,6 +247,7 @@ function mosLevel(idx: number): { color: string; label: string } {
 }
 
 const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
+  green: "greenery",
   water: "riverFlow",
   mosquito: "mosquito",
 };
@@ -378,6 +369,19 @@ export function MapView() {
 
   // Қамыс мекені (Sentinel-2 NDVI проксиі) — тек «fire» қабатында
   const { reed, reedError } = useReedHabitat(activeLayer === "fire");
+  const { osm, osmError } = useGreenery(activeLayer === "green");
+  const { change: greenChange, changeError: greenChangeError } = useGreenChange(activeLayer === "green");
+  const greenCellsGeo = useMemo(() => ({
+    type: "FeatureCollection" as const,
+    features: (greenChangeError ? [] : greenChange?.cells ?? []).map((cell) => {
+      const [w, s, e, n] = cell.bbox;
+      return {
+        type: "Feature" as const,
+        properties: { trend: cell.change?.trend ?? "no-data" },
+        geometry: { type: "Polygon" as const, coordinates: [[[w, s], [e, s], [e, n], [w, n], [w, s]]] },
+      };
+    }),
+  }), [greenChange, greenChangeError]);
   const [firePreset, setFirePreset] = useState<number>(365);
   const fireAnomalies = useMemo(() => {
     if (!fireArchive) return [];
@@ -830,6 +834,7 @@ export function MapView() {
 
   const heatmapData = useMemo(() => {
     if (!activeLayer) return null;
+    if (activeLayer === "green") return null;
     // Air layer: real live AQI grid; other layers: platform analyses
     if (activeLayer === "air") {
       if (!airGrid) return null;
@@ -1119,6 +1124,24 @@ export function MapView() {
       >
         {/* Атрибуция — compact (кішкентай ⓘ). Лицензия бойынша міндетті, бірақ жинақы. */}
         <AttributionControl compact position="bottom-right" />
+        {activeLayer === "green" && greenChange && !greenChangeError && (
+          <Source id="green-cells" type="geojson" data={greenCellsGeo} attribution="Copernicus Sentinel-2 L2A">
+            <Layer id="green-change-fill" type="fill" filter={["!=", ["get", "trend"], "no-data"]} paint={{
+              "fill-color": ["match", ["get", "trend"], "up", "#22c55e", "down", "#ef4444", "#a3a3a3"],
+              "fill-opacity": 0.18,
+            }} />
+            <Layer id="green-change-outline" type="line" filter={["!=", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1 }} />
+            <Layer id="green-change-missing" type="line" filter={["==", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1.5, "line-dasharray": [3, 3] }} />
+          </Source>
+        )}
+        {activeLayer === "green" && osm && !osmError && (
+          <Source id="osm-green" type="geojson" data={osm.features} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ODbL'>
+            <Layer id="osm-green-fill" type="fill" filter={["==", ["geometry-type"], "Polygon"]} paint={{ "fill-color": "#22c55e", "fill-opacity": 0.3 }} />
+            <Layer id="osm-green-outline" type="line" filter={["==", ["geometry-type"], "Polygon"]} paint={{ "line-color": "#86efac", "line-width": 1 }} />
+            <Layer id="osm-green-row" type="line" filter={["==", ["get", "category"], "tree_row"]} paint={{ "line-color": "#4ade80", "line-width": 3 }} />
+            <Layer id="osm-green-tree" type="circle" minzoom={12} filter={["==", ["get", "category"], "tree"]} paint={{ "circle-color": "#86efac", "circle-radius": 3, "circle-stroke-color": "#166534", "circle-stroke-width": 1 }} />
+          </Source>
+        )}
         {/* Real historical Sentinel-2 mosaic for the selected year */}
         {historyMode && year && (
           <Source
@@ -1897,7 +1920,7 @@ export function MapView() {
                 <button
                   key={l.key}
                   onClick={() => setActiveLayer((cur) => (cur === l.key ? null : l.key))}
-                  className={`flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[13px] transition-colors ${
+                  className={`${l.key === "green" ? "min-h-11 " : ""}flex items-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-1.5 text-[13px] transition-colors ${
                     activeLayer === l.key
                       ? l.activeCls
                       : "border-transparent text-neutral-300 hover:bg-white/5"
@@ -1913,7 +1936,7 @@ export function MapView() {
                     </span>
                   ) : l.key !== "waste" ? (
                     <span className="rounded bg-emerald-500/15 px-1 py-px text-[12px] uppercase text-emerald-300">
-                      live
+                      {l.key === "green" ? "OSM · NDVI" : "live"}
                     </span>
                   ) : null}
                   {DRAWER_KEYS[l.key] && (
@@ -2032,6 +2055,8 @@ export function MapView() {
             <LayerIndexNote layer="fire" />
           </div>
         )}
+
+        {activeLayer === "green" && <GreeneryPanel osm={osm} osmError={osmError} change={greenChange} changeError={greenChangeError} />}
 
         {/* Қамыс өрті — түтін бағыты (P4.5) — 📊 модель */}
         {activeLayer === "fire" && (
