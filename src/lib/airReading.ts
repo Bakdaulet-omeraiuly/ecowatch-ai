@@ -28,8 +28,9 @@ export interface AirReading {
   fetchedAt: string;
   /** Жаңарту жиілігі — адам оқуы үшін мәтін ключі */
   updateInterval: "hourly" | "unknown";
-  /** Орташалау кезеңі: тек салыстыруға рұқсат етілген кезеңдер */
-  averaging: "hourly" | "unknown";
+  /** Орташалау кезеңі: тек салыстыруға рұқсат етілген кезеңдер.
+   *  "daily" — соңғы 24 сағаттық мәндердің орташасы (≥ 18 сағат бар болса, EU 2008/50/EC VII қосымша, 75%). */
+  averaging: "hourly" | "daily" | "unknown";
   /** Сапа белгісі */
   quality: "ground-unvalidated" | "model-unvalidated" | "none";
   /** Белгісіздік: бағаланбаған, немесе сан (±, unit) */

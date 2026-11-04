@@ -109,6 +109,46 @@ export function buildModelReadings(cams: CamsCurrent | null, fetchedAt: string, 
   });
 }
 
+/** CAMS сағаттық қатары (Open-Meteo `hourly`, timezone=auto — Атырау жергілікті уақыты) */
+export interface CamsHourly {
+  time: string[];
+  pm2_5?: (number | null)[]; pm10?: (number | null)[]; sulphur_dioxide?: (number | null)[];
+  nitrogen_dioxide?: (number | null)[]; carbon_monoxide?: (number | null)[];
+}
+
+/** Тәуліктік орташа жарамды болу үшін 24 сағаттың кемінде 75%-ы (EU 2008/50/EC, VII қосымша). */
+export const DAILY_MIN_HOURS = 18;
+
+/**
+ * Тәуліктік модельдік мән: `currentTime`-қа дейінгі (қоса алғанда) соңғы 24 сағаттық CAMS
+ * мәндерінің орташасы. Тәуліктік нормамен (ҚР ДСМ-70 орташа тәуліктік, WHO 2021 24 сағ.)
+ * салыстыру үшін. Болжам сағаттары (current-тан кейін) ЕНГІЗІЛМЕЙДІ.
+ */
+export function buildDailyModelReadings(hourly: CamsHourly | null, currentTime: string | null | undefined, fetchedAt: string): AirReading[] {
+  const end = camsTimeMs(currentTime);
+  return POLLUTANTS.map((p) => {
+    const field = CAMS_FIELD[p];
+    const base = {
+      pollutant: p, sourceId: CAMS_SOURCE.id, sourceName: CAMS_SOURCE.name, sourceUrl: CAMS_SOURCE.url,
+      fetchedAt, updateInterval: "hourly" as const, uncertainty: { kind: "not-estimated" as const },
+    };
+    const none = (reason: AirReading["missingReason"]) => ({ ...base, kind: "none" as const, value: null, unit: null,
+      observedAt: null, averaging: "unknown" as const, quality: "none" as const, missingReason: reason }) satisfies AirReading;
+    if (!field) return none("no-model-field");
+    const series = hourly?.[field];
+    if (!hourly || !series || end == null) return none("source-unavailable");
+    const vals: number[] = [];
+    hourly.time.forEach((t, i) => {
+      const ms = camsTimeMs(t);
+      const v = series[i];
+      if (ms != null && ms <= end && ms > end - 24 * HOUR_MS && typeof v === "number" && Number.isFinite(v)) vals.push(v);
+    });
+    if (vals.length < DAILY_MIN_HOURS) return none("source-unavailable");
+    return { ...base, kind: "model", value: vals.reduce((a, b) => a + b, 0) / vals.length, unit: "µg/m³",
+      observedAt: currentTime ?? null, averaging: "daily", quality: "model-unvalidated" } satisfies AirReading;
+  });
+}
+
 /** Жерүсті мән: әр көрсеткіш үшін ең жаңа (atUtc бойынша) өлшем. Мән жоқ — null. */
 export function buildGroundReadings(
   values: GroundValue[] | null,
@@ -175,6 +215,9 @@ export interface RiskRow {
   status: "compared" | "not-comparable" | "no-data";
   ratio: number | null;
   norm: { limit: number; unit: string; averaging: string; actTitle: string; status: string } | null;
+  /** Салыстырылған мән (норма бірлігінде) және оның дереккөз түрі */
+  value?: number | null;
+  kind?: AirReading["kind"];
   reason: string;
 }
 
@@ -182,6 +225,9 @@ export interface RiskAssessment {
   level: RiskLevel;
   rows: RiskRow[];
   missing: Pollutant[];
+  /** Салыстырылған көрсеткіштердің бәрі шектің 50%-ынан төмен, бірақ кейбірінің дерегі жоқ —
+   *  «салыстырылғандар бойынша төмен». Толық «төмен» ЕМЕС (SPEC §8). */
+  partialLow: boolean;
 }
 
 /**
@@ -193,8 +239,8 @@ export interface RiskAssessment {
  * - Төмен: БАРЛЫҚ 7 көрсеткіш салыстырылған және ешбірі шекке жақын емес.
  * - Қалған жағдайда (бір де көрсеткіш салыстырылмаса) — «дерек жеткіліксіз». «Төмен» ЕШҚАШАН шықпайды.
  */
-export function assessRisk(readings: AirReading[]): RiskAssessment {
-  const rows: RiskRow[] = readings.map((r) => {
+export function assessRisk(readings: AirReading[], extra: AirReading[] = []): RiskAssessment {
+  const compare = (r: AirReading): RiskRow => {
     if (r.value == null) {
       return { pollutant: r.pollutant, status: "no-data", ratio: null, norm: null, reason: "no-verified-source" };
     }
@@ -211,8 +257,17 @@ export function assessRisk(readings: AirReading[]): RiskAssessment {
       status: "compared",
       ratio: r.value / n.limit,
       norm: { limit: n.limit, unit: n.unit, averaging: n.averaging, actTitle: ACTS[n.actId]?.title ?? n.actId, status: n.status },
+      value: r.value,
+      kind: r.kind,
       reason: "",
     };
+  };
+  // Әр көрсеткіш: негізгі мән + қосымша кезеңдер (мыс. тәуліктік орташа). Салыстырылғандардың
+  // ішінен шекке ең жақыны (ең үлкен ratio) алынады — қатаңдық ешқашан жұмсармайды.
+  const rows: RiskRow[] = readings.map((r) => {
+    const all = [r, ...extra.filter((e) => e.pollutant === r.pollutant)].map(compare);
+    const ok = all.filter((x) => x.status === "compared");
+    return ok.length ? ok.reduce((a, b) => ((b.ratio ?? 0) > (a.ratio ?? 0) ? b : a)) : all[0];
   });
 
   const compared = rows.filter((r) => r.status === "compared" && r.norm);
@@ -227,5 +282,5 @@ export function assessRisk(readings: AirReading[]): RiskAssessment {
   else if (missing.length === 0) level = "low";
   else level = "insufficient-data";
 
-  return { level, rows, missing };
+  return { level, rows, missing, partialLow: level === "insufficient-data" && compared.length > 0 };
 }

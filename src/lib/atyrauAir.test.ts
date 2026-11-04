@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  assessRisk, buildGroundReadings, buildModelReadings, type CamsCurrent, type GroundValue,
+  assessRisk, buildGroundReadings, buildModelReadings, buildDailyModelReadings, type CamsCurrent, type GroundValue,
 } from "@/lib/atyrauAir";
 import type { AirReading, Pollutant } from "@/lib/airReading";
 
@@ -90,5 +90,54 @@ describe("P1.3: H₂S және NO — ешбір бұтақта басқа га�
     const risk = assessRisk(rs);
     expect(risk.missing).toEqual(expect.arrayContaining(["h2s", "no"]));
     expect(risk.level).not.toBe("low");
+  });
+});
+
+describe("Тәуліктік CAMS орташасы және ішінара деңгей", () => {
+  const fetchedAt = "2026-11-04T15:00:00Z";
+  // 2026-11-04T20:00 (жергілікті) дейінгі 30 сағат + 3 болжам сағаты
+  const time: string[] = [];
+  for (let h = -29; h <= 3; h++) {
+    const d = new Date(Date.UTC(2026, 10, 4, 15 + h)); // UTC = жергілікті − 5
+    const loc = new Date(d.getTime() + 5 * 3600_000).toISOString().slice(0, 16);
+    time.push(loc);
+  }
+  const n = time.length;
+  const series = (fn: (i: number) => number) => Array.from({ length: n }, (_, i) => fn(i));
+  // соңғы 24 өткен сағат = 10, одан ертерегі = 1000, болжам = 9999
+  const pm = series((i) => (i < n - 4 - 23 ? 1000 : i > n - 4 ? 9999 : 10));
+
+  it("тек current-қа дейінгі соңғы 24 сағат орташаланады, болжам кірмейді", () => {
+    const rs = buildDailyModelReadings({ time, pm2_5: pm }, "2026-11-04T20:00", fetchedAt);
+    const r = rs.find((x) => x.pollutant === "pm25")!;
+    expect(r.averaging).toBe("daily");
+    expect(r.value).toBeCloseTo(10, 6);
+    expect(rs.find((x) => x.pollutant === "h2s")!.value).toBeNull();
+  });
+
+  it("18 сағаттан аз мән болса — тәуліктік мән жоқ", () => {
+    const gaps = series((i) => (i % 2 ? 10 : NaN)) as number[];
+    const r = buildDailyModelReadings({ time, pm2_5: gaps }, "2026-11-04T20:00", fetchedAt).find((x) => x.pollutant === "pm25")!;
+    expect(r.value).toBeNull();
+  });
+
+  it("тәуліктік мән салыстырылады; H₂S/NO жоқ → partialLow, бірақ level «low» ЕМЕС", () => {
+    const daily = buildDailyModelReadings(
+      { time, pm2_5: series(() => 5), pm10: series(() => 5), sulphur_dioxide: series(() => 1), carbon_monoxide: series(() => 100), nitrogen_dioxide: series(() => 1) },
+      "2026-11-04T20:00", fetchedAt);
+    const hourly = buildModelReadings({ time: "2026-11-04T20:00", pm2_5: 5, pm10: 5, sulphur_dioxide: 1, nitrogen_dioxide: 1, carbon_monoxide: 100 }, fetchedAt, true);
+    const risk = assessRisk(hourly, daily);
+    expect(risk.rows.filter((r) => r.status === "compared").map((r) => r.pollutant).sort()).toEqual(["co", "no2", "pm10", "pm25", "so2"]);
+    expect(risk.missing.sort()).toEqual(["h2s", "no"]);
+    expect(risk.level).toBe("insufficient-data");
+    expect(risk.partialLow).toBe(true);
+  });
+
+  it("тәуліктік мән шектен асса — partialLow емес, деңгей көтеріледі", () => {
+    const daily = buildDailyModelReadings({ time, pm2_5: series(() => 40) }, "2026-11-04T20:00", fetchedAt);
+    const hourly = buildModelReadings({ time: "2026-11-04T20:00", pm2_5: 40 }, fetchedAt, true);
+    const risk = assessRisk(hourly, daily);
+    expect(risk.level).toBe("high"); // 40 / WHO 15 (verified)
+    expect(risk.partialLow).toBe(false);
   });
 });

@@ -125,7 +125,9 @@ export function AtyrauAirPanel() {
   const modelByP = new Map(data.readings.model.map((r) => [r.pollutant, r]));
   const riskRow = new Map(data.risk.rows.map((r) => [r.pollutant, r]));
   const compared = data.risk.rows.filter((r) => r.status === "compared" && r.norm);
-  const riskLabel = tk(`air.risk.${data.risk.level === "insufficient-data" ? "insufficient" : data.risk.level}`);
+  const riskLabel = data.risk.partialLow
+    ? t("air.risk.partialLow")
+    : tk(`air.risk.${data.risk.level === "insufficient-data" ? "insufficient" : data.risk.level}`);
   const checkedSources = [data.readings.ground[0]?.sourceName, data.readings.model[0]?.sourceName]
     .filter(Boolean)
     .join("; ");
@@ -150,20 +152,26 @@ export function AtyrauAirPanel() {
       {/* Жалпы қауіп деңгейі (SPEC §8) */}
       <section
         aria-labelledby="risk-title"
-        className={`rounded-md border-l-4 p-4 ${RISK_STYLE[data.risk.level]}`}
+        className={`rounded-md border-l-4 p-4 ${data.risk.partialLow ? "border-emerald-700 bg-emerald-50/60 text-emerald-950" : RISK_STYLE[data.risk.level]}`}
       >
         <h3 id="risk-title" className="text-sm font-bold uppercase tracking-wide">
           {t("air.riskTitle")}
         </h3>
         <p className="mt-1 text-xl font-bold">{riskLabel}</p>
-        {data.risk.level === "insufficient-data" && <p className="mt-1 text-sm font-bold">{t("air.notSafe")}</p>}
+        {data.risk.level === "insufficient-data" && <p className="mt-1 text-sm font-bold">{data.risk.partialLow ? t("air.partialNote") : t("air.notSafe")}</p>}
 
         <p className="mt-3 text-sm font-bold">{t("air.riskNormsUsed")}:</p>
         {compared.length > 0 ? (
           <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
             {compared.map((r) => (
               <li key={r.pollutant}>
-                {tk(`pol.${r.pollutant}`)}: {r.norm!.limit} {r.norm!.unit}, {t("air.avg")}: {avgLabel(r.norm!.averaging)};{" "}
+                {tk(`pol.${r.pollutant}`)}
+                {r.value != null && r.ratio != null && (
+                  <> — <strong className="tabular-nums">{r.value.toFixed(1)} {r.norm!.unit}</strong>
+                    {r.norm!.averaging === "daily" ? ` (${t("air.daily24")})` : ""}{" "}
+                    {r.kind === "ground" ? t("air.groundTag") : t("air.modelTag")} · <strong className="tabular-nums">{Math.round(r.ratio * 100)}%</strong> {t("air.ofLimit")}</>
+                )}
+                ; {r.norm!.limit} {r.norm!.unit}, {t("air.avg")}: {avgLabel(r.norm!.averaging)};{" "}
                 {t("air.riskNormSrc")}: {r.norm!.actTitle} (
                 {r.norm!.status === "verified" ? t("air.normVerified") : t("air.normUnverified")})
               </li>

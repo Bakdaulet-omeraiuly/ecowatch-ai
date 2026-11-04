@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { getRegion } from "@/data/regions";
 import {
-  buildGroundReadings, buildModelReadings, assessRisk, camsAgeHours, POLLUTANTS,
-  type CamsCurrent, type GroundValue,
+  buildGroundReadings, buildModelReadings, buildDailyModelReadings, assessRisk, camsAgeHours, POLLUTANTS,
+  type CamsCurrent, type CamsHourly, type GroundValue,
 } from "@/lib/atyrauAir";
 import type { AirReading } from "@/lib/airReading";
 
@@ -20,15 +20,17 @@ export async function GET(req: Request) {
 
   // 1) CAMS модель — Атырау орталығы
   let cams: CamsCurrent | null = null;
+  let camsHourly: CamsHourly | null = null;
   let camsOk = false;
   let camsError: string | null = null;
   try {
     const url =
       `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${region.lat}&longitude=${region.lng}` +
-      `&current=${CAMS_FIELDS}&timezone=auto`;
+      `&current=${CAMS_FIELDS}&hourly=${CAMS_FIELDS}&past_days=1&forecast_days=1&timezone=auto`;
     const res = await fetch(url, { next: { revalidate: 900 } });
     if (!res.ok) throw new Error(`cams ${res.status}`);
-    const j = (await res.json()) as { current?: CamsCurrent };
+    const j = (await res.json()) as { current?: CamsCurrent; hourly?: CamsHourly };
+    camsHourly = j.hourly ?? null;
     if (j.current) {
       cams = j.current;
       camsOk = true;
@@ -90,6 +92,8 @@ export async function GET(req: Request) {
   }
 
   const modelReadings = buildModelReadings(cams, fetchedAt, camsOk);
+  // Тәуліктік нормалар үшін: соңғы 24 сағаттың CAMS орташасы (болжам сағаттары кірмейді)
+  const dailyReadings = camsOk ? buildDailyModelReadings(camsHourly, cams?.time, fetchedAt) : [];
   const groundReadings = buildGroundReadings(groundValues, fetchedAt, groundState);
 
   // Әр көрсеткіш үшін «негізгі» мән: станса өлшемі бар болса — соны, жоқ болса модель.
@@ -112,7 +116,7 @@ export async function GET(req: Request) {
       source: "Copernicus CAMS (Open-Meteo)",
     },
     ground: { state: groundState, stationCount, note: groundNote, source: "OpenAQ" },
-    readings: { ground: groundReadings, model: modelReadings, primary },
-    risk: assessRisk(primary),
+    readings: { ground: groundReadings, model: modelReadings, daily: dailyReadings, primary },
+    risk: assessRisk(primary, dailyReadings),
   });
 }
