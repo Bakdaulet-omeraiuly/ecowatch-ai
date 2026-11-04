@@ -99,6 +99,7 @@ import { LayerIndexNote } from "@/components/map/LayerIndexNote";
 import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 import { GreeneryPanel } from "./GreeneryPanel";
 import { SourceErrorBox } from "./SourceErrorBox";
+import { FacilityPopup } from "./FacilityPopup";
 import { LandusePanel, LANDUSE_COLOR } from "./LandusePanel";
 import { NaturePanel, reserveGeo } from "./NaturePanel";
 
@@ -770,6 +771,23 @@ export function MapView() {
   const [facAir, setFacAir] = useState<
     { fac: PollutionSourceCandidate; data: FacAir | null; station: StationAir | null; error: boolean } | null
   >(null);
+  const [facFlares, setFacFlares] = useState<{ byFacility: Record<string, number>; days: number; fetchedAt: string } | null>(null);
+  const [facFlaresError, setFacFlaresError] = useState(false);
+  useEffect(() => {
+    if (!sourceMode || facFlares) return;
+    const controller = new AbortController();
+    fetch("/api/fire-archive?days=365", { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d: { anomalies?: { facilityId: string | null }[]; days: number; fetchedAt: string }) => {
+        if (controller.signal.aborted) return;
+        const byFacility: Record<string, number> = {};
+        for (const a of d.anomalies ?? []) if (a.facilityId) byFacility[a.facilityId] = (byFacility[a.facilityId] ?? 0) + 1;
+        setFacFlares({ byFacility, days: d.days, fetchedAt: d.fetchedAt });
+        setFacFlaresError(false);
+      })
+      .catch(() => { if (!controller.signal.aborted) setFacFlaresError(true); });
+    return () => controller.abort();
+  }, [sourceMode, facFlares]);
   const openFacilityAir = useCallback((fac: PollutionSourceCandidate) => {
     setFacAir({ fac, data: null, station: null, error: false });
     // Екеуін қатар тартамыз: нақты жердегі станса (Qazhydromet/WAQI) + CAMS моделі
@@ -1218,6 +1236,17 @@ export function MapView() {
             }} />
             <Layer id="green-change-outline" type="line" filter={["!=", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1 }} />
             <Layer id="green-change-missing" type="line" filter={["==", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1.5, "line-dasharray": [3, 3] }} />
+          </Source>
+        )}
+        {sourceMode && (
+          <Source id="facility-footprints" type="geojson" attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ODbL'
+            data={{ type: "FeatureCollection", features: FACILITIES.filter((f) => f.footprint).flatMap((f) => {
+              const fp = f.footprint!;
+              const rings = (Array.isArray(fp[0][0]) ? fp : [fp]) as [number, number][][];
+              return rings.map((ring) => ({ type: "Feature" as const, properties: { id: f.id }, geometry: { type: "Polygon" as const, coordinates: [ring] } }));
+            }) }}>
+            <Layer id="facility-footprint-fill" type="fill" paint={{ "fill-color": "#b91c1c", "fill-opacity": 0.12 }} />
+            <Layer id="facility-footprint-line" type="line" paint={{ "line-color": "#b91c1c", "line-width": 1.5 }} />
           </Source>
         )}
         {activeLayer === "nature" && (
@@ -1725,10 +1754,10 @@ export function MapView() {
                 key={`fac-${c.id}`}
                 latitude={c.lat}
                 longitude={c.lng}
-                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); toggleFac(c); }}
+                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); }}
               >
                 {/* Дәл нүкте: дот координатада тұрады, жапсырма қалқып тұр (anchor ауыспайды) */}
-                <div className="relative cursor-pointer" title={`${c.name}${c.approx ? ` (${tr("координата жуық")})` : ""} — ${tr("басу: анимация қосу/өшіру")}`}>
+                <div className="relative cursor-pointer" title={`${c.name}${c.approx ? ` (${tr("координата жуық")})` : ""} — ${tr("басу: нысан туралы қысқаша")}`}>
                   <div
                     className={`h-2.5 w-2.5 rounded-full border-2 shadow transition-transform hover:scale-150 ${
                       sel ? "border-amber-300 bg-amber-400 scale-125" : isTop ? "border-white bg-red-500" : "border-neutral-300 bg-neutral-600"
@@ -1744,7 +1773,7 @@ export function MapView() {
                     }`}
                   >
                     <Factory className="h-3 w-3" /> {c.short}{c.approx ? "~" : ""}
-                    {isTop && <span className="ml-0.5">{c.confidence}%</span>}
+                    {isTop && <span className="ml-0.5" title={tr("Салыстырмалы үлес — 📊 модель, ықтималдық емес")}>{c.confidence}% 📊</span>}
                   </div>
                 </div>
               </Marker>
@@ -1756,98 +1785,25 @@ export function MapView() {
           <Popup
             latitude={facAir.fac.lat}
             longitude={facAir.fac.lng}
-            anchor="bottom"
+            // No fixed anchor: Mapbox picks the side with room, so the popup is never cut off.
             offset={14}
+            maxWidth="320px"
             closeOnClick={false}
             onClose={() => setFacAir(null)}
             className="pollution-air-popup"
           >
-            <div className="min-w-[180px] text-neutral-900">
-              <div className="mb-1 flex items-center gap-1 text-[13px] font-semibold">
-                <Factory className="h-3 w-3 text-red-800" /> {facAir.fac.name}
-              </div>
-
-              {/* Объект картасы — прокуратура/эколог үшін толық құжат */}
-              {/* P2.1: нысан карточкасының ықшам нұсқасы */}
-              <div className="mb-1.5 rounded border border-neutral-300 bg-neutral-50 p-1.5">
-                {(() => {
-                  // Карточка тек тізілімдегі нысанға ғана (PollutionSourceCandidate → Facility)
-                  const reg = FACILITIES.find((f) => f.id === facAir.fac.id);
-                  return reg ? <FacilityCardView card={buildFacilityCard(reg)} compact /> : null;
-                })()}
-              </div>
-
-              <a
-                href={`/object/${facAir.fac.id}`}
-                className="mb-1.5 block rounded border border-sky-400/40 bg-sky-50 px-1.5 py-1 text-center text-[12px] font-medium text-sky-800 transition hover:bg-sky-50"
-              >
-                {tr("Объект картасы")} — {tr("заңнама, дәлелдер, спутник тарихы")} →
-              </a>
-
-              {/* Нақты ЖЕРДЕГІ станса (Qazhydromet/WAQI) — датчик дәлдігі */}
-              {facAir.station?.found && (
-                <div className="mb-1.5 rounded border border-emerald-500/40 bg-emerald-50 p-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1 text-[12px] font-semibold text-emerald-800">
-                      <Radio className="h-2.5 w-2.5" /> {tr("Жердегі станса")}
-                    </span>
-                    {facAir.station.aqi != null && (
-                      <span className="text-sm font-bold" style={{ color: "var(--color-brand)", borderLeft: `4px solid ${usAqiColor(facAir.station.aqi)}`, paddingLeft: 6 }}>
-                        {facAir.station.aqi} US AQI
-                      </span>
-                    )}
-                  </div>
-                  <div className="text-[12px] text-neutral-800">
-                    {facAir.station.station}
-                    {facAir.station.distanceKm != null && ` · ${facAir.station.distanceKm} ${tr("км")}`}
-                  </div>
-                  {(facAir.station.iaqi?.so2 != null || facAir.station.iaqi?.no2 != null || facAir.station.iaqi?.pm25 != null) && (
-                    <div className="mt-0.5 flex flex-wrap gap-x-3 text-[12px] text-neutral-800">
-                      {facAir.station.iaqi?.so2 != null && <span>SO₂ {facAir.station.iaqi.so2}</span>}
-                      {facAir.station.iaqi?.no2 != null && <span>NO₂ {facAir.station.iaqi.no2}</span>}
-                      {facAir.station.iaqi?.pm25 != null && <span>PM₂.₅ {facAir.station.iaqi.pm25}</span>}
-                      {facAir.station.iaqi?.pm10 != null && <span>PM₁₀ {facAir.station.iaqi.pm10}</span>}
-                    </div>
-                  )}
-                  <p className="mt-0.5 text-[12px] text-emerald-800">
-                    {tr("AQI индексі · нақты датчик")} · {facAir.station.source}
-                    {facAir.station.time ? ` · ${facAir.station.time.slice(11, 16)}` : ""}
-                  </p>
-                </div>
-              )}
-
-              {facAir.error ? (
-                <p className="text-[12px] text-neutral-600">
-                  {tr("Тірі ауа деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
-                </p>
-              ) : !facAir.data ? (
-                <p className="text-[12px] text-neutral-600">{tr("Ауа сапасы жүктелуде…")}</p>
-              ) : (
-                <>
-                  {facAir.station?.found && (
-                    <div className="mb-1 text-[12px] font-semibold text-sky-800">{tr("Модель (CAMS · 11км орташа)")}</div>
-                  )}
-                  {facAir.data.aqi != null && (
-                    <div
-                      className="mb-1.5 flex items-center justify-between rounded px-2 py-1"
-                      style={{ backgroundColor: aqiCategory(facAir.data.aqi).color + "26" }}
-                    >
-                      <span className="text-[12px] text-neutral-800">EU AQI</span>
-                      <span className="text-sm font-bold" style={{ color: "var(--color-brand)", borderLeft: `4px solid ${aqiCategory(facAir.data.aqi).color}`, paddingLeft: 6 }}>
-                        {Math.round(facAir.data.aqi)} · {tr(aqiCategory(facAir.data.aqi).name)}
-                      </span>
-                    </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 text-[12px]">
-                    {facAir.data.so2 != null && <div className="flex justify-between"><span className="text-neutral-600">SO₂</span><span>{facAir.data.so2.toFixed(1)}</span></div>}
-                    {facAir.data.no2 != null && <div className="flex justify-between"><span className="text-neutral-600">NO₂</span><span>{facAir.data.no2.toFixed(1)}</span></div>}
-                    {facAir.data.pm2_5 != null && <div className="flex justify-between"><span className="text-neutral-600">PM₂.₅</span><span>{facAir.data.pm2_5.toFixed(1)}</span></div>}
-                    {facAir.data.pm10 != null && <div className="flex justify-between"><span className="text-neutral-600">PM₁₀</span><span>{facAir.data.pm10.toFixed(1)}</span></div>}
-                  </div>
-                  <p className="mt-1 text-[12px] text-neutral-600">µg/m³ · Copernicus CAMS</p>
-                </>
-              )}
-            </div>
+            <FacilityPopup
+              facility={FACILITIES.find((f) => f.id === facAir.fac.id)}
+              name={facAir.fac.name}
+              share={facAir.fac.confidence ?? null}
+              air={facAir.data}
+              airError={facAir.error}
+              station={facAir.station}
+              flares={facFlares ? { count: facFlares.byFacility[facAir.fac.id] ?? 0, days: facFlares.days, fetchedAt: facFlares.fetchedAt } : null}
+              flaresError={facFlaresError}
+              selected={isSel(facAir.fac.id)}
+              onToggle={() => toggleFac(facAir.fac)}
+            />
           </Popup>
         )}
       </Map>

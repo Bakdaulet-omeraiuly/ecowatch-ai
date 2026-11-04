@@ -11,6 +11,10 @@ function distKm(aLat: number, aLng: number, bLat: number, bLng: number): number 
   return Math.sqrt(dLat * dLat + dLng * dLng);
 }
 
+/** A "nearby ground station" farther than this is not shown for a point: WAQI's nearest
+ *  station to Atyrau is in Baku (~760 km), which says nothing about Atyrau's air. */
+const MAX_STATION_KM = 25;
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const lat = parseFloat(searchParams.get("lat") ?? "");
@@ -38,11 +42,19 @@ export async function GET(req: Request) {
     const iaqi = d.iaqi ?? {};
     const v = (k: string): number | null => (typeof iaqi[k]?.v === "number" ? iaqi[k].v : null);
 
+    const distanceKm = geo ? +distKm(lat, lng, geo[0], geo[1]).toFixed(1) : null;
+    if (distanceKm == null || distanceKm > MAX_STATION_KM) {
+      return NextResponse.json({
+        found: false, reason: "no_station_nearby", maxKm: MAX_STATION_KM,
+        nearest: { station: d.city?.name ?? null, distanceKm },
+      });
+    }
     return NextResponse.json({
       found: true,
-      source: "Qazhydromet (WAQI желісі)",
+      // WAQI aggregates many networks; the station name tells which one — not always Kazhydromet.
+      source: "WAQI (aqicn.org) желісі",
       station: d.city?.name ?? "Белгісіз пост",
-      distanceKm: geo ? +distKm(lat, lng, geo[0], geo[1]).toFixed(1) : null,
+      distanceKm,
       time: d.time?.iso ?? null,
       aqi: typeof d.aqi === "number" ? d.aqi : null, // жалпы US AQI
       dominant: d.dominentpol ?? null,

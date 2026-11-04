@@ -3,6 +3,24 @@
 // kk әдепкі (картадағы түпнұсқа), сондықтан тек ru/en беріледі.
 
 export const UI_TR: Record<string, { ru: string; en: string }> = {
+  // facility popup
+  "координата расталған": { ru: "координата подтверждена", en: "coordinates verified" },
+  "Салыстырмалы үлес": { ru: "Относительная доля", en: "Relative share" },
+  "Тізілімдегі нысандар арасындағы бөлінген үлес (жел + CAMS). Салмақтары тексерілмеген — бұл ықтималдық немесе кінә дәлелі ЕМЕС.": { ru: "Доля, распределённая между объектами реестра (ветер + CAMS). Веса не проверены — это НЕ вероятность и не доказательство вины.", en: "Share split among registry facilities (wind + CAMS). The weights are unvalidated — this is NOT a probability or proof of blame." },
+  "Спутник: жылу аномалиялары": { ru: "Спутник: тепловые аномалии", en: "Satellite: thermal anomalies" },
+  "Нысан контуры тізілімде жоқ — аномалиялар нысанға телінбейді.": { ru: "Контура объекта нет в реестре — аномалии объекту не приписываются.", en: "The facility has no outline in the registry — anomalies are not attributed to it." },
+  "FIRMS мұрағаты уақытша қолжетімсіз — жалған дерек көрсетілмейді.": { ru: "Архив FIRMS временно недоступен — ложные данные не показываются.", en: "The FIRMS archive is temporarily unavailable — no fake data is shown." },
+  "детекция соңғы": { ru: "детекций за последние", en: "detections in the last" },
+  "күнде нысан контурында (+375 м)": { ru: "дн. в контуре объекта (+375 м)", en: "days inside the facility outline (+375 m)" },
+  "Ауа: нүктедегі модель": { ru: "Воздух: модель в точке", en: "Air: model at this point" },
+  "~11 км торкөз орташасы, өлшем емес": { ru: "среднее по ячейке ~11 км, не измерение", en: "~11 km grid-cell mean, not a measurement" },
+  "Нысаннан": { ru: "В пределах", en: "Within" },
+  "км ішінде ашық онлайн станса жоқ. Қазгидромет посттарының айлық бюллетені — «Ауа» қабатында.": { ru: "км от объекта нет открытой онлайн-станции. Месячный бюллетень постов Казгидромета — в слое «Воздух».", en: "km of the facility there is no open online station. The monthly Kazhydromet post bulletin is in the Air layer." },
+  "Таралу анимациясынан алып тастау": { ru: "Убрать из анимации распространения", en: "Remove from dispersion animation" },
+  "Таралу анимациясына қосу (📊 модель)": { ru: "Добавить в анимацию распространения (📊 модель)", en: "Add to dispersion animation (📊 model)" },
+  "Толық нысан карточкасы": { ru: "Полная карточка объекта", en: "Full facility card" },
+  "Салыстырмалы үлес — 📊 модель, ықтималдық емес": { ru: "Относительная доля — 📊 модель, не вероятность", en: "Relative share — 📊 model, not a probability" },
+  "басу: нысан туралы қысқаша": { ru: "нажмите: кратко об объекте", en: "click: facility summary" },
   // P5.4/P5.5 nature
   "Табиғат: Ақжайық, жануарлар": { ru: "Природа: Акжайык, животные", en: "Nature: Akzhaiyk, wildlife" },
   "«Ақжайық» резерваты": { ru: "Резерват «Акжайык»", en: "Akzhaiyk reserve" },
