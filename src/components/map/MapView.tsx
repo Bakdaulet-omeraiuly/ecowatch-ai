@@ -637,6 +637,10 @@ export function MapView() {
   const { source, sourceError, sourceMissing, sourceLoading } = usePollutionSource(sourceMode, srcAt);
   // Анимациялар БАСЫЛҒАН зауыт(тар) үшін — БІРНЕШЕ зауытты қатар таңдауға болады
   const [selectedFacs, setSelectedFacs] = useState<PollutionSourceCandidate[]>([]);
+  // Жақын орналасқан шағын нысандардың жазуы алыстан бір-бірін жабады — тек жақындағанда
+  const [mapZoom, setMapZoom] = useState(ATYRAU.zoom);
+  const MINOR_LABEL_ZOOM = 10;
+  const MINOR_FACILITIES = new Set(["tets", "karabatan_gtes", "przhto", "wwtp", "abz"]);
   const isSel = (id: string) => selectedFacs.some((f) => f.id === id);
   const toggleFac = (c: PollutionSourceCandidate) =>
     setSelectedFacs((p) => (p.some((f) => f.id === c.id) ? p.filter((f) => f.id !== c.id) : [...p, c]));
@@ -1215,6 +1219,7 @@ export function MapView() {
             : "mapbox://styles/mapbox/streets-v12"
         }
         onClick={handleClick}
+        onZoomEnd={(e) => setMapZoom(e.viewState.zoom)}
         cursor={analyzing ? "wait" : aiOn ? "crosshair" : "grab"}
         attributionControl={false}
       >
@@ -1755,7 +1760,7 @@ export function MapView() {
                       sel ? "border-amber-300 bg-amber-400 scale-125" : isTop ? "border-white bg-red-500" : "border-neutral-300 bg-neutral-600"
                     }`}
                   />
-                  <div
+                  {(sel || isTop || !MINOR_FACILITIES.has(c.id) || mapZoom >= MINOR_LABEL_ZOOM) && <div
                     className={`pointer-events-none absolute left-3 top-1/2 flex -translate-y-1/2 items-center gap-1 whitespace-nowrap rounded-md border px-1.5 py-0.5 text-[12px] font-semibold shadow-lg ${
                       sel
                         ? "border-amber-400 bg-amber-50 text-neutral-900"
@@ -1766,7 +1771,7 @@ export function MapView() {
                   >
                     <Factory className="h-3 w-3" /> {c.short}{c.approx ? "~" : ""}
                     {isTop && <span className="ml-0.5" title={tr("Салыстырмалы үлес — 📊 модель, ықтималдық емес")}>{c.confidence}% 📊</span>}
-                  </div>
+                  </div>}
                 </div>
               </Marker>
             );
