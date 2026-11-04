@@ -50,9 +50,17 @@ function readOverpass(json: unknown): OverpassJson {
   return data;
 }
 
-export async function fetchOverpass(query: string): Promise<{ json: unknown; endpoint: string }> {
+/** Total time budget for all Overpass attempts; routes run with maxDuration = 60 s. */
+export const OVERPASS_BUDGET_MS = 52_000;
+
+export async function fetchOverpass(query: string, budgetMs = OVERPASS_BUDGET_MS): Promise<{ json: unknown; endpoint: string }> {
   const failures: string[] = [];
+  const deadline = Date.now() + budgetMs;
   for (const endpoint of OVERPASS_ENDPOINTS) {
+    // The main server often needs ~30 s for a city-size query: give each attempt the
+    // whole remaining budget instead of a fixed 15 s that always cut it off.
+    const left = deadline - Date.now();
+    if (left < 3000) { failures.push(`${endpoint}: skipped (time budget spent)`); continue; }
     try {
       const res = await fetch(endpoint, {
         method: "POST",
@@ -62,7 +70,7 @@ export async function fetchOverpass(query: string): Promise<{ json: unknown; end
         },
         body: `data=${encodeURIComponent(query)}`,
         cache: "no-store",
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(left),
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json: unknown = await res.json();
