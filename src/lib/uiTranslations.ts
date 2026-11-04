@@ -2,7 +2,10 @@
 // Кілт — қазақ мәтінінің өзі. tr() функциясы lang бойынша аударады.
 // kk әдепкі (картадағы түпнұсқа), сондықтан тек ru/en беріледі.
 
+import { TOOLS_TR } from "@/data/toolsTranslations";
+
 export const UI_TR: Record<string, { ru: string; en: string }> = {
+  ...TOOLS_TR,
   // facility popup
   "координата расталған": { ru: "координата подтверждена", en: "coordinates verified" },
   "Салыстырмалы үлес": { ru: "Относительная доля", en: "Relative share" },

@@ -786,3 +786,19 @@ FIRMS қайта санау (365 күн): tco 473, bolashak 77, kpi 62, **kashag
 тікелей шақырып жасайды (толық жауап болса ғана жазады). Клиент (`useGreenSource(..., snapshot)`) алдымен көшірмені
 CDN-нен алады (~0.1 с), жоқ болса тірі API. `.github/workflows/layer-snapshots.yml` апта сайын жаңартады; NDVI тек
 `SENTINELHUB_CLIENT_ID/SECRET` репо құпиялары бар болса. Деректің күні — көшірмедегі `fetchedAt`.
+
+### 2026-11-04 — Карта құралдары (қызметкер / ғалым жұмыс кеңістігі)
+
+Дизайн: `docs/superpowers/specs/2026-11-04-map-tools-design.md`. Картаның оң панеліндегі «Құралдар» қойындысы
+(`src/components/tools/ToolsPanel.tsx`). Панель мен карта арасындағы жалғыз байланыс — `src/store/useMapToolsStore.ts`
+(pick: polygon|point, ring, point, overlay, focus); MapView тек басуды осында жазады және `ToolsMapLayers`-ты салады.
+- **Аймақ есебі** `POST /api/area-report` (GFW үлгісі): NDVI (S2 L2A, SCL маска, P1D → айлық медиана), NO₂ (S5P qa≥0.75,
+  P1D → айлық орташа, ≤12 ай, айлық бөліктер 12 параллель), FIRMS (365 күн), OSM/Ақжайық қабаттасуы (тор-сынама).
+  Statistical API айлық интервалда орташа емес, бір мозаика береді — сондықтан КҮНДЕЛІКТІ сұралады. CSV — EXPORT_ROLES.
+- **Кері траектория** `GET /api/back-trajectory` — Open-Meteo 9×9 тор, RK2 15 мин; 📊, HYSPLIT емес (ескертулер).
+- **Далалық журнал** `/api/field-entries*` — түрлер мен өрістер `src/lib/fieldJournal.ts`; отырғызу аймағына NDVI тексеруі.
+- **Детекцияны растау** `/api/detection-reviews` (CleanSeaNet үлгісі) — append-only, жария `detection_verdicts()` RPC.
+- **Менің аймақтарым** `/api/watch-areas*` — FIRMS 7 күн сұраныс кезінде есептеледі (cron/хабарлама жоқ).
+- **Басымдық** — `public/data/layers/priority-grid-atyrau.json` (`/api/priority-grid`, snapshot-layers.mjs), 1 км,
+  салмақ клиентте; халық тығыздығы жоқ → OSM тұрғын үй ПРОКСИ.
+- Миграция `supabase/migrations/20261105_map_tools.sql` — ҚОЛДАНЫЛМАҒАН; онсыз журнал/растау/жазылу 503 қайтарады.

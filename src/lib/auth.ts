@@ -7,6 +7,8 @@ export const STAFF_ROLES = ["officer", "admin"] as const;
 export const GRANTABLE_ROLES = ["resident", "scientist", "officer"] as const;
 // P3.9: CSV export is a researcher tool. Anonymous → 401, resident → 403.
 export const EXPORT_ROLES = ["scientist", "officer", "admin"] as const;
+// Далалық журнал: ғалым мен қызметкер жазады/оқиды (RLS-пен бірдей).
+export const JOURNAL_ROLES = ["scientist", "officer", "admin"] as const;
 
 export const AUTH_ERRORS = {
   notConfigured: "Аутентификация бапталмаған",

@@ -32,6 +32,9 @@ import { satNoteGasFor, type SatGas } from "@/data/satelliteColumns";
 import { GIBS_LAYERS, RADAR_SAT_LAYERS, ATMOS_LAYERS, gibsTiles, findSatLayer, SAT_PROVIDER, ATMOS_PROVIDER } from "@/data/gibsLayers";
 import { useLang } from "@/lib/i18n";
 import { MapSearch } from "./MapSearch";
+import { ToolsPanel } from "@/components/tools/ToolsPanel";
+import { ToolsMapLayers } from "@/components/tools/ToolsMapLayers";
+import { useMapToolsStore } from "@/store/useMapToolsStore";
 
 // Real yearly satellite mosaics. All imagery is real, no simulation:
 //  • 1984–2001 → Landsat WELD Annual TrueColor (NASA GIBS, 30 м)
@@ -1110,8 +1113,13 @@ export function MapView() {
     [analyzing, addSite, viewYear, lang, openRightView, tr]
   );
 
+  const toolsPick = useMapToolsStore((st) => st.pick);
   const handleClick = useCallback(
     (e: MapLayerMouseEvent) => {
+      // Құралдар (ToolsPanel) картаны басуды бірінші алады
+      const tools = useMapToolsStore.getState();
+      if (rightView === "tools" && tools.pick === "polygon") { tools.addVertex([e.lngLat.lng, e.lngLat.lat]); return; }
+      if (rightView === "tools" && tools.pick === "point") { tools.setPoint([e.lngLat.lng, e.lngLat.lat]); tools.setPick("none"); return; }
       if (!aiOn) return;
       if (aiTool === "area") {
         // Аумақ режимі: басқан жерге полигон төбесін қосады (жаңа сызу — ескі белгіні тазалайды)
@@ -1123,7 +1131,7 @@ export function MapView() {
       setAnalyzedArea(null);
       analyzeAt(e.lngLat.lat, e.lngLat.lng);
     },
-    [analyzeAt, aiOn, aiTool]
+    [analyzeAt, aiOn, aiTool, rightView]
   );
 
   // Сызылған полигонның центроиді, ауданы (км²) және сай масштабы
@@ -1220,7 +1228,7 @@ export function MapView() {
         }
         onClick={handleClick}
         onZoomEnd={(e) => setMapZoom(e.viewState.zoom)}
-        cursor={analyzing ? "wait" : aiOn ? "crosshair" : "grab"}
+        cursor={analyzing ? "wait" : aiOn || (rightView === "tools" && toolsPick !== "none") ? "crosshair" : "grab"}
         attributionControl={false}
       >
         {/* Атрибуция — compact (кішкентай ⓘ). Лицензия бойынша міндетті, бірақ жинақы. */}
@@ -1317,6 +1325,8 @@ export function MapView() {
           );
         })()}
 
+
+        <ToolsMapLayers visible={rightView === "tools"} />
 
         {/* Сызылған аумақ (полигон) */}
         {drawPoints.length > 0 && (
@@ -2057,8 +2067,12 @@ export function MapView() {
             <TabsTrigger value="analysis">{tr("AI талдау")}</TabsTrigger>
             <TabsTrigger value="history">{tr("Тарих")}</TabsTrigger>
             <TabsTrigger value="sar">SAR</TabsTrigger>
+            <TabsTrigger value="tools">{tr("Құралдар")}</TabsTrigger>
           </TabsList>
         <div className={styles.scroll}>
+          <TabsContent value="tools" aria-label={tr("Құралдар")} hidden={rightView !== "tools"}>
+            <ToolsPanel />
+          </TabsContent>
           <TabsContent forceMount value="eco" aria-label={tr("Эко қабаттар")} hidden={rightView !== "eco"} className="space-y-4">
             {!activeLayer && !sourceMode && <p className="text-sm text-neutral-600">{tr("Деректерді көру үшін қабатты таңдаңыз.")}</p>}
         {/* Өрт қаупі панелі — FWI (Канада жүйесі) */}

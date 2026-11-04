@@ -32,6 +32,7 @@ Supabase (ортақ хабарламалар).
 
 ## Файл картасы
 
+- `src/components/tools/*` + `src/store/useMapToolsStore.ts` — 🧰 КАРТА ҚҰРАЛДАРЫ (аймақ есебі, кері траектория, далалық журнал, детекция растау, аймаққа жазылу, басымдық); API: `area-report`, `back-trajectory`, `field-entries`, `detection-reviews`, `watch-areas`, `priority-grid`; миграция `20261105_map_tools.sql` ҚОЛДАНЫЛМАҒАН. Толығы — ARCHITECTURE.md §9.
 - `src/lib/complaints.ts` — шағым enum/өту/дубль/жария allowlist; `src/lib/mediaSanitize.ts` — медиа метадеректерін тазалау; `/api/complaints*` — жария/өз/қызметкер API; `/complaints*` — жіберу/бақылау/қарау; `supabase/migrations/20261103_complaints.sql` — иесінің қарауына, ҚОЛДАНЫЛМАҒАН.
 - `src/lib/auth.ts` — серверлік сессия/рөл тексерісі; `/auth` — кіру/тіркелу; `supabase/migrations/20261103_auth_roles.sql` — RLS/рөлдер, иесінің қарауына (ҚОЛДАНЫЛМАҒАН).
 - `src/app/page.tsx` — басты бет (Атырау фоны, ғылыми мақалалар)

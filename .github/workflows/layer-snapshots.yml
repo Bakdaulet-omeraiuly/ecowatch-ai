@@ -40,7 +40,7 @@ jobs:
           SH_ID: ${{ secrets.SENTINELHUB_CLIENT_ID }}
           SENTINELHUB_CLIENT_ID: ${{ secrets.SENTINELHUB_CLIENT_ID }}
           SENTINELHUB_CLIENT_SECRET: ${{ secrets.SENTINELHUB_CLIENT_SECRET }}
-        run: node --no-warnings --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/snapshot-layers.mjs green-change
+        run: node --no-warnings --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/snapshot-layers.mjs green-change priority-grid
 
       - name: Коммит (өзгеріс болса)
         if: ${{ always() }}

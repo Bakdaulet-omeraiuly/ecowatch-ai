@@ -11,7 +11,7 @@ import { writeFileSync, mkdirSync } from "node:fs";
 
 const REGION = "atyrau";
 const OUT = new URL("../public/data/layers/", import.meta.url);
-const ALL = ["landuse", "greenery", "green-change"];
+const ALL = ["landuse", "greenery", "green-change", "priority-grid"];
 const want = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 
 mkdirSync(OUT, { recursive: true });
