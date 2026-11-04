@@ -3,6 +3,20 @@
 // kk әдепкі (картадағы түпнұсқа), сондықтан тек ru/en беріледі.
 
 export const UI_TR: Record<string, { ru: string; en: string }> = {
+  // P4.3 land use
+  "Жер пайдалану": { ru: "Землепользование", en: "Land use" },
+  "Санат": { ru: "Категория", en: "Category" },
+  "Сауда / коммерциялық": { ru: "Торговая / коммерческая", en: "Commercial / retail" },
+  "Ауыл шаруашылығы жері": { ru: "Сельхозугодья", en: "Farmland" },
+  "Су нысандары": { ru: "Водные объекты", en: "Water bodies" },
+  "Ықтимал ластанған жер (OSM)": { ru: "Потенциально загрязнённый участок (OSM)", en: "Possibly contaminated site (OSM)" },
+  "Расталған ластану": { ru: "Подтверждённое загрязнение", en: "Confirmed contamination" },
+  "Ресми ластанған жерлер тізілімі жалғанбаған — дерек жоқ": { ru: "Официальный реестр загрязнённых участков не подключён — нет данных", en: "The official register of contaminated sites is not connected — no data" },
+  "OSM жер пайдалану деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді": { ru: "Данные OSM о землепользовании временно недоступны — ложные данные не показываются", en: "OSM land-use data is temporarily unavailable — no fake data is shown" },
+  "OSM — картография, өлшем емес; толықтығы тексерілмеген: картада жоқ аумақ — ол жерде ештеңе жоқ дегенді білдірмейді.": { ru: "OSM — картография, а не измерение; полнота не проверена: отсутствие на карте не означает отсутствия на местности.", en: "OSM is cartography, not measurement; completeness is unverified: absence on the map does not mean absence on the ground." },
+  "«Ықтимал ластанған жер» — OSM-да белгіленген полигон, қоқыс алаңы, тастанды өнеркәсіп аумағы немесе тазарту құрылысы. Бұл ластанудың дәлелі ЕМЕС.": { ru: "«Потенциально загрязнённый участок» — отмеченные в OSM полигон, свалка, заброшенная промзона или очистные сооружения. Это НЕ доказательство загрязнения.", en: "“Possibly contaminated site” means an OSM-mapped landfill, dump, brownfield or wastewater plant. It is NOT evidence of contamination." },
+  "Расталған ластану үшін ресми тізілім (зертханалық сынама, экологиялық тексеру актісі) қажет — ол әлі жалғанбаған, сондықтан «дерек жоқ».": { ru: "Для подтверждённого загрязнения нужен официальный реестр (лабораторные пробы, акт экологической проверки) — он пока не подключён, поэтому «нет данных».", en: "Confirmed contamination needs an official register (lab samples, inspection reports); none is connected yet, hence “no data”." },
+  "Аудандар қабаттасуы алынбай қосылады; ішкі ойықтар есептелмейді.": { ru: "Площади суммируются без учёта перекрытий; внутренние вырезы не учитываются.", en: "Areas are summed without removing overlaps; inner holes are ignored." },
   // P3.6 stale data
   "Ескірген дерек": { ru: "Устаревшие данные", en: "Stale data" },
   "желі жоқ немесе әлсіз — кейбір мәндер кэштен көрсетілген, ең ескісі": { ru: "нет сети или она слабая — часть значений показана из кэша, самое старое получено", en: "no or weak network — some values are shown from cache, the oldest was fetched" },

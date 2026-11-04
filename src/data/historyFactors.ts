@@ -2,11 +2,12 @@
 // Seeded realistic trajectory: oil extraction grew sharply after Tengiz
 // expansion, waste grew with urbanization, mosquito risk follows flood cycles.
 
-export type LayerKey = "mosquito" | "air" | "soil" | "oil" | "waste" | "water" | "fire" | "drought" | "wind" | "green";
+export type LayerKey = "mosquito" | "air" | "soil" | "oil" | "waste" | "water" | "fire" | "drought" | "wind" | "green" | "landuse";
 
 export const YEARS = [1995, 2000, 2005, 2010, 2015, 2020, 2026] as const;
 
 export const historyFactors: Record<LayerKey, number[]> = {
+  landuse:  [1, 1, 1, 1, 1, 1, 1], // тарихсыз — OSM картографиясы, тарихи қатар жоқ
   green:    [1, 1, 1, 1, 1, 1, 1], // тарихсыз — өзгеріс NDVI арқылы бөлек (wind сияқты)
   //        1995  2000  2005  2010  2015  2020  2026
   oil:      [0.35, 0.45, 0.60, 0.72, 0.85, 0.95, 1.0],
@@ -35,6 +36,11 @@ export interface LayerDef {
 }
 
 export const LAYERS: LayerDef[] = [
+  {
+    key: "landuse", label: "Жер пайдалану", emoji: "🗺",
+    ramp: ["rgba(82,82,82,0.2)", "rgba(82,82,82,0.4)", "rgba(82,82,82,0.6)", "rgba(82,82,82,0.8)"],
+    activeCls: "border-neutral-500/50 bg-neutral-500/20 text-neutral-200",
+  },
   {
     key: "green", label: "Көгалдандыру", emoji: "🌳",
     ramp: ["rgba(22,163,74,0.2)", "rgba(22,163,74,0.4)", "rgba(34,197,94,0.7)", "rgba(134,239,172,0.9)"],

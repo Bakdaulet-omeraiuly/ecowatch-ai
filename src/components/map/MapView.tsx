@@ -8,6 +8,7 @@ import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
   Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame, Droplets,
   Factory, AlertTriangle, Navigation, BarChart3, FileText, Scale, BookOpen, Trees,
+  Map as MapIcon,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -85,7 +86,7 @@ import { isDispersionWindMissing, type WindHourlySeries } from "@/lib/windGrid";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares, useFireArchive,
-  usePollutionSource, useReedHabitat, useGreenery, useGreenChange,
+  usePollutionSource, useReedHabitat, useGreenery, useGreenChange, useLanduse,
   type AirGridPoint, type MosquitoGridPoint, type PollutionSourceCandidate,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
@@ -98,12 +99,14 @@ import { LayerIndexNote } from "@/components/map/LayerIndexNote";
 import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 import { GreeneryPanel } from "./GreeneryPanel";
 import { SourceErrorBox } from "./SourceErrorBox";
+import { LandusePanel, LANDUSE_COLOR } from "./LandusePanel";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
 /** Қамыс өрті: карта белгілері мен панель тізімі шектеледі — карта толып кетпеуі үшін */
 const REED_MARKER_CAP = 20;
 
 const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
+  landuse: MapIcon,
   green: Trees,
   mosquito: Bug,
   air: Wind,
@@ -122,6 +125,7 @@ function layerWeight(s: Site, layer: LayerKey): number {
   const a = s.analysis;
   switch (layer) {
     case "green": return 0;
+    case "landuse": return 0;
     case "mosquito": return s.mosquitoRiskIndex / 100;
     case "oil": return a.oilPollution ? a.riskScore / 100 : 0.05;
     case "air": return a.oilPollution ? a.riskScore / 110 : a.riskScore / 250; // air follows industry
@@ -263,6 +267,7 @@ function mosLevel(idx: number): { color: string; label: string } {
 
 const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
   green: "greenery",
+  landuse: "greenery",
   water: "riverFlow",
   mosquito: "mosquito",
 };
@@ -433,6 +438,7 @@ export function MapView() {
   // Қамыс мекені (Sentinel-2 NDVI проксиі) — тек «fire» қабатында
   const { reed, reedError } = useReedHabitat(activeLayer === "fire");
   const { osm, osmError } = useGreenery(activeLayer === "green");
+  const { landuse, landuseError } = useLanduse(activeLayer === "landuse");
   const { change: greenChange, changeError: greenChangeError } = useGreenChange(activeLayer === "green");
   const greenCellsGeo = useMemo(() => ({
     type: "FeatureCollection" as const,
@@ -1207,6 +1213,15 @@ export function MapView() {
             }} />
             <Layer id="green-change-outline" type="line" filter={["!=", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1 }} />
             <Layer id="green-change-missing" type="line" filter={["==", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1.5, "line-dasharray": [3, 3] }} />
+          </Source>
+        )}
+        {activeLayer === "landuse" && landuse && !landuseError && (
+          <Source id="osm-landuse" type="geojson" data={landuse.features} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ODbL'>
+            <Layer id="osm-landuse-fill" type="fill" paint={{
+              "fill-color": ["match", ["get", "category"], ...Object.entries(LANDUSE_COLOR).flat(), "#a3a3a3"] as unknown as string,
+              "fill-opacity": 0.28,
+            }} />
+            <Layer id="osm-landuse-outline" type="line" paint={{ "line-color": ["match", ["get", "category"], ...Object.entries(LANDUSE_COLOR).flat(), "#a3a3a3"] as unknown as string, "line-width": 1 }} />
           </Source>
         )}
         {activeLayer === "green" && osm && !osmError && (
@@ -2140,6 +2155,7 @@ export function MapView() {
           </div>
         )}
 
+        {activeLayer === "landuse" && <LandusePanel data={landuse} error={landuseError} />}
         {activeLayer === "green" && <GreeneryPanel osm={osm} osmError={osmError} change={greenChange} changeError={greenChangeError} />}
 
         {/* Қамыс өрті — түтін бағыты (P4.5) — 📊 модель */}

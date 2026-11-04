@@ -523,3 +523,15 @@ export function useGreenChange(enabled: boolean) {
   const { data, error } = useGreenSource<GreenChangeData>(enabled, "/api/green-change");
   return { change: data, changeError: error };
 }
+
+export type LanduseData = import("@/lib/osmLanduse").LanduseSummary & {
+  features: GeoJSON.FeatureCollection<GeoJSON.Geometry, { category: import("@/lib/osmLanduse").LanduseCategory; name: string | null }>;
+  fetchedAt: string; stale: boolean; ageHours?: number; source: string; attribution: string;
+  label: string; quality: string; caveats: string[];
+  confirmedContamination: { available: false; reason: string };
+};
+
+export function useLanduse(enabled: boolean) {
+  const { data, error } = useGreenSource<LanduseData>(enabled, "/api/landuse");
+  return { landuse: data, landuseError: error };
+}
