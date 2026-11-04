@@ -749,13 +749,13 @@ export function MapView() {
     addAlert({
       id: `alert-source-${source.top.id}`,
       siteId: `source-${source.top.id}`,
-      siteName: `Ластану көзі: ${source.top.name}`,
+      siteName: `${tr("Ластану көзі")}: ${tr(source.top.name)}`,
       lat: source.top.lat,
       lng: source.top.lng,
       riskScore: conf,
       riskLevel,
-      recipient: "Атырау облысының экология департаменті",
-      reason: `Ауа ластану көзі анықталды (${source.pollutantLabel}, сенімділік ${conf}%) — өнеркәсіптік эмиссия тексерілуі қажет`,
+      recipient: tr("Атырау облысының экология департаменті"),
+      reason: `${tr("Ауа ластану көзі анықталды (")}${tr(source.pollutantLabel)}, ${tr("сенімділік")} ${conf}%) — ${tr("өнеркәсіптік эмиссия тексерілуі қажет")}`,
       createdAt: new Date().toISOString(),
       status: "sent",
     });
@@ -2268,8 +2268,7 @@ export function MapView() {
                   {tr(droughtAdvice(droughtData.spi))}
                 </div>
                 <p className="mt-1.5 text-[12px] leading-snug text-neutral-600">
-                  McKee 1993 (WMO) · Open-Meteo ERA5 архиві, {droughtData.yearsOfRecord} жылдық климатология.
-                </p>
+                  {tr("McKee 1993 (WMO) · Open-Meteo ERA5 архиві,")}{" "}{droughtData.yearsOfRecord} {tr("жылдық климатология.")}{" "}</p>
               </>
             )}
             <LayerIndexNote layer="drought" />
@@ -2296,7 +2295,7 @@ export function MapView() {
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-2xl font-bold text-sky-800">{windData.avgSpeed}</div>
-                    <div className="text-[12px] text-neutral-600">км/сағ · {tr("орташа")}</div>
+                    <div className="text-[12px] text-neutral-600">{tr("км/сағ ·")}{" "}{tr("орташа")}</div>
                   </div>
                   <div className="flex flex-col items-center">
                     {windData.dominantDir != null ? (
@@ -3042,7 +3041,7 @@ export function MapView() {
           <div className="w-full rounded-lg border border-emerald-500/30 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-800">
               {!floodMissing && <Radio className="h-3 w-3 " />}
-              {river ? `${river} — ${tr("тірі ағын")}` : tr("Өзен ағыны")}
+              {river ? `${tr(river)} — ${tr("тірі ағын")}` : tr("Өзен ағыны")}
             </div>
             {floodMissing ? (
               <ModuleMissing tone="light" module="riverFlow" region={region} compact />

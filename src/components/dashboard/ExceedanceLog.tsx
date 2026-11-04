@@ -164,8 +164,7 @@ export function ExceedanceLog() {
                       <span className="text-[13px] text-neutral-900">{s.name}</span>
                       {s.kzViolation && (
                         <span className="rounded border border-red-300 bg-red-50 px-1 py-px text-[12px] text-red-800">
-                          ҚР
-                        </span>
+                          {tr("ҚР")}{" "}</span>
                       )}
                       <span className="ml-auto text-[13px] text-neutral-600">
                         {s.hours} {tr("сағат")}

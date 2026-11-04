@@ -25,7 +25,7 @@ export function LocationPicker({
   if (!token) {
     return (
       <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-neutral-600">
-        {labels?.unavailable ?? "Mapbox токені жоқ — координатты қолмен енгізіңіз."}
+        {labels?.unavailable ?? tr("Mapbox токені жоқ — координатты қолмен енгізіңіз.")}
       </p>
     );
   }
@@ -53,7 +53,7 @@ export function LocationPicker({
       </div>
       <div className="bg-white/80 px-3 py-1.5 text-[13px] text-neutral-600">
         {lat != null && lng != null
-          ? labels ? `${labels.selected}: ${lat.toFixed(5)}, ${lng.toFixed(5)}` : `Таңдалды: ${lat.toFixed(5)}, ${lng.toFixed(5)} — басқа жерді басып өзгертуге болады`
+          ? labels ? `${labels.selected}: ${lat.toFixed(5)}, ${lng.toFixed(5)}` : `${tr("Таңдалды")}: ${lat.toFixed(5)}, ${lng.toFixed(5)} — ${tr("басқа жерді басып өзгертуге болады")}`
           : labels ? labels.pick : hover
             ? tr("Мәселе байқалған нақты жерді басыңыз")
             : tr("Картадан мәселе орнын басып белгілеңіз")}

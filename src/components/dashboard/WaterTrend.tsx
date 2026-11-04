@@ -48,7 +48,7 @@ export function WaterTrend() {
         <CardTitle className="flex items-center gap-2 text-sm text-neutral-900">
           <TierBadge tone="light" tier="model" />
           <Waves className="h-4 w-4 text-emerald-800" />
-          {data ? `${tr("Су деңгейінің өзгерісі")} — ${data.river} (2020→${tr("қазір")})` : tr("Су деңгейінің өзгерісі — өзен ағыны")}
+          {data ? `${tr("Су деңгейінің өзгерісі")} — ${tr(data.river)} (2020→${tr("қазір")})` : tr("Су деңгейінің өзгерісі — өзен ағыны")}
         </CardTitle>
         <p className="text-[13px] text-neutral-600">
           {tr("Жылдық орташа өзен ағыны — GloFAS (Copernicus)")}

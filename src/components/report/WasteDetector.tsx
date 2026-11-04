@@ -62,8 +62,7 @@ export function WasteDetector({ photo }: { photo: string }) {
   // Draw only after the canvas is mounted (status === "done")
   useEffect(() => {
     if (status === "done") draw(detections);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, detections]);
+  }, [status, detections, tr]);
 
   const draw = (results: Detection[]) => {
     const canvas = canvasRef.current;
@@ -82,7 +81,7 @@ export function WasteDetector({ photo }: { photo: string }) {
         const { xmin, ymin, xmax, ymax } = d.box;
         ctx.strokeStyle = color;
         ctx.strokeRect(xmin, ymin, xmax - xmin, ymax - ymin);
-        const text = `${LABEL_KZ[d.label] ?? d.label} ${Math.round(d.score * 100)}%`;
+        const text = `${tr(LABEL_KZ[d.label] ?? d.label)} ${Math.round(d.score * 100)}%`;
         ctx.fillStyle = color;
         const tw = ctx.measureText(text).width + 8;
         ctx.fillRect(xmin, Math.max(0, ymin - 20), tw, 20);
@@ -120,7 +119,7 @@ export function WasteDetector({ photo }: { photo: string }) {
             {detections.length > wasteCount && ` (${tr("барлығы")} ${detections.length} ${tr("объект")})`}.
             {wasteCount > 0 && (
               <span className="ml-1 text-neutral-600">
-                {[...new Set(detections.filter((d) => WASTE_LABELS.has(d.label)).map((d) => LABEL_KZ[d.label] ?? d.label))].join(", ")}
+                {[...new Set(detections.filter((d) => WASTE_LABELS.has(d.label)).map((d) => tr(LABEL_KZ[d.label] ?? d.label)))].join(", ")}
               </span>
             )}
           </div>

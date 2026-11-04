@@ -120,10 +120,10 @@ function Row({
             </span>
           )}
         </span>
-        <span className="mt-0.5 hidden truncate text-[12px] text-neutral-400 sm:block">{region.pressure}</span>
+        <span className="mt-0.5 hidden truncate text-[12px] text-neutral-400 sm:block">{tr(region.pressure)}</span>
         {missing.length > 0 && (
           <span className="mt-0.5 block text-[12px] leading-snug text-neutral-400">
-            {tr("жоқ")}: {missing.map((m) => MODULE_KZ[m]).join(", ")}
+            {tr("жоқ")}: {missing.map((m) => tr(MODULE_KZ[m])).join(", ")}
           </span>
         )}
       </span>
