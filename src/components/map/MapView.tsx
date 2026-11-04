@@ -1754,10 +1754,10 @@ export function MapView() {
                 key={`fac-${c.id}`}
                 latitude={c.lat}
                 longitude={c.lng}
-                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); }}
+                onClick={(e) => { e.originalEvent.stopPropagation(); openFacilityAir(c); toggleFac(c); }}
               >
                 {/* Дәл нүкте: дот координатада тұрады, жапсырма қалқып тұр (anchor ауыспайды) */}
-                <div className="relative cursor-pointer" title={`${c.name}${c.approx ? ` (${tr("координата жуық")})` : ""} — ${tr("басу: нысан туралы қысқаша")}`}>
+                <div className="relative cursor-pointer" title={`${c.name}${c.approx ? ` (${tr("координата жуық")})` : ""} — ${tr("басу: таралу анимациясы + нысан туралы қысқаша")}`}>
                   <div
                     className={`h-2.5 w-2.5 rounded-full border-2 shadow transition-transform hover:scale-150 ${
                       sel ? "border-amber-300 bg-amber-400 scale-125" : isTop ? "border-white bg-red-500" : "border-neutral-300 bg-neutral-600"

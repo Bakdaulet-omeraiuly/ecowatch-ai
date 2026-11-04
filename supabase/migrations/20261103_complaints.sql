@@ -143,6 +143,9 @@ create policy complaint_media_staff_select on storage.objects for select to auth
 
 -- Retain public map reads after the auth migration enables RLS.
 -- Authenticated non-staff must not inherit this policy and the staff column grant.
+-- Legacy role-public SELECT policies exposed every column (incl. name, photo_thumb) to all roles.
+drop policy if exists "Бәрі оқи алады" on public.reports;
+drop policy if exists read_all on public.reports;
 drop policy if exists reports_public_read on public.reports;
 create policy reports_public_read on public.reports for select to anon using (true);
 revoke select on public.reports from public, anon;

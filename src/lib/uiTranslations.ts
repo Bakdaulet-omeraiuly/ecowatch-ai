@@ -21,6 +21,7 @@ export const UI_TR: Record<string, { ru: string; en: string }> = {
   "Толық нысан карточкасы": { ru: "Полная карточка объекта", en: "Full facility card" },
   "Салыстырмалы үлес — 📊 модель, ықтималдық емес": { ru: "Относительная доля — 📊 модель, не вероятность", en: "Relative share — 📊 model, not a probability" },
   "басу: нысан туралы қысқаша": { ru: "нажмите: кратко об объекте", en: "click: facility summary" },
+  "басу: таралу анимациясы + нысан туралы қысқаша": { ru: "нажмите: анимация распространения + кратко об объекте", en: "click: dispersion animation + facility summary" },
   // P5.4/P5.5 nature
   "Табиғат: Ақжайық, жануарлар": { ru: "Природа: Акжайык, животные", en: "Nature: Akzhaiyk, wildlife" },
   "«Ақжайық» резерваты": { ru: "Резерват «Акжайык»", en: "Akzhaiyk reserve" },
