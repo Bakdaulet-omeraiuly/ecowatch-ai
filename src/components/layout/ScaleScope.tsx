@@ -18,6 +18,7 @@ import { FULL_VIEWPORT_ROUTES } from "@/components/layout/AppFrame";
 const NEW_DESIGN = new Set<string>([
   "/", "/validation", "/map", "/dashboard", "/compare", "/alerts", "/eco-passport", "/report",
   "/methodology", "/methodology/jaiyq-mri", "/legislation", "/caspian", "/moderation", "/privacy", "/terms",
+  "/auth", "/complaints", "/complaints/new", "/complaints/mine", "/complaints/review",
 ]);
 
 export function ScaleScope({ children }: { children: React.ReactNode }) {

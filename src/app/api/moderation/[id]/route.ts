@@ -1,42 +1,51 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { requireRole, STAFF_ROLES } from "@/lib/auth";
 import { z } from "zod";
 
-// PATCH /api/moderation/:id  — update verification_status
-// DELETE /api/moderation/:id — permanently remove a report
+// Қызметкер ғана хабарламаның мәртебесін өзгертеді немесе оны жояды.
 
 const patchSchema = z.object({
   verification_status: z.enum(["confirmed", "unconfirmed", "contradicted"]),
 });
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!supabase) return NextResponse.json({ error: "Дерекқор бапталмаған" }, { status: 503 });
+  const auth = await requireRole(req, STAFF_ROLES);
+  if (!auth.ok) return auth.response;
 
   const { id } = await params;
-  const parsed = patchSchema.safeParse(await req.json());
+  let body: unknown;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
+  }
+  const parsed = patchSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Жарамсыз сұраныс" }, { status: 400 });
 
-  const { error } = await supabase
+  const { data, error } = await auth.client
     .from("reports")
     .update({ verification_status: parsed.data.verification_status })
-    .eq("id", id);
+    .eq("id", id).select("id");
 
   if (error) {
     console.error("Moderation PATCH error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Дерекқор қатесі" }, { status: 500 });
   }
+  if (!data?.length) return NextResponse.json({ error: "Хабарлама табылмады немесе өзгертуге рұқсат жоқ" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  if (!supabase) return NextResponse.json({ error: "Дерекқор бапталмаған" }, { status: 503 });
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireRole(req, STAFF_ROLES);
+  if (!auth.ok) return auth.response;
 
   const { id } = await params;
-  const { error } = await supabase.from("reports").delete().eq("id", id);
+  const { data, error } = await auth.client.from("reports").delete().eq("id", id).select("id");
 
   if (error) {
     console.error("Moderation DELETE error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: "Дерекқор қатесі" }, { status: 500 });
   }
+  if (!data?.length) return NextResponse.json({ error: "Хабарлама табылмады немесе өзгертуге рұқсат жоқ" }, { status: 404 });
   return NextResponse.json({ ok: true });
 }

@@ -3,6 +3,23 @@
 // kk әдепкі (картадағы түпнұсқа), сондықтан тек ru/en беріледі.
 
 export const UI_TR: Record<string, { ru: string; en: string }> = {
+  "Шағымдар дерекқоры қолжетімсіз — дерек жоқ": { ru: "База жалоб недоступна — нет данных", en: "Complaint database unavailable — no data" },
+  "Шағым жіберу шегіне жеттіңіз. Бір сағаттан кейін қайталаңыз.": { ru: "Достигнут лимит жалоб. Повторите через час.", en: "Complaint limit reached. Try again in an hour." },
+  "Файл пішімі жарамсыз. JPEG, PNG, WebP, MP4 немесе MOV таңдаңыз.": { ru: "Недопустимый формат файла. Выберите JPEG, PNG, WebP, MP4 или MOV.", en: "Invalid file format. Choose JPEG, PNG, WebP, MP4 or MOV." },
+  "Файл көлемі 4 МБ-тан аспауы керек": { ru: "Размер файла не должен превышать 4 МБ", en: "File size must not exceed 4 MB" },
+  "Орын Атырау облысының шегінде болуы керек": { ru: "Место должно находиться в Атырауской области", en: "Location must be within the Atyrau region" },
+  "Оқиға уақыты соңғы 30 күнде болуы керек және болашақта болмауы тиіс": { ru: "Событие должно быть в пределах последних 30 дней, не в будущем", en: "Event must be within the last 30 days, not in the future" },
+  "Мәртебені бұлай өзгертуге болмайды. Деректерді жаңартыңыз.": { ru: "Такое изменение статуса недопустимо. Обновите данные.", en: "This status change is not allowed. Refresh the data." },
+  "Шағым табылмады": { ru: "Жалоба не найдена", en: "Complaint not found" },
+  "Аутентификация бапталмаған": { ru: "Аутентификация не настроена", en: "Authentication is not configured" },
+  "Кіру қажет": { ru: "Необходимо войти", en: "Sign in required" },
+  "Сессия жарамсыз немесе мерзімі өткен": { ru: "Сессия недействительна или истекла", en: "Session is invalid or expired" },
+  "Рөл кестесі қолжетімсіз — дерек жоқ": { ru: "Таблица ролей недоступна — нет данных", en: "Role table unavailable — no data" },
+  "Рұқсат жоқ: рөліңіз жеткіліксіз": { ru: "Доступ запрещён: недостаточно прав", en: "Access denied: insufficient role" },
+  "Жарамсыз сұраныс": { ru: "Некорректный запрос", en: "Invalid request" },
+  "Дерекқор қатесі": { ru: "Ошибка базы данных", en: "Database error" },
+  "Хабарлама табылмады немесе өзгертуге рұқсат жоқ": { ru: "Сообщение не найдено или нет права на изменение", en: "Report not found or modification is not permitted" },
+  "Өз рөліңізді өзгертуге болмайды": { ru: "Изменять свою роль нельзя", en: "You cannot change your own role" },
   // Батырмалар / панель тақырыптары
   "Қабаттар": { ru: "Слои", en: "Layers" },
   "Спутник": { ru: "Спутник", en: "Satellite" },

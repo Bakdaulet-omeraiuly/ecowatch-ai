@@ -42,7 +42,7 @@ export async function GET() {
   if (!supabase) return NextResponse.json({ reports: [], configured: false });
   const { data, error } = await supabase
     .from("reports")
-    .select("*")
+    .select("id, lat, lng, district, risk_score, risk_level, mosquito_index, analysis, image_url, verification_status, created_at")
     .order("created_at", { ascending: false })
     .limit(500);
   if (error) {
