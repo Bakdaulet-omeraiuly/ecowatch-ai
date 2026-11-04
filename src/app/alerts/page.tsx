@@ -15,7 +15,7 @@ import { useLang } from "@/lib/i18n";
 const PIPELINE: AlertStatus[] = ["sent", "acknowledged", "inspecting", "resolved"];
 
 export default function AlertsPage() {
-  const { tr } = useLang();
+  const { tr, lang } = useLang();
   const userAlerts = useSitesStore((s) => s.alerts);
   const resolveAlert = useSitesStore((s) => s.resolveAlert);
 
@@ -89,10 +89,10 @@ export default function AlertsPage() {
                           {tr(STATUS_UI[status].label)}
                         </span>
                       </div>
-                      <h3 className="mt-1.5 text-sm font-semibold text-neutral-900">{alert.siteName}</h3>
+                      <h3 className="mt-1.5 text-sm font-semibold text-neutral-900">{tr(alert.siteName)}</h3>
                       <p className="flex items-center gap-1 text-xs text-neutral-600">
                         <MapPin className="h-3 w-3" /> {alert.lat.toFixed(4)}, {alert.lng.toFixed(4)} ·{" "}
-                        {new Date(alert.createdAt).toLocaleDateString("kk-KZ")}
+                        {new Date(alert.createdAt).toLocaleDateString(lang === "ru" ? "ru-RU" : lang === "en" ? "en-US" : "kk-KZ")}
                       </p>
                     </div>
                     {isUserAlert && status !== "resolved" && (
@@ -105,8 +105,8 @@ export default function AlertsPage() {
                   <div className="flex items-center gap-2 rounded-lg bg-neutral-50 p-2.5 text-xs text-neutral-700">
                     <Building2 className="h-4 w-4 shrink-0 text-emerald-800" />
                     <div>
-                      <b className="text-neutral-900">{alert.recipient}</b>
-                      <div className="text-neutral-600">{alert.reason}</div>
+                      <b className="text-neutral-900">{tr(alert.recipient)}</b>
+                      <div className="text-neutral-600">{tr(alert.reason)}</div>
                     </div>
                   </div>
 

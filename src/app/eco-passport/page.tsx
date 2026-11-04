@@ -169,7 +169,7 @@ export default function EcoPassportPage() {
             <dl className="text-[12px] leading-relaxed text-neutral-600 print:text-gray-600">
               <div className="flex gap-2">
                 <dt>{tr("Аумақ")}:</dt>
-                <dd className="text-neutral-700 print:text-black">{region.name}, {region.countryName}</dd>
+                <dd className="text-neutral-700 print:text-black">{tr(region.name)}, {tr(region.countryName)}</dd>
               </div>
               <div className="flex gap-2">
                 <dt>{tr("Тірек нүкте")}:</dt>
@@ -393,7 +393,7 @@ function IndicatorRow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <TierBadge tone="light" tier={ind.tier} />
-            <span className="text-[14px] font-medium text-neutral-900 print:text-black">{ind.name}</span>
+            <span className="text-[14px] font-medium text-neutral-900 print:text-black">{tr(ind.name)}</span>
             {ind.validated ? (
               <ShieldCheck className="h-3 w-3 text-emerald-800" aria-label={tr("валидацияланған")} />
             ) : (
@@ -401,12 +401,12 @@ function IndicatorRow({
             )}
           </div>
           <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-neutral-600 print:line-clamp-none print:text-gray-600">
-            {ind.what}
+            {tr(ind.what)}
           </p>
           {/* Модуль бұл аймақта жоқ — «өлшенбеді» деп қалдырмай, себебін жазамыз */}
           {meta?.missingReason && (
             <p className="mt-1 text-[12px] leading-snug text-neutral-600 print:text-gray-600">
-              ⃠ {tr("Бұл аймақта модуль жоқ")}: {meta.missingReason}
+              ⃠ {tr("Бұл аймақта модуль жоқ")}: {tr(meta.missingReason)}
             </p>
           )}
         </div>
@@ -423,7 +423,7 @@ function IndicatorRow({
           >
             {fmt(value, ind.digits ?? 0)}
             <span className="ml-1 text-[12px] font-normal text-neutral-600 print:text-gray-600">
-              {ind.unit}
+              {tr(ind.unit)}
             </span>
           </div>
           {value == null ? (
@@ -454,7 +454,7 @@ function IndicatorRow({
             <div>
               <Label>{tr("Формула")}</Label>
               <div className="mt-1 overflow-x-auto rounded-md border border-neutral-300 bg-neutral-50 px-2.5 py-1.5 font-mono text-[13px] text-emerald-800 print:border-gray-300 print:bg-gray-50 print:text-black">
-                {ind.formula}
+                {tr(ind.formula)}
               </div>
             </div>
           )}
@@ -466,7 +466,7 @@ function IndicatorRow({
               {ind.steps.map((s, i) => (
                 <li key={i} className="flex gap-2">
                   <span className="shrink-0 text-neutral-600 print:text-gray-500">{i + 1}.</span>
-                  <span>{s}</span>
+                  <span>{tr(s)}</span>
                 </li>
               ))}
             </ol>
@@ -474,10 +474,10 @@ function IndicatorRow({
 
           {/* Техникалық сипаттама */}
           <div className="grid gap-x-5 gap-y-1 sm:grid-cols-2">
-            <Field label={tr("Аспап / модель")} value={ind.instrument} />
-            <Field label={tr("Кеңістік ажыратымдылығы")} value={ind.spatial} />
-            <Field label={tr("Жаңару жиілігі")} value={ind.temporal} />
-            <Field label={tr("Кідіріс")} value={ind.latency} />
+            <Field label={tr("Аспап / модель")} value={tr(ind.instrument)} />
+            <Field label={tr("Кеңістік ажыратымдылығы")} value={tr(ind.spatial)} />
+            <Field label={tr("Жаңару жиілігі")} value={tr(ind.temporal)} />
+            <Field label={tr("Кідіріс")} value={tr(ind.latency)} />
             <Field label={tr("Эндпоинт")} value={ind.endpoint} mono />
             <Field
               label={tr("Өлшенген уақыт")}
@@ -495,8 +495,8 @@ function IndicatorRow({
                   return (
                     <li key={i} className="flex flex-wrap items-center gap-1.5">
                       <span className={bad ? "text-amber-800 print:text-amber-800" : "text-neutral-700 print:text-gray-800"}>
-                        {bad ? "⚠" : "✓"} {n.label}: {n.comparison === "max" ? "≤" : "≥"} {n.value}{" "}
-                        {ind.unit}
+                        {bad ? "⚠" : "✓"} {tr(n.label)}: {n.comparison === "max" ? "≤" : "≥"} {n.value}{" "}
+                        {tr(ind.unit)}
                       </span>
                       <Doc doc={n.source} />
                     </li>
@@ -543,7 +543,7 @@ function IndicatorRow({
             <span className="font-medium">
               {ind.validated ? tr("Валидацияланған") : tr("Валидацияланбаған")}:
             </span>{" "}
-            {ind.validationNote}
+            {tr(ind.validationNote)}
           </div>
 
           {/* Шектеулер */}
@@ -551,7 +551,7 @@ function IndicatorRow({
             <Label>{tr("Шектеулері")}</Label>
             <ul className="mt-1 space-y-0.5 text-neutral-600 print:text-gray-700">
               {ind.limits.map((l, i) => (
-                <li key={i}>⚠ {l}</li>
+                <li key={i}>⚠ {tr(l)}</li>
               ))}
             </ul>
           </div>
@@ -581,9 +581,10 @@ function Field({ label, value, mono }: { label: string; value: string; mono?: bo
 }
 
 function Doc({ doc, block }: { doc: { label: string; url?: string; note?: string }; block?: boolean }) {
+  const { tr } = useLang();
   const inner = (
     <>
-      {doc.label}
+      {tr(doc.label)}
       {doc.url && <ExternalLink className="ml-0.5 inline h-2.5 w-2.5 print:hidden" />}
     </>
   );
@@ -599,10 +600,10 @@ function Doc({ doc, block }: { doc: { label: string; url?: string; note?: string
           {inner}
         </a>
       ) : (
-        <span className="text-neutral-700 print:text-gray-800">{doc.label}</span>
+        <span className="text-neutral-700 print:text-gray-800">{tr(doc.label)}</span>
       )}
       {doc.note && (
-        <span className="ml-1 text-neutral-600 print:text-gray-600">— {doc.note}</span>
+        <span className="ml-1 text-neutral-600 print:text-gray-600">— {tr(doc.note)}</span>
       )}
       {doc.url && (
         <span className="ml-1 hidden text-[12px] text-gray-500 print:inline">({doc.url})</span>

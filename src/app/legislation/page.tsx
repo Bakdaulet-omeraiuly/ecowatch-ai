@@ -1,4 +1,6 @@
 "use client";
+import { useLang } from "@/lib/i18n";
+
 
 import Link from "next/link";
 import { ExternalLink, Scale, AlertTriangle } from "lucide-react";
@@ -31,6 +33,7 @@ const STATUS_UI = {
 } as const;
 
 export default function LegislationPage() {
+  const { tr } = useLang();
   const verified = NORMS.filter((n) => n.status === "verified").length;
   const kzActs = Object.values(ACTS).filter((a) => a.jurisdiction === "KZ");
   const intActs = Object.values(ACTS).filter((a) => a.jurisdiction !== "KZ");
@@ -38,37 +41,29 @@ export default function LegislationPage() {
   return (
     <main className="mx-auto max-w-4xl px-4 py-12 text-neutral-900">
       <h1 className="mb-2 flex items-center gap-2 text-3xl font-bold text-emerald-800">
-        <Scale className="h-7 w-7" /> Заңнама
-      </h1>
+        <Scale className="h-7 w-7" /> {tr("Заңнама")}{" "}</h1>
       <p className="mb-6 max-w-2xl text-sm leading-relaxed text-neutral-600">
-        Сайттағы әр көрсеткіш қай заңға сүйеніп бағаланатыны, сол шектің
-        бастапқы актіден расталған-расталмағаны және заңдық мәртебесі.
-      </p>
+        {tr("Сайттағы әр көрсеткіш қай заңға сүйеніп бағаланатыны, сол шектің бастапқы актіден расталған-расталмағаны және заңдық мәртебесі.")}{" "}</p>
 
       {/* Ең маңызды ескерту */}
       <div className="mb-8 rounded-xl border border-neutral-300 bg-neutral-50 p-4">
         <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-amber-800">
           <AlertTriangle className="h-4 w-4" />
-          Заңдық мәртебесі — міндетті түрде оқыңыз
-        </div>
+          {tr("Заңдық мәртебесі — міндетті түрде оқыңыз")}{" "}</div>
         <p className="text-[13px] leading-relaxed text-amber-800">{LEGAL_DISCLAIMER}</p>
         <p className="mt-2 text-[13px] leading-relaxed text-amber-800">
-          Яғни жүйе <b>тексеру бастауға негіз</b> береді: қай жерде, қашан, қандай
-          көрсеткіш бойынша күдік бар екенін нақты көрсетеді. Айыппұл салу үшін
-          сол жерде аккредиттелген зертхана өлшеу жүргізуі қажет.
-        </p>
+          {tr("Яғни жүйе")}{" "}<b>{tr("тексеру бастауға негіз")}</b> {tr("береді: қай жерде, қашан, қандай көрсеткіш бойынша күдік бар екенін нақты көрсетеді. Айыппұл салу үшін сол жерде аккредиттелген зертхана өлшеу жүргізуі қажет.")}{" "}</p>
       </div>
 
       {/* ҚР актілері */}
       <section className="mb-10">
-        <h2 className="mb-3 text-xl font-semibold text-neutral-900">Қазақстан Республикасының актілері</h2>
+        <h2 className="mb-3 text-xl font-semibold text-neutral-900">{tr("Қазақстан Республикасының актілері")}</h2>
         <div className="space-y-3">
           {kzActs.map((a) => (
             <div key={a.id} className="rounded-xl border border-neutral-300 bg-neutral-50 p-4">
               <div className="flex flex-wrap items-baseline gap-2">
                 <span className="rounded border border-emerald-300 bg-emerald-50 px-1.5 py-0.5 text-[12px] font-medium text-emerald-800">
-                  ҚР
-                </span>
+                  {tr("ҚР")}{" "}</span>
                 <h3 className="text-sm font-semibold text-neutral-900">{a.number}</h3>
                 <span className="text-[13px] text-neutral-600">{a.date}</span>
               </div>
@@ -86,7 +81,7 @@ export default function LegislationPage() {
                   rel="noopener noreferrer"
                   className="mt-1.5 inline-block text-[13px] text-sky-800 underline-offset-2 hover:underline"
                 >
-                  Ресми мәтін <ExternalLink className="inline h-2.5 w-2.5" />
+                  {tr("Ресми мәтін")}{" "}<ExternalLink className="inline h-2.5 w-2.5" />
                 </a>
               )}
             </div>
@@ -96,7 +91,7 @@ export default function LegislationPage() {
 
       {/* Халықаралық */}
       <section className="mb-10">
-        <h2 className="mb-3 text-xl font-semibold text-neutral-900">Халықаралық құжаттар</h2>
+        <h2 className="mb-3 text-xl font-semibold text-neutral-900">{tr("Халықаралық құжаттар")}</h2>
         <div className="space-y-3">
           {intActs.map((a) => (
             <div key={a.id} className="rounded-xl border border-neutral-300 bg-neutral-50 p-4">
@@ -116,7 +111,7 @@ export default function LegislationPage() {
                   rel="noopener noreferrer"
                   className="mt-1.5 inline-block text-[13px] text-sky-800 underline-offset-2 hover:underline"
                 >
-                  Ресми мәтін <ExternalLink className="inline h-2.5 w-2.5" />
+                  {tr("Ресми мәтін")}{" "}<ExternalLink className="inline h-2.5 w-2.5" />
                 </a>
               )}
             </div>
@@ -126,24 +121,22 @@ export default function LegislationPage() {
 
       {/* Норма тізілімі */}
       <section className="mb-10">
-        <h2 className="mb-1 text-xl font-semibold text-neutral-900">Норма тізілімі</h2>
+        <h2 className="mb-1 text-xl font-semibold text-neutral-900">{tr("Норма тізілімі")}</h2>
         <p className="mb-3 text-[13px] leading-relaxed text-neutral-600">
-          Барлығы <span className="text-neutral-900">{NORMS.length}</span> норма, оның{" "}
-          <span className="text-neutral-900">{verified}</span>-і расталған.{" "}
+          {tr("Барлығы")}{" "}<span className="text-neutral-900">{NORMS.length}</span> {tr("норма, оның")}{" "}
+          <span className="text-neutral-900">{verified}</span>{tr("-і расталған.")}{" "}
           <span className="text-amber-800">
-            Расталмаған шек бойынша жүйе «заң бұзылды» деген тұжырым шығармайды
-          </span>{" "}
-          — тек «алдын ала белгі» деп жазады.
-        </p>
+            {tr("Расталмаған шек бойынша жүйе «заң бұзылды» деген тұжырым шығармайды")}{" "}</span>{" "}
+          {tr("— тек «алдын ала белгі» деп жазады.")}{" "}</p>
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-[13px]">
             <thead className="text-neutral-600">
               <tr className="border-b border-neutral-300">
-                <th className="py-2 pr-3 font-medium">Көрсеткіш</th>
-                <th className="py-2 pr-3 font-medium">Акт</th>
-                <th className="py-2 pr-3 font-medium">Орташалау</th>
-                <th className="py-2 pr-3 text-right font-medium">Шек</th>
-                <th className="py-2 font-medium">Растау күйі</th>
+                <th className="py-2 pr-3 font-medium">{tr("Көрсеткіш")}</th>
+                <th className="py-2 pr-3 font-medium">{tr("Акт")}</th>
+                <th className="py-2 pr-3 font-medium">{tr("Орташалау")}</th>
+                <th className="py-2 pr-3 text-right font-medium">{tr("Шек")}</th>
+                <th className="py-2 font-medium">{tr("Растау күйі")}</th>
               </tr>
             </thead>
             <tbody>
@@ -166,8 +159,7 @@ export default function LegislationPage() {
                       {n.limit} {n.unit}
                       {n.allowedExceedances != null && (
                         <span className="ml-1 text-[12px] text-neutral-600">
-                          ({n.allowedExceedances} рет/жыл)
-                        </span>
+                          ({n.allowedExceedances} {tr("рет/жыл)")}{" "}</span>
                       )}
                     </td>
                     <td className="py-2">
@@ -187,35 +179,31 @@ export default function LegislationPage() {
           Бұл бөлімнің мәні — олқылықты ЖАСЫРМАУ: «жүйеде бәрі жасыл»
           деген көрініс ең қауіпті заттың мүлдем өлшенбегенін жасыруы мүмкін. */}
       <section className="mb-10">
-        <h2 className="mb-1 text-xl font-semibold text-neutral-900">Зиянды заттар: не өлшенеді, не өлшенбейді</h2>
+        <h2 className="mb-1 text-xl font-semibold text-neutral-900">{tr("Зиянды заттар: не өлшенеді, не өлшенбейді")}</h2>
         <p className="mb-3 text-[13px] leading-relaxed text-neutral-600">
-          Барлығы <span className="text-neutral-900">{HARMFUL.length}</span> зат:{" "}
-          <span className="text-emerald-800">{MEASURED_COUNT} өлшенеді</span> ·{" "}
-          <span className="text-amber-800">{PROXY_COUNT} жанама</span> ·{" "}
-          <span className="text-red-800">{NOT_MEASURED_COUNT} өлшенбейді</span>.
+          {tr("Барлығы")}{" "}<span className="text-neutral-900">{HARMFUL.length}</span> {tr("зат:")}{" "}
+          <span className="text-emerald-800">{MEASURED_COUNT} {tr("өлшенеді")}</span> ·{" "}
+          <span className="text-amber-800">{PROXY_COUNT} {tr("жанама")}</span> ·{" "}
+          <span className="text-red-800">{NOT_MEASURED_COUNT} {tr("өлшенбейді")}</span>.
         </p>
 
         <div className="mb-4 rounded-xl border border-neutral-300 bg-neutral-50 p-4">
           <p className="text-[13px] leading-relaxed text-red-800">
-            <b>Ең маңызды ескерту.</b> «Өлшенбейді» деп белгіленген зат бойынша жүйенің
-            ешқандай қорытындысы <b>жоқ</b>. Ауа сол зат бойынша таза деген сөз емес —
-            ол жай ғана <b>қаралмаған</b>.
+            <b>{tr("Ең маңызды ескерту.")}</b> {tr("«Өлшенбейді» деп белгіленген зат бойынша жүйенің ешқандай қорытындысы")}{" "}<b>{tr("жоқ")}</b>{tr(". Ауа сол зат бойынша таза деген сөз емес — ол жай ғана")}{" "}<b>{tr("қаралмаған")}</b>.
           </p>
           <p className="mt-2 text-[13px] leading-relaxed text-red-800">
-            Атырау үшін бұл нақты мәселе: мұнай өңдеудің басты маркері{" "}
-            <b>күкіртсутек (H₂S)</b> спутниктен де, CAMS моделінен де мүлдем өлшенбейді.
-            Тұрғындар шағымының көбі дәл сол иіске байланысты.
-          </p>
+            {tr("Атырау үшін бұл нақты мәселе: мұнай өңдеудің басты маркері")}{" "}
+            <b>{tr("күкіртсутек (H₂S)")}</b> {tr("спутниктен де, CAMS моделінен де мүлдем өлшенбейді. Тұрғындар шағымының көбі дәл сол иіске байланысты.")}{" "}</p>
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-neutral-300">
           <table className="w-full min-w-[720px] text-left text-[13px]">
             <thead className="border-b border-neutral-300 text-neutral-600">
               <tr>
-                <th className="px-3 py-2 font-medium">Зат</th>
-                <th className="px-3 py-2 font-medium">Күйі</th>
-                <th className="px-3 py-2 font-medium">Қалай / неге жоқ</th>
-                <th className="px-3 py-2 font-medium">Аймаққа қатысы</th>
+                <th className="px-3 py-2 font-medium">{tr("Зат")}</th>
+                <th className="px-3 py-2 font-medium">{tr("Күйі")}</th>
+                <th className="px-3 py-2 font-medium">{tr("Қалай / неге жоқ")}</th>
+                <th className="px-3 py-2 font-medium">{tr("Аймаққа қатысы")}</th>
               </tr>
             </thead>
             <tbody>
@@ -241,7 +229,7 @@ export default function LegislationPage() {
                       {STATUS_KZ[s.status]}
                     </span>
                     {s.indicatorId && (
-                      <div className="mt-1 text-[12px] text-sky-800">нормасы бар</div>
+                      <div className="mt-1 text-[12px] text-sky-800">{tr("нормасы бар")}</div>
                     )}
                   </td>
                   <td className="px-3 py-2 text-[13px] leading-relaxed text-neutral-600">{s.how}</td>
@@ -261,7 +249,7 @@ export default function LegislationPage() {
 
       {/* Жинақталу әсері — 2025 ж. № 10 бұйрықпен енгізілген 3-кесте */}
       <section className="mb-10">
-        <h2 className="mb-1 text-xl font-semibold text-neutral-900">Жинақталу (суммация) әсері</h2>
+        <h2 className="mb-1 text-xl font-semibold text-neutral-900">{tr("Жинақталу (суммация) әсері")}</h2>
         <p className="mb-3 text-[13px] leading-relaxed text-neutral-600">
           {SUMMATION_SOURCE.act} — {SUMMATION_SOURCE.amendment}.
         </p>
@@ -269,19 +257,14 @@ export default function LegislationPage() {
         <div className="mb-3 rounded-xl border border-neutral-300 bg-neutral-50 p-4">
           <div className="mb-1 font-mono text-lg text-emerald-800">{SUMMATION_SOURCE.formula}</div>
           <p className="text-[13px] leading-relaxed text-emerald-800">
-            Cᵢ — атмосфералық ауадағы заттың нақты шоғырлануы, ШРКᵢ — сол заттың рұқсат
-            етілген шекті шоғырлануы. Жинақталу әсері бар заттар бірге болғанда, олардың
-            қатынастарының қосындысы <b>1-ден аспауға тиіс</b>.
+            {tr("Cᵢ — атмосфералық ауадағы заттың нақты шоғырлануы, ШРКᵢ — сол заттың рұқсат етілген шекті шоғырлануы. Жинақталу әсері бар заттар бірге болғанда, олардың қатынастарының қосындысы")}{" "}<b>{tr("1-ден аспауға тиіс")}</b>.
           </p>
           <p className="mt-2 text-[13px] leading-relaxed text-neutral-900">
-            Бұл нені білдіреді: әр зат <b>жеке-жеке норма шегінде</b> тұрып, бірге алғанда
-            норманы <b>бұзуы мүмкін</b>. Мысалы NO₂ = 0,6 ШРК және SO₂ = 0,6 ШРК — екеуі де
-            «жасыл», ал қосындысы 1,2 &gt; 1 → бұзушылық.
-          </p>
+            {tr("Бұл нені білдіреді: әр зат")}{" "}<b>{tr("жеке-жеке норма шегінде")}</b> {tr("тұрып, бірге алғанда норманы")}{" "}<b>{tr("бұзуы мүмкін")}</b>{tr(". Мысалы NO₂ = 0,6 ШРК және SO₂ = 0,6 ШРК — екеуі де «жасыл», ал қосындысы 1,2 > 1 → бұзушылық.")}{" "}</p>
         </div>
 
         <div className="mb-3 rounded-lg bg-neutral-50 p-3">
-          <div className="mb-1 text-[13px] font-semibold text-neutral-900">Ерекшелік ережесі</div>
+          <div className="mb-1 text-[13px] font-semibold text-neutral-900">{tr("Ерекшелік ережесі")}</div>
           <p className="text-[13px] leading-relaxed text-neutral-600">
             {SUMMATION_SOURCE.dominanceRule}
           </p>
@@ -292,8 +275,8 @@ export default function LegislationPage() {
             <thead className="text-neutral-600">
               <tr className="border-b border-neutral-300">
                 <th className="py-2 pr-3 font-medium">№</th>
-                <th className="py-2 pr-3 font-medium">Топ құрамы</th>
-                <th className="py-2 font-medium">Жүйеде есептеледі ме</th>
+                <th className="py-2 pr-3 font-medium">{tr("Топ құрамы")}</th>
+                <th className="py-2 font-medium">{tr("Жүйеде есептеледі ме")}</th>
               </tr>
             </thead>
             <tbody>
@@ -313,15 +296,13 @@ export default function LegislationPage() {
                     <td className="py-2">
                       {full ? (
                         <span className="rounded border border-emerald-300 bg-emerald-50 px-1.5 py-0.5 text-[12px] text-emerald-800">
-                          иә — {measured.length} компонент
-                        </span>
+                          {tr("иә —")}{" "}{measured.length} {tr("компонент")}{" "}</span>
                       ) : (
                         <span
                           className="rounded border border-neutral-300 bg-neutral-50 px-1.5 py-0.5 text-[12px] text-neutral-600"
                           title={missing.map((id) => SUBSTANCES[id].name).join(", ")}
                         >
-                          жоқ — {missing.length} зат өлшенбейді
-                        </span>
+                          {tr("жоқ —")}{" "}{missing.length} {tr("зат өлшенбейді")}{" "}</span>
                       )}
                     </td>
                   </tr>
@@ -332,29 +313,22 @@ export default function LegislationPage() {
         </div>
 
         <p className="mt-2 text-[13px] leading-relaxed text-neutral-600">
-          Толық кестеде 59 топ бар. Мұнда жүйеде кемінде бір заты өлшенетіндері
-          келтірілген — қалғандары (акрил қышқылы, фурфурол, ванадий аэрозольдері т.б.)
-          үшін жер бетіндегі зертханалық өлшем қажет.
-        </p>
+          {tr("Толық кестеде 59 топ бар. Мұнда жүйеде кемінде бір заты өлшенетіндері келтірілген — қалғандары (акрил қышқылы, фурфурол, ванадий аэрозольдері т.б.) үшін жер бетіндегі зертханалық өлшем қажет.")}{" "}</p>
       </section>
 
       <section className="mb-10">
-        <h2 className="mb-2 text-xl font-semibold text-neutral-900">Норманы қалай растаймыз</h2>
+        <h2 className="mb-2 text-xl font-semibold text-neutral-900">{tr("Норманы қалай растаймыз")}</h2>
         <ol className="list-inside list-decimal space-y-1 text-[13px] leading-relaxed text-neutral-600">
           <li>
-            adilet.zan.kz сайтынан ҚР ДСМ-70 бұйрығының қолданыстағы редакциясы ашылады
-          </li>
-          <li>Кестедегі мән сайттағы мәнмен салыстырылады</li>
+            {tr("adilet.zan.kz сайтынан ҚР ДСМ-70 бұйрығының қолданыстағы редакциясы ашылады")}{" "}</li>
+          <li>{tr("Кестедегі мән сайттағы мәнмен салыстырылады")}</li>
           <li>
-            Сәйкес келсе <code className="text-emerald-800">src/data/legalNorms.ts</code> ішінде{" "}
-            <code className="text-emerald-800">status: &quot;verified&quot;</code> қойылады
-          </li>
-          <li>Сол сәттен бастап жүйе сол норма бойынша заңдық тұжырым шығара бастайды</li>
+            {tr("Сәйкес келсе")}{" "}<code className="text-emerald-800">src/data/legalNorms.ts</code> {tr("ішінде")}{" "}
+            <code className="text-emerald-800">status: &quot;verified&quot;</code> {tr("қойылады")}{" "}</li>
+          <li>{tr("Сол сәттен бастап жүйе сол норма бойынша заңдық тұжырым шығара бастайды")}</li>
         </ol>
         <p className="mt-2 text-[13px] text-neutral-600">
-          2015 жылғы № 168 бұйрық <b className="text-amber-800">күшін жойған</b> — ондағы
-          нормаларды қолдануға болмайды.
-        </p>
+          {tr("2015 жылғы № 168 бұйрық")}{" "}<b className="text-amber-800">{tr("күшін жойған")}</b> {tr("— ондағы нормаларды қолдануға болмайды.")}{" "}</p>
       </section>
 
       <div className="flex flex-wrap gap-2 text-[13px]">
@@ -362,14 +336,12 @@ export default function LegislationPage() {
           href="/eco-passport"
           className="rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-neutral-900 transition hover:bg-neutral-100"
         >
-          Эко-паспорт →
-        </Link>
+          {tr("Эко-паспорт →")}{" "}</Link>
         <Link
           href="/methodology"
           className="rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-neutral-900 transition hover:bg-neutral-100"
         >
-          Әдістеме және валидация →
-        </Link>
+          {tr("Әдістеме және валидация →")}{" "}</Link>
       </div>
     </main>
   );

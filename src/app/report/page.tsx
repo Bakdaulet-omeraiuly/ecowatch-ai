@@ -17,7 +17,8 @@ import { REPORTS_ENABLED } from "@/lib/features";
 import { FeatureUnavailable } from "@/components/FeatureUnavailable";
 
 export default function ReportPage() {
-  if (!REPORTS_ENABLED) return <FeatureUnavailable title="Азаматтық хабарлау" />;
+  const { tr } = useLang();
+  if (!REPORTS_ENABLED) return <FeatureUnavailable title={tr("Азаматтық хабарлау")} />;
   return <ReportPageInner />;
 }
 

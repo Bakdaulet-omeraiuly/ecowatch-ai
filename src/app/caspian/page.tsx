@@ -101,8 +101,8 @@ export default function CaspianPage() {
               <TierBadge tone="light" tier="model" />
               <span className="text-sm font-semibold text-sky-800">{tr("Дереккөз мен әдіс")}</span>
             </div>
-            <p className="text-[13px] leading-relaxed text-sky-800">{d.method}</p>
-            <p className="mt-1.5 text-[13px] text-neutral-600">{d.source}</p>
+            <p className="text-[13px] leading-relaxed text-sky-800">{tr(d.method)}</p>
+            <p className="mt-1.5 text-[13px] text-neutral-600">{tr(d.source)}</p>
           </div>
 
           {/* Атырау */}
@@ -115,8 +115,8 @@ export default function CaspianPage() {
                 <div key={c.id} className="rounded-lg bg-neutral-50 p-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-base">{COUNTRY_FLAG[c.country]}</span>
-                    <span className="text-[14px] font-medium text-neutral-900">{c.name}</span>
-                    <span className="text-[12px] text-neutral-600">{c.countryName}</span>
+                    <span className="text-[14px] font-medium text-neutral-900">{tr(c.name)}</span>
+                    <span className="text-[12px] text-neutral-600">{tr(c.countryName)}</span>
                     {c.jurisdiction === "KZ" && (
                       <span className="rounded border border-emerald-300 bg-emerald-50 px-1.5 py-0.5 text-[12px] text-emerald-800">
                         {tr("ҚР нормасы да тексерілді")}
@@ -136,7 +136,7 @@ export default function CaspianPage() {
                   </div>
 
                   <p className="mt-1.5 text-[12px] leading-relaxed text-neutral-600">
-                    {c.context} · <span className="text-neutral-600">{tr("Қысым")}:</span> {c.pressure}
+                    {tr(c.context)} · <span className="text-neutral-600">{tr("Қысым")}:</span> {tr(c.pressure)}
                   </p>
                 </div>
               ))}
@@ -148,9 +148,9 @@ export default function CaspianPage() {
             <div className="mb-1.5 flex items-center gap-2 text-sm font-semibold text-amber-800">
               <AlertTriangle className="h-4 w-4" /> {tr("Заңнама туралы")}
             </div>
-            <p className="text-[13px] leading-relaxed text-amber-800">{d.legalNote}</p>
+            <p className="text-[13px] leading-relaxed text-amber-800">{tr(d.legalNote)}</p>
             <p className="mt-2 text-[13px] leading-relaxed text-amber-800">
-              {CASPIAN_FACTS.legalNote}
+              {tr(CASPIAN_FACTS.legalNote)}
             </p>
           </section>
 
@@ -159,7 +159,7 @@ export default function CaspianPage() {
             <h2 className="mb-2 text-sm font-semibold text-neutral-900">{tr("Шектеулер")}</h2>
             <ul className="space-y-1 text-[13px] leading-relaxed text-neutral-600">
               {d.caveats.map((c, i) => (
-                <li key={i}>⚠ {c}</li>
+                <li key={i}>⚠ {tr(c)}</li>
               ))}
               <li>
                 ⚠{" "}
@@ -170,7 +170,7 @@ export default function CaspianPage() {
               </li>
             </ul>
             <p className="mt-2 text-[13px] leading-relaxed text-neutral-600">
-              {CASPIAN_FACTS.note}
+              {tr(CASPIAN_FACTS.note)}
             </p>
           </section>
 
@@ -208,7 +208,7 @@ function Pol({
       {who && who.ratio != null && (
         <span
           className={`rounded border px-1 py-px text-[12px] ${LEVEL_COLOR[c.worst]}`}
-          title={`${tr("WHO шегі")}: ${who.norm.limit} ${who.norm.unit} · ${c.summary}`}
+          title={`${tr("WHO шегі")}: ${who.norm.limit} ${who.norm.unit} · ${tr(c.summary)}`}
         >
           {Math.round(who.ratio * 100)}% {tr("WHO")}
         </span>

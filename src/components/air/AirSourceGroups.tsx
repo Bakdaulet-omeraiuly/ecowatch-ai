@@ -26,6 +26,7 @@ const KZH_ORDER: KzhGas[] = ["so2", "co", "no2", "no", "h2s"];
 const SAT_ORDER: SatGas[] = ["no2", "so2", "co"];
 
 export function AirSourceGroups() {
+  const { tr } = useLang();
   const { t, lang } = useLang();
   const tk = (k: string) => t(k as never);
   const [loaded, setLoaded] = useState<Loaded>(null);
@@ -131,7 +132,7 @@ export function AirSourceGroups() {
                     <p className="text-xs text-neutral-800">{tk("air.ground.notLive")}</p>
                     <MetaList
                       rows={[
-                        { k: t("air.source"), v: <a href={last.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#0b3a6b]">Қазгидромет<span className="sr-only"> ({t("foot.newTab")})</span></a> },
+                        { k: t("air.source"), v: <a href={last.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#0b3a6b]">{tr("Қазгидромет")}<span className="sr-only"> ({t("foot.newTab")})</span></a> },
                         { k: t("air.unit"), v: "µg/m³" },
                         { k: t("air.month"), v: last.month },
                         { k: t("air.freq"), v: t("air.freq.kzh") },

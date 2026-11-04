@@ -81,18 +81,18 @@ export function IndicatorHelp({ id, inline, tone = "dark" }: Props) {
     <div className="space-y-1.5">
       <p className="text-[13px] leading-relaxed text-neutral-300">{tr(ind.what)}</p>
       {ind.formula && (
-        <p className="font-mono text-[12px] leading-relaxed text-neutral-400">{ind.formula}</p>
+        <p className="font-mono text-[12px] leading-relaxed text-neutral-400">{tr(ind.formula)}</p>
       )}
       <p className="text-[12px] leading-relaxed text-neutral-400">
-        <span className="text-neutral-400">{tr("Аспап/көзі")}:</span> {ind.instrument} ·{" "}
-        <span className="text-neutral-400">{tr("қадам")}:</span> {ind.spatial} ·{" "}
-        <span className="text-neutral-400">{tr("жиілік")}:</span> {ind.temporal}
+        <span className="text-neutral-400">{tr("Аспап/көзі")}:</span> {tr(ind.instrument)} ·{" "}
+        <span className="text-neutral-400">{tr("қадам")}:</span> {tr(ind.spatial)} ·{" "}
+        <span className="text-neutral-400">{tr("жиілік")}:</span> {tr(ind.temporal)}
       </p>
       {ind.norms && ind.norms.length > 0 && (
         <p className="text-[12px] leading-relaxed text-neutral-400">
           <span className="text-neutral-400">{tr("Норма")}:</span>{" "}
           {ind.norms
-            .map((n) => `${n.label} — ${n.value} ${ind.unit}`)
+            .map((n) => `${tr(n.label)} — ${n.value} ${tr(ind.unit)}`)
             .join(" · ")}
         </p>
       )}
@@ -138,7 +138,7 @@ export function IndicatorHelp({ id, inline, tone = "dark" }: Props) {
         <div className="mt-1 w-full rounded-lg border border-white/10 bg-black/30 p-2.5">
           <div className="mb-1 flex items-center gap-1.5">
             <span className="text-[13px] font-medium text-white">
-              {ind?.name ?? extra!.name}
+              {tr(ind?.name ?? extra!.name)}
             </span>
             {ind && <TierBadge tier={ind.tier} tone={tone} />}
           </div>
