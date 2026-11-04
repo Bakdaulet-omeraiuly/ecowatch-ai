@@ -56,7 +56,7 @@ export function AreaReportTool() {
       if (j.metric === "fires") setOverlay({
         type: "FeatureCollection",
         features: (j.points as { lat: number; lng: number; acqDate: string; category: string }[]).map((p) => ({
-          type: "Feature", properties: { kind: "fire", category: p.category, label: p.acqDate },
+          type: "Feature", properties: { kind: "point", category: p.category, color: p.category === "industrial_flare" ? "#f59e0b" : "#dc2626", label: p.acqDate },
           geometry: { type: "Point", coordinates: [p.lng, p.lat] },
         })),
       });
