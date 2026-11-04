@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { REPORTS_ENABLED } from "@/lib/features";
 import { FeatureUnavailable } from "@/components/FeatureUnavailable";
+import { authHeaders } from "@/lib/authClient";
 
 interface Report {
   id: string;
@@ -84,10 +85,14 @@ function ModerationPageInner() {
     try {
       const res = await fetch(`/api/moderation/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
         body: JSON.stringify({ verification_status: status }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const body = await res.json();
+        toast.error(tr(body.error));
+        return;
+      }
       setReports((prev) => prev.map((r) => r.id === id ? { ...r, verification_status: status } : r));
       toast.success(status === "confirmed" ? tr("Расталды ✅") : status === "contradicted" ? tr("Өшірілді ❌") : tr("Тексеруге жіберілді 🔍"));
     } catch {
@@ -101,8 +106,15 @@ function ModerationPageInner() {
     if (!confirm(tr("Хабарламаны толығымен жоясыз ба?"))) return;
     setBusy((b) => ({ ...b, [id]: true }));
     try {
-      const res = await fetch(`/api/moderation/${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
+      const res = await fetch(`/api/moderation/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json", ...(await authHeaders()) },
+      });
+      if (!res.ok) {
+        const body = await res.json();
+        toast.error(tr(body.error));
+        return;
+      }
       setReports((prev) => prev.filter((r) => r.id !== id));
       hideReport(id);
       toast.success(tr("Хабарлама жойылды"));

@@ -11,10 +11,12 @@ export function LocationPicker({
   lat,
   lng,
   onPick,
+  labels,
 }: {
   lat: number | null;
   lng: number | null;
   onPick: (lat: number, lng: number) => void;
+  labels?: { unavailable: string; pick: string; selected: string };
 }) {
   const { tr } = useLang();
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -23,7 +25,7 @@ export function LocationPicker({
   if (!token) {
     return (
       <p className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-neutral-400">
-        Mapbox токені жоқ — координатты қолмен енгізіңіз.
+        {labels?.unavailable ?? "Mapbox токені жоқ — координатты қолмен енгізіңіз."}
       </p>
     );
   }
@@ -51,8 +53,8 @@ export function LocationPicker({
       </div>
       <div className="bg-neutral-900/80 px-3 py-1.5 text-[13px] text-neutral-400">
         {lat != null && lng != null
-          ? `Таңдалды: ${lat.toFixed(5)}, ${lng.toFixed(5)} — басқа жерді басып өзгертуге болады`
-          : hover
+          ? labels ? `${labels.selected}: ${lat.toFixed(5)}, ${lng.toFixed(5)}` : `Таңдалды: ${lat.toFixed(5)}, ${lng.toFixed(5)} — басқа жерді басып өзгертуге болады`
+          : labels ? labels.pick : hover
             ? tr("Мәселе байқалған нақты жерді басыңыз")
             : tr("Картадан мәселе орнын басып белгілеңіз")}
       </div>

@@ -16,6 +16,7 @@ export function Navbar() {
     { href: "/map", label: t("nav.map") },
     { href: "/dashboard", label: t("nav.dashboard") },
     { href: "/report", label: t("nav.report") },
+    { href: "/complaints", label: t("nav.complaints") },
     { href: "/alerts", label: t("nav.alerts") },
     { href: "/legislation", label: t("nav.legislation") },
     { href: "/methodology", label: t("nav.methodology") },
@@ -31,22 +32,27 @@ export function Navbar() {
             <span className="hidden text-sm font-normal text-blue-100 sm:inline">· {t("site.subtitle")}</span>
           </Link>
 
-          {/* Тіл ауыстырғыш — KZ | RU (EN сақталған, бірақ басты түймеде көрсетілмейді) */}
-          <div role="group" aria-label={t("site.lang")} className="flex shrink-0 overflow-hidden rounded border border-blue-300">
-            {(["kk", "ru"] as const).map((l) => (
-              <button
-                key={l}
-                type="button"
-                onClick={() => setLang(l)}
-                aria-pressed={lang === l}
-                className={cn(
-                  "min-h-[44px] min-w-[44px] px-3 text-sm font-semibold",
-                  lang === l ? "bg-white text-[#0b3a6b]" : "text-white hover:bg-white/10"
-                )}
-              >
-                {l === "kk" ? "KZ" : "RU"}
-              </button>
-            ))}
+          <div className="flex shrink-0 items-center gap-2">
+            <Link href="/auth" className="inline-flex min-h-[44px] items-center px-2 text-sm text-white hover:underline">
+              {t("auth.nav")}
+            </Link>
+            {/* Тіл ауыстырғыш — KZ | RU (EN сақталған, бірақ басты түймеде көрсетілмейді) */}
+            <div role="group" aria-label={t("site.lang")} className="flex shrink-0 overflow-hidden rounded border border-blue-300">
+              {(["kk", "ru"] as const).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLang(l)}
+                  aria-pressed={lang === l}
+                  className={cn(
+                    "min-h-[44px] min-w-[44px] px-3 text-sm font-semibold",
+                    lang === l ? "bg-white text-[#0b3a6b]" : "text-white hover:bg-white/10"
+                  )}
+                >
+                  {l === "kk" ? "KZ" : "RU"}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>

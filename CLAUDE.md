@@ -32,6 +32,8 @@ Supabase (ортақ хабарламалар).
 
 ## Файл картасы
 
+- `src/lib/complaints.ts` — шағым enum/өту/дубль/жария allowlist; `src/lib/mediaSanitize.ts` — медиа метадеректерін тазалау; `/api/complaints*` — жария/өз/қызметкер API; `/complaints*` — жіберу/бақылау/қарау; `supabase/migrations/20261103_complaints.sql` — иесінің қарауына, ҚОЛДАНЫЛМАҒАН.
+- `src/lib/auth.ts` — серверлік сессия/рөл тексерісі; `/auth` — кіру/тіркелу; `supabase/migrations/20261103_auth_roles.sql` — RLS/рөлдер, иесінің қарауына (ҚОЛДАНЫЛМАҒАН).
 - `src/app/page.tsx` — басты бет (Атырау фоны, ғылыми мақалалар)
 - `src/app/map/page.tsx` + `src/components/map/MapView.tsx` — басты карта
   (AI талдау, эко қабаттар, тарихи режим, AI агент, фото-хабарламалар)
