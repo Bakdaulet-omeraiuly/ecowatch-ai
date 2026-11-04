@@ -99,30 +99,6 @@ body {
 }
 .skip-link:focus { top: 8px; }
 
-/* Map popup: its container is the available map canvas, between the panels. */
-.pollution-air-popup .mapboxgl-popup-content {
-  background: #fff;
-  color: #1f2933;
-  border: 1px solid #d4d4d4;
-  border-radius: 6px;
-  padding: 44px 16px 16px;
-  max-height: min(70dvh, 36rem);
-  max-height: min(36rem, max(44px, calc(100cqh - 24px)));
-  overflow: auto;
-  box-shadow: 0 4px 16px #0002;
-}
-.pollution-air-popup .mapboxgl-popup-close-button {
-  color: #0b3a6b;
-  font-size: 24px;
-  width: 44px;
-  height: 44px;
-}
-.pollution-air-popup { max-width: min(320px, calc(100vw - 32px)) !important; }
-.portal-map .pollution-air-popup { max-width: min(320px, calc(100cqw - 24px)) !important; }
-.pollution-air-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #fff; }
-.pollution-air-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: #fff; }
-.pollution-air-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: #fff; }
-.pollution-air-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: #fff; }
 
 /* Shared evidence widgets retain their dark defaults on unmigrated routes. */
 [data-tone="light"] { color: #1f2933; border-color: #d4d4d4; background-color: #fff; }

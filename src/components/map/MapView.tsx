@@ -99,7 +99,7 @@ import { LayerIndexNote } from "@/components/map/LayerIndexNote";
 import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 import { GreeneryPanel } from "./GreeneryPanel";
 import { SourceErrorBox } from "./SourceErrorBox";
-import { FacilityPopup } from "./FacilityPopup";
+import { FacilityBar } from "./FacilityBar";
 import { LandusePanel, LANDUSE_COLOR } from "./LandusePanel";
 import { NaturePanel, reserveGeo } from "./NaturePanel";
 
@@ -763,13 +763,8 @@ export function MapView() {
   };
   // Зауыт басылғанда сол координатаның тірі ауа сапасын көрсету
   interface FacAir { aqi: number | null; pm2_5: number | null; pm10: number | null; so2: number | null; no2: number | null }
-  interface StationAir {
-    found: boolean; source?: string; station?: string; distanceKm?: number | null; time?: string | null;
-    aqi?: number | null; dominant?: string | null;
-    iaqi?: { pm25: number | null; pm10: number | null; no2: number | null; so2: number | null; o3: number | null; co: number | null };
-  }
   const [facAir, setFacAir] = useState<
-    { fac: PollutionSourceCandidate; data: FacAir | null; station: StationAir | null; error: boolean } | null
+    { fac: PollutionSourceCandidate; data: FacAir | null; error: boolean } | null
   >(null);
   const [facFlares, setFacFlares] = useState<{ byFacility: Record<string, number>; days: number; fetchedAt: string } | null>(null);
   const [facFlaresError, setFacFlaresError] = useState(false);
@@ -789,12 +784,8 @@ export function MapView() {
     return () => controller.abort();
   }, [sourceMode, facFlares]);
   const openFacilityAir = useCallback((fac: PollutionSourceCandidate) => {
-    setFacAir({ fac, data: null, station: null, error: false });
-    // Екеуін қатар тартамыз: нақты жердегі станса (Qazhydromet/WAQI) + CAMS моделі
-    fetch(`/api/station-air?lat=${fac.lat}&lng=${fac.lng}`)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((st: StationAir | null) => setFacAir((cur) => (cur && cur.fac.id === fac.id ? { ...cur, station: st } : cur)))
-      .catch(() => {});
+    setFacAir({ fac, data: null, error: false });
+    // CAMS нүктелік моделі (жердегі станса нысаннан 25 км-ден алыс — жолақта көрсетілмейді)
     fetch(`/api/point-air?lat=${fac.lat}&lng=${fac.lng}`)
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((d) => setFacAir((cur) => (cur && cur.fac.id === fac.id ? (d.error ? { ...cur, error: true } : { ...cur, data: d }) : cur)))
@@ -1780,33 +1771,24 @@ export function MapView() {
             );
           })}
 
-        {/* Зауыт басылғанда — сол координатаның тірі ауа сапасы */}
-        {sourceMode && facAir && (
-          <Popup
-            latitude={facAir.fac.lat}
-            longitude={facAir.fac.lng}
-            // No fixed anchor: Mapbox picks the side with room, so the popup is never cut off.
-            offset={14}
-            maxWidth="320px"
-            closeOnClick={false}
-            onClose={() => setFacAir(null)}
-            className="pollution-air-popup"
-          >
-            <FacilityPopup
-              facility={FACILITIES.find((f) => f.id === facAir.fac.id)}
-              name={facAir.fac.name}
-              share={facAir.fac.confidence ?? null}
-              air={facAir.data}
-              airError={facAir.error}
-              station={facAir.station}
-              flares={facFlares ? { count: facFlares.byFacility[facAir.fac.id] ?? 0, days: facFlares.days, fetchedAt: facFlares.fetchedAt } : null}
-              flaresError={facFlaresError}
-              selected={isSel(facAir.fac.id)}
-              onToggle={() => toggleFac(facAir.fac)}
-            />
-          </Popup>
-        )}
       </Map>
+
+      {/* Зауыт басылғанда — картаның үстінде мөлдір ықшам жолақ (толығы /object/[id]) */}
+      {sourceMode && facAir && (
+        <FacilityBar
+          facility={FACILITIES.find((f) => f.id === facAir.fac.id)}
+          name={facAir.fac.name}
+          share={facAir.fac.confidence ?? null}
+          wind={source?.wind ?? null}
+          air={facAir.data}
+          airError={facAir.error}
+          flares={facFlares ? { count: facFlares.byFacility[facAir.fac.id] ?? 0, days: facFlares.days } : null}
+          flaresError={facFlaresError}
+          animating={isSel(facAir.fac.id)}
+          onToggle={() => toggleFac(facAir.fac)}
+          onClose={() => setFacAir(null)}
+        />
+      )}
 
       {/* Zoom controls — Google Maps style */}
       <div className={styles.navigation}>
