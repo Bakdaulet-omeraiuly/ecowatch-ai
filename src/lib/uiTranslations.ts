@@ -3,6 +3,11 @@
 // kk әдепкі (картадағы түпнұсқа), сондықтан тек ru/en беріледі.
 
 export const UI_TR: Record<string, { ru: string; en: string }> = {
+  // P3.6 stale data
+  "Ескірген дерек": { ru: "Устаревшие данные", en: "Stale data" },
+  "желі жоқ немесе әлсіз — кейбір мәндер кэштен көрсетілген, ең ескісі": { ru: "нет сети или она слабая — часть значений показана из кэша, самое старое получено", en: "no or weak network — some values are shown from cache, the oldest was fetched" },
+  "бұрын алынған": { ru: "назад", en: "ago" },
+  "желі жоқ — жаңа деректер жүктелмейді; кэште жоқ мән «дерек жоқ» деп көрсетіледі.": { ru: "нет сети — новые данные не загружаются; значения, которых нет в кэше, показаны как «нет данных».", en: "offline — new data is not loading; values not in cache are shown as “no data”." },
   // P3.8 audit log
   "Әрекеттер журналы": { ru: "Журнал действий", en: "Action log" },
   "Әр мәртебе өзгерісі мен жоюды дерекқордың өзі жазады; жазбаны ешкім өзгерте не өшіре алмайды.": { ru: "Каждое изменение статуса и удаление записывает сама база данных; никто не может изменить или удалить запись.", en: "Every status change and deletion is written by the database itself; nobody can edit or delete an entry." },

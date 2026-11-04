@@ -9,6 +9,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { FloatingReportButton } from "@/components/layout/FloatingReportButton";
 import { DisclaimerBanner } from "@/components/layout/DisclaimerBanner";
+import { StaleDataBanner } from "@/components/layout/StaleDataBanner";
 import { Toaster } from "@/components/ui/sonner";
 import { PWARegister } from "@/components/layout/PWARegister";
 import { LanguageProvider } from "@/lib/i18n";
@@ -103,6 +104,7 @@ export default function RootLayout({
             <Navbar />
             <main id="main" tabIndex={-1} className="flex min-h-0 flex-1 flex-col">
               <DisclaimerBanner />
+              <StaleDataBanner />
               <ScaleScope>{children}</ScaleScope>
             </main>
             <Footer />
