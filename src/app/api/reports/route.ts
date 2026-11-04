@@ -189,7 +189,9 @@ export async function POST(req: Request) {
       photo_thumb: photoRef,
       verification_status: analysis.verificationStatus ?? null,
     })
-    .select()
+    // Only columns anon may read (20261103_complaints.sql column grant): name and
+    // photo_thumb are write-only for the public key, so `select()` of * would fail.
+    .select("id, lat, lng, district, risk_score, risk_level, mosquito_index, analysis, image_url, verification_status, created_at")
     .single();
 
   if (error) {
