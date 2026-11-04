@@ -3,8 +3,9 @@ import { CLASS_LABEL, FAUNA_CAVEATS, FAUNA_CLASSES, FAUNA_WKT, GBIF_API, toPoint
 
 // P5.5 fauna observations from GBIF (aggregated facets + generalised points).
 // 24 h in-memory cache of complete answers only; GBIF failure → 503, never an empty map.
-export const revalidate = 86400;
+export const dynamic = "force-dynamic"; // live GBIF; caching is the in-memory copy below
 export const maxDuration = 60;
+const TTL_MS = 86400_000;
 let cache: { at: number; data: unknown } | null = null;
 const UA = { "User-Agent": "Jaiyq/1.0 (+https://ecojaiyq.com)" };
 
@@ -15,7 +16,7 @@ async function gbif(path: string) {
 }
 
 export async function GET() {
-  if (cache && Date.now() - cache.at < revalidate * 1000) return NextResponse.json(cache.data);
+  if (cache && Date.now() - cache.at < TTL_MS) return NextResponse.json(cache.data);
   try {
     const geo = `geometry=${encodeURIComponent(FAUNA_WKT)}&hasCoordinate=true&hasGeospatialIssue=false`;
     const classes = FAUNA_CLASSES.map((c) => `classKey=${c}`).join("&");
