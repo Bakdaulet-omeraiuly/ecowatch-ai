@@ -27,6 +27,7 @@ interface GeoFeature {
 }
 
 interface Props {
+  onOpen?: () => void;
   /** Картаны жылжыту */
   onSelect: (lng: number, lat: number, label: string, zoom?: number) => void;
   /** Тізілімдегі нысан таңдалса — объект картасына өту үшін */
@@ -41,11 +42,9 @@ const ICONS: Record<PlaceKind, React.ElementType> = {
   coords: Crosshair,
 };
 
-export function MapSearch({ onSelect, onPickPlace }: Props) {
+export function MapSearch({ onSelect, onPickPlace, onOpen }: Props) {
   const { tr } = useLang();
-  // Телефонда іздеу картаны жаппауы үшін әдепкіде тек ИКОНКА болады.
-  // Басқанда ғана ашылады. Үлкен экранда әрқашан ашық тұрады.
-  const [expanded, setExpanded] = useState(false);
+  // Search stays in the shared toolbar at every viewport width.
   const [query, setQuery] = useState("");
   const [geo, setGeo] = useState<GeoFeature[]>([]);
   const [loading, setLoading] = useState(false);
@@ -113,47 +112,33 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
     else pickGeo(geo[i - local.length]);
   };
 
-  // Жиналған күй — тек дөңгелек иконка
-  if (!expanded) {
-    return (
-      <button
-        onClick={() => { setExpanded(true); setTimeout(() => inputRef.current?.focus(), 50); }}
-        title={tr("Іздеу")}
-        aria-label={tr("Іздеу")}
-        className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-neutral-900/95 text-neutral-300 shadow-xl backdrop-blur transition hover:bg-neutral-800 hover:text-white"
-      >
-        <Search className="h-4 w-4" />
-      </button>
-    );
-  }
-
   return (
-    <div ref={wrapRef} className="w-[min(88vw,26rem)]">
+    <div ref={wrapRef} className="static w-full lg:relative">
       <div className="relative">
         {loading ? (
-          <Loader2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-neutral-400" />
+          <Loader2 className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-neutral-600" />
         ) : (
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-600" />
         )}
         <input
           ref={inputRef}
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); setActive(0); }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => { setOpen(true); onOpen?.(); }}
           onKeyDown={(e) => {
-            if (e.key === "Escape") { setOpen(false); setExpanded(false); return; }
+            if (e.key === "Escape") { setOpen(false);  return; }
             if (!open || !total) return;
             if (e.key === "ArrowDown") { e.preventDefault(); setActive((i) => (i + 1) % total); }
             else if (e.key === "ArrowUp") { e.preventDefault(); setActive((i) => (i - 1 + total) % total); }
             else if (e.key === "Enter") { e.preventDefault(); pickIndex(active); }
           }}
           placeholder={tr("Кез келген жерді, кәсіпорынды немесе координатаны іздеу…")}
-          className="w-full rounded-xl border border-white/15 bg-neutral-900/95 py-2.5 pl-10 pr-9 text-sm text-white shadow-xl outline-none backdrop-blur transition placeholder:text-neutral-400 focus:border-white/10"
+          className="w-full rounded-md border border-neutral-300 bg-white min-h-11 py-2.5 pl-10 pr-12 text-sm text-neutral-900    transition placeholder:text-neutral-600 focus:border-neutral-300"
           aria-label={tr("Іздеу")}
         />
         <button
-          onClick={() => { setQuery(""); setGeo([]); setOpen(false); setExpanded(false); }}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-400 transition hover:bg-white/10 hover:text-white"
+          onClick={() => { setQuery(""); setGeo([]); setOpen(false);  }}
+          className="absolute right-0 top-1/2 -translate-y-1/2 rounded p-1 text-neutral-600 transition hover:bg-neutral-50 hover:text-neutral-900"
           aria-label={tr("Жабу")}
         >
           <X className="h-3.5 w-3.5" />
@@ -161,9 +146,9 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
       </div>
 
       {open && query.trim().length >= 2 && (
-        <div className="absolute bottom-full left-0 mb-1.5 max-h-[55vh] w-full overflow-y-auto rounded-xl border border-white/10 bg-neutral-900/97 shadow-2xl backdrop-blur sm:relative sm:bottom-auto sm:mb-0 sm:mt-1.5">
+        <div className="map-search-results absolute inset-x-2 top-full z-40 mt-1 max-h-[min(55vh,24rem)] overflow-y-auto rounded-md border border-neutral-300 bg-white shadow-lg lg:inset-x-0">
           {total === 0 && !loading ? (
-            <div className="px-3 py-3 text-[13px] leading-relaxed text-neutral-400">
+            <div className="px-3 py-3 text-[13px] leading-relaxed text-neutral-600">
               {tr("Табылмады.")}{" "}
               {tr("Координатаны тікелей енгізіп көріңіз, мысалы: 47.11, 51.88")}
             </div>
@@ -171,7 +156,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
             <>
               {local.length > 0 && (
                 <>
-                  <div className="px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-neutral-400">
+                  <div className="px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-neutral-600">
                     {tr("Жүйе тізілімінен")}
                   </div>
                   <ul>
@@ -183,20 +168,20 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
                             onMouseEnter={() => setActive(i)}
                             onClick={() => pickLocal(p)}
                             className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition ${
-                              i === active ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
+                              i === active ? "bg-neutral-50" : "hover:bg-neutral-50"
                             }`}
                           >
-                            <Icon className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                            <Icon className="h-3.5 w-3.5 shrink-0 text-emerald-800" />
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-[13px] text-neutral-100">{p.name}</span>
-                              <span className="block truncate text-[12px] text-neutral-400">
-                                {KIND_KZ[p.kind]}
-                                {p.hint && ` · ${p.hint}`}
+                              <span className="block truncate text-[13px] text-neutral-900">{p.name}</span>
+                              <span className="block truncate text-[12px] text-neutral-600">
+                                {tr(KIND_KZ[p.kind])}
+                                {p.hint && ` · ${tr(p.hint)}`}
                                 {p.approx && ` · ${tr("координата жуық")}`}
                               </span>
                             </span>
                             {p.objectId && (
-                              <span className="shrink-0 rounded border border-sky-400/30 bg-sky-500/10 px-1.5 py-0.5 text-[12px] text-sky-200">
+                              <span className="shrink-0 rounded border border-sky-400/30 bg-sky-50 px-1.5 py-0.5 text-[12px] text-sky-800">
                                 {tr("объект картасы")}
                               </span>
                             )}
@@ -210,7 +195,7 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
 
               {geo.length > 0 && (
                 <>
-                  <div className="border-t border-white/5 px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-neutral-400">
+                  <div className="border-t border-neutral-300 px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-neutral-600">
                     {tr("Mapbox геокодері")}
                   </div>
                   <ul>
@@ -222,11 +207,11 @@ export function MapSearch({ onSelect, onPickPlace }: Props) {
                             onMouseEnter={() => setActive(i)}
                             onClick={() => pickGeo(f)}
                             className={`flex w-full items-start gap-2.5 px-3 py-2 text-left transition ${
-                              i === active ? "bg-white/[0.07]" : "hover:bg-white/[0.04]"
+                              i === active ? "bg-neutral-50" : "hover:bg-neutral-50"
                             }`}
                           >
-                            <Globe className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-400" />
-                            <span className="text-[13px] leading-snug text-neutral-300">
+                            <Globe className="mt-0.5 h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                            <span className="text-[13px] leading-snug text-neutral-800">
                               {f.place_name}
                             </span>
                           </button>

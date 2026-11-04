@@ -99,24 +99,66 @@ body {
 }
 .skip-link:focus { top: 8px; }
 
-/* Ластану көзі: зауыт ауа-сапасы попапы (қараңғы тақырып).
-   Тек /map (MapView) қолданады — ол `.legacy-scale` ішінде, мазмұны
-   `text-neutral-100` / `text-emerald-300` сияқты ашық мәтінмен жазылған,
-   сондықтан фон қараңғы қалады (HEAD-тегі мән). */
+/* Map popup: its container is the available map canvas, between the panels. */
 .pollution-air-popup .mapboxgl-popup-content {
-  background: rgba(23, 23, 23, 0.97);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  padding: 8px 10px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  background: #fff;
+  color: #1f2933;
+  border: 1px solid #d4d4d4;
+  border-radius: 6px;
+  padding: 44px 16px 16px;
+  max-height: min(70dvh, 36rem);
+  max-height: min(36rem, max(44px, calc(100cqh - 24px)));
+  overflow: auto;
+  box-shadow: 0 4px 16px #0002;
 }
 .pollution-air-popup .mapboxgl-popup-close-button {
-  color: #a3a3a3;
-  font-size: 15px;
-  padding-right: 4px;
+  color: #0b3a6b;
+  font-size: 24px;
+  width: 44px;
+  height: 44px;
 }
-.pollution-air-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: rgba(23, 23, 23, 0.97); }
-.pollution-air-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: rgba(23, 23, 23, 0.97); }
+.pollution-air-popup { max-width: min(320px, calc(100vw - 32px)) !important; }
+.portal-map .pollution-air-popup { max-width: min(320px, calc(100cqw - 24px)) !important; }
+.pollution-air-popup.mapboxgl-popup-anchor-bottom .mapboxgl-popup-tip { border-top-color: #fff; }
+.pollution-air-popup.mapboxgl-popup-anchor-top .mapboxgl-popup-tip { border-bottom-color: #fff; }
+.pollution-air-popup.mapboxgl-popup-anchor-left .mapboxgl-popup-tip { border-right-color: #fff; }
+.pollution-air-popup.mapboxgl-popup-anchor-right .mapboxgl-popup-tip { border-left-color: #fff; }
+
+/* Shared evidence widgets retain their dark defaults on unmigrated routes. */
+[data-tone="light"] { color: #1f2933; border-color: #d4d4d4; background-color: #fff; }
+[data-tone="light"] [class*="text-neutral-"],
+[data-tone="light"] [class*="text-white"] { color: #4a5563; }
+[data-tone="light"] [class*="text-sky-"],
+[data-tone="light"] [class*="text-emerald-"] { color: #0b3a6b; }
+[data-tone="light"] [class*="text-amber-"],
+[data-tone="light"] [class*="text-orange-"] { color: #854d0e; }
+[data-tone="light"] [class*="text-red-"] { color: #991b1b; }
+[data-tone="light"] [class*="border-white/"] { border-color: #d4d4d4; }
+[data-tone="light"] [class*="bg-black/"] { background-color: #f5f5f5; }
+
+.portal-map :is(button, [role="button"], select, input),
+.object-document :is(button, [role="button"], select, input) { min-height: 44px; }
+.portal-map :is(button, [role="button"]),
+.object-document :is(button, [role="button"]) { min-width: 44px; }
+.portal-map :is(button, a), .object-document :is(button, a) { white-space: normal; }
+.portal-map a[href], .object-document a[href] { min-height: 44px; display: inline-flex; align-items: center; }
+.portal-map input, .object-document input { max-width: 100%; min-width: 0; }
+.portal-map input[type="range"], .object-document input[type="range"] { accent-color: #0b3a6b; }
+.portal-map .map-search-results { max-height: min(24rem, max(88px, calc(100cqh - 80px))); }
+.portal-map [hidden], .object-document [hidden] { display: none !important; }
+.portal-map [class*="text-[11px]"], .object-document [class*="text-[11px]"] { font-size: 12px; }
+.portal-map .mapboxgl-ctrl-attrib.mapboxgl-compact { min-height: 44px; padding-right: 44px; }
+.portal-map .mapboxgl-ctrl-attrib-button { width: 44px; height: 44px; }
+.portal-map .mapboxgl-ctrl-attrib a { min-height: 44px; display: inline-flex; align-items: center; }
+.portal-map .mos-flit, .portal-map .plume-particle { animation: none; }
+.object-document { overflow-wrap: anywhere; }
+.object-document dl { min-width: 0; }
+.object-document dd { min-width: 0; overflow-wrap: anywhere; }
+@media print {
+  .object-document { color: #000; background: #fff; }
+  .object-document section { box-shadow: none; }
+  .object-document a[href] { min-height: 0; }
+}
 
 /* Ластану көзі: көзден ағып тұратын «түтін» бөлшектері (желмен) */
 .plume-particle {

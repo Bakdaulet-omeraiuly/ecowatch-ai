@@ -1,7 +1,11 @@
+"use client";
+
 import React from "react";
+import { useLang } from "@/lib/i18n";
 
 // Recognizable mosquito silhouette — long proboscis, slender body, two wings, six legs.
 export function MosquitoIcon({ size = 16, className = "", style }: { size?: number; className?: string; style?: React.CSSProperties }) {
+  const { tr } = useLang();
   return (
     <svg
       width={size}
@@ -10,7 +14,7 @@ export function MosquitoIcon({ size = 16, className = "", style }: { size?: numb
       fill="none"
       className={className}
       style={style}
-      aria-label="маса"
+      aria-label={tr("маса")}
     >
       {/* legs */}
       <g stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity="0.9">

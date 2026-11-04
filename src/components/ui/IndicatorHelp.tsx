@@ -44,6 +44,7 @@ interface Props {
   id: string;
   /** Тек мәтін — ашылмалы батырмасыз */
   inline?: boolean;
+  tone?: "light" | "dark";
 }
 
 /**
@@ -52,13 +53,14 @@ interface Props {
  * Толық мәлімет (формула, аспап, норма, шектеу) ⓘ батырмасының астында
  * қалады, ал «бұл сан не?» деген сұраққа жауап жасырылмайды.
  */
-export function IndicatorSummary({ id, className = "" }: { id: string; className?: string }) {
+export function IndicatorSummary({ id, className = "", tone = "dark" }: { id: string; className?: string; tone?: "light" | "dark" }) {
+  const { tr } = useLang();
   const ind = INDICATORS.find((i) => i.id === id);
   const extra = EXTRA[id];
   const text = ind?.what ?? extra?.what;
   if (!text) return null;
   return (
-    <p className={`text-[12px] leading-snug text-neutral-400 ${className}`}>{text}</p>
+    <p className={`text-[12px] leading-snug ${tone === "light" ? "text-neutral-600" : "text-neutral-400"} ${className}`}>{tr(text)}</p>
   );
 }
 
@@ -67,7 +69,7 @@ export function indicatorName(id: string): string | null {
   return INDICATORS.find((i) => i.id === id)?.name ?? EXTRA[id]?.name ?? null;
 }
 
-export function IndicatorHelp({ id, inline }: Props) {
+export function IndicatorHelp({ id, inline, tone = "dark" }: Props) {
   const { tr } = useLang();
   const [open, setOpen] = useState(false);
   const ind = INDICATORS.find((i) => i.id === id);
@@ -77,7 +79,7 @@ export function IndicatorHelp({ id, inline }: Props) {
 
   const body = ind ? (
     <div className="space-y-1.5">
-      <p className="text-[13px] leading-relaxed text-neutral-300">{ind.what}</p>
+      <p className="text-[13px] leading-relaxed text-neutral-300">{tr(ind.what)}</p>
       {ind.formula && (
         <p className="font-mono text-[12px] leading-relaxed text-neutral-400">{ind.formula}</p>
       )}
@@ -96,12 +98,12 @@ export function IndicatorHelp({ id, inline }: Props) {
       )}
       {ind.limits.length > 0 && (
         <p className="text-[12px] leading-relaxed text-amber-200/70">
-          ⚠ {ind.limits[0]}
+          ⚠ {tr(ind.limits[0])}
         </p>
       )}
       {!ind.validated && (
         <p className="text-[12px] leading-relaxed text-amber-200/70">
-          {tr("Валидацияланбаған")}: {ind.validationNote}
+          {tr("Валидацияланбаған")}: {tr(ind.validationNote)}
         </p>
       )}
       <a
@@ -112,19 +114,20 @@ export function IndicatorHelp({ id, inline }: Props) {
       </a>
     </div>
   ) : (
-    <p className="text-[13px] leading-relaxed text-neutral-300">{extra!.what}</p>
+    <p className="text-[13px] leading-relaxed text-neutral-300">{tr(extra!.what)}</p>
   );
 
   if (inline) {
-    return <div className="rounded-lg bg-white/[0.02] p-2.5">{body}</div>;
+    return <div data-tone={tone} className="rounded-lg bg-white/[0.02] p-2.5">{body}</div>;
   }
 
   return (
-    <>
+    <div className="contents" data-tone={tone}>
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         title={tr("Бұл көрсеткіш нені білдіреді?")}
         aria-label={tr("Бұл көрсеткіш нені білдіреді?")}
+        aria-expanded={open}
         className={`shrink-0 rounded p-0.5 transition ${
           open ? "text-sky-300" : "text-neutral-400 hover:text-neutral-200"
         }`}
@@ -137,11 +140,11 @@ export function IndicatorHelp({ id, inline }: Props) {
             <span className="text-[13px] font-medium text-white">
               {ind?.name ?? extra!.name}
             </span>
-            {ind && <TierBadge tier={ind.tier} />}
+            {ind && <TierBadge tier={ind.tier} tone={tone} />}
           </div>
           {body}
         </div>
       )}
-    </>
+    </div>
   );
 }

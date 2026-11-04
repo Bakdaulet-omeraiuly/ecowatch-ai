@@ -5,16 +5,20 @@ import {
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, CartesianGrid,
 } from "recharts";
 import {
-  X, Loader2, Scale, Database, Sparkles, History, ExternalLink, AlertTriangle, CircleSlash,
+  ArrowLeft, Loader2, Scale, Database, Sparkles, History, ExternalLink, AlertTriangle, CircleSlash,
 } from "lucide-react";
+import { Panel, PanelHeader } from "@/components/ui/Panel";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
-import { LEVEL_COLOR, LEVEL_KZ, LEVEL_MEANING, type ComplianceLevel } from "@/lib/compliance";
+import { LEVEL_COLOR_LIGHT as LEVEL_COLOR } from "@/components/ui/compliancePresentation";
+import { LEVEL_KZ, LEVEL_MEANING, type ComplianceLevel } from "@/lib/compliance";
 import { IndicatorHelp, IndicatorSummary } from "@/components/ui/IndicatorHelp";
 import { LevelLegend } from "@/components/ui/LevelLegend";
 import type { LayerKey, SeriesVar } from "@/data/ecoLayers";
 
-// ЭКО ҚАБАТ DRAWER — оң жақтан ашылатын 4 қойындылы панель.
+// ЭКО ҚАБАТ DRAWER — қабаттар ұяшығындағы 4 қойындылы панель.
 //
 //   📊 Нақты деректер — өлшем + өткен/алдағы 24 сағат. AI ЖОҚ.
 //   ⚖ Заңнама      — ҚР/WHO/EU нормаларымен салыстыру
@@ -66,9 +70,9 @@ interface AiOut {
 const hh = (t: string) => (t.length > 10 ? t.slice(11, 16) : t.slice(5));
 
 const PRIORITY_CLS: Record<string, string> = {
-  жоғары: "border-red-400/40 bg-red-500/15 text-red-200",
-  орташа: "border-amber-400/30 bg-amber-500/10 text-amber-200",
-  төмен: "border-white/15 bg-white/5 text-neutral-300",
+  жоғары: "border-red-400/40 bg-red-50 text-red-800",
+  орташа: "border-amber-400/30 bg-amber-50 text-amber-800",
+  төмен: "border-neutral-300 bg-neutral-50 text-neutral-800",
 };
 
 export function LayerDrawer({
@@ -135,66 +139,24 @@ export function LayerDrawer({
   ];
 
   return (
-    <div
-      className="
-        absolute inset-x-0 bottom-0 z-30 flex max-h-[85dvh] flex-col rounded-t-2xl
-        border-t border-white/10 bg-neutral-950/97 backdrop-blur-md
-        sm:inset-x-auto sm:right-0 sm:top-0 sm:h-full sm:max-h-none sm:w-[27rem]
-        sm:rounded-none sm:border-l sm:border-t-0
-      "
-    >
-      {/* Телефонда сүйреу тұтқасы — панель екенін көрсетеді */}
-      <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-white/20 sm:hidden" />
-      {/* Тақырып */}
-      <div className="flex items-start gap-2 border-b border-white/10 px-4 py-3">
-        <span className="text-xl leading-none">{data?.emoji ?? "🌍"}</span>
-        <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold text-white">{data?.name ?? tr("Қабат")}</h2>
-          <p className="mt-0.5 line-clamp-2 text-[13px] leading-snug text-neutral-400">
-            {data?.what ?? ""}
-          </p>
-        </div>
-        {data && data.compliance.kzViolations > 0 && (
-          <span className="shrink-0 rounded-full border border-red-400/40 bg-red-500/15 px-2 py-0.5 text-[12px] font-semibold text-red-200">
-            ⚖ {data.compliance.kzViolations}
-          </span>
-        )}
-        <button
-          onClick={onClose}
-          className="shrink-0 rounded p-1 text-neutral-400 transition hover:bg-white/10 hover:text-white"
-          aria-label={tr("Жабу")}
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-
-      {/* Қойындылар */}
-      <div className="flex border-b border-white/10">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => setTab(t.id)}
-            className={`flex min-w-0 flex-1 items-center justify-center gap-1 px-1 py-2.5 text-[12px] font-medium transition ${
-              tab === t.id
-                ? t.id === "ai"
-                  ? "border-b-2 border-sky-400 text-sky-300"
-                  : "border-b-2 border-emerald-400 text-emerald-300"
-                : "border-b-2 border-transparent text-neutral-400 hover:text-neutral-300"
-            }`}
-          >
-            <t.icon className="h-3 w-3" />
-            <span className="truncate">{tr(t.label)}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="flex-1 overflow-y-auto px-4 py-3">
+    <Panel className="flex min-h-0 flex-col border-0">
+      <PanelHeader
+        title={data?.name ? tr(data.name) : tr("Қабат")}
+        description={data?.what ? tr(data.what) : undefined}
+        actions={<Button variant="portal-outline" size="portal-icon" onClick={onClose} aria-label={tr("Қабаттарға оралу")}><ArrowLeft className="h-4 w-4" /></Button>}
+      />
+      {data && data.compliance.kzViolations > 0 && <p className="px-4 py-2 text-sm font-bold text-red-800">{tr("НОРМА АСҚАН")}: {data.compliance.kzViolations}</p>}
+      <Tabs className="min-h-0 flex-1 gap-0" value={tab} onValueChange={(v) => setTab(v as Tab)}>
+        <TabsList variant="portal" className="grid grid-cols-2" aria-label={tr("Қабат мәліметтері")}>
+          {TABS.map((item) => <TabsTrigger key={item.id} value={item.id}><item.icon className="h-3 w-3" />{tr(item.label)}</TabsTrigger>)}
+        </TabsList>
+      <TabsContent value={tab} className="min-h-0 overflow-y-auto p-4">
         {loading ? (
-          <div className="flex items-center gap-2 py-8 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-8 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>
         ) : err || !data ? (
-          <p className="py-6 text-sm text-neutral-400">{tr(err ?? "Қолжетімсіз")}</p>
+          <p className="py-6 text-sm text-neutral-600">{tr(err ?? "Қолжетімсіз")}</p>
         ) : (
           <>
             {tab === "data" && <DataTab data={data} tr={tr} />}
@@ -207,8 +169,9 @@ export function LayerDrawer({
             {tab === "history" && <HistoryTab data={data} tr={tr} />}
           </>
         )}
-      </div>
-    </div>
+      </TabsContent>
+      </Tabs>
+    </Panel>
   );
 }
 
@@ -219,33 +182,33 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <TierBadge tier="measurement" />
-        <span className="text-[12px] text-neutral-400">{tr("AI қолданылмаған")}</span>
+        <TierBadge tone="light" tier="measurement" />
+        <span className="text-[12px] text-neutral-600">{tr("AI қолданылмаған")}</span>
       </div>
 
       {/* ҚАБАТ НЕНІ БІЛДІРЕДІ — тақырыптағы жазу екі жолға қиылады,
           сондықтан толық мәтін осында тұрады */}
-      <div className="rounded-lg bg-white/[0.02] p-2.5">
-        <div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
+      <div className="rounded-lg bg-neutral-50 p-2.5">
+        <div className="mb-1 text-[12px] font-semibold uppercase tracking-wide text-neutral-600">
           {tr("Бұл қабат нені көрсетеді")}
         </div>
-        <p className="text-[13px] leading-relaxed text-neutral-300">{data.what}</p>
+        <p className="text-[13px] leading-relaxed text-neutral-800">{tr(data.what)}</p>
         {data.sources.length > 0 && (
-          <p className="mt-1.5 border-t border-white/5 pt-1.5 text-[12px] leading-snug text-neutral-400">
-            {tr("Дереккөз")}: {data.sources.join(" · ")}
+          <p className="mt-1.5 border-t border-neutral-300 pt-1.5 text-[12px] leading-snug text-neutral-600">
+            {tr("Дереккөз")}: {data.sources.map(tr).join(" · ")}
           </p>
         )}
       </div>
 
       {/* Модуль бұл аймақта жоқ — БОС қалдырмаймыз, себебін жазамыз */}
       {data.moduleMissing && (
-        <div className="space-y-1.5 rounded-lg bg-white/[0.02] p-2.5">
-          <p className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-200">
-            <CircleSlash className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
-            {data.moduleMissing.error}
+        <div className="space-y-1.5 rounded-lg bg-neutral-50 p-2.5">
+          <p className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-800">
+            <CircleSlash className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+            {tr(data.moduleMissing.error)}
           </p>
-          <p className="text-[12px] leading-relaxed text-neutral-400">{data.moduleMissing.reason}</p>
-          <p className="border-t border-white/5 pt-1.5 text-[12px] leading-relaxed text-neutral-400">
+          <p className="text-[12px] leading-relaxed text-neutral-600">{tr(data.moduleMissing.reason)}</p>
+          <p className="border-t border-neutral-300 pt-1.5 text-[12px] leading-relaxed text-neutral-600">
             {tr("Басқа қаланың деректері мұнда көрсетілмейді — ол жалған дерек болар еді.")}
           </p>
         </div>
@@ -259,29 +222,29 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
           {data.compliance.results.map((r) => (
             <div
               key={r.indicatorId}
-              className="rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
+              className="rounded-lg border border-neutral-300 bg-neutral-50 px-2.5 py-1.5"
             >
               <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                <span className="min-w-0 flex-1 truncate text-[13px] text-neutral-300">{r.name}</span>
-                <span className="text-[14px] font-semibold text-white">
+                <span className="min-w-0 flex-1 truncate text-[13px] text-neutral-800">{r.name}</span>
+                <span className="text-[14px] font-semibold text-neutral-900">
                   {r.value == null ? "—" : r.value}
-                  <span className="ml-0.5 text-[12px] font-normal text-neutral-400">{r.unit}</span>
+                  <span className="ml-0.5 text-[12px] font-normal text-neutral-600">{r.unit}</span>
                 </span>
                 <span className={`shrink-0 rounded border px-1 py-0.5 text-[12px] ${LEVEL_COLOR[r.worst]}`}>
                   {tr(LEVEL_KZ[r.worst])}
                 </span>
-                <IndicatorHelp id={r.indicatorId} />
+                <IndicatorHelp tone="light" id={r.indicatorId} />
               </div>
               {/* Көрсеткіштің мағынасы — жасырылмайды */}
-              <IndicatorSummary id={r.indicatorId} className="mt-0.5" />
+              <IndicatorSummary tone="light" id={r.indicatorId} className="mt-0.5" />
               {/* Осы деңгей нақты нені білдіреді */}
-              <p className="mt-1 border-t border-white/5 pt-1 text-[12px] leading-snug text-neutral-400">
-                <span className="text-neutral-400">{tr(LEVEL_KZ[r.worst])}</span> —{" "}
-                {LEVEL_MEANING[r.worst].full}
+              <p className="mt-1 border-t border-neutral-300 pt-1 text-[12px] leading-snug text-neutral-600">
+                <span className="text-neutral-600">{tr(LEVEL_KZ[r.worst])}</span> —{" "}
+                {tr(LEVEL_MEANING[r.worst].full)}
               </p>
             </div>
           ))}
-          <LevelLegend defaultOpen />
+          <LevelLegend tone="light" defaultOpen />
         </div>
       )}
 
@@ -290,25 +253,25 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
         <>
           <SeriesChart title={tr("Өткен 24 сағат")} points={s.past24} vars={s.vars} past />
           <SeriesChart title={tr("Алдағы 24 сағат (ресми болжам)")} points={s.next24} vars={s.vars} />
-          {s.note && <p className="text-[12px] leading-relaxed text-neutral-400">{s.note}</p>}
+          {s.note && <p className="text-[12px] leading-relaxed text-neutral-600">{tr(s.note)}</p>}
         </>
       ) : (
-        <div className="rounded-lg border border-amber-400/25 bg-white/[0.02] p-3">
-          <div className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-amber-200">
+        <div className="rounded-lg border border-amber-400/25 bg-neutral-50 p-3">
+          <div className="mb-1 flex items-center gap-1.5 text-[13px] font-medium text-amber-800">
             <AlertTriangle className="h-3 w-3" /> {tr("24 сағаттық қатар жоқ")}
           </div>
-          <p className="text-[13px] leading-relaxed text-amber-100/80">{s.reason}</p>
+          <p className="text-[13px] leading-relaxed text-amber-800">{tr(s.reason)}</p>
         </div>
       )}
 
-      <div className="border-t border-white/10 pt-2 text-[12px] leading-relaxed text-neutral-400">
+      <div className="border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-neutral-600">
         <div className="mb-1">
-          {tr("Дереккөздер")}: {data.sources.join(" · ")}
+          {tr("Дереккөздер")}: {data.sources.map(tr).join(" · ")}
         </div>
         <div>
           {tr("Жүктелген")}: {data.fetchedAt.replace("T", " ").slice(0, 16)} UTC
         </div>
-        <div className="mt-1 text-emerald-300/70">{data.note}</div>
+        <div className="mt-1 text-emerald-800">{tr(data.note)}</div>
       </div>
     </div>
   );
@@ -317,6 +280,7 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
 function SeriesChart({
   title, points, vars, past,
 }: { title: string; points: HourPoint[]; vars: SeriesVar[]; past?: boolean }) {
+  const { tr } = useLang();
   if (!points.length) return null;
   // Бірінші айнымалыны негізгі етіп саламыз (қалғаны Тарих қойындысында)
   const v = vars[0];
@@ -326,9 +290,9 @@ function SeriesChart({
   return (
     <div>
       <div className="mb-1 flex items-baseline justify-between">
-        <span className="text-[13px] font-medium text-neutral-300">{title}</span>
-        <span className="text-[12px] text-neutral-400">
-          {v.label} {v.unit && `(${v.unit})`}
+        <span className="text-[13px] font-medium text-neutral-800">{title}</span>
+        <span className="text-[12px] text-neutral-600">
+          {tr(v.label)} {v.unit && `(${tr(v.unit)})`}
         </span>
       </div>
       <ResponsiveContainer width="100%" height={110}>
@@ -339,12 +303,13 @@ function SeriesChart({
               <stop offset="100%" stopColor={color} stopOpacity={0.03} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-          <XAxis dataKey="t" tick={{ fontSize: 9, fill: "#a3a3a3" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-          <YAxis tick={{ fontSize: 9, fill: "#a3a3a3" }} axisLine={false} tickLine={false} width={38} />
+          <CartesianGrid stroke="#e5e5e5" vertical={false} />
+          <XAxis dataKey="t" tick={{ fontSize: 9, fill: "#525252" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+          <YAxis tick={{ fontSize: 9, fill: "#525252" }} axisLine={false} tickLine={false} width={38} />
           <Tooltip
-            contentStyle={{ background: "#171717", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 11 }}
-            labelStyle={{ color: "#fff" }}
+            contentStyle={{ background: "#ffffff", color: "#1f2933", border: "1px solid #d4d4d4", borderRadius: 8, fontSize: 11 }}
+            labelStyle={{ color: "#1f2933" }}
+            itemStyle={{ color: "#1f2933" }}
           />
           <Area type="monotone" dataKey="val" stroke={color} strokeWidth={1.8} fill={`url(#g-${past ? "p" : "f"})`} />
         </AreaChart>
@@ -359,12 +324,12 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
   const items = data.compliance.results;
   if (!items.length) {
     return (
-      <div className="rounded-lg bg-white/[0.02] p-3 text-[13px] leading-relaxed text-neutral-400">
+      <div className="rounded-lg bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-600">
         {tr(
           "Бұл қабат үшін заңнамалық норма тізілімде әлі жоқ. Норма қосылғанда " +
           "салыстыру автоматты іске қосылады."
         )}
-        <a href="/legislation" className="mt-1.5 block text-sky-300 underline-offset-2 hover:underline">
+        <a href="/legislation" className="mt-1.5 block text-sky-800 underline-offset-2 hover:underline">
           {tr("Норма тізілімі")} →
         </a>
       </div>
@@ -376,8 +341,8 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
       <div
         className={`rounded-lg border p-2.5 text-[13px] ${
           data.compliance.kzViolations > 0
-            ? "border-red-400/40 bg-red-500/10 text-red-100"
-            : "border-emerald-400/25 bg-white/[0.02] text-emerald-100"
+            ? "border-red-400/40 bg-red-50 text-red-800"
+            : "border-emerald-400/25 bg-neutral-50 text-emerald-800"
         }`}
       >
         {data.compliance.kzViolations > 0
@@ -386,36 +351,36 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
       </div>
 
       {items.map((r) => (
-        <div key={r.indicatorId} className="rounded-lg bg-white/[0.02] p-2.5">
+        <div key={r.indicatorId} className="rounded-lg bg-neutral-50 p-2.5">
           <div className="mb-1.5 flex flex-wrap items-center gap-1.5">
             <span className={`rounded border px-1.5 py-0.5 text-[12px] ${LEVEL_COLOR[r.worst]}`}>
               {tr(LEVEL_KZ[r.worst])}
             </span>
-            <span className="text-[13px] font-medium text-neutral-100">{r.name}</span>
-            <span className="ml-auto text-[13px] font-semibold text-white">
+            <span className="text-[13px] font-medium text-neutral-900">{r.name}</span>
+            <span className="ml-auto text-[13px] font-semibold text-neutral-900">
               {r.value == null ? "—" : `${r.value} ${r.unit}`}
             </span>
           </div>
-          <p className="mb-1.5 text-[12px] leading-relaxed text-neutral-400">{r.summary}</p>
+          <p className="mb-1.5 text-[12px] leading-relaxed text-neutral-600">{tr(r.summary)}</p>
 
           {r.checks.length > 0 && (
             <table className="w-full text-left text-[12px]">
               <tbody>
                 {r.checks.map((c, i) => (
-                  <tr key={i} className="border-t border-white/5">
-                    <td className="py-1 pr-2 text-neutral-300">
-                      {c.act.jurisdiction === "KZ" ? "ҚР" : c.act.jurisdiction}
+                  <tr key={i} className="border-t border-neutral-300">
+                    <td className="py-1 pr-2 text-neutral-800">
+                      {c.act.jurisdiction === "KZ" ? tr("ҚР") : c.act.jurisdiction}
                       {c.norm.status !== "verified" && (
-                        <span className="ml-1 text-amber-300/80" title={c.norm.statusNote}>⚠</span>
+                        <span className="ml-1 text-amber-800" title={c.norm.statusNote}>⚠</span>
                       )}
                     </td>
-                    <td className="py-1 pr-2 text-neutral-400">{c.averagingKz}</td>
-                    <td className="py-1 pr-2 text-right text-neutral-300">
+                    <td className="py-1 pr-2 text-neutral-600">{tr(c.averagingKz)}</td>
+                    <td className="py-1 pr-2 text-right text-neutral-800">
                       {c.norm.limit} {c.norm.unit}
                     </td>
                     <td
                       className={`py-1 text-right font-medium ${
-                        c.ratio == null ? "text-neutral-400" : c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"
+                        c.ratio == null ? "text-neutral-600" : c.ratio > 1 ? "text-red-800" : c.ratio >= 0.8 ? "text-amber-800" : "text-emerald-800"
                       }`}
                     >
                       {c.ratio == null ? tr(LEVEL_KZ["not-comparable"]) : `${Math.round(c.ratio * 100)}%`}
@@ -428,10 +393,10 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
         </div>
       ))}
 
-      <p className="border-t border-white/10 pt-2 text-[12px] leading-relaxed text-amber-200/70">
-        ⚖ {items[0]?.disclaimer}
+      <p className="border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
+        ⚖ {items[0] && tr(items[0].disclaimer)}
       </p>
-      <a href="/legislation" className="block text-[12px] text-sky-300 underline-offset-2 hover:underline">
+      <a href="/legislation" className="block text-[12px] text-sky-800 underline-offset-2 hover:underline">
         {tr("Заңнама және норма тізілімі")} →
       </a>
     </div>
@@ -452,12 +417,12 @@ function AiTab({
 }) {
   return (
     <div className="space-y-3">
-      <div className="rounded-lg border border-sky-400/25 bg-white/[0.02] p-2.5">
+      <div className="rounded-lg border border-sky-400/25 bg-neutral-50 p-2.5">
         <div className="mb-1 flex items-center gap-1.5">
-          <TierBadge tier="ai" />
-          <span className="text-[12px] text-sky-100/90">{tr("Бөлек, валидацияланбаған қабат")}</span>
+          <TierBadge tone="light" tier="ai" />
+          <span className="text-[12px] text-sky-800">{tr("Бөлек, валидацияланбаған қабат")}</span>
         </div>
-        <p className="text-[12px] leading-relaxed text-sky-100/70">
+        <p className="text-[12px] leading-relaxed text-sky-800">
           {tr(
             "AI жоғарыдағы нақты сандарды түсіндіреді және ұсыныс береді. Ол жаңа " +
             "дерек жасамайды — тек жүйедегі өлшемдерге сүйенеді."
@@ -469,7 +434,7 @@ function AiTab({
         <button
           onClick={onRun}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-sky-400/40 bg-sky-500/15 px-3 py-2.5 text-[13px] font-medium text-sky-100 transition hover:bg-sky-500/25 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-sky-400/40 bg-sky-50 px-3 py-2.5 text-[13px] font-medium text-sky-800 transition hover:bg-sky-50 disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
           {loading ? tr("Талдау жүргізілуде…") : tr("AI талдауын бастау")}
@@ -477,12 +442,12 @@ function AiTab({
       )}
 
       {err && (
-        <div className="space-y-1.5 rounded-lg bg-white/[0.02] p-3">
-          <p className="text-[13px] text-neutral-200">{tr(err.msg)}</p>
-          {err.detail && <p className="text-[12px] leading-relaxed text-neutral-400">{err.detail}</p>}
+        <div className="space-y-1.5 rounded-lg bg-neutral-50 p-3">
+          <p className="text-[13px] text-neutral-800">{tr(err.msg)}</p>
+          {err.detail && <p className="text-[12px] leading-relaxed text-neutral-600">{tr(err.detail)}</p>}
           <button
             onClick={onRun}
-            className="mt-1 rounded border border-white/15 bg-white/5 px-2 py-1 text-[12px] text-neutral-300 hover:bg-white/10"
+            className="mt-1 rounded border border-neutral-300 bg-neutral-50 px-2 py-1 text-[12px] text-neutral-800 hover:bg-neutral-50"
           >
             {tr("Қайталау")}
           </button>
@@ -497,9 +462,9 @@ function AiTab({
             <BlockLabel>{tr("Негізгі факторлар")}</BlockLabel>
             <ul className="mt-1 space-y-1">
               {ai.drivers.map((d, i) => (
-                <li key={i} className="rounded border border-white/10 bg-white/[0.02] px-2 py-1.5">
-                  <span className="text-neutral-100">{d.factor}</span>
-                  <span className="mt-0.5 block text-[12px] text-sky-200/70">{d.evidence}</span>
+                <li key={i} className="rounded border border-neutral-300 bg-neutral-50 px-2 py-1.5">
+                  <span className="text-neutral-900">{d.factor}</span>
+                  <span className="mt-0.5 block text-[12px] text-sky-800">{d.evidence}</span>
                 </li>
               ))}
             </ul>
@@ -512,7 +477,7 @@ function AiTab({
             <BlockLabel>{tr("Ұсыныстар")}</BlockLabel>
             <ul className="mt-1 space-y-1.5">
               {ai.recommendations.map((r, i) => (
-                <li key={i} className="rounded-lg border border-white/10 bg-white/[0.02] p-2">
+                <li key={i} className="rounded-lg border border-neutral-300 bg-neutral-50 p-2">
                   <div className="mb-1 flex flex-wrap items-center gap-1.5">
                     <span
                       className={`rounded border px-1.5 py-0.5 text-[12px] ${
@@ -521,10 +486,10 @@ function AiTab({
                     >
                       {r.priority}
                     </span>
-                    <span className="text-[12px] text-neutral-400">{r.audience}</span>
+                    <span className="text-[12px] text-neutral-600">{r.audience}</span>
                   </div>
-                  <div className="text-neutral-100">{r.action}</div>
-                  <div className="mt-0.5 text-[12px] text-neutral-400">{tr("Негізі")}: {r.basis}</div>
+                  <div className="text-neutral-900">{r.action}</div>
+                  <div className="mt-0.5 text-[12px] text-neutral-600">{tr("Негізі")}: {r.basis}</div>
                 </li>
               ))}
             </ul>
@@ -533,9 +498,9 @@ function AiTab({
           <Block title={tr("Белгісіздік")}>{ai.uncertainty}</Block>
 
           {meta && (
-            <div className="border-t border-white/10 pt-2 text-[12px] leading-relaxed text-amber-200/70">
-              ⚠ {meta.disclaimer}
-              <div className="mt-1 text-neutral-400">
+            <div className="border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
+              ⚠ {tr(meta.disclaimer)}
+              <div className="mt-1 text-neutral-600">
                 {tr("Жасалған")}: {meta.generatedAt.replace("T", " ").slice(0, 16)} UTC · gpt-4o
               </div>
             </div>
@@ -544,7 +509,7 @@ function AiTab({
           <button
             onClick={onRun}
             disabled={loading}
-            className="w-full rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-[13px] text-neutral-300 transition hover:bg-white/10 disabled:opacity-60"
+            className="w-full rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-[13px] text-neutral-800 transition hover:bg-neutral-50 disabled:opacity-60"
           >
             {loading ? tr("Жаңартылуда…") : tr("Талдауды жаңарту")}
           </button>
@@ -556,7 +521,7 @@ function AiTab({
 
 function BlockLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="text-[12px] font-semibold uppercase tracking-wider text-neutral-400">{children}</div>
+    <div className="text-[12px] font-semibold uppercase tracking-wider text-neutral-600">{children}</div>
   );
 }
 
@@ -564,7 +529,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
   return (
     <div>
       <BlockLabel>{title}</BlockLabel>
-      <p className="mt-0.5 text-neutral-200">{children}</p>
+      <p className="mt-0.5 text-neutral-800">{children}</p>
     </div>
   );
 }
@@ -575,8 +540,8 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
   const s = data.series;
   if (!s.available) {
     return (
-      <div className="rounded-lg border border-amber-400/25 bg-white/[0.02] p-3 text-[13px] leading-relaxed text-amber-100/80">
-        {s.reason}
+      <div className="rounded-lg border border-amber-400/25 bg-neutral-50 p-3 text-[13px] leading-relaxed text-amber-800">
+        {tr(s.reason)}
       </div>
     );
   }
@@ -585,7 +550,7 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
 
   return (
     <div className="space-y-4">
-      <p className="text-[12px] text-neutral-400">
+      <p className="text-[12px] text-neutral-600">
         {tr("Тік сызық — қазіргі сәт. Сол жағы өлшем/талдау, оң жағы ресми болжам.")}
       </p>
       {s.vars.map((v) => {
@@ -593,17 +558,18 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
         return (
           <div key={v.api}>
             <div className="mb-1 flex items-baseline justify-between">
-              <span className="text-[13px] font-medium text-neutral-300">{v.label}</span>
-              <span className="text-[12px] text-neutral-400">{v.unit}</span>
+              <span className="text-[13px] font-medium text-neutral-800">{tr(v.label)}</span>
+              <span className="text-[12px] text-neutral-600">{tr(v.unit)}</span>
             </div>
             <ResponsiveContainer width="100%" height={100}>
               <AreaChart data={rows} margin={{ top: 4, right: 4, bottom: 0, left: -26 }}>
-                <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
-                <XAxis dataKey="t" tick={{ fontSize: 9, fill: "#a3a3a3" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 9, fill: "#a3a3a3" }} axisLine={false} tickLine={false} width={38} />
+                <CartesianGrid stroke="#e5e5e5" vertical={false} />
+                <XAxis dataKey="t" tick={{ fontSize: 9, fill: "#525252" }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 9, fill: "#525252" }} axisLine={false} tickLine={false} width={38} />
                 <Tooltip
-                  contentStyle={{ background: "#171717", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 11 }}
-                  labelStyle={{ color: "#fff" }}
+                  contentStyle={{ background: "#ffffff", color: "#1f2933", border: "1px solid #d4d4d4", borderRadius: 8, fontSize: 11 }}
+                  labelStyle={{ color: "#1f2933" }}
+                  itemStyle={{ color: "#1f2933" }}
                 />
                 {rows[nowIdx] && (
                   <ReferenceLine x={rows[nowIdx].t} stroke="#fbbf24" strokeDasharray="3 3" />
@@ -614,11 +580,11 @@ function HistoryTab({ data, tr }: { data: LayerData; tr: (s: string) => string }
           </div>
         );
       })}
-      <div className="border-t border-white/10 pt-2 text-[12px] text-neutral-400">
+      <div className="border-t border-neutral-300 pt-2 text-[12px] text-neutral-600">
         {tr("Дереккөздер")}: {data.sources.join(" · ")}
         <a
           href="/methodology"
-          className="ml-1 text-sky-300 underline-offset-2 hover:underline"
+          className="ml-1 text-sky-800 underline-offset-2 hover:underline"
         >
           {tr("әдістеме")} <ExternalLink className="inline h-2 w-2" />
         </a>

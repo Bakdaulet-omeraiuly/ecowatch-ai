@@ -9,6 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
+        portal: "border border-brand bg-brand text-white hover:bg-brand/90 focus-visible:outline-2 focus-visible:outline-brand",
+        "portal-outline": "border border-neutral-300 bg-white text-brand hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-brand",
         default: "bg-primary text-primary-foreground hover:bg-primary/90",
         destructive:
           "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40",
@@ -21,6 +23,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
+        portal: "min-h-11 min-w-11 px-3 py-2 whitespace-normal text-left",
+        "portal-icon": "size-11",
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
         xs: "h-6 gap-1 rounded-md px-2 text-xs has-[>svg]:px-1.5 [&_svg:not([class*='size-'])]:size-3",
         sm: "h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5",

@@ -14,7 +14,7 @@ export function RiskGauge({ score }: { score: number }) {
   return (
     <div className="relative h-32 w-32">
       <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
-        <circle cx="60" cy="60" r={r} fill="none" stroke="#262626" strokeWidth="10" />
+        <circle cx="60" cy="60" r={r} fill="none" stroke="#e5e5e5" strokeWidth="10" />
         <circle
           cx="60"
           cy="60"
@@ -24,14 +24,13 @@ export function RiskGauge({ score }: { score: number }) {
           strokeWidth="10"
           strokeLinecap="round"
           strokeDasharray={`${filled} ${circ - filled}`}
-          className="transition-all duration-700"
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-bold" style={{ color }}>
+        <span className="text-3xl font-bold" style={{ color: "var(--color-brand)" }}>
           {score}
         </span>
-        <span className="text-[12px] uppercase tracking-wide text-neutral-400">{tr("тәуекел")}</span>
+        <span className="text-[12px] uppercase tracking-wide text-neutral-600">{tr("тәуекел")}</span>
       </div>
     </div>
   );

@@ -1,0 +1,78 @@
+.workspace {
+  --left-width: 20rem;
+  --right-width: 20rem;
+  position: relative;
+  display: grid;
+  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr);
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+  container-type: size;
+  background: #f5f5f5;
+}
+.toolbar {
+  position: relative;
+  grid-row: 1;
+  grid-column: 1 / -1;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-bottom: 1px solid #d4d4d4;
+  background: white;
+}
+.canvas { grid-row: 2; grid-column: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.stage { position: relative; flex: 1; min-height: 0; overflow: hidden; container-type: size; }
+.navigation { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 8px; }
+.actions { flex-shrink: 0; max-height: 35%; overflow: auto; border-top: 1px solid #d4d4d4; background: white; padding: 8px; }
+.actions > div { border: 0; border-radius: 0; box-shadow: none; padding: 0; }
+.left, .right { display: none; min-height: 0; overflow: hidden; border-radius: 0; }
+.left[data-mobile-visible="true"], .right[data-mobile-visible="true"] {
+  position: absolute;
+  /* Both lines explicit: for an absolutely positioned grid item an `auto` end
+     line is the container's padding edge, which would extend the sheet's box
+     past the stage over the action row and put its bottom inset below the
+     attribution. `2 / 3` makes the containing block the stage's own area. */
+  grid-row: 2 / 3;
+  grid-column: 1 / 2;
+  inset: 8px 0 var(--map-attribution-height, 64px);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px 12px 0 0;
+  box-shadow: 0 -4px 20px #0002;
+}
+.scroll { min-height: 0; flex: 1; overflow: auto; overscroll-behavior: contain; padding: 16px; }
+.scroll[hidden] { display: none; }
+.scroll > div > div { max-width: 100%; }
+
+@media (max-width: 1023px) {
+  /* The sheet shares the stage's grid area; actions have their own row. */
+  .workspace { grid-template-rows: auto minmax(0, 1fr) auto; }
+  .canvas { display: contents; }
+  .stage { grid-row: 2; grid-column: 1; }
+  .actions { grid-row: 3; grid-column: 1; max-height: 35cqh; }
+  .workspace:not([data-sheet="none"]) .navigation,
+  .workspace:not([data-sheet="none"]) .actions { visibility: hidden; }
+}
+
+@media (min-width: 1024px) {
+  .workspace { grid-template-columns: var(--left-width) minmax(0, 1fr) var(--right-width); }
+  .workspace[data-left="false"] { --left-width: 0px; }
+  .workspace[data-right="false"] { --right-width: 0px; }
+  .canvas { grid-column: 2; }
+  .left, .right, .left[data-mobile-visible="true"], .right[data-mobile-visible="true"] {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    grid-row: 2;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  /* Repeat the attribute selector: the mobile sheet rule above is more specific. */
+  .left, .left[data-mobile-visible="true"] { grid-column: 1; }
+  .right, .right[data-mobile-visible="true"] { grid-column: 3; }
+  .workspace[data-left="false"] .left, .workspace[data-right="false"] .right { display: none; }
+  .toolbar { padding: 12px 16px; }
+}

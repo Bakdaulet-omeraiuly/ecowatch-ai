@@ -1,5 +1,8 @@
 "use client";
 
+import { useLang } from "@/lib/i18n";
+import { Badge } from "@/components/ui/badge";
+
 // Сенімділік деңгейінің белгісі.
 //
 // Сайтта үш түрлі сипаттағы дерек бар, олар бірдей көрінбеуі керек:
@@ -42,16 +45,24 @@ const TIERS: Record<Tier, { icon: string; label: string; title: string; cls: str
   },
 };
 
-export function TierBadge({ tier, className = "" }: { tier: Tier; className?: string }) {
+const LIGHT = {
+  measurement: "border-emerald-800 bg-emerald-50 text-emerald-900",
+  model: "border-sky-800 bg-sky-50 text-sky-900",
+  ai: "border-amber-800 bg-amber-50 text-amber-900",
+};
+
+export function TierBadge({ tier, className = "", tone = "dark" }: { tier: Tier; className?: string; tone?: "light" | "dark" }) {
+  const { tr } = useLang();
   const t = TIERS[tier];
   return (
-    <span
-      title={t.title}
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-1.5 py-0.5 text-[12px] font-medium leading-none ${t.cls} ${className}`}
+    <Badge
+      variant="portal"
+      title={tr(t.title)}
+      className={`leading-snug ${tone === "light" ? LIGHT[tier] : t.cls} ${className}`}
     >
       <span aria-hidden>{t.icon}</span>
-      {t.label}
-    </span>
+      {tr(t.label)}
+    </Badge>
   );
 }
 

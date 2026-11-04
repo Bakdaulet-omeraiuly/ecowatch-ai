@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
 import { useLang } from "@/lib/i18n";
 
 // P2.4: таралу слайдерінің қоршауы. Таралу — МОДЕЛЬ нәтижесі, өлшем емес,
@@ -14,12 +15,12 @@ import { useLang } from "@/lib/i18n";
 export function ModelBadge() {
   const { tr } = useLang();
   return (
-    <span
+    <Badge variant="portal"
       data-testid="model-badge"
-      className="rounded bg-sky-500/20 px-1.5 py-0.5 font-semibold text-sky-200"
+      className="rounded bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-800"
     >
-      {tr("Модель нәтижесі")}
-    </span>
+      <span aria-hidden>📊</span> {tr("Модель нәтижесі")}
+    </Badge>
   );
 }
 
@@ -28,20 +29,19 @@ export function DispersionFrame({ windMissing, children }: { windMissing: boolea
   const stateCls = windMissing ? "pointer-events-none opacity-50 grayscale" : "";
   return (
     <div
-      className={`mt-2 rounded-lg border p-2.5 ${stateCls}`.trim()}
+      className="mt-4 rounded-md border border-neutral-300 p-4"
       aria-disabled={windMissing}
-      inert={windMissing}
       data-testid="dispersion-slider"
       data-wind-missing={windMissing ? "true" : "false"}
     >
       <div className="mb-1.5 flex flex-wrap items-center gap-1.5 text-[12px]">
         <ModelBadge />
-        <span className="text-neutral-400">{tr("Ластанудың таралуы — уақыт бойынша (есептелген)")}</span>
+        <span className="text-neutral-600">{tr("Ластанудың таралуы — уақыт бойынша (есептелген)")}</span>
       </div>
       {windMissing && (
-        <p className="mb-1.5 text-[12px] text-amber-200">{tr("Жел деректері жоқ — таралу слайдері қолжетімсіз.")}</p>
+        <p className="mb-1.5 text-[12px] text-amber-800">{tr("Жел деректері жоқ — таралу слайдері қолжетімсіз.")}</p>
       )}
-      {children}
+      <div className={stateCls} inert={windMissing}>{children}</div>
     </div>
   );
 }

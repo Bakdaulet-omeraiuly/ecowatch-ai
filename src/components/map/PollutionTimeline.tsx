@@ -24,12 +24,12 @@ import type { PollutionSourceData, PollutionTimelineHour, ComplianceLevelLite } 
 // Бұл ескерту кестенің астында ӘРҚАШАН тұруы керек.
 
 const LEVEL_CLS: Record<ComplianceLevelLite, string> = {
-  ok: "text-neutral-300",
-  approaching: "text-amber-300",
-  exceeded: "text-red-300 font-semibold",
-  "exceeded-unverified": "text-orange-300",
-  "not-comparable": "text-neutral-500",
-  unknown: "text-neutral-500",
+  ok: "text-neutral-800",
+  approaching: "text-amber-800",
+  exceeded: "text-red-800 font-semibold",
+  "exceeded-unverified": "text-orange-800",
+  "not-comparable": "text-neutral-600",
+  unknown: "text-neutral-600",
 };
 const LEVEL_MARK: Record<ComplianceLevelLite, string> = {
   ok: "", approaching: "~", exceeded: "⚠", "exceeded-unverified": "⚠?", "not-comparable": "", unknown: "",
@@ -74,58 +74,59 @@ export function PollutionTimeline({
   return (
     <div className="space-y-2.5">
       {/* ── УАҚЫТ ТАҢДАУ ─────────────────────────────────────────────── */}
-      <div className="rounded-lg bg-white/[0.03] p-2.5">
-        <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-neutral-200">
-          <CalendarClock className="h-3.5 w-3.5 text-sky-300" />
+      <div className="rounded-lg bg-neutral-50 p-2.5">
+        <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-neutral-800">
+          <CalendarClock className="h-3.5 w-3.5 text-sky-800" />
           {tr("Нақты уақытты таңдау")}
         </div>
         <div className="flex flex-wrap items-center gap-1.5">
           <input
             type="datetime-local"
+            aria-label={tr("Нақты уақытты таңдау")}
             step={3600}
             min={bounds.min}
             max={bounds.max}
             value={at ? toLocalInput(at) : ""}
             onChange={(e) => onAt(e.target.value ? `${e.target.value.slice(0, 13)}:00` : null)}
-            className="flex-1 rounded border border-white/15 bg-neutral-900 px-2 py-1 text-[13px] text-neutral-100 [color-scheme:dark]"
+            className="flex-1 rounded border border-neutral-300 bg-white px-2 py-1 text-[13px] text-neutral-900 [color-scheme:light]"
           />
           {archive && (
             <button
               onClick={() => onAt(null)}
-              className="inline-flex items-center gap-1 rounded border border-white/15 bg-white/5 px-2 py-1 text-[12px] text-neutral-300 hover:bg-white/10"
+              className="inline-flex items-center gap-1 rounded border border-neutral-300 bg-neutral-50 px-2 py-1 text-[12px] text-neutral-800 hover:bg-neutral-50"
               title={tr("Тірі режимге қайту")}
             >
               <RotateCcw className="h-3 w-3" /> {tr("Тірі")}
             </button>
           )}
         </div>
-        <p className="mt-1 text-[12px] leading-snug text-neutral-400">
+        <p className="mt-1 text-[12px] leading-snug text-neutral-600">
           {archive
-            ? `${source.atLabel} · ${source.daysAgo} ${tr("күн бұрын")}`
+            ? `${source.atLabel ? tr(source.atLabel) : ""} · ${source.daysAgo} ${tr("күн бұрын")}`
             : tr("Жыл, ай, күн, сағат таңдаңыз — сол сәттегі нақты жағдай көрсетіледі")}
           {" · "}
           {tr("тереңдік")}: {source.maxDaysBack} {tr("күн")}
         </p>
         {loading && (
-          <p className="mt-1 text-[12px] text-sky-300">{tr("Архивтен жүктелуде…")}</p>
+          <p className="mt-1 text-[12px] text-sky-800">{tr("Архивтен жүктелуде…")}</p>
         )}
       </div>
 
       {source.archiveNote && (
-        <p className="rounded border border-amber-400/25 bg-white/[0.02] px-2 py-1.5 text-[12px] leading-relaxed text-amber-100/90">
-          {source.archiveNote}
+        <p className="rounded border border-amber-400/25 bg-neutral-50 px-2 py-1.5 text-[12px] leading-relaxed text-amber-800">
+          {tr(source.archiveNote)}
         </p>
       )}
 
       {/* ── САҒАТТЫҚ СКРОЛЛЕР ────────────────────────────────────────── */}
       {rows.length > 0 && (
-        <div className="rounded-lg bg-white/[0.03] p-2.5">
+        <div className="rounded-lg bg-neutral-50 p-2.5">
           <div className="mb-1.5 flex items-center justify-between gap-2">
-            <span className="text-[13px] font-semibold text-neutral-200">
+            <span className="text-[13px] font-semibold text-neutral-800">
               {cur ? cur.time.replace("T", " ").slice(0, 16) : "—"}
             </span>
-            <span className="text-[12px] text-neutral-400">
-              {cur && `${cur.wind.fromLabel} · ${cur.wind.speed} ${tr("км/сағ")}`}
+            <span className="text-[12px] text-neutral-600">
+              {cur && `${tr(cur.wind.fromLabel)} · ${cur.wind.speed} ${tr("км/сағ")}`}
             </span>
           </div>
 
@@ -133,14 +134,14 @@ export function PollutionTimeline({
             <button
               onClick={() => onFrame(Math.max(0, frameIdx - 1))}
               disabled={frameIdx <= 0}
-              className="rounded border border-white/15 bg-white/5 p-1 text-neutral-300 hover:bg-white/10 disabled:opacity-30"
+              className="rounded border border-neutral-300 bg-neutral-50 p-1 text-neutral-800 hover:bg-neutral-50 disabled:opacity-30"
               title={tr("Бір сағат артқа")}
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </button>
             <button
               onClick={onPlayToggle}
-              className="rounded border border-violet-400/40 bg-violet-500/15 p-1 text-violet-200 hover:bg-violet-500/25"
+              className="rounded border border-violet-400/40 bg-violet-50 p-1 text-violet-800 hover:bg-violet-50"
               title={playing ? tr("Тоқтату") : tr("Ойнату")}
             >
               {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
@@ -148,22 +149,23 @@ export function PollutionTimeline({
             <button
               onClick={() => onFrame(Math.min(rows.length - 1, frameIdx + 1))}
               disabled={frameIdx >= rows.length - 1}
-              className="rounded border border-white/15 bg-white/5 p-1 text-neutral-300 hover:bg-white/10 disabled:opacity-30"
+              className="rounded border border-neutral-300 bg-neutral-50 p-1 text-neutral-800 hover:bg-neutral-50 disabled:opacity-30"
               title={tr("Бір сағат алға")}
             >
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
             <input
               type="range"
+              aria-label={tr("Сағаттық хронология")}
               min={0}
               max={Math.max(0, rows.length - 1)}
               value={Math.min(frameIdx, rows.length - 1)}
               onChange={(e) => onFrame(+e.target.value)}
-              className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-white/15 accent-violet-400"
+              className="h-1.5 flex-1 cursor-pointer appearance-none rounded-full bg-neutral-50 accent-violet-400"
             />
           </div>
 
-          <div className="mt-1 flex justify-between text-[12px] text-neutral-400">
+          <div className="mt-1 flex justify-between text-[12px] text-neutral-600">
             <span>{rows[0]?.hour}</span>
             <span>
               {frameIdx + 1}/{rows.length} ·{" "}
@@ -182,14 +184,14 @@ export function PollutionTimeline({
       {rows.length > 0 && (
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="text-[13px] font-semibold text-neutral-200">
+            <span className="text-[13px] font-semibold text-neutral-800">
               {tr("Сағаттық хронология")}
             </span>
-            <span className="text-[12px] text-neutral-400">µg/m³</span>
+            <span className="text-[12px] text-neutral-600">µg/m³</span>
           </div>
-          <div className="max-h-56 overflow-auto rounded-lg border border-white/10">
+          <div className="max-h-56 overflow-auto rounded-lg border border-neutral-300">
             <table className="w-full min-w-[680px] text-left text-[12px]">
-              <thead className="sticky top-0 border-b border-white/10 bg-neutral-950 text-neutral-500">
+              <thead className="sticky top-0 border-b border-neutral-300 bg-white text-neutral-600">
                 <tr>
                   <th className="px-1.5 py-1 font-medium">{tr("Уақыт")}</th>
                   <th className="px-1.5 py-1 font-medium">{tr("Жел")}</th>
@@ -201,8 +203,8 @@ export function PollutionTimeline({
                   <th className="px-1.5 py-1 text-right font-medium">O₃</th>
                   <th className="px-1.5 py-1 text-right font-medium">CO</th>
                   {/* Нормасы жоқ — тек өлшем әрі ажыратқыш */}
-                  <th className="px-1.5 py-1 text-right font-medium text-neutral-400">Шаң</th>
-                  <th className="px-1.5 py-1 text-right font-medium text-neutral-400">CH₄</th>
+                  <th className="px-1.5 py-1 text-right font-medium text-neutral-600">{tr("Шаң")}</th>
+                  <th className="px-1.5 py-1 text-right font-medium text-neutral-600">CH₄</th>
                 </tr>
               </thead>
               <tbody>
@@ -210,19 +212,22 @@ export function PollutionTimeline({
                   <tr
                     key={r.time}
                     onClick={() => onFrame(i)}
-                    className={`cursor-pointer border-t border-white/5 transition-colors ${
-                      i === frameIdx ? "bg-violet-500/20" : r.kzViolation ? "bg-red-500/10" : "hover:bg-white/5"
+                    tabIndex={0}
+                    aria-selected={i === frameIdx}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onFrame(i); } }}
+                    className={`cursor-pointer border-t border-neutral-300 transition-colors ${
+                      i === frameIdx ? "bg-violet-50" : r.kzViolation ? "bg-red-50" : "hover:bg-neutral-50"
                     }`}
                   >
-                    <td className="whitespace-nowrap px-1.5 py-1 font-mono text-neutral-300">
-                      {r.hour}
-                      {r.pivot && <span className="ml-1 text-violet-300">●</span>}
+                    <td className="whitespace-nowrap px-1.5 py-1 font-mono text-neutral-800">
+                      <span className="inline-flex min-h-11 items-center">{r.hour}</span>
+                      {r.pivot && <span className="ml-1 text-violet-800">●</span>}
                     </td>
-                    <td className="whitespace-nowrap px-1.5 py-1 text-neutral-400">
-                      {r.wind.fromLabel} {r.wind.speed}
+                    <td className="whitespace-nowrap px-1.5 py-1 text-neutral-600">
+                      {tr(r.wind.fromLabel)} {r.wind.speed}
                     </td>
-                    <td className="px-1.5 py-1 text-neutral-300">
-                      {r.downwind.join(", ") || <span className="text-neutral-500">—</span>}
+                    <td className="px-1.5 py-1 text-neutral-800">
+                      {r.downwind.join(", ") || <span className="text-neutral-600">—</span>}
                     </td>
                     {(["so2", "no2", "pm", "pm25", "ozone", "co"] as const).map((k) => (
                       <td key={k} className={`whitespace-nowrap px-1.5 py-1 text-right ${LEVEL_CLS[r.levels[k]]}`}>
@@ -233,7 +238,7 @@ export function PollutionTimeline({
                         деңгей түсі берілмейді (жалған «асты» әсерін
                         болдырмау үшін) */}
                     {(["dust", "ch4"] as const).map((k) => (
-                      <td key={k} className="whitespace-nowrap px-1.5 py-1 text-right text-neutral-400">
+                      <td key={k} className="whitespace-nowrap px-1.5 py-1 text-right text-neutral-600">
                         {r[k] ?? "—"}
                       </td>
                     ))}
@@ -242,35 +247,35 @@ export function PollutionTimeline({
               </tbody>
             </table>
           </div>
-          <p className="mt-1 text-[12px] leading-relaxed text-neutral-400">
-            <b className="text-neutral-400">{tr("«Жел бағытында»")}</b>{" "}
+          <p className="mt-1 text-[12px] leading-relaxed text-neutral-600">
+            <b className="text-neutral-600">{tr("«Жел бағытында»")}</b>{" "}
             {tr(
               "— сол сағаттағы таралу конусының ішіне түскен елді мекендер. Бұл сол жерде " +
               "ластану ӨЛШЕНДІ дегенді білдірмейді: концентрация қала нүктесінде (CAMS ~40 км тор) алынған."
             )}{" "}
-            <b className="text-neutral-400">⚠</b> {tr("— расталған нормадан асты")},{" "}
-            <b className="text-neutral-400">⚠?</b> {tr("— асты, бірақ норма мәтіні расталмаған")}.{" "}
-            <b className="text-neutral-400">{tr("Шаң мен CH₄")}</b>{" "}
+            <b className="text-neutral-600">⚠</b> {tr("— расталған нормадан асты")},{" "}
+            <b className="text-neutral-600">⚠?</b> {tr("— асты, бірақ норма мәтіні расталмаған")}.{" "}
+            <b className="text-neutral-600">{tr("Шаң мен CH₄")}</b>{" "}
             {tr("— гигиеналық нормасы жоқ, тек өлшем. Шаң — PM₁₀ асуы шөл шаңынан ба, әлде кәсіпорыннан ба, соны ажыратуға көмектеседі.")}
           </p>
 
           {/* ⛔ ӨЛШЕНБЕЙТІНІ — бос баған етіп қосуға БОЛМАЙДЫ.
               Бос ұяшық «қаралды, таза екен» деген жалған әсер берер еді.
               Сондықтан кестенің АСТЫНДА ашық жазба ретінде тұрады. */}
-          <div className="mt-2 rounded-lg border border-red-400/25 bg-white/[0.02] p-2">
-            <p className="text-[12px] leading-relaxed text-red-100/90">
+          <div className="mt-2 rounded-lg border border-red-400/25 bg-neutral-50 p-2">
+            <p className="text-[12px] leading-relaxed text-red-800">
               <b>⛔ {tr("Бұл кестеде ЖОҚ, себебі мүлдем өлшенбейді")}:</b>{" "}
               H₂S ({tr("күкіртсутек")}), {tr("меркаптандар")}, {tr("бензол")},{" "}
               {tr("формальдегид")}, {tr("бенз(а)пирен")}, {tr("фенол")},{" "}
               {tr("ауыр металдар")} (V, Ni, Pb, Hg, Cd).
             </p>
-            <p className="mt-1 text-[12px] leading-relaxed text-neutral-400">
+            <p className="mt-1 text-[12px] leading-relaxed text-neutral-600">
               {tr(
                 "Бұлар спутниктен де, CAMS моделінен де анықталмайды — тек жердегі аспап " +
                 "пен зертхана арқылы. H₂S — мұнай өңдеудің басты маркері, сондықтан " +
                 "кестедегі сандар «ауа таза» дегенді БІЛДІРМЕЙДІ."
               )}{" "}
-              <a href="/legislation" className="text-sky-300 underline-offset-2 hover:underline">
+              <a href="/legislation" className="text-sky-800 underline-offset-2 hover:underline">
                 {tr("Толық тізім →")}
               </a>
             </p>
@@ -279,11 +284,11 @@ export function PollutionTimeline({
       )}
 
       {/* ── ҚҰЖАТ ────────────────────────────────────────────────────── */}
-      <div className="rounded-lg border border-emerald-400/25 bg-white/[0.02] p-2.5">
-        <div className="mb-1 text-[13px] font-semibold text-emerald-100">
+      <div className="rounded-lg border border-emerald-400/25 bg-neutral-50 p-2.5">
+        <div className="mb-1 text-[13px] font-semibold text-emerald-800">
           {tr("Мемлекеттік органға арналған құжат")}
         </div>
-        <p className="mb-2 text-[12px] leading-relaxed text-neutral-400">
+        <p className="mb-2 text-[12px] leading-relaxed text-neutral-600">
           {tr(
             "Оқиғаның уақыты, метеожағдайы, сағаттық хронологиясы, нормативтік салыстыруы " +
             "және заң актілері бір анықтамаға жиналады. Басып шығаруға / PDF сақтауға дайын."
@@ -294,18 +299,18 @@ export function PollutionTimeline({
             href={reportUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 rounded border border-emerald-400/40 bg-emerald-500/15 px-2.5 py-1 text-[12px] font-medium text-emerald-100 hover:bg-emerald-500/25"
+            className="inline-flex items-center gap-1.5 rounded border border-emerald-400/40 bg-emerald-50 px-2.5 py-1 text-[12px] font-medium text-emerald-800 hover:bg-emerald-50"
           >
             <FileText className="h-3 w-3" /> {tr("Анықтама (PDF)")}
           </a>
           <a
             href={`${reportUrl}&format=csv`}
-            className="inline-flex items-center gap-1.5 rounded border border-white/15 bg-white/5 px-2.5 py-1 text-[12px] text-neutral-300 hover:bg-white/10"
+            className="inline-flex items-center gap-1.5 rounded border border-neutral-300 bg-neutral-50 px-2.5 py-1 text-[12px] text-neutral-800 hover:bg-neutral-50"
           >
             <Download className="h-3 w-3" /> CSV
           </a>
         </div>
-        <p className="mt-1.5 text-[12px] leading-relaxed text-amber-200/70">
+        <p className="mt-1.5 text-[12px] leading-relaxed text-amber-800">
           ⚠{" "}
           {tr(
             "Анықтама ешкімді айыптамайды: спутник/модель дерегі құқық бұзушылық фактісі емес, " +

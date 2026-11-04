@@ -19,33 +19,34 @@ interface Props {
   reason?: string;
   /** Панельдерге арналған ықшам нұсқа */
   compact?: boolean;
+  tone?: "light" | "dark";
 }
 
-export function ModuleMissing({ module: key, region, reason, compact }: Props) {
+export function ModuleMissing({ module: key, region, reason, compact, tone = "dark" }: Props) {
   const { tr } = useLang();
   const why = reason || MODULE_REASON[key];
 
   if (compact) {
     return (
-      <div className="space-y-1">
+      <div data-tone={tone} className="space-y-1">
         <p className="flex items-center gap-1.5 text-[13px] font-medium text-neutral-300">
           <CircleSlash className="h-3 w-3 shrink-0 text-neutral-400" />
           {region.name}: {tr("бұл модуль жоқ")}
         </p>
-        <p className="text-[12px] leading-snug text-neutral-400">{why}</p>
+        <p className="text-[12px] leading-snug text-neutral-400">{tr(why)}</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2 rounded-lg bg-white/[0.02] p-3">
+    <div data-tone={tone} className="space-y-2 rounded-lg bg-white/[0.02] p-3">
       <div className="flex items-start gap-2">
         <CircleSlash className="mt-0.5 h-4 w-4 shrink-0 text-neutral-400" />
         <div className="min-w-0">
           <p className="text-[14px] font-medium text-neutral-200">
             «{MODULE_KZ[key]}» — {region.name} {tr("үшін әлі қолжетімсіз")}
           </p>
-          <p className="mt-1 text-[13px] leading-relaxed text-neutral-400">{why}</p>
+          <p className="mt-1 text-[13px] leading-relaxed text-neutral-400">{tr(why)}</p>
         </div>
       </div>
       <p className="border-t border-white/5 pt-2 text-[12px] leading-relaxed text-neutral-400">

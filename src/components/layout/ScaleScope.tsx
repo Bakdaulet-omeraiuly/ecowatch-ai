@@ -14,7 +14,8 @@ import { FULL_VIEWPORT_ROUTES } from "@/components/layout/AppFrame";
 // футерге дейін созылады (ақ жолақ қалмайды), әрі flex элементі болғандықтан
 // ішкі `mt-*` шегінісі орамнан сыртқа «ағып» шықпайды.
 // Бет жаңа дизайнға қолмен көшірілгенде — оның жолын NEW_DESIGN тізіміне қос.
-const NEW_DESIGN = new Set<string>(["/", "/validation"]);
+// Map and object descendants now use the same light palette as the homepage.
+const NEW_DESIGN = new Set<string>(["/", "/validation", "/map"]);
 
 export function ScaleScope({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -23,7 +24,7 @@ export function ScaleScope({ children }: { children: React.ReactNode }) {
     <div
       className={cn(
         "flex-1",
-        !NEW_DESIGN.has(pathname) && "legacy-scale",
+        !NEW_DESIGN.has(pathname) && !pathname.startsWith("/object/") && "legacy-scale",
         // Толық экран (карта): балалары қалған биіктікті толтыруы үшін flex-колонна
         full && "flex min-h-0 flex-col"
       )}

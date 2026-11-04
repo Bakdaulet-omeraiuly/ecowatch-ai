@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import { Badge as UiBadge } from "@/components/ui/badge";
 
 // Дерек түрінің белгісі + алты өрісті метадерек тізімі. Түс жалғыз белгі емес:
 // әр белгіде мәтін бар. Бірнеше жерде қолданылады (басты бет, /map, /dashboard).
@@ -14,9 +15,9 @@ export type BadgeKind = keyof typeof BADGE;
 
 export function Badge({ kind, children }: { kind: BadgeKind; children: ReactNode }) {
   return (
-    <span className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-bold ${BADGE[kind]}`}>
+    <UiBadge variant="portal" className={`font-bold ${BADGE[kind]}`}>
       {children}
-    </span>
+    </UiBadge>
   );
 }
 
@@ -48,11 +49,11 @@ export function MetaList({
   const kc = tone === "dark" ? "text-neutral-400" : "font-bold text-neutral-900";
   const vc = tone === "dark" ? "text-neutral-200" : "text-neutral-800";
   return (
-    <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[12px]">
+    <dl className="mt-2 grid grid-cols-[minmax(0,2fr)_minmax(0,3fr)] gap-x-3 gap-y-1 text-[12px]">
       {rows.map((r) => (
         <Fragment key={r.k}>
           <dt className={kc}>{r.k}</dt>
-          <dd className={vc}>{r.v}</dd>
+          <dd className={`min-w-0 break-words ${vc}`}>{r.v}</dd>
         </Fragment>
       ))}
     </dl>

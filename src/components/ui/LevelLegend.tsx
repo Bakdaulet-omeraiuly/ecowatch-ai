@@ -18,15 +18,16 @@ const ORDER: ComplianceLevel[] = [
 ];
 
 export function LevelLegend({
-  compact, defaultOpen,
-}: { compact?: boolean; defaultOpen?: boolean }) {
+  compact, defaultOpen, tone = "dark",
+}: { compact?: boolean; defaultOpen?: boolean; tone?: "light" | "dark" }) {
   const { tr } = useLang();
   const [open, setOpen] = useState(defaultOpen ?? false);
 
   return (
-    <div className="rounded-lg border border-white/10 bg-white/[0.02]">
+    <div data-tone={tone} className="rounded-lg border border-white/10 bg-white/[0.02]">
       <button
         onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
         className="flex w-full items-center gap-1.5 px-2.5 py-1.5 text-left transition hover:bg-white/[0.03]"
       >
         <HelpCircle className="h-3.5 w-3.5 shrink-0 text-neutral-400" />
@@ -47,10 +48,10 @@ export function LevelLegend({
                 <span className={`inline-block rounded border px-1.5 py-0.5 text-[12px] ${LEVEL_COLOR[lv]}`}>
                   {tr(m.short)}
                 </span>
-                <p className="mt-1 text-[12px] leading-relaxed text-neutral-400">{m.full}</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-neutral-400">{tr(m.full)}</p>
                 {!compact && (
                   <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-400">
-                    → {m.action}
+                    → {tr(m.action)}
                   </p>
                 )}
               </div>
