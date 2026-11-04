@@ -9,10 +9,10 @@ import type { FeatureCollection, Geometry } from "geojson";
 import type { GreenBbox } from "@/data/greenery";
 
 export type LanduseCategory =
-  | "residential" | "industrial" | "commercial" | "farmland" | "water" | "possibly_contaminated";
+  | "residential" | "industrial" | "commercial" | "farmland" | "water" | "possibly_contaminated" | "extraction";
 
 export const LANDUSE_CATEGORIES: LanduseCategory[] =
-  ["residential", "industrial", "commercial", "farmland", "water", "possibly_contaminated"];
+  ["residential", "industrial", "commercial", "farmland", "water", "extraction", "possibly_contaminated"];
 
 interface OsmCoord { lat: number; lon: number }
 interface OsmElement {
@@ -23,8 +23,8 @@ interface OsmElement {
 export function buildLanduseQuery([w, s, e, n]: GreenBbox): string {
   const b = `${s},${w},${n},${e}`;
   return `[out:json][timeout:45];
-(way["landuse"~"^(residential|industrial|commercial|retail|farmland|landfill|brownfield)$"](${b});
-relation["landuse"~"^(residential|industrial|commercial|retail|farmland|landfill|brownfield)$"](${b});
+(way["landuse"~"^(residential|industrial|commercial|retail|farmland|landfill|brownfield|quarry)$"](${b});
+relation["landuse"~"^(residential|industrial|commercial|retail|farmland|landfill|brownfield|quarry)$"](${b});
 way["natural"="water"](${b}); relation["natural"="water"](${b});
 way["man_made"="wastewater_plant"](${b});)->.l; .l out geom qt;`;
 }
@@ -33,6 +33,8 @@ export function landuseCategory(tags: Record<string, string>): LanduseCategory |
   const lu = tags.landuse ?? "";
   if (lu === "landfill" || lu === "brownfield" || tags.man_made === "wastewater_plant") return "possibly_contaminated";
   if (tags.natural === "water") return "water";
+  // P5.6: OSM-mapped extraction (quarries, oil/gas fields). Cartography — NOT a licence area.
+  if (lu === "quarry" || (lu === "industrial" && /^(oil|gas|mine)$/.test(tags.industrial ?? ""))) return "extraction";
   if (lu === "residential") return "residential";
   if (lu === "industrial") return "industrial";
   if (lu === "commercial" || lu === "retail") return "commercial";
@@ -103,5 +105,6 @@ export const LANDUSE_CAVEATS = [
   "OSM — картография, өлшем емес; толықтығы тексерілмеген: картада жоқ аумақ — ол жерде ештеңе жоқ дегенді білдірмейді.",
   "«Ықтимал ластанған жер» — OSM-да белгіленген полигон, қоқыс алаңы, тастанды өнеркәсіп аумағы немесе тазарту құрылысы. Бұл ластанудың дәлелі ЕМЕС.",
   "Расталған ластану үшін ресми тізілім (зертханалық сынама, экологиялық тексеру актісі) қажет — ол әлі жалғанбаған, сондықтан «дерек жоқ».",
+  "«Өндіру аумағы» — OSM-да белгіленген карьер немесе мұнай-газ алаңы. Бұл жер қойнауын пайдалану лицензиясының аумағы емес және ластанудың дәлелі емес. Ресми лицензиялар — minerals.e-qazyna.kz интерактивті картасында (ашық API жоқ, сондықтан мұнда көшірілмейді).",
   "Аудандар қабаттасуы алынбай қосылады; ішкі ойықтар есептелмейді.",
 ];

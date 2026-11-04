@@ -17,6 +17,7 @@ export function Navbar() {
     { href: "/dashboard", label: t("nav.dashboard") },
     { href: "/report", label: t("nav.report") },
     { href: "/complaints", label: t("nav.complaints") },
+    { href: "/health", label: t("nav.health") },
     { href: "/alerts", label: t("nav.alerts") },
     { href: "/legislation", label: t("nav.legislation") },
     { href: "/methodology", label: t("nav.methodology") },

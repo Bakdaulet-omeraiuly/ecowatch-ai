@@ -18,6 +18,11 @@ describe("P4.3 OSM land use", () => {
     expect(landuseCategory({ landuse: "industrial" })).toBe("industrial");
     expect(landuseCategory({ landuse: "forest" })).toBeNull();
   });
+  it("P5.6 extraction: quarries and oil/gas industrial land, never a licence claim", () => {
+    expect(landuseCategory({ landuse: "quarry" })).toBe("extraction");
+    expect(landuseCategory({ landuse: "industrial", industrial: "oil" })).toBe("extraction");
+    expect(landuseCategory({ landuse: "industrial", industrial: "refinery" })).toBe("industrial");
+  });
   it("parses closed rings, skips open ones, dedupes, counts area", () => {
     const r = parseLanduse({ elements: [
       { type: "way", id: 1, tags: { landuse: "residential", name: "A" }, geometry: sq(47.1, 51.9) },

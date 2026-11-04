@@ -535,3 +535,8 @@ export function useLanduse(enabled: boolean) {
   const { data, error } = useGreenSource<LanduseData>(enabled, "/api/landuse");
   return { landuse: data, landuseError: error };
 }
+
+export function useFauna(enabled: boolean) {
+  const { data, error } = useGreenSource<import("@/components/map/NaturePanel").FaunaData>(enabled, "/api/fauna");
+  return { fauna: data, faunaError: error };
+}

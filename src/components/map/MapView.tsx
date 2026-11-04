@@ -8,7 +8,7 @@ import {
   Loader2, Layers, Satellite, History, X, MapPinPlus, Plus, Minus, Locate,
   Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame, Droplets,
   Factory, AlertTriangle, Navigation, BarChart3, FileText, Scale, BookOpen, Trees,
-  Map as MapIcon,
+  Map as MapIcon, Bird,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -86,7 +86,7 @@ import { isDispersionWindMissing, type WindHourlySeries } from "@/lib/windGrid";
 import { aqiCategory, AQI_CATEGORIES } from "@/lib/airQuality";
 import {
   useSharedReports, useAirGrid, useMosquitoGrid, useSoilGrid, useFlood, useFlares, useFireArchive,
-  usePollutionSource, useReedHabitat, useGreenery, useGreenChange, useLanduse,
+  usePollutionSource, useReedHabitat, useGreenery, useGreenChange, useLanduse, useFauna,
   type AirGridPoint, type MosquitoGridPoint, type PollutionSourceCandidate,
 } from "@/hooks/useEcoData";
 import type { Site, AnalysisResult } from "@/types/site";
@@ -100,6 +100,7 @@ import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 import { GreeneryPanel } from "./GreeneryPanel";
 import { SourceErrorBox } from "./SourceErrorBox";
 import { LandusePanel, LANDUSE_COLOR } from "./LandusePanel";
+import { NaturePanel, reserveGeo } from "./NaturePanel";
 
 const ATYRAU = { latitude: 47.1167, longitude: 51.9014, zoom: 7.5 };
 /** Қамыс өрті: карта белгілері мен панель тізімі шектеледі — карта толып кетпеуі үшін */
@@ -107,6 +108,7 @@ const REED_MARKER_CAP = 20;
 
 const LAYER_ICONS: Record<LayerKey, React.ElementType> = {
   landuse: MapIcon,
+  nature: Bird,
   green: Trees,
   mosquito: Bug,
   air: Wind,
@@ -126,6 +128,7 @@ function layerWeight(s: Site, layer: LayerKey): number {
   switch (layer) {
     case "green": return 0;
     case "landuse": return 0;
+    case "nature": return 0;
     case "mosquito": return s.mosquitoRiskIndex / 100;
     case "oil": return a.oilPollution ? a.riskScore / 100 : 0.05;
     case "air": return a.oilPollution ? a.riskScore / 110 : a.riskScore / 250; // air follows industry
@@ -268,6 +271,7 @@ function mosLevel(idx: number): { color: string; label: string } {
 const LAYER_MODULE: Partial<Record<LayerKey, ModuleKey>> = {
   green: "greenery",
   landuse: "greenery",
+  nature: "greenery",
   water: "riverFlow",
   mosquito: "mosquito",
 };
@@ -439,6 +443,7 @@ export function MapView() {
   const { reed, reedError } = useReedHabitat(activeLayer === "fire");
   const { osm, osmError } = useGreenery(activeLayer === "green");
   const { landuse, landuseError } = useLanduse(activeLayer === "landuse");
+  const { fauna, faunaError } = useFauna(activeLayer === "nature");
   const { change: greenChange, changeError: greenChangeError } = useGreenChange(activeLayer === "green");
   const greenCellsGeo = useMemo(() => ({
     type: "FeatureCollection" as const,
@@ -1213,6 +1218,17 @@ export function MapView() {
             }} />
             <Layer id="green-change-outline" type="line" filter={["!=", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1 }} />
             <Layer id="green-change-missing" type="line" filter={["==", ["get", "trend"], "no-data"]} paint={{ "line-color": "#a3a3a3", "line-width": 1.5, "line-dasharray": [3, 3] }} />
+          </Source>
+        )}
+        {activeLayer === "nature" && (
+          <Source id="akzhaiyk" type="geojson" data={reserveGeo} attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ODbL'>
+            <Layer id="akzhaiyk-fill" type="fill" paint={{ "fill-color": "#0e7490", "fill-opacity": 0.15 }} />
+            <Layer id="akzhaiyk-line" type="line" paint={{ "line-color": "#0e7490", "line-width": 2, "line-dasharray": [2, 1] }} />
+          </Source>
+        )}
+        {activeLayer === "nature" && fauna && !faunaError && (
+          <Source id="gbif-fauna" type="geojson" attribution="GBIF.org" data={{ type: "FeatureCollection", features: fauna.points.map((p) => ({ type: "Feature" as const, properties: { species: p.species, km: p.precisionKm }, geometry: { type: "Point" as const, coordinates: [p.lng, p.lat] } })) }}>
+            <Layer id="gbif-fauna-pt" type="circle" paint={{ "circle-color": ["case", [">", ["get", "km"], 1], "#f59e0b", "#0e7490"], "circle-radius": ["case", [">", ["get", "km"], 1], 7, 3.5], "circle-opacity": 0.75, "circle-stroke-color": "#fff", "circle-stroke-width": 1 }} />
           </Source>
         )}
         {activeLayer === "landuse" && landuse && !landuseError && (
@@ -2155,6 +2171,7 @@ export function MapView() {
           </div>
         )}
 
+        {activeLayer === "nature" && <NaturePanel fauna={fauna} error={faunaError} />}
         {activeLayer === "landuse" && <LandusePanel data={landuse} error={landuseError} />}
         {activeLayer === "green" && <GreeneryPanel osm={osm} osmError={osmError} change={greenChange} changeError={greenChangeError} />}
 

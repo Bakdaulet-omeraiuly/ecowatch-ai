@@ -10,6 +10,7 @@ export type Lang = "kk" | "ru" | "en";
 export const DICT = {
   kk: {
     "nav.complaints": "Шағымдар",
+    "nav.health": "Денсаулық",
     "complaints.title": "Тұрғындардың шағымдары",
     "complaints.badge": "👤 Тұрғын шағымы · өлшем емес",
     "complaints.explanation": "Бұл — тұрғындардың хабарламалары, аспаптық өлшемдер емес. «Расталды» мәртебесі қызметкердің тексеруімен расталғанын білдіреді; ластану мөлшері өлшенді деген сөз емес.",
@@ -417,6 +418,7 @@ export const DICT = {
   },
   ru: {
     "nav.complaints": "Жалобы",
+    "nav.health": "Здоровье",
     "complaints.title": "Жалобы жителей",
     "complaints.badge": "👤 Жалоба жителя · не измерение",
     "complaints.explanation": "Это сообщения жителей, а не инструментальные измерения. «Подтверждено» означает подтверждение при проверке сотрудником, а не измерение уровня загрязнения.",
@@ -824,6 +826,7 @@ export const DICT = {
   },
   en: {
     "nav.complaints": "Complaints",
+    "nav.health": "Health",
     "complaints.title": "Resident complaints",
     "complaints.badge": "👤 Resident complaint · not a measurement",
     "complaints.explanation": "These are resident reports, not instrument measurements. Confirmed means verified during an officer’s inspection, not a measured pollution level.",

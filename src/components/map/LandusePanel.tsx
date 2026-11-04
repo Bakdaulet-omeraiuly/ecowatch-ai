@@ -8,11 +8,11 @@ import type { LanduseData } from "@/hooks/useEcoData";
 
 export const LANDUSE_COLOR: Record<LanduseCategory, string> = {
   residential: "#f59e0b", industrial: "#7c3aed", commercial: "#ec4899",
-  farmland: "#84cc16", water: "#0ea5e9", possibly_contaminated: "#b91c1c",
+  farmland: "#84cc16", water: "#0ea5e9", extraction: "#57534e", possibly_contaminated: "#b91c1c",
 };
 const LABEL: Record<LanduseCategory, string> = {
   residential: "Тұрғын аумақ", industrial: "Өнеркәсіп аумағы", commercial: "Сауда / коммерциялық",
-  farmland: "Ауыл шаруашылығы жері", water: "Су нысандары", possibly_contaminated: "Ықтимал ластанған жер (OSM)",
+  farmland: "Ауыл шаруашылығы жері", water: "Су нысандары", extraction: "Өндіру аумағы (OSM)", possibly_contaminated: "Ықтимал ластанған жер (OSM)",
 };
 
 // P4.3: land use is OSM cartography; "possibly contaminated" (OSM landfill/brownfield)
@@ -46,6 +46,7 @@ export function LandusePanel({ data, error }: { data: LanduseData | null; error:
               <div className="mb-1 flex items-center gap-1.5 font-semibold text-neutral-900"><TierBadge tone="light" tier="measurement" /> {tr("Расталған ластану")}</div>
               <p>{tr("Дерек жоқ")}: {tr(data.confirmedContamination.reason)}</p>
             </div>
+            <p className="mb-2"><a className="font-semibold text-green-800 underline" href="https://minerals.e-qazyna.kz/en/contracts-map" target="_blank" rel="noreferrer">{tr("Жер қойнауын пайдалану лицензиялары — ресми интерактивті карта")}</a></p>
             {data.caveats.map((c) => <p key={c} className="mb-1 text-neutral-700">{tr(c)}</p>)}
             <p className="mt-1 text-neutral-600">{data.source} · {new Date(data.fetchedAt).toLocaleDateString()} · <a className="text-green-800 underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">{data.attribution} · ODbL</a></p>
           </>
