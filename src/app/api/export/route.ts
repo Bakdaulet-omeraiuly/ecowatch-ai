@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { csvHeaders, toCsv, withProvenance, type Cell } from "@/lib/csv";
 import { getRegion, hasModule, moduleUnavailable, type ModuleKey } from "@/data/regions";
+import { EXPORT_ROLES, requireRole } from "@/lib/auth";
 
 // Эколог есебі үшін CSV экспорт.
 //
@@ -29,6 +30,8 @@ async function get(origin: string, path: string): Promise<Record<string, unknown
 const num = (v: unknown): Cell => (typeof v === "number" ? v : v == null ? "" : String(v));
 
 export async function GET(req: Request) {
+  const auth = await requireRole(req, EXPORT_ROLES);
+  if (!auth.ok) return auth.response;
   const url = new URL(req.url);
   const ds = url.searchParams.get("dataset") as Dataset | null;
   if (!ds || !DATASETS.includes(ds)) {

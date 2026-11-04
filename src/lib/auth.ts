@@ -5,6 +5,8 @@ export const ROLES = ["resident", "scientist", "officer", "admin"] as const;
 export type Role = typeof ROLES[number];
 export const STAFF_ROLES = ["officer", "admin"] as const;
 export const GRANTABLE_ROLES = ["resident", "scientist", "officer"] as const;
+// P3.9: CSV export is a researcher tool. Anonymous → 401, resident → 403.
+export const EXPORT_ROLES = ["scientist", "officer", "admin"] as const;
 
 export const AUTH_ERRORS = {
   notConfigured: "Аутентификация бапталмаған",

@@ -72,7 +72,7 @@ export function setupAuthMock() {
   const from = vi.fn((table: string) => {
     if (table === "user_roles") return { ...roles, upsert };
     if (table === "reports") return reports;
-    if (table === "complaints" || table === "complaints_public") return tableQuery(table);
+    if (table === "complaints" || table === "complaints_public" || table === "officer_audit_log") return tableQuery(table);
     throw new Error(`Unexpected test table: ${table}`);
   });
   const client = { auth: { getUser }, from, storage } as unknown as ReturnType<typeof createClient>;

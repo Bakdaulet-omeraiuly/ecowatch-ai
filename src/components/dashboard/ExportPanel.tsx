@@ -6,6 +6,8 @@ import { useLang } from "@/lib/i18n";
 import { TierBadge, TierLegend, type Tier } from "@/components/ui/TierBadge";
 import { hasModule, MODULE_REASON, type ModuleKey } from "@/data/regions";
 import { useRegion } from "@/store/useRegionStore";
+import { useState, type MouseEvent } from "react";
+import { authHeaders } from "@/lib/authClient";
 
 // Эколог есебі үшін CSV экспорт. Әр файлдың соңында дереккөз, әдіс және
 // ескертулер тіркеледі — есеп өз бетінше түсінікті болуы үшін.
@@ -62,6 +64,31 @@ const EXPORTS: {
 export function ExportPanel() {
   const { tr } = useLang();
   const region = useRegion();
+  const [notice, setNotice] = useState<string | null>(null);
+
+  // /api/export is role-gated on the server (P3.9): send the session token and
+  // explain 401/403 instead of letting the browser open a JSON error page.
+  async function download(e: MouseEvent<HTMLAnchorElement>, href: string) {
+    if (!href.startsWith("/api/export")) return;
+    e.preventDefault();
+    setNotice(null);
+    try {
+      const res = await fetch(href, { headers: await authHeaders() });
+      if (res.status === 401) return setNotice(tr("Жүктеу үшін кіріңіз: экспорт ғалым, қызметкер немесе әкімші рөліне ғана ашық."));
+      if (res.status === 403) return setNotice(tr("Экспорт тек ғалым, қызметкер немесе әкімші рөліне ашық. Рөлді әкімші береді."));
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        return setNotice(`${tr("Файл жасалмады")}: ${body?.error ?? res.status}`);
+      }
+      const name = res.headers.get("Content-Disposition")?.match(/filename="?([^";]+)"?/)?.[1] ?? "jaiyq.csv";
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement("a");
+      a.href = url; a.download = name; a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setNotice(tr("Желі қатесі — файл жасалмады"));
+    }
+  }
   return (
     <Card className="border-neutral-300 bg-neutral-50">
       <CardHeader className="pb-2">
@@ -113,6 +140,7 @@ export function ExportPanel() {
               <a
                 key={e.label}
                 href={e.href(region.id)}
+                onClick={(ev) => download(ev, e.href(region.id))}
                 className="group flex items-start gap-2 rounded-lg border border-neutral-300 bg-neutral-50 p-2.5 transition hover:border-neutral-400 hover:bg-neutral-100"
               >
                 {body}
@@ -121,6 +149,11 @@ export function ExportPanel() {
           })}
         </div>
 
+        {notice && (
+          <p role="status" className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-[13px] text-amber-900">
+            {notice} <a href="/auth" className="font-semibold underline">{tr("Кіру")}</a>
+          </p>
+        )}
         <div className="mt-3 border-t border-neutral-300 pt-2.5">
           <TierLegend tone="light" />
           <p className="mt-2 text-[12px] leading-relaxed text-neutral-600">

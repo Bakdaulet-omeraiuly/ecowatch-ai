@@ -3,6 +3,24 @@
 // kk әдепкі (картадағы түпнұсқа), сондықтан тек ru/en беріледі.
 
 export const UI_TR: Record<string, { ru: string; en: string }> = {
+  // P3.8 audit log
+  "Әрекеттер журналы": { ru: "Журнал действий", en: "Action log" },
+  "Әр мәртебе өзгерісі мен жоюды дерекқордың өзі жазады; жазбаны ешкім өзгерте не өшіре алмайды.": { ru: "Каждое изменение статуса и удаление записывает сама база данных; никто не может изменить или удалить запись.", en: "Every status change and deletion is written by the database itself; nobody can edit or delete an entry." },
+  "Желі қатесі": { ru: "Ошибка сети", en: "Network error" },
+  "Журналда әзірге жазба жоқ.": { ru: "В журнале пока нет записей.", en: "No entries yet." },
+  "Уақыты": { ru: "Время", en: "Time" },
+  "Кім": { ru: "Кто", en: "Who" },
+  "Нысан": { ru: "Объект", en: "Target" },
+  "Әрекет": { ru: "Действие", en: "Action" },
+  "Өзгеріс": { ru: "Изменение", en: "Change" },
+  "жойылды": { ru: "удалено", en: "deleted" },
+  "өзгертілді": { ru: "изменено", en: "changed" },
+  // P3.9 export gate
+  "Жүктеу үшін кіріңіз: экспорт ғалым, қызметкер немесе әкімші рөліне ғана ашық.": { ru: "Войдите, чтобы скачать: экспорт доступен только ролям учёного, сотрудника или администратора.", en: "Sign in to download: export is available to scientist, officer or admin roles only." },
+  "Экспорт тек ғалым, қызметкер немесе әкімші рөліне ашық. Рөлді әкімші береді.": { ru: "Экспорт доступен только учёным, сотрудникам и администраторам. Роль назначает администратор.", en: "Export is available to scientists, officers and admins only. Roles are granted by an admin." },
+  "Файл жасалмады": { ru: "Файл не создан", en: "File not created" },
+  "Желі қатесі — файл жасалмады": { ru: "Ошибка сети — файл не создан", en: "Network error — file not created" },
+  "Кіру": { ru: "Войти", en: "Sign in" },
   "Шағымдар дерекқоры қолжетімсіз — дерек жоқ": { ru: "База жалоб недоступна — нет данных", en: "Complaint database unavailable — no data" },
   "Шағым жіберу шегіне жеттіңіз. Бір сағаттан кейін қайталаңыз.": { ru: "Достигнут лимит жалоб. Повторите через час.", en: "Complaint limit reached. Try again in an hour." },
   "Файл пішімі жарамсыз. JPEG, PNG, WebP, MP4 немесе MOV таңдаңыз.": { ru: "Недопустимый формат файла. Выберите JPEG, PNG, WebP, MP4 или MOV.", en: "Invalid file format. Choose JPEG, PNG, WebP, MP4 or MOV." },
