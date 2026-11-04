@@ -51,7 +51,9 @@ function readOverpass(json: unknown): OverpassJson {
 }
 
 /** Total time budget for all Overpass attempts; routes run with maxDuration = 60 s. */
-export const OVERPASS_BUDGET_MS = 52_000;
+// Маршруттарда 52 с (Vercel maxDuration 60 с). Статикалық көшірме скрипті (scripts/snapshot-layers.mjs)
+// OVERPASS_BUDGET_MS арқылы ұзағырақ уақыт бере алады.
+export const OVERPASS_BUDGET_MS = Number(process.env.OVERPASS_BUDGET_MS) || 52_000;
 
 export async function fetchOverpass(query: string, budgetMs = OVERPASS_BUDGET_MS): Promise<{ json: unknown; endpoint: string }> {
   const failures: string[] = [];

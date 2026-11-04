@@ -1,0 +1,64 @@
+name: Жер пайдалану / көгалдандыру — апталық көшірме
+
+# public/data/layers/*.json — карта қабаттары CDN-нен бірден жүктелуі үшін.
+# OSM (Overpass) бір қалаға 16–36 с жұмсайды; көшірме апта сайын жаңарады.
+# Жауап толық болмаса скрипт файлды ӨЗГЕРТПЕЙДІ — ескі көшірме қалады, ойдан дерек жоқ.
+# Sentinel-2 NDVI (green-change) тек SENTINELHUB_CLIENT_ID/SECRET құпиялары бар болса жаңарады.
+
+on:
+  schedule:
+    - cron: "17 3 * * 2" # әр сейсенбі 03:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: layer-snapshots
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci --ignore-scripts
+
+      - name: OSM қабаттары
+        env:
+          OVERPASS_BUDGET_MS: "170000"
+        run: node --no-warnings --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/snapshot-layers.mjs landuse greenery
+
+      - name: Sentinel-2 NDVI (кілт бар болса)
+        if: ${{ env.SH_ID != '' }}
+        env:
+          SH_ID: ${{ secrets.SENTINELHUB_CLIENT_ID }}
+          SENTINELHUB_CLIENT_ID: ${{ secrets.SENTINELHUB_CLIENT_ID }}
+          SENTINELHUB_CLIENT_SECRET: ${{ secrets.SENTINELHUB_CLIENT_SECRET }}
+        run: node --no-warnings --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/snapshot-layers.mjs green-change
+
+      - name: Коммит (өзгеріс болса)
+        if: ${{ always() }}
+        run: |
+          # snapshot.createdAt/fetchedAt әр жолы өзгереді — тек мазмұн өзгерсе коммиттейміз
+          changed=""
+          for f in public/data/layers/*.json; do
+            if ! git diff --quiet -- "$f"; then
+              if [ "$(git show HEAD:"$f" 2>/dev/null | jq -S 'del(.snapshot,.fetchedAt,.endpoint)')" != "$(jq -S 'del(.snapshot,.fetchedAt,.endpoint)' "$f")" ]; then
+                changed="$changed $f"
+              else
+                git checkout -- "$f"
+              fi
+            fi
+          done
+          if [ -z "$changed" ]; then echo "Мазмұн өзгермеді"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $changed
+          git commit -m "Карта қабаттарының апталық көшірмесі жаңартылды"
+          git push origin HEAD:${GITHUB_REF_NAME}

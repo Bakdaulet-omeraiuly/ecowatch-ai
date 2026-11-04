@@ -487,7 +487,11 @@ export function useReedHabitat(enabled: boolean) {
 }
 
 // Әр дереккөздің күйі бөлек; аймақ ауысқаннан кейін ескі дерек көрсетілмейді.
-function useGreenSource<T>(enabled: boolean, path: string) {
+/**
+ * `snapshot` берілсе — алдымен статикалық көшірме (public/data/layers/<snapshot>-<region>.json,
+ * scripts/snapshot-layers.mjs, CDN-нен бірден), ол жоқ/бұзық болса ғана тірі API.
+ */
+function useGreenSource<T>(enabled: boolean, path: string, snapshot?: string) {
   const region = useRegion();
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [data, setData] = useState<T | null>(null);
@@ -495,7 +499,13 @@ function useGreenSource<T>(enabled: boolean, path: string) {
   useEffect(() => {
     if (!enabled || loadedFor === region.id) return;
     const controller = new AbortController();
-    fetch(`${path}?region=${region.id}`, { signal: controller.signal })
+    const live = () => fetch(`${path}?region=${region.id}`, { signal: controller.signal });
+    const first = snapshot
+      ? fetch(`/data/layers/${snapshot}-${region.id}.json`, { signal: controller.signal })
+          .then((r) => (r.ok ? r : live()))
+          .catch((e) => (controller.signal.aborted ? Promise.reject(e) : live()))
+      : live();
+    first
       .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
       .then(({ ok, d }) => {
         if (controller.signal.aborted) return;
@@ -510,17 +520,17 @@ function useGreenSource<T>(enabled: boolean, path: string) {
         setLoadedFor(region.id);
       });
     return () => controller.abort();
-  }, [enabled, loadedFor, region.id, path]);
+  }, [enabled, loadedFor, region.id, path, snapshot]);
   return { data: loadedFor === region.id ? data : null, error: loadedFor === region.id ? error : null };
 }
 
 export function useGreenery(enabled: boolean) {
-  const { data, error } = useGreenSource<GreeneryData>(enabled, "/api/greenery");
+  const { data, error } = useGreenSource<GreeneryData>(enabled, "/api/greenery", "greenery");
   return { osm: data, osmError: error };
 }
 
 export function useGreenChange(enabled: boolean) {
-  const { data, error } = useGreenSource<GreenChangeData>(enabled, "/api/green-change");
+  const { data, error } = useGreenSource<GreenChangeData>(enabled, "/api/green-change", "green-change");
   return { change: data, changeError: error };
 }
 
@@ -532,7 +542,7 @@ export type LanduseData = import("@/lib/osmLanduse").LanduseSummary & {
 };
 
 export function useLanduse(enabled: boolean) {
-  const { data, error } = useGreenSource<LanduseData>(enabled, "/api/landuse");
+  const { data, error } = useGreenSource<LanduseData>(enabled, "/api/landuse", "landuse");
   return { landuse: data, landuseError: error };
 }
 
