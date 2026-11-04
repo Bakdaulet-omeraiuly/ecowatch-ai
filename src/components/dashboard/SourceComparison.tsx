@@ -44,26 +44,26 @@ export function SourceComparison() {
   }, []);
 
   return (
-    <Card className="border-white/10 bg-white/[0.03]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm text-white">
-          <TierBadge tier="model" />
+        <CardTitle className="flex items-center gap-2 text-sm text-neutral-900">
+          <TierBadge tone="light" tier="model" />
           {tr("Дереккөздерді салыстыру — Атырау")}
         </CardTitle>
-        <p className="text-[13px] text-neutral-400">
+        <p className="text-[13px] text-neutral-600">
           {tr("Біздің модель (CAMS) мен нақты жердегі датчик (Qazhydromet) — қатар")}
         </p>
       </CardHeader>
       <CardContent>
         {loading ? (
-          <div className="flex items-center gap-2 py-4 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-4 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-3">
             {/* CAMS моделі */}
-            <div className="rounded-lg border border-sky-500/30 bg-white/[0.02] p-3">
-              <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-sky-300">
+            <div className="rounded-lg border border-sky-300 bg-neutral-50 p-3">
+              <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-sky-800">
                 <Satellite className="h-3.5 w-3.5" /> {tr("Модель · CAMS")}
               </div>
               {cams?.aqi != null ? (
@@ -71,25 +71,25 @@ export function SourceComparison() {
                   <span className="text-2xl font-bold" style={{ color: aqiCategory(cams.aqi).color }}>
                     {Math.round(cams.aqi)}
                   </span>
-                  <span className="ml-1 text-[13px] text-neutral-400">
+                  <span className="ml-1 text-[13px] text-neutral-600">
                     EU AQI · {tr(aqiCategory(cams.aqi).name)}
                   </span>
                 </div>
               ) : (
-                <p className="mb-2 text-[13px] text-neutral-400">{tr("Қолжетімсіз")}</p>
+                <p className="mb-2 text-[13px] text-neutral-600">{tr("Қолжетімсіз")}</p>
               )}
-              <div className="space-y-0.5 text-[13px] text-neutral-300">
-                {cams?.so2 != null && <div className="flex justify-between"><span className="text-neutral-400">SO₂</span><span>{cams.so2.toFixed(1)}</span></div>}
-                {cams?.no2 != null && <div className="flex justify-between"><span className="text-neutral-400">NO₂</span><span>{cams.no2.toFixed(1)}</span></div>}
-                {cams?.pm2_5 != null && <div className="flex justify-between"><span className="text-neutral-400">PM₂.₅</span><span>{cams.pm2_5.toFixed(1)}</span></div>}
-                {cams?.pm10 != null && <div className="flex justify-between"><span className="text-neutral-400">PM₁₀</span><span>{cams.pm10.toFixed(1)}</span></div>}
+              <div className="space-y-0.5 text-[13px] text-neutral-700">
+                {cams?.so2 != null && <div className="flex justify-between"><span className="text-neutral-600">SO₂</span><span>{cams.so2.toFixed(1)}</span></div>}
+                {cams?.no2 != null && <div className="flex justify-between"><span className="text-neutral-600">NO₂</span><span>{cams.no2.toFixed(1)}</span></div>}
+                {cams?.pm2_5 != null && <div className="flex justify-between"><span className="text-neutral-600">PM₂.₅</span><span>{cams.pm2_5.toFixed(1)}</span></div>}
+                {cams?.pm10 != null && <div className="flex justify-between"><span className="text-neutral-600">PM₁₀</span><span>{cams.pm10.toFixed(1)}</span></div>}
               </div>
-              <p className="mt-1.5 text-[12px] text-neutral-400">µg/m³ · {tr("~11км орташа")}</p>
+              <p className="mt-1.5 text-[12px] text-neutral-600">µg/m³ · {tr("~11км орташа")}</p>
             </div>
 
             {/* Qazhydromet нақты датчик */}
-            <div className="rounded-lg border border-emerald-500/30 bg-white/[0.02] p-3">
-              <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-300">
+            <div className="rounded-lg border border-emerald-300 bg-neutral-50 p-3">
+              <div className="mb-2 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-800">
                 <Radio className="h-3.5 w-3.5" /> {tr("Датчик · Qazhydromet")}
               </div>
               {station?.found && station.aqi != null ? (
@@ -98,23 +98,23 @@ export function SourceComparison() {
                     <span className="text-2xl font-bold" style={{ color: usAqiColor(station.aqi) }}>
                       {station.aqi}
                     </span>
-                    <span className="ml-1 text-[13px] text-neutral-400">
+                    <span className="ml-1 text-[13px] text-neutral-600">
                       US AQI · {tr(usAqiName(station.aqi))}
                     </span>
                   </div>
-                  <div className="space-y-0.5 text-[13px] text-neutral-300">
-                    {station.iaqi?.so2 != null && <div className="flex justify-between"><span className="text-neutral-400">SO₂</span><span>{station.iaqi.so2}</span></div>}
-                    {station.iaqi?.no2 != null && <div className="flex justify-between"><span className="text-neutral-400">NO₂</span><span>{station.iaqi.no2}</span></div>}
-                    {station.iaqi?.pm25 != null && <div className="flex justify-between"><span className="text-neutral-400">PM₂.₅</span><span>{station.iaqi.pm25}</span></div>}
-                    {station.iaqi?.pm10 != null && <div className="flex justify-between"><span className="text-neutral-400">PM₁₀</span><span>{station.iaqi.pm10}</span></div>}
+                  <div className="space-y-0.5 text-[13px] text-neutral-700">
+                    {station.iaqi?.so2 != null && <div className="flex justify-between"><span className="text-neutral-600">SO₂</span><span>{station.iaqi.so2}</span></div>}
+                    {station.iaqi?.no2 != null && <div className="flex justify-between"><span className="text-neutral-600">NO₂</span><span>{station.iaqi.no2}</span></div>}
+                    {station.iaqi?.pm25 != null && <div className="flex justify-between"><span className="text-neutral-600">PM₂.₅</span><span>{station.iaqi.pm25}</span></div>}
+                    {station.iaqi?.pm10 != null && <div className="flex justify-between"><span className="text-neutral-600">PM₁₀</span><span>{station.iaqi.pm10}</span></div>}
                   </div>
-                  <p className="mt-1.5 text-[12px] text-neutral-400">
+                  <p className="mt-1.5 text-[12px] text-neutral-600">
                     {tr("AQI индексі")} · {station.station}
                     {station.time ? ` · ${station.time.slice(11, 16)}` : ""}
                   </p>
                 </>
               ) : (
-                <p className="text-[13px] text-neutral-400">
+                <p className="text-[13px] text-neutral-600">
                   {tr("Нақты датчик қолжетімсіз (WAQI_TOKEN керек) — жалған дерек көрсетілмейді.")}
                 </p>
               )}
@@ -123,7 +123,7 @@ export function SourceComparison() {
         )}
 
         {!loading && (
-          <p className="mt-2 text-[12px] leading-snug text-neutral-400">
+          <p className="mt-2 text-[12px] leading-snug text-neutral-600">
             {tr("Ескерту: EU AQI мен US AQI — бөлек шкала. Датчик нүктелік нақты өлшеу, модель ~11км орташа — сондықтан сандар әрдайым бірдей емес.")}
           </p>
         )}

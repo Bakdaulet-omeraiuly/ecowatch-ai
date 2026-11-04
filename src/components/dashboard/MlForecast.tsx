@@ -61,21 +61,21 @@ export function MlForecast() {
   const aqiMetrics = data?.model.metrics["european_aqi"];
 
   return (
-    <Card className="border-white/10 bg-white/[0.02]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm text-white">
-          <TierBadge tier="model" />
-          <BrainCircuit className="h-4 w-4 text-violet-400" />
+        <CardTitle className="flex items-center gap-2 text-sm text-neutral-900">
+          <TierBadge tone="light" tier="model" />
+          <BrainCircuit className="h-4 w-4 text-violet-800" />
           {tr("JAIYQ-ML — 11 күндік ауа сапасы болжамы")}
           <button
             onClick={() => setShowInfo((v) => !v)}
-            className="ml-auto rounded p-1 text-neutral-400 transition hover:bg-white/5 hover:text-white"
+            className="ml-auto rounded p-1 text-neutral-600 transition hover:bg-neutral-100 hover:text-brand"
             aria-label={tr("Модель туралы")}
           >
             <Info className="h-3.5 w-3.5" />
           </button>
         </CardTitle>
-        <p className="text-[13px] text-neutral-400">
+        <p className="text-[13px] text-neutral-600">
           {tr("Метеорологиядан оқытылған модель — CAMS-тың 5 күндік шегінен әрі жалғастырады")}
         </p>
       </CardHeader>
@@ -83,41 +83,41 @@ export function MlForecast() {
         {missing ? (
           <ModuleMissing module="mlForecast" region={region} />
         ) : loading ? (
-          <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-6 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>
         ) : error || !data ? (
           <div className="space-y-2 py-3">
-            <p className="text-sm text-neutral-300">{tr(error?.msg ?? "Қолжетімсіз")}</p>
+            <p className="text-sm text-neutral-700">{tr(error?.msg ?? "Қолжетімсіз")}</p>
             {error?.detail && (
-              <p className="text-[13px] leading-relaxed text-neutral-400">{error.detail}</p>
+              <p className="text-[13px] leading-relaxed text-neutral-600">{error.detail}</p>
             )}
           </div>
         ) : (
           <>
             {showInfo && (
-              <div className="mb-3 space-y-1 rounded-lg border border-white/10 bg-black/30 p-3 text-[13px] leading-relaxed text-neutral-300">
+              <div className="mb-3 space-y-1 rounded-lg border border-neutral-300 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700">
                 <p>
-                  <span className="text-neutral-400">{tr("Модель")}:</span>{" "}
+                  <span className="text-neutral-600">{tr("Модель")}:</span>{" "}
                   {data.model.name} v{data.model.version} · {data.model.features} {tr("белгі")} ·{" "}
                   {data.model.trees["european_aqi"]} {tr("ағаш")}
                 </p>
                 <p>
-                  <span className="text-neutral-400">{tr("Оқыту кезеңі")}:</span>{" "}
+                  <span className="text-neutral-600">{tr("Оқыту кезеңі")}:</span>{" "}
                   {data.model.trainPeriod.start} … {data.model.trainPeriod.end} (
                   {data.model.trainPeriod.hours.toLocaleString("kk-KZ")} {tr("сағат")})
                 </p>
                 {aqiMetrics && (
                   <p>
-                    <span className="text-neutral-400">{tr("Дәлдік (тексеру жиыны)")}:</span>{" "}
+                    <span className="text-neutral-600">{tr("Дәлдік (тексеру жиыны)")}:</span>{" "}
                     MAE {aqiMetrics.model.mae} (
                     {tr("маусымдық климатология")} {aqiMetrics.climatologyBaseline.mae}) ·{" "}
                     {tr("шеберлік")}{" "}
                     {aqiMetrics.skill != null ? `+${Math.round(aqiMetrics.skill * 100)}%` : "—"}
                   </p>
                 )}
-                <p className="text-amber-300/80">⚠ {tr(data.disclaimer)}</p>
-                <p className="text-neutral-400">{data.source}</p>
+                <p className="text-amber-800">⚠ {tr(data.disclaimer)}</p>
+                <p className="text-neutral-600">{data.source}</p>
               </div>
             )}
 
@@ -129,15 +129,15 @@ export function MlForecast() {
                     <stop offset="100%" stopColor="#a78bfa" stopOpacity={0.04} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="rgba(255,255,255,0.06)" vertical={false} />
+                <CartesianGrid stroke="#e5e5e5" vertical={false} />
                 <XAxis
                   dataKey="date" tickFormatter={fmtDay}
-                  tick={{ fontSize: 10, fill: "#a3a3a3" }} axisLine={false} tickLine={false}
+                  tick={{ fontSize: 10, fill: "#525252" }} axisLine={false} tickLine={false}
                 />
-                <YAxis tick={{ fontSize: 10, fill: "#a3a3a3" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#525252" }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: "#171717", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: "#fff" }}
+                  contentStyle={{ background: "#ffffff", border: "1px solid #d4d4d4", borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: "#1f2933" }}
                   labelFormatter={(v) => fmtDay(String(v))}
                   formatter={(v, n) => [v, n === "aqiAvg" ? tr("орташа AQI") : tr("ең жоғары AQI")]}
                 />
@@ -152,7 +152,7 @@ export function MlForecast() {
               </AreaChart>
             </ResponsiveContainer>
 
-            <p className="mt-2 text-[12px] leading-relaxed text-neutral-400">
+            <p className="mt-2 text-[12px] leading-relaxed text-neutral-600">
               {data.camsAvailable
                 ? tr("Сары сызықтан кейінгі күндер — CAMS болжамы жетпейтін аймақ, тек модель бағалауы.")
                 : tr("CAMS салыстыруы қазір қолжетімсіз — тек модель бағалауы көрсетілген.")}

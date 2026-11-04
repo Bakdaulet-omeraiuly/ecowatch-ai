@@ -54,8 +54,8 @@ export function liveStatus(alert: Alert): AlertStatus {
 }
 
 export const STATUS_UI: Record<AlertStatus, { label: string; cls: string }> = {
-  sent: { label: "Жіберілді", cls: "bg-sky-500/15 text-sky-300" },
-  acknowledged: { label: "Қабылданды", cls: "bg-amber-500/15 text-amber-300" },
-  inspecting: { label: "Тексеруде", cls: "bg-orange-500/15 text-orange-300" },
-  resolved: { label: "Шешілді", cls: "bg-emerald-500/15 text-emerald-300" },
+  sent: { label: "Жіберілді", cls: "bg-sky-50 text-sky-800" },
+  acknowledged: { label: "Қабылданды", cls: "bg-amber-50 text-amber-800" },
+  inspecting: { label: "Тексеруде", cls: "bg-orange-50 text-orange-800" },
+  resolved: { label: "Шешілді", cls: "bg-emerald-50 text-emerald-800" },
 };

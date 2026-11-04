@@ -42,9 +42,9 @@ const fmt = (v: number | null, d = 1) =>
   v == null ? "—" : v.toLocaleString("kk-KZ", { minimumFractionDigits: d, maximumFractionDigits: d });
 
 const STATUS: Record<Zone["status"], { label: string; cls: string }> = {
-  ok: { label: "өлшенді", cls: "text-emerald-300" },
-  "no-baseline": { label: "тірек кезең жоқ", cls: "text-amber-300" },
-  "no-data": { label: "спутник өтуі жоқ", cls: "text-neutral-400" },
+  ok: { label: "өлшенді", cls: "text-emerald-800" },
+  "no-baseline": { label: "тірек кезең жоқ", cls: "text-amber-800" },
+  "no-data": { label: "спутник өтуі жоқ", cls: "text-neutral-600" },
 };
 
 export function FloodExtent() {
@@ -73,21 +73,21 @@ export function FloodExtent() {
   }, [region.id, missing, loadedFor]);
 
   return (
-    <Card className="border-white/10 bg-white/[0.02]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm text-white">
-          <TierBadge tier="measurement" />
-          <Waves className="h-4 w-4 text-sky-400" />
+        <CardTitle className="flex items-center gap-2 text-sm text-neutral-900">
+          <TierBadge tone="light" tier="measurement" />
+          <Waves className="h-4 w-4 text-sky-800" />
           {tr("Су басқан аумақ — Sentinel-1 радары")}
           <button
             onClick={() => setShowMethod((v) => !v)}
-            className="ml-auto rounded p-1 text-neutral-400 transition hover:bg-white/5 hover:text-white"
+            className="ml-auto rounded p-1 text-neutral-600 transition hover:bg-neutral-100 hover:text-brand"
             aria-label={tr("Әдіс туралы")}
           >
             <Info className="h-3.5 w-3.5" />
           </button>
         </CardTitle>
-        <p className="text-[13px] text-neutral-400">
+        <p className="text-[13px] text-neutral-600">
           {tr("Радар бұлт пен түнді елемейді — тасқынды нақты өлшейді")}
         </p>
       </CardHeader>
@@ -96,26 +96,26 @@ export function FloodExtent() {
         {missing ? (
           <ModuleMissing module="floodExtent" region={region} />
         ) : loading ? (
-          <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-6 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Спутник деректері өңделуде…")}
           </div>
         ) : error || !data ? (
-          <p className="py-4 text-sm text-neutral-400">{tr(error ?? "Қолжетімсіз")}</p>
+          <p className="py-4 text-sm text-neutral-600">{tr(error ?? "Қолжетімсіз")}</p>
         ) : (
           <>
             {showMethod && (
-              <div className="mb-3 space-y-1.5 rounded-lg border border-white/10 bg-black/30 p-3 text-[13px] leading-relaxed text-neutral-300">
+              <div className="mb-3 space-y-1.5 rounded-lg border border-neutral-300 bg-neutral-50 p-3 text-[13px] leading-relaxed text-neutral-700">
                 <p>{data.method.summary}</p>
-                <p className="text-sky-200/80">{data.method.deltaExplanation}</p>
-                <p className="text-neutral-400">
+                <p className="text-sky-800">{data.method.deltaExplanation}</p>
+                <p className="text-neutral-600">
                   {tr("Ажыратымдылық")}: {data.method.resolutionM} м ·{" "}
                   {tr("табалдырық")}: {data.method.thresholdDb} дБ
                 </p>
-                <p className="text-neutral-400">
+                <p className="text-neutral-600">
                   {tr("Тірек кезең")}: {data.method.baselineWindow.label}
                 </p>
-                <p className="text-neutral-400">{data.source}</p>
-                <ul className="mt-2 space-y-1 border-t border-white/10 pt-2 text-amber-200/70">
+                <p className="text-neutral-600">{data.source}</p>
+                <ul className="mt-2 space-y-1 border-t border-neutral-300 pt-2 text-amber-800">
                   {data.caveats.map((c, i) => (
                     <li key={i}>⚠ {c}</li>
                   ))}
@@ -126,26 +126,26 @@ export function FloodExtent() {
             {/* Басты сан — экологқа ең керегі */}
             <div className="mb-3 flex flex-wrap items-end gap-x-6 gap-y-2">
               <div>
-                <div className="text-[12px] uppercase tracking-wide text-neutral-400">
+                <div className="text-[12px] uppercase tracking-wide text-neutral-600">
                   {tr("Су басқан аумақ")}
                 </div>
-                <div className="text-2xl font-bold text-sky-300">
+                <div className="text-2xl font-bold text-sky-800">
                   {fmt(data.totals.floodedKm2)} <span className="text-sm font-normal">км²</span>
                 </div>
               </div>
               <div>
-                <div className="text-[12px] uppercase tracking-wide text-neutral-400">
+                <div className="text-[12px] uppercase tracking-wide text-neutral-600">
                   {tr("Жалпы су беті")}
                 </div>
-                <div className="text-lg font-semibold text-neutral-200">
+                <div className="text-lg font-semibold text-neutral-900">
                   {fmt(data.totals.waterKm2)} <span className="text-xs font-normal">км²</span>
                 </div>
               </div>
               <div>
-                <div className="text-[12px] uppercase tracking-wide text-neutral-400">
+                <div className="text-[12px] uppercase tracking-wide text-neutral-600">
                   {tr("Тұрақты су (тірек)")}
                 </div>
-                <div className="text-lg font-semibold text-neutral-400">
+                <div className="text-lg font-semibold text-neutral-600">
                   {fmt(data.totals.baselineKm2)} <span className="text-xs font-normal">км²</span>
                 </div>
               </div>
@@ -153,8 +153,8 @@ export function FloodExtent() {
 
             <div className="-mx-1 overflow-x-auto">
               <table className="w-full min-w-[560px] text-left text-[13px]">
-                <thead className="text-neutral-400">
-                  <tr className="border-b border-white/10">
+                <thead className="text-neutral-600">
+                  <tr className="border-b border-neutral-300">
                     <th className="px-1 py-1.5 font-medium">{tr("Аймақ")}</th>
                     <th className="px-1 py-1.5 text-right font-medium">{tr("Су басқан")}</th>
                     <th className="px-1 py-1.5 text-right font-medium">{tr("Жалпы су")}</th>
@@ -165,22 +165,22 @@ export function FloodExtent() {
                 </thead>
                 <tbody>
                   {data.zones.map((z) => (
-                    <tr key={z.id} className="border-b border-white/5 last:border-0">
+                    <tr key={z.id} className="border-b border-neutral-300 last:border-0">
                       <td className="px-1 py-1.5">
-                        <div className="text-neutral-200">{z.name}</div>
+                        <div className="text-neutral-900">{z.name}</div>
                         <div className={`text-[12px] ${STATUS[z.status].cls}`}>
                           {tr(STATUS[z.status].label)}
                         </div>
                       </td>
-                      <td className="px-1 py-1.5 text-right font-semibold text-sky-300">
+                      <td className="px-1 py-1.5 text-right font-semibold text-sky-800">
                         {fmt(z.floodedKm2)}
                       </td>
-                      <td className="px-1 py-1.5 text-right text-neutral-300">{fmt(z.waterKm2)}</td>
-                      <td className="px-1 py-1.5 text-right text-neutral-400">{fmt(z.baselineKm2)}</td>
-                      <td className="px-1 py-1.5 text-right text-neutral-300">
+                      <td className="px-1 py-1.5 text-right text-neutral-700">{fmt(z.waterKm2)}</td>
+                      <td className="px-1 py-1.5 text-right text-neutral-600">{fmt(z.baselineKm2)}</td>
+                      <td className="px-1 py-1.5 text-right text-neutral-700">
                         {z.floodedPctOfZone == null ? "—" : `${fmt(z.floodedPctOfZone, 2)}%`}
                       </td>
-                      <td className="px-1 py-1.5 text-neutral-400">{z.latestDate ?? "—"}</td>
+                      <td className="px-1 py-1.5 text-neutral-600">{z.latestDate ?? "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -190,12 +190,12 @@ export function FloodExtent() {
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <a
                 href="/api/flood-extent?format=csv"
-                className="inline-flex items-center gap-1.5 rounded-md border border-sky-400/30 bg-sky-500/10 px-2.5 py-1.5 text-[13px] text-sky-200 transition hover:bg-sky-500/20"
+                className="inline-flex items-center gap-1.5 rounded-md border border-sky-300 bg-sky-50 px-2.5 py-1.5 text-[13px] text-sky-800 transition hover:bg-sky-100"
               >
                 <Download className="h-3.5 w-3.5" />
                 {tr("CSV жүктеу (Excel)")}
               </a>
-              <span className="inline-flex items-center gap-1 text-[12px] text-neutral-400">
+              <span className="inline-flex items-center gap-1 text-[12px] text-neutral-600">
                 <Satellite className="h-3 w-3" />
                 {data.totals.zonesOk}/{data.totals.zonesTotal} {tr("аймақ өлшенді")}
               </span>

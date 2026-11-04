@@ -79,12 +79,12 @@ export function ExceedanceLog() {
   }, [region.id, loadedFor]);
 
   return (
-    <Card className="border-white/10 bg-white/[0.02]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardHeader className="pb-2">
-        <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
-          <ScrollText className="h-4 w-4 text-red-300" />
+        <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-neutral-900">
+          <ScrollText className="h-4 w-4 text-red-800" />
           {tr("Норма асуының журналы")}
-          <span className="text-[13px] font-normal text-neutral-400">
+          <span className="text-[13px] font-normal text-neutral-600">
             · {region.name} · {tr("соңғы 30 күн")}
           </span>
           {data && data.count > 0 && (
@@ -92,27 +92,27 @@ export function ExceedanceLog() {
               href={`/api/exceedances?region=${region.id}&days=30`}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto inline-flex items-center gap-1 rounded border border-white/15 px-2 py-0.5 text-[12px] text-neutral-300 transition hover:bg-white/10"
+              className="ml-auto inline-flex items-center gap-1 rounded border border-neutral-300 px-2 py-0.5 text-[12px] text-neutral-700 transition hover:bg-neutral-100"
             >
               <Download className="h-3 w-3" /> JSON
             </a>
           )}
         </CardTitle>
-        <p className="text-[13px] leading-relaxed text-neutral-400">
+        <p className="text-[13px] leading-relaxed text-neutral-600">
           {tr("Әр асу деректің өз сағатымен тіркеледі — кейін жоғалмайды.")}
         </p>
       </CardHeader>
 
       <CardContent>
         {loading ? (
-          <div className="flex items-center gap-2 py-4 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-4 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>
         ) : err ? (
-          <div className="space-y-1.5 rounded-lg border border-amber-400/25 bg-white/[0.02] p-3">
-            <p className="text-[13px] text-amber-100">⚠ {err.error}</p>
+          <div className="space-y-1.5 rounded-lg border border-amber-300 bg-neutral-50 p-3">
+            <p className="text-[13px] text-amber-800">⚠ {err.error}</p>
             {err.reason && (
-              <p className="text-[13px] leading-relaxed text-neutral-400">{err.reason}</p>
+              <p className="text-[13px] leading-relaxed text-neutral-600">{err.reason}</p>
             )}
           </div>
         ) : data ? (
@@ -121,28 +121,28 @@ export function ExceedanceLog() {
             <div
               className={`mb-3 flex flex-wrap items-center gap-2 rounded-lg border p-2.5 ${
                 data.coverage.interrupted
-                  ? "border-amber-400/30 bg-white/[0.02]"
-                  : "border-emerald-400/25 bg-white/[0.02]"
+                  ? "border-amber-300 bg-neutral-50"
+                  : "border-emerald-300 bg-neutral-50"
               }`}
             >
               <Clock
                 className={`h-3.5 w-3.5 shrink-0 ${
-                  data.coverage.interrupted ? "text-amber-300" : "text-emerald-300"
+                  data.coverage.interrupted ? "text-amber-800" : "text-emerald-800"
                 }`}
               />
-              <span className="text-[13px] text-neutral-200">
+              <span className="text-[13px] text-neutral-900">
                 {tr("Соңғы тексеру")}:{" "}
                 {data.coverage.lastRunAt ? fmtTime(data.coverage.lastRunAt) : tr("жүрмеген")}
               </span>
-              <span className="w-full text-[12px] leading-snug text-neutral-400">
+              <span className="w-full text-[12px] leading-snug text-neutral-600">
                 {data.coverage.note}
               </span>
             </div>
 
             {data.count === 0 ? (
-              <p className="py-2 text-[13px] leading-relaxed text-neutral-300">
+              <p className="py-2 text-[13px] leading-relaxed text-neutral-700">
                 {tr("Соңғы 30 күнде тіркелген асу жоқ.")}{" "}
-                <span className="text-neutral-400">
+                <span className="text-neutral-600">
                   {tr("Бұл — тексеру жүріп тұрған кезеңге ғана қатысты (жоғарыдағы қамтуды қараңыз).")}
                 </span>
               </p>
@@ -159,22 +159,22 @@ export function ExceedanceLog() {
                   {data.summary.map((s) => (
                     <div
                       key={s.indicatorId}
-                      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border border-white/10 bg-white/[0.02] px-2.5 py-1.5"
+                      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg border border-neutral-300 bg-neutral-50 px-2.5 py-1.5"
                     >
-                      <span className="text-[13px] text-neutral-100">{s.name}</span>
+                      <span className="text-[13px] text-neutral-900">{s.name}</span>
                       {s.kzViolation && (
-                        <span className="rounded border border-red-400/40 bg-red-500/15 px-1 py-px text-[12px] text-red-200">
+                        <span className="rounded border border-red-300 bg-red-50 px-1 py-px text-[12px] text-red-800">
                           ҚР
                         </span>
                       )}
-                      <span className="ml-auto text-[13px] text-neutral-400">
+                      <span className="ml-auto text-[13px] text-neutral-600">
                         {s.hours} {tr("сағат")}
                       </span>
-                      <span className="text-[13px] font-semibold text-white">
+                      <span className="text-[13px] font-semibold text-neutral-900">
                         {tr("макс")} {s.maxValue}
                       </span>
                       {s.maxTimesOver > 0 && (
-                        <span className="text-[13px] text-red-300">
+                        <span className="text-[13px] text-red-800">
                           ×{s.maxTimesOver.toFixed(1)}
                         </span>
                       )}
@@ -183,9 +183,9 @@ export function ExceedanceLog() {
                 </div>
 
                 {/* Уақыт бойынша жазбалар */}
-                <div className="overflow-x-auto rounded-lg border border-white/10">
+                <div className="overflow-x-auto rounded-lg border border-neutral-300">
                   <table className="w-full min-w-[560px] text-left text-[13px]">
-                    <thead className="border-b border-white/10 text-neutral-400">
+                    <thead className="border-b border-neutral-300 text-neutral-600">
                       <tr>
                         <th className="px-2 py-1.5 font-medium">{tr("Оқиға уақыты")}</th>
                         <th className="px-2 py-1.5 font-medium">{tr("Көрсеткіш")}</th>
@@ -197,33 +197,33 @@ export function ExceedanceLog() {
                     </thead>
                     <tbody>
                       {(showAll ? data.records : data.records.slice(0, 15)).map((r) => (
-                        <tr key={r.id} className="border-t border-white/5">
-                          <td className="whitespace-nowrap px-2 py-1.5 font-mono text-neutral-200">
+                        <tr key={r.id} className="border-t border-neutral-300">
+                          <td className="whitespace-nowrap px-2 py-1.5 font-mono text-neutral-900">
                             {fmtTime(r.observed_hour)}
                           </td>
                           <td className="px-2 py-1.5">
-                            <span className="text-neutral-200">{r.indicator_name}</span>
+                            <span className="text-neutral-900">{r.indicator_name}</span>
                             {r.tier && (
-                              <TierBadge tier={r.tier as "measurement" | "model" | "ai"} />
+                              <TierBadge tone="light" tier={r.tier as "measurement" | "model" | "ai"} />
                             )}
                           </td>
-                          <td className="whitespace-nowrap px-2 py-1.5 text-right font-semibold text-white">
-                            {r.value} <span className="text-[12px] font-normal text-neutral-400">{r.unit}</span>
+                          <td className="whitespace-nowrap px-2 py-1.5 text-right font-semibold text-neutral-900">
+                            {r.value} <span className="text-[12px] font-normal text-neutral-600">{r.unit}</span>
                           </td>
-                          <td className="whitespace-nowrap px-2 py-1.5 text-right text-neutral-400">
+                          <td className="whitespace-nowrap px-2 py-1.5 text-right text-neutral-600">
                             {r.norm_limit ?? "—"}
                             {r.times_over != null && (
-                              <span className="ml-1 text-red-300">×{r.times_over.toFixed(1)}</span>
+                              <span className="ml-1 text-red-800">×{r.times_over.toFixed(1)}</span>
                             )}
                           </td>
-                          <td className="px-2 py-1.5 text-neutral-400">
+                          <td className="px-2 py-1.5 text-neutral-600">
                             {r.act_jurisdiction === "KZ" ? "ҚР" : r.act_jurisdiction ?? "—"}{" "}
                             {r.act_number ?? ""}
                             {r.level === "exceeded-unverified" && (
-                              <span className="ml-1 text-amber-300/80">⚠</span>
+                              <span className="ml-1 text-amber-800">⚠</span>
                             )}
                           </td>
-                          <td className="whitespace-nowrap px-2 py-1.5 font-mono text-neutral-400">
+                          <td className="whitespace-nowrap px-2 py-1.5 font-mono text-neutral-600">
                             {fmtTime(r.recorded_at)}
                           </td>
                         </tr>
@@ -235,7 +235,7 @@ export function ExceedanceLog() {
                 {data.records.length > 15 && (
                   <button
                     onClick={() => setShowAll((v) => !v)}
-                    className="mt-2 text-[13px] text-sky-300 underline-offset-2 hover:underline"
+                    className="mt-2 text-[13px] text-sky-800 underline-offset-2 hover:underline"
                   >
                     {showAll
                       ? tr("Жинау")
@@ -245,10 +245,10 @@ export function ExceedanceLog() {
               </>
             )}
 
-            <p className="mt-3 border-t border-white/10 pt-2 text-[12px] leading-relaxed text-neutral-400">
-              <b className="text-neutral-400">{tr("Оқиға уақыты")}</b> —{" "}
+            <p className="mt-3 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-neutral-600">
+              <b className="text-neutral-600">{tr("Оқиға уақыты")}</b> —{" "}
               {tr("деректің өз сағаты (CAMS сағат сайын жаңарады).")}{" "}
-              <b className="text-neutral-400">{tr("Тіркелген")}</b> —{" "}
+              <b className="text-neutral-600">{tr("Тіркелген")}</b> —{" "}
               {tr("жүйе жазып алған сәт. ⚠ белгісі — норма мәтіні расталмаған, заңдық тұжырым емес.")}
             </p>
           </>
@@ -262,11 +262,11 @@ function Stat({ label, value, bad }: { label: string; value: number; bad?: boole
   return (
     <div
       className={`rounded-lg border px-2.5 py-1.5 ${
-        bad ? "border-red-400/30 bg-red-500/10" : "border-white/10 bg-white/[0.03]"
+        bad ? "border-red-300 bg-red-50" : "border-neutral-300 bg-neutral-50"
       }`}
     >
-      <div className={`text-base font-bold ${bad ? "text-red-300" : "text-white"}`}>{value}</div>
-      <div className="text-[12px] uppercase tracking-wide text-neutral-400">{label}</div>
+      <div className={`text-base font-bold ${bad ? "text-red-800" : "text-neutral-900"}`}>{value}</div>
+      <div className="text-[12px] uppercase tracking-wide text-neutral-600">{label}</div>
     </div>
   );
 }

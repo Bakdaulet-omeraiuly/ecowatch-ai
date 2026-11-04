@@ -71,44 +71,44 @@ export function EventFeed({ limit }: { limit?: number }) {
   const shown = limit ? data?.events.slice(0, limit) : data?.events;
 
   return (
-    <Card className="border-white/10 bg-white/[0.02]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardHeader className="pb-2">
-        <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
-          <Activity className="h-4 w-4 text-neutral-300" />
+        <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-neutral-900">
+          <Activity className="h-4 w-4 text-neutral-700" />
           {tr("Оқиғалар таспасы")}
           {data && (
             <span className="flex items-center gap-1.5 text-[12px]">
               {data.bySeverity.critical > 0 && (
-                <span className="rounded-full border border-red-400/40 bg-red-500/15 px-1.5 py-0.5 text-red-200">
+                <span className="rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-red-800">
                   {data.bySeverity.critical} 🟥
                 </span>
               )}
               {data.bySeverity.warning > 0 && (
-                <span className="rounded-full border border-orange-400/30 bg-orange-500/10 px-1.5 py-0.5 text-orange-200">
+                <span className="rounded-full border border-orange-300 bg-orange-50 px-1.5 py-0.5 text-orange-800">
                   {data.bySeverity.warning} 🟧
                 </span>
               )}
             </span>
           )}
         </CardTitle>
-        <p className="text-[13px] text-neutral-400">
+        <p className="text-[13px] text-neutral-600">
           {tr("Әр оқиға — нақты дерек нүктесі, жаңалық емес")}
         </p>
       </CardHeader>
 
       <CardContent>
         {loading ? (
-          <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-6 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жиналуда…")}
           </div>
         ) : error || !data ? (
-          <p className="py-4 text-sm text-neutral-400">
+          <p className="py-4 text-sm text-neutral-600">
             {tr("Дереккөздер уақытша қолжетімсіз")}
           </p>
         ) : !shown?.length ? (
           <div className="py-4">
-            <p className="text-sm text-neutral-300">{tr("Тіркелген оқиға жоқ")}</p>
-            <p className="mt-1 text-[13px] leading-relaxed text-neutral-400">
+            <p className="text-sm text-neutral-700">{tr("Тіркелген оқиға жоқ")}</p>
+            <p className="mt-1 text-[13px] leading-relaxed text-neutral-600">
               {tr(
                 "Бұл — барлық көрсеткіш норма шегінде және жаңа детекция жоқ дегенді " +
                 "білдіреді. Дереккөз қолжетімсіз болса, ол төменде көрсетіледі."
@@ -124,27 +124,27 @@ export function EventFeed({ limit }: { limit?: number }) {
                 <li key={e.id}>
                   <button
                     onClick={() => setExpanded(open ? null : e.id)}
-                    className={`w-full rounded-r-lg border-l-2 bg-white/[0.02] px-2.5 py-2 text-left transition hover:bg-white/[0.05] ${s.border}`}
+                    className={`w-full rounded-r-lg border-l-2 bg-neutral-50 px-2.5 py-2 text-left transition hover:bg-neutral-100 ${s.border}`}
                   >
                     <div className="flex items-start gap-2">
                       <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${s.dot}`} />
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-baseline gap-x-2">
-                          <span className="text-[13px] text-neutral-100">
+                          <span className="text-[13px] text-neutral-900">
                             {e.layerEmoji} {e.title}
                           </span>
                           {e.value && (
-                            <span className="text-[13px] font-semibold text-white">{e.value}</span>
+                            <span className="text-[13px] font-semibold text-neutral-900">{e.value}</span>
                           )}
                         </div>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] text-neutral-400">
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[12px] text-neutral-600">
                           <span>{timeAgo(e.time, tr)}</span>
                           <span>·</span>
                           <span>{e.layer}</span>
                           {e.legal && (
                             <>
                               <span>·</span>
-                              <span className="inline-flex items-center gap-0.5 text-red-300/80">
+                              <span className="inline-flex items-center gap-0.5 text-red-800">
                                 <Scale className="h-2.5 w-2.5" /> {e.legal}
                               </span>
                             </>
@@ -154,16 +154,16 @@ export function EventFeed({ limit }: { limit?: number }) {
                     </div>
 
                     {open && (
-                      <div className="mt-2 space-y-1 border-t border-white/10 pt-2 text-[12px] leading-relaxed">
-                        <p className="text-neutral-300">{e.detail}</p>
-                        <p className="text-neutral-400">
+                      <div className="mt-2 space-y-1 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed">
+                        <p className="text-neutral-700">{e.detail}</p>
+                        <p className="text-neutral-600">
                           {tr("Дереккөз")}: {e.source}
                         </p>
-                        <p className="text-neutral-400">
+                        <p className="text-neutral-600">
                           {tr("Уақыты")}: {e.time.replace("T", " ").slice(0, 16)} UTC
                         </p>
                         {e.coords && (
-                          <p className="inline-flex items-center gap-1 text-neutral-400">
+                          <p className="inline-flex items-center gap-1 text-neutral-600">
                             <MapPin className="h-2.5 w-2.5" />
                             {e.coords[0].toFixed(4)}, {e.coords[1].toFixed(4)}
                           </p>
@@ -178,7 +178,7 @@ export function EventFeed({ limit }: { limit?: number }) {
         )}
 
         {data && (data.missingModules?.length ?? 0) > 0 && (
-          <p className="mt-2.5 border-t border-white/10 pt-2 text-[12px] leading-relaxed text-neutral-400">
+          <p className="mt-2.5 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-neutral-600">
             {region.name} {tr("үшін әлі жоқ модульдер")}:{" "}
             {data.missingModules!.map((m) => m.name).join(", ")}.{" "}
             {tr("Олар бойынша оқиға шықпайды — бұл «оқиға болмады» дегенді білдірмейді.")}
@@ -186,7 +186,7 @@ export function EventFeed({ limit }: { limit?: number }) {
         )}
 
         {data && data.unavailable.length > 0 && (
-          <p className="mt-2.5 border-t border-white/10 pt-2 text-[12px] leading-relaxed text-amber-200/70">
+          <p className="mt-2.5 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
             ⚠ {tr("Қолжетімсіз дереккөздер")}: {data.unavailable.join(", ")}.{" "}
             {tr("Бұл тектегі оқиғалар тізімде жоқ — «бәрі тыныш» дегенді білдірмейді.")}
           </p>

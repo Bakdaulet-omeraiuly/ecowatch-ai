@@ -172,49 +172,49 @@ export default function ComparePage() {
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-4 sm:p-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <ArrowLeftRight className="h-6 w-6 text-amber-400" /> {tr("Жыл салыстыру")}
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
+          <ArrowLeftRight className="h-6 w-6 text-amber-800" /> {tr("Жыл салыстыру")}
         </h1>
-        <p className="text-sm text-neutral-400">
+        <p className="text-sm text-neutral-600">
           {tr("Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2002–2015) · NASA Landsat WELD (1984–2001)")}
         </p>
       </div>
 
       {/* Controls */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-lg bg-white/[0.03] p-3">
-          <div className="mb-1.5 text-xs text-neutral-400">{tr("Орын")}</div>
+        <div className="rounded-lg bg-neutral-50 p-3">
+          <div className="mb-1.5 text-xs text-neutral-600">{tr("Орын")}</div>
           <select
             value={spotIdx}
             onChange={(e) => setSpotIdx(Number(e.target.value))}
-            className="w-full rounded-md border border-white/10 bg-white/5 px-2 py-1.5 text-sm text-white focus:outline-none"
+            className="w-full rounded-md border border-neutral-300 bg-neutral-50 px-2 py-1.5 text-sm text-neutral-900 focus:outline-none"
           >
             {spots.map((s, i) => (
-              <option key={i} value={i} className="bg-neutral-900">{tr(s.label)}</option>
+              <option key={i} value={i} className="bg-white">{tr(s.label)}</option>
             ))}
           </select>
         </div>
-        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3">
-          <div className="mb-1.5 text-xs text-amber-400">{tr("Сол жыл")}</div>
+        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+          <div className="mb-1.5 text-xs text-amber-800">{tr("Сол жыл")}</div>
           <select
             value={leftYear}
             onChange={(e) => setLeftYear(Number(e.target.value))}
-            className="w-full rounded-md border border-amber-500/20 bg-white/5 px-2 py-1.5 text-sm text-white focus:outline-none"
+            className="w-full rounded-md border border-amber-300 bg-neutral-50 px-2 py-1.5 text-sm text-neutral-900 focus:outline-none"
           >
             {HISTORY_YEARS.map((y) => (
-              <option key={y} value={y} className="bg-neutral-900">{y}</option>
+              <option key={y} value={y} className="bg-white">{y}</option>
             ))}
           </select>
         </div>
-        <div className="rounded-lg border border-sky-500/30 bg-sky-500/5 p-3">
-          <div className="mb-1.5 text-xs text-sky-400">{tr("Оң жыл")}</div>
+        <div className="rounded-lg border border-sky-300 bg-sky-50 p-3">
+          <div className="mb-1.5 text-xs text-sky-800">{tr("Оң жыл")}</div>
           <select
             value={rightYear}
             onChange={(e) => setRightYear(Number(e.target.value))}
-            className="w-full rounded-md border border-sky-500/20 bg-white/5 px-2 py-1.5 text-sm text-white focus:outline-none"
+            className="w-full rounded-md border border-sky-300 bg-neutral-50 px-2 py-1.5 text-sm text-neutral-900 focus:outline-none"
           >
             {HISTORY_YEARS.map((y) => (
-              <option key={y} value={y} className="bg-neutral-900">{y}</option>
+              <option key={y} value={y} className="bg-white">{y}</option>
             ))}
           </select>
         </div>
@@ -223,7 +223,7 @@ export default function ComparePage() {
       {/* Split image viewer */}
       <div
         ref={containerRef}
-        className="relative select-none overflow-hidden rounded-xl border border-white/10 bg-black"
+        className="relative select-none overflow-hidden rounded-xl border border-neutral-300 bg-black"
         style={{ aspectRatio: "1 / 1", maxHeight: "70vh", cursor: mapDragging ? "grabbing" : "grab" }}
         onPointerDown={(e) => {
           const target = e.target as HTMLElement;
@@ -269,8 +269,8 @@ export default function ComparePage() {
           style={{ left: `${sliderX}%` }}
           onPointerDown={(e) => { e.preventDefault(); e.stopPropagation(); setSliderDragging(true); }}
         >
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 cursor-ew-resize items-center justify-center rounded-full border-2 border-white/80 bg-neutral-900/95 shadow-xl">
-            <ArrowLeftRight className="h-4 w-4 text-white" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex h-8 w-8 cursor-ew-resize items-center justify-center rounded-full border-2 border-white/80 bg-white/95 shadow-xl">
+            <ArrowLeftRight className="h-4 w-4 text-neutral-900" />
           </div>
         </div>
 
@@ -317,12 +317,12 @@ export default function ComparePage() {
         </div>
       </div>
 
-      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-4 text-sm text-neutral-400">
+      <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-4 text-sm text-neutral-600">
         <p>
-          <span className="font-semibold text-amber-300">2002–2015:</span> {tr("NASA MODIS Terra (250 м ажыратымдылық) — Sentinel-2 спутнигі 2015 жылға дейін болмаған, сондықтан осы дәуірдің жалғыз нақты дереккөзі.")}
+          <span className="font-semibold text-amber-800">2002–2015:</span> {tr("NASA MODIS Terra (250 м ажыратымдылық) — Sentinel-2 спутнигі 2015 жылға дейін болмаған, сондықтан осы дәуірдің жалғыз нақты дереккөзі.")}
         </p>
         <p className="mt-1">
-          <span className="font-semibold text-sky-300">2016–2025:</span> {tr("Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 м) — жыл сайынғы жазғы мозаика, бұлтсыз.")}
+          <span className="font-semibold text-sky-800">2016–2025:</span> {tr("Sentinel-2 Cloudless (EOX, ESA Copernicus, 10 м) — жыл сайынғы жазғы мозаика, бұлтсыз.")}
         </p>
       </div>
     </div>

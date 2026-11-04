@@ -100,8 +100,8 @@ const LIVE_INDICATORS = ["aqi", "pm25", "pm10", "no2", "so2", "temperature", "wi
 const WHO_PM25_DAILY = 15;
 
 const tooltipStyle = {
-  backgroundColor: "#171717",
-  border: "1px solid rgba(255,255,255,0.1)",
+  backgroundColor: "#ffffff",
+  border: "1px solid #d4d4d4",
   borderRadius: 8,
   fontSize: 12,
 };
@@ -308,28 +308,28 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">{tr("Аймақтық аналитика")}</h1>
-        <p className="text-sm text-neutral-400">{region.name} — {tr("экологиялық жағдай нақты уақытта")}</p>
+        <h1 className="text-2xl font-bold text-neutral-900">{tr("Аймақтық аналитика")}</h1>
+        <p className="text-sm text-neutral-600">{region.name} — {tr("экологиялық жағдай нақты уақытта")}</p>
       </div>
 
       {/* LIVE environmental data — Open-Meteo / Copernicus CAMS */}
-      <Card className="border-white/10 bg-white/[0.02]">
+      <Card className="border-neutral-300 bg-neutral-50">
         <CardHeader className="pb-2">
-          <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
-            <Radio className="h-4 w-4 animate-pulse text-emerald-400" />
+          <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-neutral-900">
+            <Radio className="h-4 w-4 animate-pulse text-emerald-800" />
             {tr("Тірі мониторинг — Атырау қ.")}
-            <span className="text-[12px] font-normal text-neutral-500">
+            <span className="text-[12px] font-normal text-neutral-600">
               {tr("Дереккөз: Open-Meteo + Copernicus CAMS (ЕО ресми атмосфера қызметі) · сағат сайын жаңарады")}
             </span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           {envError ? (
-            <p className="text-sm text-neutral-400">
+            <p className="text-sm text-neutral-600">
               {tr("Тірі деректер уақытша қолжетімсіз — дереккөзге қосылу мүмкін болмады. Жалған дерек көрсетілмейді.")}
             </p>
           ) : !env ? (
-            <p className="text-sm text-neutral-400">{tr("Тірі деректер жүктелуде…")}</p>
+            <p className="text-sm text-neutral-600">{tr("Тірі деректер жүктелуде…")}</p>
           ) : (
             <>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -343,36 +343,37 @@ export default function DashboardPage() {
                 return (
                   <div
                     className="mt-2 flex items-center gap-3 rounded-lg p-2.5"
-                    style={{ backgroundColor: `${cat.color}18`, border: `1px solid ${cat.color}44` }}
+                    style={{ backgroundColor: `${cat.color}18`, border: `1px solid ${cat.color}`, borderLeftWidth: 6 }}
                   >
-                    <span className="text-lg font-bold" style={{ color: cat.color }}>
+                    {/* Category colour stays on the border; text is dark for WCAG AA on a light tint */}
+                    <span className="text-lg font-bold text-neutral-900">
                       {cat.name}
                     </span>
-                    <p className="text-[13px] text-neutral-300">
-                      🩺 {cat.advice} <span className="text-neutral-400">{cat.sensitiveAdvice}</span>
+                    <p className="text-[13px] text-neutral-700">
+                      🩺 {cat.advice} <span className="text-neutral-600">{cat.sensitiveAdvice}</span>
                     </p>
                   </div>
                 );
               })()}
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <Badge kind="model">{tr("CAMS моделі")}</Badge>
-                <span className="text-[12px] text-neutral-300">{tr("EU AQI — модель, өлшем емес")}</span>
+                <span className="text-[12px] text-neutral-700">{tr("EU AQI — модель, өлшем емес")}</span>
               </div>
-              <ModelCaption fetchedAt={env.fetchedAt} unit="EU AQI" tone="dark" />
+              <ModelCaption fetchedAt={env.fetchedAt} unit="EU AQI" tone="light" />
               {/* КӨРСЕТКІШТЕР НЕНІ БІЛДІРЕДІ — плиткалар кішкентай
                   болғандықтан анықтамалар осында, толық тізіммен тұрады */}
-              <div className="mt-3 rounded-lg bg-white/[0.02] p-3">
-                <div className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-neutral-400">
+              <div className="mt-3 rounded-lg bg-neutral-50 p-3">
+                <div className="mb-1.5 text-[12px] font-semibold uppercase tracking-wide text-neutral-600">
                   {tr("Көрсеткіштер нені білдіреді")}
                 </div>
                 <div className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
                   {LIVE_INDICATORS.map((id) => (
                     <div key={id}>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[13px] font-medium text-neutral-200">
+                        <span className="text-[13px] font-medium text-neutral-900">
                           {indicatorName(id) ?? id}
                         </span>
-                        <IndicatorHelp id={id} />
+                        <IndicatorHelp id={id} tone="light" />
                       </div>
                       <IndicatorSummary id={id} />
                     </div>
@@ -381,9 +382,9 @@ export default function DashboardPage() {
               </div>
 
               <div className="mt-2.5">
-                <LevelLegend defaultOpen />
+                <LevelLegend defaultOpen tone="light" />
               </div>
-              <p className="mt-2 text-[12px] text-neutral-400">
+              <p className="mt-2 text-[12px] text-neutral-600">
                 Соңғы жаңару: {new Date(env.fetchedAt).toLocaleString("kk-KZ")} ·{" "}
                 {tr("әр көрсеткіштің жанындағы ⓘ — сол сан нені білдіретіні")}
               </p>
@@ -428,14 +429,14 @@ export default function DashboardPage() {
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi icon={MapPin} label={tr("Талданған нүктелер")} value={stats.total} color="text-sky-400" />
-        <Kpi icon={AlertTriangle} label={tr("Жоғары тәуекел")} value={stats.high} color="text-orange-400" />
-        <Kpi icon={Flag} label={tr("Тексеруге белгіленген")} value={stats.flagged} color="text-red-400" />
-        <Kpi icon={TrendingUp} label={tr("Орташа тәуекел")} value={stats.avg} color="text-emerald-400" />
+        <Kpi icon={MapPin} label={tr("Талданған нүктелер")} value={stats.total} color="text-sky-800" />
+        <Kpi icon={AlertTriangle} label={tr("Жоғары тәуекел")} value={stats.high} color="text-orange-800" />
+        <Kpi icon={Flag} label={tr("Тексеруге белгіленген")} value={stats.flagged} color="text-red-800" />
+        <Kpi icon={TrendingUp} label={tr("Орташа тәуекел")} value={stats.avg} color="text-emerald-800" />
       </div>
 
       <Tabs defaultValue="overview">
-        <TabsList className="bg-white/5">
+        <TabsList className="bg-neutral-50">
           <TabsTrigger value="overview">{tr("Шолу")}</TabsTrigger>
           <TabsTrigger value="rating">{tr("Рейтинг")}</TabsTrigger>
           <TabsTrigger value="heatmap">{tr("Жылу картасы")}</TabsTrigger>
@@ -450,10 +451,10 @@ export default function DashboardPage() {
 
           <ChartCard title={tr("Тәуекел деңгейлері бойынша")}>
             <BarChart data={riskDist}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="level" stroke="#737373" fontSize={12} />
-              <YAxis stroke="#737373" fontSize={12} allowDecimals={false} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+              <XAxis dataKey="level" stroke="#525252" fontSize={12} />
+              <YAxis stroke="#525252" fontSize={12} allowDecimals={false} />
+              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
               <Bar dataKey="count" name={tr("Нүктелер")} radius={[6, 6, 0, 0]}>
                 {riskDist.map((d, i) => <Cell key={i} fill={d.color} />)}
               </Bar>
@@ -472,10 +473,10 @@ export default function DashboardPage() {
 
           <ChartCard title={tr("Аудандар бойынша орташа тәуекел (платформа талдаулары)")}>
             <BarChart data={districtLive} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis type="number" domain={[0, 100]} stroke="#737373" fontSize={12} />
-              <YAxis type="category" dataKey="district" stroke="#737373" fontSize={11} width={90} />
-              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(255,255,255,0.04)" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+              <XAxis type="number" domain={[0, 100]} stroke="#525252" fontSize={12} />
+              <YAxis type="category" dataKey="district" stroke="#525252" fontSize={11} width={90} />
+              <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "rgba(0,0,0,0.04)" }} />
               <Bar dataKey="avgRisk" name={tr("Орташа тәуекел")} fill="#f97316" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ChartCard>
@@ -492,9 +493,9 @@ export default function DashboardPage() {
                   time: h.time.slice(5, 13).replace("T", " "),
                 }))}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="time" stroke="#737373" fontSize={10} interval={5} />
-                <YAxis stroke="#737373" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                <XAxis dataKey="time" stroke="#525252" fontSize={10} interval={5} />
+                <YAxis stroke="#525252" fontSize={12} />
                 <Tooltip contentStyle={tooltipStyle} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <ReferenceLine
@@ -509,7 +510,7 @@ export default function DashboardPage() {
               </LineChart>
             </ChartCard>
             <div className="lg:col-span-2">
-              <ModelCaption fetchedAt={env.fetchedAt} unit="µg/m³ · EU AQI" tone="dark" />
+              <ModelCaption fetchedAt={env.fetchedAt} unit="µg/m³ · EU AQI" tone="light" />
             </div>
             </>
           )}
@@ -521,9 +522,9 @@ export default function DashboardPage() {
               className="lg:col-span-2"
             >
               <AreaChart data={env.daily.map((d) => ({ ...d, date: d.date.slice(5) }))}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                <XAxis dataKey="date" stroke="#737373" fontSize={10} interval={3} />
-                <YAxis stroke="#737373" fontSize={12} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                <XAxis dataKey="date" stroke="#525252" fontSize={10} interval={3} />
+                <YAxis stroke="#525252" fontSize={12} />
                 <Tooltip contentStyle={tooltipStyle} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <ReferenceLine
@@ -537,7 +538,7 @@ export default function DashboardPage() {
               </AreaChart>
             </ChartCard>
             <div className="lg:col-span-2">
-              <ModelCaption fetchedAt={env.fetchedAt} unit="µg/m³" tone="dark" />
+              <ModelCaption fetchedAt={env.fetchedAt} unit="µg/m³" tone="light" />
             </div>
             </>
           )}
@@ -546,9 +547,9 @@ export default function DashboardPage() {
         <TabsContent value="forecast" className="mt-4 space-y-4">
           <ChartCard title={tr("Аймақтық тәуекел: тарих + 6 айлық AI болжамы")}>
             <LineChart data={forecastChart}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-              <XAxis dataKey="month" stroke="#737373" fontSize={11} />
-              <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+              <XAxis dataKey="month" stroke="#525252" fontSize={11} />
+              <YAxis domain={[0, 100]} stroke="#525252" fontSize={12} />
               <Tooltip contentStyle={tooltipStyle} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
               <Line type="monotone" dataKey="тарих" name={tr("тарих")} stroke="#38bdf8" strokeWidth={2} dot />
@@ -557,24 +558,24 @@ export default function DashboardPage() {
           </ChartCard>
           {forecast && (
             <div className="grid gap-4 lg:grid-cols-2">
-              <Card className="border-white/10 bg-white/[0.03]">
-                <CardHeader><CardTitle className="text-sm text-white">{tr("AI қорытындысы")}</CardTitle></CardHeader>
+              <Card className="border-neutral-300 bg-neutral-50">
+                <CardHeader><CardTitle className="text-sm text-neutral-900">{tr("AI қорытындысы")}</CardTitle></CardHeader>
                 <CardContent>
-                  <p className="text-sm text-neutral-300">{forecast.outlook}</p>
-                  <p className="mt-2 text-xs text-neutral-400">
-                    Тренд: <b className={forecast.trend === "degrading" ? "text-red-400" : forecast.trend === "improving" ? "text-emerald-400" : "text-amber-400"}>
+                  <p className="text-sm text-neutral-700">{forecast.outlook}</p>
+                  <p className="mt-2 text-xs text-neutral-600">
+                    Тренд: <b className={forecast.trend === "degrading" ? "text-red-800" : forecast.trend === "improving" ? "text-emerald-800" : "text-amber-800"}>
                       {forecast.trend === "degrading" ? tr("Нашарлау") : forecast.trend === "improving" ? tr("Жақсару") : tr("Тұрақты")}
                     </b>
                   </p>
                 </CardContent>
               </Card>
-              <Card className="border-white/10 bg-white/[0.03]">
-                <CardHeader><CardTitle className="text-sm text-white">{tr("Негізгі факторлар")}</CardTitle></CardHeader>
+              <Card className="border-neutral-300 bg-neutral-50">
+                <CardHeader><CardTitle className="text-sm text-neutral-900">{tr("Негізгі факторлар")}</CardTitle></CardHeader>
                 <CardContent>
                   <ul className="space-y-1.5">
                     {forecast.drivers.map((d, i) => (
-                      <li key={i} className="flex gap-2 text-sm text-neutral-300">
-                        <span className="text-orange-400">•</span> {d}
+                      <li key={i} className="flex gap-2 text-sm text-neutral-700">
+                        <span className="text-orange-800">•</span> {d}
                       </li>
                     ))}
                   </ul>
@@ -596,11 +597,11 @@ export default function DashboardPage() {
 
         <TabsContent value="mosquito" className="mt-4 space-y-4">
           {mosMissing ? (
-            <ModuleMissing module="mosquito" region={region} />
+            <ModuleMissing module="mosquito" region={region} tone="light" />
           ) : (
             <>
               <div className="mb-2">
-                <IndicatorHelp id="mri" inline />
+                <IndicatorHelp id="mri" inline tone="light" />
               </div>
 
               {/* Тасқын импульсі — модельдің ажыратқышы */}
@@ -608,31 +609,31 @@ export default function DashboardPage() {
                 <Card
                   className={
                     mosMeta.flood.available
-                      ? "border-sky-500/20 bg-white/[0.02]"
-                      : "border-amber-500/20 bg-white/[0.02]"
+                      ? "border-sky-300 bg-neutral-50"
+                      : "border-amber-300 bg-neutral-50"
                   }
                 >
                   <CardContent className="pt-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <Droplets className={`h-4 w-4 ${mosMeta.flood.available ? "text-sky-400" : "text-amber-400"}`} />
-                      <span className="text-sm font-semibold text-white">{tr("Тасқын импульсі")}</span>
+                      <Droplets className={`h-4 w-4 ${mosMeta.flood.available ? "text-sky-800" : "text-amber-800"}`} />
+                      <span className="text-sm font-semibold text-neutral-900">{tr("Тасқын импульсі")}</span>
                       {mosMeta.flood.value != null && (
-                        <span className="text-lg font-bold text-sky-300">
+                        <span className="text-lg font-bold text-sky-800">
                           {Math.round(mosMeta.flood.value * 100)}%
                         </span>
                       )}
                       {mosMeta.flood.hydroperiodDaysMax != null && (
-                        <span className="rounded border border-sky-400/25 bg-sky-500/10 px-2 py-0.5 text-[13px] text-sky-200">
+                        <span className="rounded border border-sky-300 bg-sky-50 px-2 py-0.5 text-[13px] text-sky-800">
                           {tr("гидропериод")} ≥ {mosMeta.flood.hydroperiodDaysMax} {tr("күн")}
                         </span>
                       )}
                       {mosMeta.flood.reedMax != null && (
-                        <span className="rounded border border-emerald-400/25 bg-emerald-500/10 px-2 py-0.5 text-[13px] text-emerald-200">
+                        <span className="rounded border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[13px] text-emerald-800">
                           {tr("қамыс мекені")} {Math.round(mosMeta.flood.reedMax * 100)}%
                         </span>
                       )}
                     </div>
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-400">
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-600">
                       {mosMeta.flood.note}
                     </p>
                   </CardContent>
@@ -641,20 +642,20 @@ export default function DashboardPage() {
 
               {/* Массалық шығу болжамы — модельдің ең пайдалы шығысы */}
               {mosMeta?.dyn?.emergencePeak && (
-                <Card className="border-white/10 bg-white/[0.02]">
+                <Card className="border-neutral-300 bg-neutral-50">
                   <CardContent className="pt-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-sm font-semibold text-violet-200">
+                      <span className="text-sm font-semibold text-violet-800">
                         🦟 {tr("Күтілетін массалық шығу")}:
                       </span>
-                      <span className="text-lg font-bold text-white">
+                      <span className="text-lg font-bold text-neutral-900">
                         {mosMeta.dyn.emergencePeak.date}
                       </span>
                     </div>
-                    <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-400">
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-neutral-600">
                       {mosMeta.dyn.note}
                     </p>
-                    <p className="mt-1 text-[12px] text-neutral-400">
+                    <p className="mt-1 text-[12px] text-neutral-600">
                       {tr("Динамикалық интеграция")}: {mosMeta.dyn.pointsWithOde}/{mosMeta.dyn.pointsTotal}{" "}
                       {tr("нүктеде")}
                     </p>
@@ -668,15 +669,15 @@ export default function DashboardPage() {
                   title={tr("Өткен 24 сағат + алдағы 24 сағат — JAIYQ-MRI (тор бойынша орташа)")}
                 >
                   <AreaChart data={mosHours}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
                     <XAxis
                       dataKey="time"
-                      stroke="#737373"
+                      stroke="#525252"
                       fontSize={10}
                       tickFormatter={(t: string) => (t ?? "").slice(11, 16)}
                       minTickGap={28}
                     />
-                    <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
+                    <YAxis domain={[0, 100]} stroke="#525252" fontSize={12} />
                     <Tooltip
                       contentStyle={tooltipStyle}
                       labelFormatter={(t) => String(t ?? "").replace("T", " ").slice(5, 16)}
@@ -703,23 +704,23 @@ export default function DashboardPage() {
                 title={tr("Маса индексінің 7 күндік болжамы — JAIYQ-MRI (тор бойынша орташа)")}
               >
                 <AreaChart data={mosDays ?? []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="date" stroke="#737373" fontSize={11} tickFormatter={(d: string) => d.slice(5)} />
-                  <YAxis domain={[0, 100]} stroke="#737373" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                  <XAxis dataKey="date" stroke="#525252" fontSize={11} tickFormatter={(d: string) => d.slice(5)} />
+                  <YAxis domain={[0, 100]} stroke="#525252" fontSize={12} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <ReferenceLine y={62} stroke="#f97316" strokeDasharray="6 4" label={{ value: tr("Жоғары"), fill: "#f97316", fontSize: 11 }} />
                   <Area type="monotone" dataKey="index" name={tr("Маса индексі")} stroke="#a855f7" fill="#a855f733" strokeWidth={2} />
                 </AreaChart>
               </ChartCard>
 
-              <Card className="border-white/10 bg-violet-500/5">
+              <Card className="border-neutral-300 bg-violet-50">
                 <CardContent className="pt-4">
-                  <p className="text-sm leading-relaxed text-neutral-300">
-                    🦟 <b className="text-violet-300">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
+                  <p className="text-sm leading-relaxed text-neutral-700">
+                    🦟 <b className="text-violet-800">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
                     {mosMeta?.points ?? 0} {tr("есептелген нүктенің тәуліктік орташасы.")}{" "}
                     {tr("Мамыр–шілде — Жайық тасқыны кезеңі: су басу жұмыртқа банкін жарады, сондықтан индекс сол кезде шыңға шығады.")}
                   </p>
-                  <p className="mt-2 border-t border-white/10 pt-2 text-[13px] leading-relaxed text-neutral-400">
+                  <p className="mt-2 border-t border-neutral-300 pt-2 text-[13px] leading-relaxed text-neutral-600">
                     {tr("Индекс — климаттық ҚОЛАЙЛЫЛЫҚ, маса САНЫ емес. Тұзақ деректері жоқ болғандықтан модель валидацияланбаған.")}
                   </p>
                 </CardContent>
@@ -730,45 +731,45 @@ export default function DashboardPage() {
 
         <TabsContent value="climate" className="mt-4 space-y-4">
           {!climate && !water && (
-            <p className="py-8 text-center text-sm text-neutral-400">{tr("Климат деректері жүктелуде…")}</p>
+            <p className="py-8 text-center text-sm text-neutral-600">{tr("Климат деректері жүктелуде…")}</p>
           )}
 
           {climate && (
             <>
               <div className="grid gap-3 sm:grid-cols-3">
-                <Card className="border-white/10 bg-orange-500/5">
+                <Card className="border-neutral-300 bg-orange-50">
                   <CardContent className="pt-4 text-center">
-                    <div className="text-3xl font-bold text-orange-400">+{climate.tempDelta}°C</div>
-                    <div className="mt-1 text-xs text-neutral-400">{tr("2050 жылға температура")}</div>
+                    <div className="text-3xl font-bold text-orange-800">+{climate.tempDelta}°C</div>
+                    <div className="mt-1 text-xs text-neutral-600">{tr("2050 жылға температура")}</div>
                   </CardContent>
                 </Card>
-                <Card className="border-white/10 bg-sky-500/5">
+                <Card className="border-neutral-300 bg-sky-50">
                   <CardContent className="pt-4 text-center">
-                    <div className={`text-3xl font-bold ${climate.precipDeltaPct < 0 ? "text-red-400" : "text-sky-400"}`}>
+                    <div className={`text-3xl font-bold ${climate.precipDeltaPct < 0 ? "text-red-800" : "text-sky-800"}`}>
                       {climate.precipDeltaPct > 0 ? "+" : ""}{climate.precipDeltaPct}%
                     </div>
-                    <div className="mt-1 text-xs text-neutral-400">{tr("Жауын-шашын өзгерісі")}</div>
+                    <div className="mt-1 text-xs text-neutral-600">{tr("Жауын-шашын өзгерісі")}</div>
                   </CardContent>
                 </Card>
-                <Card className="border-white/10 bg-white/[0.03]">
+                <Card className="border-neutral-300 bg-neutral-50">
                   <CardContent className="pt-4 text-center">
-                    <div className="text-lg font-bold text-white">{climate.baseline.temp}° → {climate.future.temp}°C</div>
-                    <div className="mt-1 text-xs text-neutral-400">{climate.baseline.period} → {climate.future.period}</div>
+                    <div className="text-lg font-bold text-neutral-900">{climate.baseline.temp}° → {climate.future.temp}°C</div>
+                    <div className="mt-1 text-xs text-neutral-600">{climate.baseline.period} → {climate.future.period}</div>
                   </CardContent>
                 </Card>
               </div>
 
               <ChartCard title={tr("Жылдық орташа температура: 2000–2050 (IPCC CMIP6 проекциясы)")}>
                 <LineChart data={climate.years}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="year" stroke="#737373" fontSize={10} interval={4} />
-                  <YAxis stroke="#737373" fontSize={12} unit="°" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                  <XAxis dataKey="year" stroke="#525252" fontSize={10} interval={4} />
+                  <YAxis stroke="#525252" fontSize={12} unit="°" />
                   <Tooltip contentStyle={tooltipStyle} />
                   <ReferenceLine x={2025} stroke="#a855f7" strokeDasharray="4 4" label={{ value: "бүгін", fill: "#a855f7", fontSize: 10 }} />
                   <Line type="monotone" dataKey="temp" name={tr("Орташа темп. °C")} stroke="#f97316" strokeWidth={2} dot={false} />
                 </LineChart>
               </ChartCard>
-              <p className="text-[13px] text-neutral-400">
+              <p className="text-[13px] text-neutral-600">
                 Дереккөз: Open-Meteo Climate · IPCC CMIP6 HighResMIP (MRI-AGCM3-2-S) даунскейлингі.
               </p>
             </>
@@ -776,38 +777,38 @@ export default function DashboardPage() {
 
           {water && (
             <>
-              <Card className={`${water.trend === "drying" ? "border-amber-500/30 bg-amber-500/5" : "border-sky-500/20 bg-sky-500/5"}`}>
+              <Card className={`${water.trend === "drying" ? "border-amber-300 bg-amber-50" : "border-sky-300 bg-sky-50"}`}>
                 <CardContent className="pt-4">
                   <div className="flex flex-wrap items-center gap-3">
-                    <Droplets className={`h-7 w-7 ${water.trend === "drying" ? "text-amber-400" : "text-sky-400"}`} />
+                    <Droplets className={`h-7 w-7 ${water.trend === "drying" ? "text-amber-800" : "text-sky-800"}`} />
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-white">{tr("Жер су қоры трендісі (GRACE баламасы)")}</h3>
-                      <p className="text-[13px] text-neutral-400">{tr("ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві")}</p>
+                      <h3 className="text-sm font-semibold text-neutral-900">{tr("Жер су қоры трендісі (GRACE баламасы)")}</h3>
+                      <p className="text-[13px] text-neutral-600">{tr("ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві")}</p>
                     </div>
                     <div className="text-right">
-                      <div className={`text-2xl font-bold ${water.slopePerDecadePct < 0 ? "text-amber-400" : "text-sky-400"}`}>
+                      <div className={`text-2xl font-bold ${water.slopePerDecadePct < 0 ? "text-amber-800" : "text-sky-800"}`}>
                         {water.slopePerDecadePct > 0 ? "+" : ""}{water.slopePerDecadePct}%
                       </div>
-                      <div className="text-xs text-neutral-400">{tr("онжылдықта")}</div>
+                      <div className="text-xs text-neutral-600">{tr("онжылдықта")}</div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               <ChartCard title={tr("Жер су қорының өзгерісі: 1995–қазір (ERA5 топырақ ылғалы)")}>
                 <AreaChart data={water.years}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                  <XAxis dataKey="year" stroke="#737373" fontSize={10} interval={3} />
-                  <YAxis stroke="#737373" fontSize={11} domain={["auto", "auto"]} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e5e5" />
+                  <XAxis dataKey="year" stroke="#525252" fontSize={10} interval={3} />
+                  <YAxis stroke="#525252" fontSize={11} domain={["auto", "auto"]} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Area type="monotone" dataKey="sm" name={tr("Топырақ су қоры (м³/м³)")} stroke="#38bdf8" fill="#38bdf833" strokeWidth={2} />
                 </AreaChart>
               </ChartCard>
-              <Card className="border-white/10 bg-amber-500/5">
+              <Card className="border-neutral-300 bg-amber-50">
                 <CardContent className="pt-4">
-                  <p className="text-sm text-neutral-300">
-                    💧 <b className="text-amber-300">{tr("Қорытынды:")}</b> CMIP6 моделі бойынша Атырау 2050 жылға қарай{" "}
-                    <b className="text-orange-300">+{climate?.tempDelta ?? "—"}°C</b> жылынады, ал жер су қоры соңғы
-                    онжылдықтарда <b className="text-amber-300">{water.slopePerDecadePct}%/онжылдық</b> азайып келеді
+                  <p className="text-sm text-neutral-700">
+                    💧 <b className="text-amber-800">{tr("Қорытынды:")}</b> CMIP6 моделі бойынша Атырау 2050 жылға қарай{" "}
+                    <b className="text-orange-800">+{climate?.tempDelta ?? "—"}°C</b> жылынады, ал жер су қоры соңғы
+                    онжылдықтарда <b className="text-amber-800">{water.slopePerDecadePct}%/онжылдық</b> азайып келеді
                     ({water.trend === "drying" ? "құрғау трендісі" : "тұрақты"}). Бұл — өрт, құрғақшылық пен
                     шөлейттену тәуекелін арттыратын фактор.
                   </p>
@@ -838,14 +839,14 @@ function LiveStat({
   indicatorId?: string;
 }) {
   return (
-    <div className={`rounded-lg p-2.5 ${highlight ? "bg-red-500/10" : "bg-white/5"}`}>
-      <div className="flex flex-wrap items-center gap-1 text-[12px] text-neutral-400">
+    <div className={`rounded-lg p-2.5 ${highlight ? "bg-red-50" : "bg-neutral-50"}`}>
+      <div className="flex flex-wrap items-center gap-1 text-[12px] text-neutral-600">
         {Icon && <Icon className="h-3 w-3" />} {label}
-        {indicatorId && <IndicatorHelp id={indicatorId} />}
+        {indicatorId && <IndicatorHelp id={indicatorId} tone="light" />}
       </div>
-      <div className={`text-base font-bold ${highlight ? "text-red-300" : "text-white"}`}>
+      <div className={`text-base font-bold ${highlight ? "text-red-800" : "text-neutral-900"}`}>
         {value != null ? value : "—"}
-        <span className="ml-0.5 text-[12px] font-normal text-neutral-400">{unit}</span>
+        <span className="ml-0.5 text-[12px] font-normal text-neutral-600">{unit}</span>
       </div>
     </div>
   );
@@ -862,7 +863,7 @@ function FireDangerCard({ fire }: { fire: FireData }) {
     { label: "DC", value: fire.dc, hint: tr("Құрғақшылық коды") },
   ];
   return (
-    <Card className="border-white/10 bg-white/[0.03]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardContent className="pt-5">
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <div
@@ -872,11 +873,11 @@ function FireDangerCard({ fire }: { fire: FireData }) {
             <Flame className="h-6 w-6" style={{ color: fire.dangerColor }} />
           </div>
           <div className="flex-1">
-            <h3 className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white">
+            <h3 className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-neutral-900">
               {tr("Дала/орман өрті қаупі — FWI")}
-              <IndicatorHelp id="fwi" />
+              <IndicatorHelp id="fwi" tone="light" />
             </h3>
-            <p className="text-[13px] text-neutral-400">
+            <p className="text-[13px] text-neutral-600">
               Канада FWI жүйесі (EFFIS) · {fire.spinupDays} күндік нақты ауа райынан есептелді
             </p>
           </div>
@@ -891,21 +892,21 @@ function FireDangerCard({ fire }: { fire: FireData }) {
         </div>
 
         {/* Қауіп шкаласы */}
-        <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-white/5">
+        <div className="mb-3 h-2.5 w-full overflow-hidden rounded-full bg-neutral-50">
           <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: fire.dangerColor }} />
         </div>
 
         {/* Құрамдас индекстер */}
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {components.map((c) => (
-            <div key={c.label} className="rounded-lg bg-white/[0.02] p-2.5">
-              <div className="text-base font-bold text-white">{c.value}</div>
-              <div className="text-[12px] font-medium text-neutral-300">{c.label}</div>
-              <div className="text-[12px] text-neutral-400">{c.hint}</div>
+            <div key={c.label} className="rounded-lg bg-neutral-50 p-2.5">
+              <div className="text-base font-bold text-neutral-900">{c.value}</div>
+              <div className="text-[12px] font-medium text-neutral-700">{c.label}</div>
+              <div className="text-[12px] text-neutral-600">{c.hint}</div>
             </div>
           ))}
         </div>
-        <p className="mt-2 text-[12px] text-neutral-500">
+        <p className="mt-2 text-[12px] text-neutral-600">
           Шкала: &lt;5 өте төмен · 5–11 төмен · 11–21 орташа · 21–38 жоғары · 38–50 өте жоғары · 50+ аса қауіпті
         </p>
       </CardContent>
@@ -918,7 +919,7 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
   // SPI шкаласы −3…+3 → 0–100% (көрсеткіш орналасуы)
   const pos = Math.min(100, Math.max(0, ((drought.spi + 3) / 6) * 100));
   return (
-    <Card className="border-white/10 bg-white/[0.03]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardContent className="pt-5">
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <div
@@ -928,11 +929,11 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
             <Droplets className="h-6 w-6" style={{ color: drought.droughtColor }} />
           </div>
           <div className="flex-1">
-            <h3 className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-white">
+            <h3 className="flex flex-wrap items-center gap-1.5 text-sm font-semibold text-neutral-900">
               {tr("Құрғақшылық индексі — SPI-3")}
-              <IndicatorHelp id="spi" />
+              <IndicatorHelp id="spi" tone="light" />
             </h3>
-            <p className="text-[13px] text-neutral-400">
+            <p className="text-[13px] text-neutral-600">
               McKee 1993 (WMO) · {drought.yearsOfRecord} жылдық ERA5 климатологиясы
             </p>
           </div>
@@ -951,20 +952,20 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
           style={{ background: "linear-gradient(90deg,#dc2626,#f97316,#eab308,#22c55e,#60a5fa,#1d4ed8)" }}>
           <div className="absolute top-1/2 h-4 w-1 -translate-y-1/2 rounded-full bg-white shadow" style={{ left: `${pos}%` }} />
         </div>
-        <div className="mb-3 flex justify-between text-[12px] text-neutral-400">
+        <div className="mb-3 flex justify-between text-[12px] text-neutral-600">
           <span>{tr("Құрғақ (−3)")}</span><span>{tr("Қалыпты (0)")}</span><span>{tr("Ылғалды (+3)")}</span>
         </div>
 
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-white/[0.02] p-2.5">
-            <div className="text-base font-bold text-white">{drought.precip3m} мм</div>
-            <div className="text-[12px] font-medium text-neutral-300">{tr("3-айлық жауын")}</div>
-            <div className="text-[12px] text-neutral-400">{drought.period} кезеңі</div>
+          <div className="rounded-lg bg-neutral-50 p-2.5">
+            <div className="text-base font-bold text-neutral-900">{drought.precip3m} мм</div>
+            <div className="text-[12px] font-medium text-neutral-700">{tr("3-айлық жауын")}</div>
+            <div className="text-[12px] text-neutral-600">{drought.period} кезеңі</div>
           </div>
-          <div className="rounded-lg bg-white/[0.02] p-2.5">
-            <div className="text-base font-bold text-white">{drought.yearsOfRecord}</div>
-            <div className="text-[12px] font-medium text-neutral-300">{tr("Климат жылдары")}</div>
-            <div className="text-[12px] text-neutral-400">{tr("ERA5 архиві")}</div>
+          <div className="rounded-lg bg-neutral-50 p-2.5">
+            <div className="text-base font-bold text-neutral-900">{drought.yearsOfRecord}</div>
+            <div className="text-[12px] font-medium text-neutral-700">{tr("Климат жылдары")}</div>
+            <div className="text-[12px] text-neutral-600">{tr("ERA5 архиві")}</div>
           </div>
         </div>
       </CardContent>
@@ -974,12 +975,12 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
 
 function Kpi({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: number; color: string }) {
   return (
-    <Card className="border-white/10 bg-white/[0.03]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardContent className="flex items-center gap-3 pt-4">
         <Icon className={`h-7 w-7 ${color}`} />
         <div>
-          <div className="text-2xl font-bold text-white">{value}</div>
-          <div className="text-xs text-neutral-400">{label}</div>
+          <div className="text-2xl font-bold text-neutral-900">{value}</div>
+          <div className="text-xs text-neutral-600">{label}</div>
         </div>
       </CardContent>
     </Card>
@@ -1020,32 +1021,32 @@ function DistrictRating({ allSites, env }: { allSites: { district: string; analy
   return (
     <div className="space-y-4">
       {aqi != null && (
-        <Card className="border-white/10 bg-sky-500/5">
+        <Card className="border-neutral-300 bg-sky-50">
           <CardContent className="pt-4">
-            <p className="text-sm text-neutral-300">
+            <p className="text-sm text-neutral-700">
               Қазіргі Атырау EU AQI:{" "}
-              <span className={`font-bold ${aqi > 50 ? "text-orange-400" : "text-emerald-400"}`}>{aqi}</span>
+              <span className={`font-bold ${aqi > 50 ? "text-orange-800" : "text-emerald-800"}`}>{aqi}</span>
               {" "}— Copernicus CAMS моделі бойынша (өлшем емес).
             </p>
           </CardContent>
         </Card>
       )}
-      <Card className="border-white/10 bg-white/[0.03]">
+      <Card className="border-neutral-300 bg-neutral-50">
         <CardHeader>
-          <CardTitle className="text-sm text-white">{tr("Аудандардың эко-рейтингі")}</CardTitle>
+          <CardTitle className="text-sm text-neutral-900">{tr("Аудандардың эко-рейтингі")}</CardTitle>
         </CardHeader>
         <CardContent>
           {byDistrict.filter((d) => d.avg !== null).length === 0 ? (
-            <p className="text-sm text-neutral-400">
+            <p className="text-sm text-neutral-600">
               Аудандар бойынша деректер жоқ. Картада аудандарды талдасаңыз, рейтинг осында жаңарады.
             </p>
           ) : (
             <div className="space-y-2">
               {byDistrict.map((d, i) => (
                 <div key={d.name} className="flex items-center gap-3">
-                  <span className="w-5 text-right text-xs text-neutral-400">{i + 1}</span>
-                  <span className="w-40 truncate text-sm text-neutral-300">{d.name}</span>
-                  <div className="flex-1 overflow-hidden rounded-full bg-white/5">
+                  <span className="w-5 text-right text-xs text-neutral-600">{i + 1}</span>
+                  <span className="w-40 truncate text-sm text-neutral-700">{d.name}</span>
+                  <div className="flex-1 overflow-hidden rounded-full bg-neutral-50">
                     <div
                       className="h-2 rounded-full transition-all"
                       style={{
@@ -1060,14 +1061,14 @@ function DistrictRating({ allSites, env }: { allSites: { district: string; analy
                   >
                     {d.avg ?? "—"}
                   </span>
-                  <span className="text-xs text-neutral-500">({d.count} талдау)</span>
+                  <span className="text-xs text-neutral-600">({d.count} талдау)</span>
                 </div>
               ))}
             </div>
           )}
         </CardContent>
       </Card>
-      <p className="text-xs text-neutral-400">
+      <p className="text-xs text-neutral-600">
         Рейтинг платформаның өз AI талдауларынан есептеледі. Картада аудандарды нүктелесеңіз, рейтинг
         нақты деректермен толығады. Балл — 0 (таза) – 100 (критикалық).
       </p>
@@ -1102,7 +1103,7 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
   }, [allSites]);
 
   function cellColor(score: number | null) {
-    if (score === null) return "bg-white/5";
+    if (score === null) return "bg-neutral-50";
     if (score >= 70) return "bg-red-500";
     if (score >= 50) return "bg-orange-500";
     if (score >= 30) return "bg-amber-500";
@@ -1114,13 +1115,13 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
 
   return (
     <div className="space-y-4">
-      <Card className="border-white/10 bg-white/[0.03]">
+      <Card className="border-neutral-300 bg-neutral-50">
         <CardHeader>
-          <CardTitle className="text-sm text-white">{tr("Апталық тәуекел жылу картасы — соңғы 12 апта")}</CardTitle>
+          <CardTitle className="text-sm text-neutral-900">{tr("Апталық тәуекел жылу картасы — соңғы 12 апта")}</CardTitle>
         </CardHeader>
         <CardContent>
           {allSites.length === 0 ? (
-            <p className="text-sm text-neutral-400">
+            <p className="text-sm text-neutral-600">
               Деректер жоқ. Картада нүктелерді AI талдасаңыз, жылу картасы толығады.
             </p>
           ) : (
@@ -1138,13 +1139,13 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
                   </div>
                 ))}
               </div>
-              <div className="mt-3 flex items-center gap-3 text-[13px] text-neutral-400">
+              <div className="mt-3 flex items-center gap-3 text-[13px] text-neutral-600">
                 <span>{tr("Тәуекел деңгейі:")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-emerald-500 inline-block" />{tr("Төмен")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-amber-500 inline-block" />{tr("Орташа")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-orange-500 inline-block" />{tr("Жоғары")}</span>
                 <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-red-500 inline-block" />{tr("Критикалық")}</span>
-                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-white/5 inline-block" />{tr("Деректер жоқ")}</span>
+                <span className="flex items-center gap-1"><span className="h-3 w-3 rounded-sm bg-neutral-50 inline-block" />{tr("Деректер жоқ")}</span>
               </div>
             </>
           )}
@@ -1156,8 +1157,8 @@ function WeeklyHeatmap({ allSites }: { allSites: { createdAt: string; analysis: 
 
 function ChartCard({ title, children, className = "" }: { title: string; children: React.ReactElement; className?: string }) {
   return (
-    <Card className={`border-white/10 bg-white/[0.03] ${className}`}>
-      <CardHeader className="pb-2"><CardTitle className="text-sm text-white">{title}</CardTitle></CardHeader>
+    <Card className={`border-neutral-300 bg-neutral-50 ${className}`}>
+      <CardHeader className="pb-2"><CardTitle className="text-sm text-neutral-900">{title}</CardTitle></CardHeader>
       <CardContent className="h-64">
         <ResponsiveContainer width="100%" height="100%">{children}</ResponsiveContainer>
       </CardContent>

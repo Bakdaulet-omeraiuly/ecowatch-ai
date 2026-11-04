@@ -5,7 +5,8 @@ import { Scale, Loader2, ChevronDown, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
 import { TierBadge, type Tier } from "@/components/ui/TierBadge";
-import { LEVEL_COLOR, LEVEL_KZ, LEVEL_MEANING, type ComplianceLevel } from "@/lib/compliance";
+import { LEVEL_KZ, LEVEL_MEANING, type ComplianceLevel } from "@/lib/compliance";
+import { LEVEL_COLOR_LIGHT as LEVEL_COLOR } from "@/components/ui/compliancePresentation";
 import { IndicatorHelp } from "@/components/ui/IndicatorHelp";
 import { LevelLegend } from "@/components/ui/LevelLegend";
 import { useRegion } from "@/store/useRegionStore";
@@ -97,45 +98,45 @@ export function LegalAlerts() {
     <Card
       className={
         data?.kzViolations
-          ? "border-red-500/40 bg-white/[0.02]"
-          : "border-white/10 bg-white/[0.02]"
+          ? "border-red-300 bg-neutral-50"
+          : "border-neutral-300 bg-neutral-50"
       }
     >
       <CardHeader className="pb-2">
-        <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-white">
-          <Scale className="h-4 w-4 text-neutral-300" />
+        <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-neutral-900">
+          <Scale className="h-4 w-4 text-neutral-700" />
           {tr("Заңнамалық сәйкестік")}
           {data ? (
             data.kzViolations > 0 ? (
-              <span className="rounded-full border border-red-400/40 bg-red-500/15 px-2 py-0.5 text-[12px] font-semibold text-red-200">
+              <span className="rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-[12px] font-semibold text-red-800">
                 {data.kzViolations} {tr("норма асқан")}
               </span>
             ) : (data.exceededAny ?? 0) > 0 ? (
               // ҚР нормасы асқан жоқ, бірақ WHO/EU эталонынан асу бар.
               // Бұрын мұнда жасыл «расталған асу жоқ» деп тұратын, ал
               // төменде PM₂.₅ қызыл «НОРМА АСҚАН» болып, қайшы шығатын.
-              <span className="rounded-full border border-amber-400/35 bg-amber-500/12 px-2 py-0.5 text-[12px] text-amber-200">
+              <span className="rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[12px] text-amber-800">
                 {tr("ҚР нормасы асқан жоқ")} · {data.exceededAny} {tr("WHO/EU эталонынан асу")}
               </span>
             ) : (
-              <span className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-0.5 text-[12px] text-emerald-200">
+              <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-[12px] text-emerald-800">
                 {tr("расталған асу жоқ")}
               </span>
             )
           ) : null}
         </CardTitle>
-        <p className="text-[13px] text-neutral-400">
+        <p className="text-[13px] text-neutral-600">
           {tr("ҚР гигиеналық нормативтері · WHO 2021 · EU 2008/50/EC")}
         </p>
       </CardHeader>
 
       <CardContent>
         {loading ? (
-          <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-6 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Нормалармен салыстырылуда…")}
           </div>
         ) : error || !data ? (
-          <p className="py-4 text-sm text-neutral-400">
+          <p className="py-4 text-sm text-neutral-600">
             {tr("Тірі дерек қолжетімсіз — салыстыру жүргізілмеді")}
           </p>
         ) : (
@@ -154,43 +155,43 @@ export function LegalAlerts() {
 
             <div className="space-y-1.5">
               {sorted.map((r) => (
-                <div key={r.indicatorId} className="rounded-lg border border-white/10 bg-black/20">
+                <div key={r.indicatorId} className="rounded-lg border border-neutral-300 bg-neutral-50">
                   <button
                     onClick={() => setOpen(open === r.indicatorId ? null : r.indicatorId)}
-                    className="flex w-full items-center gap-2 px-2.5 py-2 text-left transition hover:bg-white/[0.03]"
+                    className="flex w-full items-center gap-2 px-2.5 py-2 text-left transition hover:bg-neutral-100"
                   >
                     <span
                       className={`shrink-0 rounded border px-1.5 py-0.5 text-[12px] font-medium ${LEVEL_COLOR[r.worst]}`}
                     >
                       {tr(LEVEL_KZ[r.worst])}
                     </span>
-                    <span className="min-w-0 flex-1 truncate text-[13px] text-neutral-100">
+                    <span className="min-w-0 flex-1 truncate text-[13px] text-neutral-900">
                       {r.name}
                     </span>
-                    <span className="shrink-0 text-[13px] font-semibold text-white">
+                    <span className="shrink-0 text-[13px] font-semibold text-neutral-900">
                       {r.value == null ? "—" : r.value}
-                      <span className="ml-0.5 text-[12px] font-normal text-neutral-400">{r.unit}</span>
+                      <span className="ml-0.5 text-[12px] font-normal text-neutral-600">{r.unit}</span>
                     </span>
                     <ChevronDown
-                      className={`h-3 w-3 shrink-0 text-neutral-400 transition-transform ${
+                      className={`h-3 w-3 shrink-0 text-neutral-600 transition-transform ${
                         open === r.indicatorId ? "rotate-180" : ""
                       }`}
                     />
                   </button>
 
                   {open === r.indicatorId && (
-                    <div className="space-y-2 border-t border-white/10 px-2.5 py-2 text-[13px]">
+                    <div className="space-y-2 border-t border-neutral-300 px-2.5 py-2 text-[13px]">
                       <div className="flex flex-wrap items-center gap-2">
-                        <TierBadge tier={r.tier} />
-                        <span className="text-neutral-300">{r.summary}</span>
+                        <TierBadge tone="light" tier={r.tier} />
+                        <span className="text-neutral-700">{r.summary}</span>
                       </div>
 
                       {/* Деңгейдің НАҚТЫ мағынасы және одан шығатын әрекет */}
-                      <div className="rounded-lg border border-white/10 bg-white/[0.02] p-2">
-                        <p className="text-[12px] leading-relaxed text-neutral-300">
+                      <div className="rounded-lg border border-neutral-300 bg-neutral-50 p-2">
+                        <p className="text-[12px] leading-relaxed text-neutral-700">
                           {LEVEL_MEANING[r.worst].full}
                         </p>
-                        <p className="mt-1 text-[12px] leading-relaxed text-neutral-400">
+                        <p className="mt-1 text-[12px] leading-relaxed text-neutral-600">
                           → {LEVEL_MEANING[r.worst].action}
                         </p>
                       </div>
@@ -199,7 +200,7 @@ export function LegalAlerts() {
                       <IndicatorHelp id={r.indicatorId} inline />
 
                       <table className="w-full text-left">
-                        <thead className="text-neutral-400">
+                        <thead className="text-neutral-600">
                           <tr>
                             <th className="py-1 pr-2 font-medium">{tr("Норма")}</th>
                             <th className="py-1 pr-2 font-medium">{tr("Орташалау")}</th>
@@ -209,24 +210,24 @@ export function LegalAlerts() {
                         </thead>
                         <tbody>
                           {r.checks.map((c, i) => (
-                            <tr key={i} className="border-t border-white/5">
+                            <tr key={i} className="border-t border-neutral-300">
                               <td className="py-1 pr-2">
-                                <span className="text-neutral-200">
+                                <span className="text-neutral-900">
                                   {c.act.jurisdiction === "KZ" ? "ҚР" : c.act.jurisdiction}
                                 </span>
                                 {c.norm.status !== "verified" && (
-                                  <span className="ml-1 text-amber-300/80" title={c.norm.statusNote}>
+                                  <span className="ml-1 text-amber-800" title={c.norm.statusNote}>
                                     ⚠
                                   </span>
                                 )}
                               </td>
-                              <td className="py-1 pr-2 text-neutral-400">{c.averagingKz}</td>
-                              <td className="py-1 pr-2 text-right text-neutral-300">
+                              <td className="py-1 pr-2 text-neutral-600">{c.averagingKz}</td>
+                              <td className="py-1 pr-2 text-right text-neutral-700">
                                 {c.norm.limit} {c.norm.unit}
                               </td>
                               <td
                                 className={`py-1 text-right font-medium ${
-                                  c.ratio == null ? "text-neutral-400" : c.ratio > 1 ? "text-red-300" : c.ratio >= 0.8 ? "text-amber-300" : "text-emerald-300"
+                                  c.ratio == null ? "text-neutral-600" : c.ratio > 1 ? "text-red-800" : c.ratio >= 0.8 ? "text-amber-800" : "text-emerald-800"
                                 }`}
                               >
                                 {c.ratio == null ? tr(LEVEL_KZ["not-comparable"]) : `${Math.round(c.ratio * 100)}%`}
@@ -236,7 +237,7 @@ export function LegalAlerts() {
                         </tbody>
                       </table>
 
-                      <div className="space-y-0.5 border-t border-white/10 pt-1.5 text-[12px] text-neutral-400">
+                      <div className="space-y-0.5 border-t border-neutral-300 pt-1.5 text-[12px] text-neutral-600">
                         {[...new Map(r.checks.map((c) => [c.act.number, c.act])).values()].map((a) => (
                           <div key={a.number}>
                             {a.url ? (
@@ -244,7 +245,7 @@ export function LegalAlerts() {
                                 href={a.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sky-300/80 underline-offset-2 hover:underline"
+                                className="text-sky-800 underline-offset-2 hover:underline"
                               >
                                 {a.number} — {a.title} <ExternalLink className="inline h-2 w-2" />
                               </a>
@@ -262,21 +263,21 @@ export function LegalAlerts() {
 
             {/* ЖИНАҚТАЛУ ӘСЕРІ — ҚР ДСМ-70, 3-кесте */}
             {data.summation && (
-              <div className="mt-3 rounded-lg border border-white/10 bg-black/20 p-2.5">
+              <div className="mt-3 rounded-lg border border-neutral-300 bg-neutral-50 p-2.5">
                 <div className="mb-1 flex flex-wrap items-center gap-1.5">
-                  <span className="text-[13px] font-semibold text-neutral-100">
+                  <span className="text-[13px] font-semibold text-neutral-900">
                     {tr("Жинақталу әсері")}
                   </span>
-                  <code className="rounded bg-white/5 px-1 py-px text-[12px] text-emerald-200">
+                  <code className="rounded bg-neutral-50 px-1 py-px text-[12px] text-emerald-800">
                     {data.summation.source.formula}
                   </code>
                   {data.summation.violations > 0 && (
-                    <span className="rounded-full border border-red-400/40 bg-red-500/15 px-1.5 py-0.5 text-[12px] font-semibold text-red-200">
+                    <span className="rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[12px] font-semibold text-red-800">
                       {data.summation.violations} {tr("бұзушылық")}
                     </span>
                   )}
                 </div>
-                <p className="mb-1.5 text-[12px] leading-relaxed text-neutral-400">
+                <p className="mb-1.5 text-[12px] leading-relaxed text-neutral-600">
                   {data.summation.explain}
                 </p>
 
@@ -284,32 +285,32 @@ export function LegalAlerts() {
                   {data.summation.groups
                     .filter((g) => g.complete)
                     .map((g) => (
-                      <div key={g.groupNo} className="rounded border border-white/10 bg-white/[0.02] px-2 py-1.5">
+                      <div key={g.groupNo} className="rounded border border-neutral-300 bg-neutral-50 px-2 py-1.5">
                         <div className="flex flex-wrap items-center gap-1.5">
                           <span className={`rounded border px-1 py-px text-[12px] ${LEVEL_COLOR[g.level]}`}>
                             {tr(LEVEL_KZ[g.level])}
                           </span>
-                          <span className="text-[12px] text-neutral-400">
+                          <span className="text-[12px] text-neutral-600">
                             {tr("топ")} №{g.groupNo}
                           </span>
-                          <span className="ml-auto text-[13px] font-bold text-white">
+                          <span className="ml-auto text-[13px] font-bold text-neutral-900">
                             Σ = {g.sum}
                           </span>
                         </div>
-                        <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[12px] text-neutral-400">
+                        <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[12px] text-neutral-600">
                           {g.components.map((c) => (
                             <span key={c.id}>
                               {c.name.split(" ")[0]}{" "}
-                              <span className="text-neutral-200">
+                              <span className="text-neutral-900">
                                 {c.ratio != null ? c.ratio.toFixed(2) : "—"}
                               </span>
-                              {!c.normVerified && <span className="text-amber-300/80"> ⚠</span>}
+                              {!c.normVerified && <span className="text-amber-800"> ⚠</span>}
                             </span>
                           ))}
                         </div>
-                        <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-400">{g.summary}</p>
+                        <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-600">{g.summary}</p>
                         {g.dominanceNote && (
-                          <p className="mt-0.5 text-[12px] leading-relaxed text-sky-200/70">
+                          <p className="mt-0.5 text-[12px] leading-relaxed text-sky-800">
                             ℹ {g.dominanceNote}
                           </p>
                         )}
@@ -318,7 +319,7 @@ export function LegalAlerts() {
                 </div>
 
                 {data.summation.computable === 0 && (
-                  <p className="text-[12px] leading-relaxed text-neutral-400">
+                  <p className="text-[12px] leading-relaxed text-neutral-600">
                     {tr(
                       "Толық есептелетін топ жоқ — кестедегі топтардың көбі жүйеде " +
                       "өлшенбейтін заттарды қамтиды (күкіртсутек, фенол, формальдегид). " +
@@ -327,13 +328,13 @@ export function LegalAlerts() {
                   </p>
                 )}
 
-                <p className="mt-1.5 border-t border-white/10 pt-1.5 text-[12px] leading-relaxed text-neutral-400">
+                <p className="mt-1.5 border-t border-neutral-300 pt-1.5 text-[12px] leading-relaxed text-neutral-600">
                   {data.summation.source.act} · {data.summation.source.amendment} ·{" "}
                   <a
                     href={data.summation.source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sky-300/80 underline-offset-2 hover:underline"
+                    className="text-sky-800 underline-offset-2 hover:underline"
                   >
                     {data.summation.source.registration}
                   </a>
@@ -347,12 +348,12 @@ export function LegalAlerts() {
               <LevelLegend />
             </div>
 
-            <p className="mt-3 border-t border-white/10 pt-2 text-[12px] leading-relaxed text-amber-200/70">
+            <p className="mt-3 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
               ⚖ {data.results[0]?.disclaimer}
             </p>
             <a
               href="/legislation"
-              className="mt-1.5 inline-block text-[12px] text-sky-300 underline-offset-2 hover:underline"
+              className="mt-1.5 inline-block text-[12px] text-sky-800 underline-offset-2 hover:underline"
             >
               {tr("Заңнама және норма тізілімі")} →
             </a>
@@ -365,11 +366,11 @@ export function LegalAlerts() {
 
 function Mini({ label, value, bad, warn }: { label: string; value: string; bad?: boolean; warn?: boolean }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-black/20 px-2.5 py-1.5">
-      <div className="text-[12px] uppercase tracking-wide text-neutral-400">{label}</div>
+    <div className="rounded-lg border border-neutral-300 bg-neutral-50 px-2.5 py-1.5">
+      <div className="text-[12px] uppercase tracking-wide text-neutral-600">{label}</div>
       <div
         className={`text-base font-bold ${
-          bad ? "text-red-300" : warn ? "text-amber-300" : "text-white"
+          bad ? "text-red-800" : warn ? "text-amber-800" : "text-neutral-900"
         }`}
       >
         {value}

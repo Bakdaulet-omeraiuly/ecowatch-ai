@@ -15,7 +15,7 @@ import { FULL_VIEWPORT_ROUTES } from "@/components/layout/AppFrame";
 // ішкі `mt-*` шегінісі орамнан сыртқа «ағып» шықпайды.
 // Бет жаңа дизайнға қолмен көшірілгенде — оның жолын NEW_DESIGN тізіміне қос.
 // Map and object descendants now use the same light palette as the homepage.
-const NEW_DESIGN = new Set<string>(["/", "/validation", "/map"]);
+const NEW_DESIGN = new Set<string>(["/", "/validation", "/map", "/dashboard", "/compare", "/alerts"]);
 
 export function ScaleScope({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();

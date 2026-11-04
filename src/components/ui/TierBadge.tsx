@@ -67,12 +67,12 @@ export function TierBadge({ tier, className = "", tone = "dark" }: { tier: Tier;
 }
 
 /** Үш деңгейді бірден түсіндіретін шартты белгі (легенда). */
-export function TierLegend({ className = "" }: { className?: string }) {
+export function TierLegend({ className = "", tone = "dark" }: { className?: string; tone?: "light" | "dark" }) {
   return (
-    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] text-neutral-400 ${className}`}>
+    <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] ${tone === "light" ? "text-neutral-700" : "text-neutral-400"} ${className}`}>
       {(Object.keys(TIERS) as Tier[]).map((k) => (
         <span key={k} className="inline-flex items-center gap-1.5">
-          <TierBadge tier={k} />
+          <TierBadge tier={k} tone={tone} />
           <span className="hidden sm:inline">{TIERS[k].title.split(".")[0]}</span>
         </span>
       ))}

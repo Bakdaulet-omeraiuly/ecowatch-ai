@@ -11,9 +11,9 @@ interface Factor { label: string; detail: string; severity: "ok" | "warn" | "bad
 interface WhyData { verdict: string; aqi: number | null; summary: string; factors: Factor[] }
 
 const SEV = {
-  ok: { cls: "text-emerald-300 border-emerald-500/30 bg-white/[0.02]", Icon: CheckCircle2 },
-  warn: { cls: "text-amber-300 border-amber-500/30 bg-white/[0.02]", Icon: Wind },
-  bad: { cls: "text-red-300 border-red-500/30 bg-white/[0.02]", Icon: AlertTriangle },
+  ok: { cls: "text-emerald-800 border-emerald-300 bg-neutral-50", Icon: CheckCircle2 },
+  warn: { cls: "text-amber-800 border-amber-300 bg-neutral-50", Icon: Wind },
+  bad: { cls: "text-red-800 border-red-300 bg-neutral-50", Icon: AlertTriangle },
 };
 
 export function WhyButton() {
@@ -45,43 +45,43 @@ export function WhyButton() {
   };
 
   return (
-    <Card className="border-white/10 bg-white/[0.02]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardContent className="pt-4">
         {!open ? (
           <button
             onClick={ask}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-violet-500/40 bg-violet-500/15 px-4 py-3 text-sm font-semibold text-violet-100 transition-colors hover:bg-violet-500/25"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-violet-300 bg-violet-50 px-4 py-3 text-sm font-semibold text-violet-800 transition-colors hover:bg-violet-100"
           >
             <Sparkles className="h-4 w-4" /> {tr("Неге бүгін ауа осындай? — AI түсіндірмесі")}
           </button>
         ) : (
           <div>
-            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-violet-200">
+            <div className="mb-2 flex items-center gap-2 text-sm font-semibold text-violet-800">
               <Sparkles className="h-4 w-4" /> {tr("AI түсіндірмесі")} — {region.name}
             </div>
             {loading ? (
-              <div className="flex items-center gap-2 py-2 text-sm text-neutral-400">
+              <div className="flex items-center gap-2 py-2 text-sm text-neutral-600">
                 <Loader2 className="h-4 w-4 animate-spin" /> {tr("Талдануда…")}
               </div>
             ) : error ? (
-              <p className="text-sm text-neutral-400">
+              <p className="text-sm text-neutral-600">
                 {tr("Тірі деректер уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
               </p>
             ) : fresh ? (
               <>
-                <p className="mb-3 text-sm leading-relaxed text-neutral-200">{fresh.summary}</p>
+                <p className="mb-3 text-sm leading-relaxed text-neutral-900">{fresh.summary}</p>
                 <div className="space-y-1.5">
                   {fresh.factors.map((f, i) => {
                     const s = SEV[f.severity];
                     return (
                       <div key={i} className={`flex items-start gap-2 rounded-md border px-2.5 py-1.5 text-xs ${s.cls}`}>
                         <s.Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <span><span className="font-semibold">{f.label}</span> — <span className="text-neutral-300">{f.detail}</span></span>
+                        <span><span className="font-semibold">{f.label}</span> — <span className="text-neutral-700">{f.detail}</span></span>
                       </div>
                     );
                   })}
                 </div>
-                <p className="mt-2 text-[12px] text-neutral-400">
+                <p className="mt-2 text-[12px] text-neutral-600">
                   {tr("Барлық сан нақты өлшенген (Open-Meteo + CAMS). AI тек түсіндіреді, дерек ойлап таппайды.")}
                 </p>
               </>
@@ -89,7 +89,7 @@ export function WhyButton() {
               // Қала ауысты — ескі жауап жарамсыз, қайта сұрау керек
               <button
                 onClick={ask}
-                className="rounded-lg border border-violet-500/40 bg-violet-500/15 px-3 py-1.5 text-xs text-violet-100 transition-colors hover:bg-violet-500/25"
+                className="rounded-lg border border-violet-300 bg-violet-50 px-3 py-1.5 text-xs text-violet-800 transition-colors hover:bg-violet-100"
               >
                 {region.name} {tr("бойынша сұрау")}
               </button>

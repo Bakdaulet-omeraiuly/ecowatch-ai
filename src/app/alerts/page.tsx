@@ -33,19 +33,19 @@ export default function AlertsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-white">
-          <BellRing className="h-6 w-6 text-red-400" /> {tr("Хабарлау орталығы")}
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
+          <BellRing className="h-6 w-6 text-red-800" /> {tr("Хабарлау орталығы")}
         </h1>
-        <p className="text-sm text-neutral-400">
+        <p className="text-sm text-neutral-600">
           {tr("Тәуекелі жоғары нүктелер бойынша жауапты органдарға автоматты жіберілген хабарламалар")}
         </p>
       </div>
 
       <div className="grid grid-cols-4 gap-2">
         {PIPELINE.map((st) => (
-          <Card key={st} className="border-white/10 bg-white/[0.03]">
+          <Card key={st} className="border-neutral-300 bg-neutral-50">
             <CardContent className="pt-3 pb-3 text-center">
-              <div className="text-xl font-bold text-white">{counts[st]}</div>
+              <div className="text-xl font-bold text-neutral-900">{counts[st]}</div>
               <div className={`mx-auto mt-1 w-fit rounded-full px-2 py-0.5 text-[12px] ${STATUS_UI[st].cls}`}>
                 {tr(STATUS_UI[st].label)}
               </div>
@@ -55,7 +55,7 @@ export default function AlertsPage() {
       </div>
 
       {all.length === 0 && (
-        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-10 text-center text-sm text-neutral-400">
+        <div className="rounded-xl border border-neutral-300 bg-neutral-50 p-10 text-center text-sm text-neutral-600">
           {tr("Әзірге ескертулер жоқ. Картада талдау жасаңыз — тәуекелі жоғары (55+) нүктелер бойынша хабарламалар осында автоматты пайда болады.")}
         </div>
       )}
@@ -72,7 +72,7 @@ export default function AlertsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: Math.min(i * 0.05, 0.5) }}
             >
-              <Card className="border-white/10 bg-white/[0.03]">
+              <Card className="border-neutral-300 bg-neutral-50">
                 <CardContent className="space-y-3 pt-4">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
@@ -89,8 +89,8 @@ export default function AlertsPage() {
                           {tr(STATUS_UI[status].label)}
                         </span>
                       </div>
-                      <h3 className="mt-1.5 text-sm font-semibold text-white">{alert.siteName}</h3>
-                      <p className="flex items-center gap-1 text-xs text-neutral-400">
+                      <h3 className="mt-1.5 text-sm font-semibold text-neutral-900">{alert.siteName}</h3>
+                      <p className="flex items-center gap-1 text-xs text-neutral-600">
                         <MapPin className="h-3 w-3" /> {alert.lat.toFixed(4)}, {alert.lng.toFixed(4)} ·{" "}
                         {new Date(alert.createdAt).toLocaleDateString("kk-KZ")}
                       </p>
@@ -102,11 +102,11 @@ export default function AlertsPage() {
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 rounded-lg bg-white/5 p-2.5 text-xs text-neutral-300">
-                    <Building2 className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <div className="flex items-center gap-2 rounded-lg bg-neutral-50 p-2.5 text-xs text-neutral-700">
+                    <Building2 className="h-4 w-4 shrink-0 text-emerald-800" />
                     <div>
-                      <b className="text-white">{alert.recipient}</b>
-                      <div className="text-neutral-400">{alert.reason}</div>
+                      <b className="text-neutral-900">{alert.recipient}</b>
+                      <div className="text-neutral-600">{alert.reason}</div>
                     </div>
                   </div>
 
@@ -116,13 +116,13 @@ export default function AlertsPage() {
                       <div key={st} className="flex flex-1 items-center gap-1">
                         <div
                           className={`h-1.5 flex-1 rounded-full ${
-                            idx <= stepIdx ? "bg-emerald-500" : "bg-white/10"
+                            idx <= stepIdx ? "bg-emerald-500" : "bg-neutral-100"
                           }`}
                         />
                       </div>
                     ))}
                   </div>
-                  <div className="flex justify-between text-[12px] text-neutral-400">
+                  <div className="flex justify-between text-[12px] text-neutral-600">
                     <span className="flex items-center gap-1">
                       <Send className="h-3 w-3" /> {tr("Жіберілді")}
                     </span>
@@ -137,7 +137,7 @@ export default function AlertsPage() {
         })}
       </div>
 
-      <p className="text-center text-[13px] text-neutral-500">
+      <p className="text-center text-[13px] text-neutral-600">
         {tr("Демо режимі: хабарламалар жүйе ішінде модельденеді. Өндірісте — e-eGov / email / Telegram интеграциясы арқылы нақты жіберіледі.")}
       </p>
     </div>

@@ -40,17 +40,17 @@ export function WaterTrend() {
   }, [region.id, missing, loadedFor]);
 
   const TrendIcon = data?.trend === "азайды" ? TrendingDown : data?.trend === "артты" ? TrendingUp : Minus;
-  const trendCls = data?.trend === "азайды" ? "text-red-300" : data?.trend === "артты" ? "text-sky-300" : "text-neutral-300";
+  const trendCls = data?.trend === "азайды" ? "text-red-800" : data?.trend === "артты" ? "text-sky-800" : "text-neutral-700";
 
   return (
-    <Card className="border-white/10 bg-white/[0.02]">
+    <Card className="border-neutral-300 bg-neutral-50">
       <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm text-white">
-          <TierBadge tier="model" />
-          <Waves className="h-4 w-4 text-emerald-400" />
+        <CardTitle className="flex items-center gap-2 text-sm text-neutral-900">
+          <TierBadge tone="light" tier="model" />
+          <Waves className="h-4 w-4 text-emerald-800" />
           {data ? `${tr("Су деңгейінің өзгерісі")} — ${data.river} (2020→${tr("қазір")})` : tr("Су деңгейінің өзгерісі — өзен ағыны")}
         </CardTitle>
-        <p className="text-[13px] text-neutral-400">
+        <p className="text-[13px] text-neutral-600">
           {tr("Жылдық орташа өзен ағыны — GloFAS (Copernicus)")}
         </p>
       </CardHeader>
@@ -58,11 +58,11 @@ export function WaterTrend() {
         {missing ? (
           <ModuleMissing module="riverFlow" region={region} />
         ) : loading ? (
-          <div className="flex items-center gap-2 py-6 text-sm text-neutral-400">
+          <div className="flex items-center gap-2 py-6 text-sm text-neutral-600">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}
           </div>
         ) : error || !data ? (
-          <p className="py-4 text-sm text-neutral-400">
+          <p className="py-4 text-sm text-neutral-600">
             {tr("Су деректері уақытша қолжетімсіз — жалған дерек көрсетілмейді.")}
           </p>
         ) : (
@@ -72,17 +72,17 @@ export function WaterTrend() {
               <span className={`text-lg font-bold ${trendCls}`}>
                 {data.changePct > 0 ? "+" : ""}{data.changePct}%
               </span>
-              <span className="text-xs text-neutral-400">
+              <span className="text-xs text-neutral-600">
                 {tr("2020-дан бері ағын")} {tr(data.trend)}
               </span>
             </div>
             <ResponsiveContainer width="100%" height={160}>
               <BarChart data={data.yearly} margin={{ top: 4, right: 4, bottom: 0, left: -18 }}>
-                <XAxis dataKey="year" tick={{ fontSize: 10, fill: "#a3a3a3" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "#a3a3a3" }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="year" tick={{ fontSize: 10, fill: "#525252" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#525252" }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ background: "#171717", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: "#fff" }}
+                  contentStyle={{ background: "#ffffff", border: "1px solid #d4d4d4", borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: "#1f2933" }}
                   formatter={(v) => [`${v} ${data.unit}`, tr("ағын")]}
                 />
                 <Bar dataKey="discharge" radius={[3, 3, 0, 0]}>
@@ -92,7 +92,7 @@ export function WaterTrend() {
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <p className="mt-1 text-[12px] text-neutral-400">
+            <p className="mt-1 text-[12px] text-neutral-600">
               {tr("river_discharge (m³/s) — өзен деңгейі/көлемінің нақты прокси-көрсеткіші. Дереккөз: GloFAS.")}
             </p>
           </>
