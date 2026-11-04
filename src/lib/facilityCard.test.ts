@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Facility } from "@/data/facilities";
+import { FACILITIES, type Facility } from "@/data/facilities";
 import { buildFacilityCard, DEREK_JOQ } from "@/lib/facilityCard";
 
 const base: Facility = {
@@ -88,4 +88,23 @@ describe("P2.1: координата дереккөзінің күні — ой�
     expect(c.sourceDate.value).toBe("2025-06-01");
     expect(c.missing).not.toContain("sourceDate");
   });
+});
+
+describe("АМӨЗ: шығарынды есептері — нақты мен лимит бөлек", () => {
+  const card = buildFacilityCard(FACILITIES.find((f) => f.id === "anpz")!);
+  it("нақты масса — тек 2022, баспасөз қызметінің саны", () => {
+    expect(card.emissionMass.value).toMatchObject({ value: 10412, unit: "т", period: "2022" });
+  });
+  it("лимиттер бөлек өрісте, 2022 лимиті 19 066 т; нақты/лимит ≈ 55% («45% аз» сәйкес)", () => {
+    const l2022 = card.emissionLimits.find((l) => l.period === "2022")!;
+    expect(l2022.value).toBeCloseTo(19066.316, 3);
+    expect(Math.round((10412 / l2022.value) * 100)).toBe(55);
+  });
+  it("зат бойынша лимиттердің қосындысы НДВ жиынтығына жуық (16 219 т; негізгі 14 заттың үлесі)", () => {
+    const sum = card.substanceLimits.reduce((a, s) => a + s.amount, 0);
+    expect(sum).toBeLessThanOrEqual(16219.133);
+    expect(sum).toBeGreaterThan(15000);
+    expect(card.substances).toHaveLength(0); // лимит «заттар» (нақты) тізіміне түспейді
+  });
+  it("шығарынды көздері 288", () => expect(card.emissionSources.value?.count).toBe(288));
 });

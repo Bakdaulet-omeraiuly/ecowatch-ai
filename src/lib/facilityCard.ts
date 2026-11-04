@@ -37,6 +37,9 @@ export interface FacilityCard {
   emissionMass: CardField<{ value: number; unit: string; period: string } & Cited>;
   /** Дереккөзі мен күні бар заттар ғана */
   substances: ({ name: string; amount: number; unit: string; period: string } & Cited)[];
+  /** Рұқсат етілген лимиттер — нақты шығарынды ЕМЕС (бөлек көрсетіледі) */
+  emissionLimits: ({ period: string; value: number; unit: string } & Cited)[];
+  substanceLimits: ({ name: string; amount: number; unit: string; period: string } & Cited)[];
   monitoringPosts: ({ name: string } & Cited)[];
   verifiedEvents: ({ description: string } & Cited)[];
   /** Координата дереккөзі (атауы) */
@@ -73,6 +76,10 @@ export function buildFacilityCard(fac: Facility): FacilityCard {
   const substances = (r.substances ?? []).filter(
     (s) => hasCitation(s) && Number.isFinite(s.amount) && s.unit && s.period && s.name
   );
+  const emissionLimits = (r.emissionLimits ?? []).filter((l) => hasCitation(l) && Number.isFinite(l.value) && l.unit && l.period);
+  const substanceLimits = (r.substanceLimits ?? []).filter(
+    (s) => hasCitation(s) && Number.isFinite(s.amount) && s.unit && s.period && s.name
+  );
   const monitoringPosts = (r.monitoringPosts ?? []).filter((m) => hasCitation(m) && m.name);
   const verifiedEvents = (r.verifiedEvents ?? []).filter((e) => hasCitation(e) && e.description);
 
@@ -95,6 +102,8 @@ export function buildFacilityCard(fac: Facility): FacilityCard {
       ? { value: { value: mass.value, unit: mass.unit, period: mass.period, source: mass.source, date: mass.date }, label: "" }
       : { value: null, label: DEREK_JOQ },
     substances,
+    emissionLimits,
+    substanceLimits,
     monitoringPosts,
     verifiedEvents,
     source: field(coordSource),

@@ -73,6 +73,43 @@ export function FacilityCardView({ card, compact = false }: { card: FacilityCard
         )}
       </div>
 
+      {card.emissionLimits.length > 0 && (
+        <div>
+          <div className="text-[12px] font-semibold uppercase tracking-wider text-neutral-600">{tr("Рұқсат етілген шығарынды (лимит)")}</div>
+          <p className="text-[12px] text-amber-800">{tr("Бұл — рұқсат етілген шек, нақты шығарынды ЕМЕС.")}</p>
+          <ul className="mt-1 space-y-0.5">
+            {card.emissionLimits.map((l, i) => {
+              const actual = card.emissionMass.value && card.emissionMass.value.period === l.period ? card.emissionMass.value : null;
+              return (
+                <li key={i}>
+                  <span className="tabular-nums">{l.period}: {l.value.toLocaleString("ru-RU")} {l.unit}</span>
+                  {actual && (
+                    <strong className="ml-1">
+                      · {tr("нақты")} {actual.value.toLocaleString("ru-RU")} {actual.unit} = {Math.round((actual.value / l.value) * 100)}% {tr("лимиттің")}
+                    </strong>
+                  )}{" "}
+                  · {cite(l)}
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {card.substanceLimits.length > 0 && (
+        <details>
+          <summary className="cursor-pointer text-[12px] font-semibold uppercase tracking-wider text-neutral-600">
+            {tr("Зат бойынша рұқсат етілген шығарынды (лимит)")} · {card.substanceLimits[0].period}
+          </summary>
+          <ul className="mt-1 space-y-0.5 tabular-nums">
+            {[...card.substanceLimits].sort((a, b) => b.amount - a.amount).map((s, i) => (
+              <li key={i}>{tr(s.name)}: {s.amount.toLocaleString("ru-RU")} {s.unit}</li>
+            ))}
+          </ul>
+          <p className="mt-1">{cite(card.substanceLimits[0])}</p>
+        </details>
+      )}
+
       <div>
         <div className="text-[12px] font-semibold uppercase tracking-wider text-neutral-600">{tr("Мониторинг бекеттері")}</div>
         {card.monitoringPosts.length === 0 ? (
