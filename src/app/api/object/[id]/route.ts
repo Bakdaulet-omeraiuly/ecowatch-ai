@@ -109,7 +109,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     ? {
         rule: `Нысанға тек аумақ контуры + ${FOOTPRINT_BUFFER_KM * 1000} м ішіндегі детекция телінеді (${fac.footprintSource}).`,
         onSiteCount: onSite.length,
-        validation:
+        // The VIIRS check below was run for АМӨЗ only — do not show it for other facilities.
+        validation: fac.id !== "anpz" ? null :
           "Тексеру (2024–2026, VIIRS): АМӨЗ аумағында жылына ~1 детекция-күн ғана — " +
           "спутник бұл нысанның факелін тұрақты көрмейді. Детекцияның болмауы факелдің " +
           "болмауын ДӘЛЕЛДЕМЕЙДІ.",

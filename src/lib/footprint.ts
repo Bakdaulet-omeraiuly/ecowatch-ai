@@ -4,6 +4,10 @@
 // `/api/object/[id]` 10 км радиусты қолданатын — validation/firms
 // көрсеткендей, ол АМӨЗ-ге телінген детекциялардың 96%-ын қате телитін.
 
+export type FootprintRing = [number, number][];
+/** Бір тұйық контур немесе бөлек сыртқы контурлар; ішкі ойықтар қолдау таппайды. */
+export type Footprint = FootprintRing | FootprintRing[];
+
 /** Жергілікті тең-аралық проекция: [lng, lat] → км (шағын аумақ үшін жеткілікті) */
 function project(lat0: number) {
   const kx = 111.32 * Math.cos((lat0 * Math.PI) / 180);
@@ -22,7 +26,16 @@ function inside(p: [number, number], ring: [number, number][]): boolean {
 }
 
 /** Контурға дейінгі қашықтық, км. Нүкте контур ішінде болса — 0. */
-export function distanceToFootprintKm(lat: number, lng: number, footprint: [number, number][]): number {
+export function distanceToFootprintKm(lat: number, lng: number, footprint: Footprint): number {
+  const rings = isRing(footprint) ? [footprint] : footprint;
+  return Math.min(...rings.map((ring) => distanceToRingKm(lat, lng, ring)));
+}
+
+function isRing(footprint: Footprint): footprint is FootprintRing {
+  return typeof footprint[0]?.[0] === "number";
+}
+
+function distanceToRingKm(lat: number, lng: number, footprint: FootprintRing): number {
   const toXY = project(lat);
   const ring = footprint.map(toXY);
   const p = toXY([lng, lat]);
