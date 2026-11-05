@@ -245,7 +245,7 @@ export function LegalAlerts() {
                                 href={a.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-sky-800 underline-offset-2 hover:underline"
+                                className="text-sky-800 underline underline-offset-2"
                               >
                                 {a.number} — {a.title} <ExternalLink className="inline h-2 w-2" />
                               </a>
@@ -334,7 +334,7 @@ export function LegalAlerts() {
                     href={data.summation.source.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sky-800 underline-offset-2 hover:underline"
+                    className="text-sky-800 underline underline-offset-2"
                   >
                     {data.summation.source.registration}
                   </a>
@@ -353,7 +353,7 @@ export function LegalAlerts() {
             </p>
             <a
               href="/legislation"
-              className="mt-1.5 inline-block text-[12px] text-sky-800 underline-offset-2 hover:underline"
+              className="mt-1.5 inline-block text-[12px] text-sky-800 underline underline-offset-2"
             >
               {tr("Заңнама және норма тізілімі")} →
             </a>

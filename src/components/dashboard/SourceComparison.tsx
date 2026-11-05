@@ -68,7 +68,7 @@ export function SourceComparison() {
               </div>
               {cams?.aqi != null ? (
                 <div className="mb-2">
-                  <span className="text-2xl font-bold" style={{ color: aqiCategory(cams.aqi).color }}>
+                  <span className="text-2xl font-bold text-neutral-900" style={{ borderBottom: `3px solid ${aqiCategory(cams.aqi).color}` }}>
                     {Math.round(cams.aqi)}
                   </span>
                   <span className="ml-1 text-[13px] text-neutral-600">
@@ -95,7 +95,7 @@ export function SourceComparison() {
               {station?.found && station.aqi != null ? (
                 <>
                   <div className="mb-2">
-                    <span className="text-2xl font-bold" style={{ color: usAqiColor(station.aqi) }}>
+                    <span className="text-2xl font-bold text-neutral-900" style={{ borderBottom: `3px solid ${usAqiColor(station.aqi)}` }}>
                       {station.aqi}
                     </span>
                     <span className="ml-1 text-[13px] text-neutral-600">

@@ -887,10 +887,10 @@ function FireDangerCard({ fire }: { fire: FireData }) {
               {tr("Канада FWI жүйесі (EFFIS) ·")}{" "}{fire.spinupDays} {tr("күндік нақты ауа райынан есептелді")}{" "}</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold" style={{ color: fire.dangerColor }}>
+            <div className="flex items-center gap-2 text-3xl font-bold text-neutral-900"><span aria-hidden className="h-3 w-3 rounded-full" style={{ backgroundColor: fire.dangerColor }} />
               {fire.fwi}
             </div>
-            <div className="text-xs font-medium" style={{ color: fire.dangerColor }}>
+            <div className="text-xs font-medium text-neutral-800">
               {fire.dangerLabel}
             </div>
           </div>
@@ -941,10 +941,10 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
               McKee 1993 (WMO) · {drought.yearsOfRecord} {tr("жылдық ERA5 климатологиясы")}{" "}</p>
           </div>
           <div className="text-right">
-            <div className="text-3xl font-bold" style={{ color: drought.droughtColor }}>
+            <div className="flex items-center gap-2 text-3xl font-bold text-neutral-900"><span aria-hidden className="h-3 w-3 rounded-full" style={{ backgroundColor: drought.droughtColor }} />
               {drought.spi > 0 ? "+" : ""}{drought.spi}
             </div>
-            <div className="text-xs font-medium" style={{ color: drought.droughtColor }}>
+            <div className="text-xs font-medium text-neutral-800">
               {drought.droughtLabel}
             </div>
           </div>
@@ -1058,7 +1058,7 @@ function DistrictRating({ allSites, env }: { allSites: { district: string; analy
                   </div>
                   <span
                     className="w-12 text-right text-sm font-bold"
-                    style={{ color: (d.avg ?? 0) >= 70 ? "#ef4444" : (d.avg ?? 0) >= 40 ? "#f97316" : "#22c55e" }}
+                    style={{ color: (d.avg ?? 0) >= 70 ? "#b91c1c" : (d.avg ?? 0) >= 40 ? "#b45309" : "#047857" }}
                   >
                     {d.avg ?? "—"}
                   </span>

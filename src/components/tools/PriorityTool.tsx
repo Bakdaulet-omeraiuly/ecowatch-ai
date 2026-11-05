@@ -19,6 +19,8 @@ export function PriorityTool() {
   const { tr } = useLang();
   const setOverlay = useMapToolsStore((s) => s.setOverlay);
   const [grid, setGrid] = useState<Grid | null>(null);
+  // WorldPop 2020 — бөлек статикалық көшірме; жоқ болса критерий жай ғана алынбайды
+  const [pop, setPop] = useState<{ map: Map<string, number | null>; source: string; total: number; caveats: string[] } | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [w, setW] = useState<Weights>(DEFAULT_WEIGHTS);
   const [onlyResidential, setOnlyResidential] = useState(true);
@@ -34,10 +36,14 @@ export function PriorityTool() {
         if (!r.ok || j.error) setErr(j.error ?? tr("Басымдық торы қолжетімсіз")); else setGrid(j);
       } catch { if (alive) setErr(tr("Басымдық торы қолжетімсіз")); }
     })();
+    fetch("/data/layers/population-grid-atyrau.json").then((r) => (r.ok ? r.json() : null)).then((j) => {
+      if (!alive || !j?.cells) return;
+      setPop({ map: new Map((j.cells as { id: string; population: number | null }[]).map((c) => [c.id, c.population])), source: j.source, total: j.totalPopulation, caveats: j.caveats ?? [] });
+    }).catch(() => {});
     return () => { alive = false; };
   }, [tr]);
 
-  const scores = useMemo(() => (grid ? scoreCells(grid.cells, w) : []), [grid, w]);
+  const scores = useMemo(() => (grid ? scoreCells(grid.cells, w, pop?.map) : []), [grid, w, pop]);
   const ranked = useMemo(() => grid ? grid.cells.map((c, i) => ({ c, s: scores[i] }))
     .filter((x) => x.s != null && (!onlyResidential || x.c.residential >= 0.2))
     .sort((a, b) => b.s! - a.s!) : [], [grid, scores, onlyResidential]);
@@ -71,18 +77,20 @@ export function PriorityTool() {
       <p className="text-xs text-neutral-600">{tr("Көгалдандыру басымдығы: қай ұяшыққа (1 км) ағаш бірінші керек. Критерий салмағын өзіңіз қойыңыз.")}</p>
       <TierBadge tier="model" tone="light" />
       {slider("ndvi", "Өсімдік тапшылығы (Sentinel-2 NDVI)")}
-      {slider("residential", "Тұрғын үй үлесі (OSM, халық проксиі)")}
+      {pop ? slider("population", "Халық тығыздығы (WorldPop 2020)") : <p className="text-xs text-neutral-500">{tr("WorldPop торы жүктелмеді — халық критерийі есептелмейді.")}</p>}
+      {slider("residential", "Тұрғын үй үлесі (OSM)")}
       {slider("source", "Өнеркәсіп нысанына жақындық")}
       <label className="flex items-center gap-1.5 text-sm"><input type="checkbox" checked={onlyResidential} onChange={(e) => setOnlyResidential(e.target.checked)} />{tr("Тек тұрғын ұяшықтар (≥ 20%)")}</label>
       <div className="flex items-center gap-1 text-xs text-neutral-600">{tr("төмен")}{RAMP.map((c) => <span key={c} className="h-3 w-6" style={{ background: c }} />)}{tr("жоғары")}</div>
       <p className="text-sm font-medium text-neutral-900">{tr("Ең жоғары 10 ұяшық")}</p>
       <ol className="list-decimal space-y-0.5 pl-5 text-xs text-neutral-700">
         {ranked.slice(0, 10).map(({ c, s }) => (
-          <li key={c.id}>{(s! * 100).toFixed(0)} · NDVI {c.ndvi} · {tr("тұрғын")} {(c.residential * 100).toFixed(0)}% · {tr("жасыл (OSM)")} {(c.green * 100).toFixed(0)}% · {c.sourceKm} км</li>
+          <li key={c.id}>{(s! * 100).toFixed(0)} · NDVI {c.ndvi}{pop?.map.get(c.id) != null && <> · ~{Math.round(pop.map.get(c.id)!).toLocaleString("ru-RU")} {tr("адам")}</>} · {tr("тұрғын")} {(c.residential * 100).toFixed(0)}% · {tr("жасыл (OSM)")} {(c.green * 100).toFixed(0)}% · {c.sourceKm} км</li>
         ))}
       </ol>
       <p className="text-xs text-neutral-500">{tr("NDVI маусымы")}: {grid.season.year} · {tr("Дереккөз")}: {grid.sources.join("; ")}</p>
-      <ul className="list-disc space-y-0.5 pl-4 text-xs text-neutral-600">{grid.caveats.map((c) => <li key={c}>{tr(c)}</li>)}</ul>
+      {pop && <p className="text-xs text-neutral-500">{tr("Халық")}: {pop.source}</p>}
+      <ul className="list-disc space-y-0.5 pl-4 text-xs text-neutral-600">{[...grid.caveats, ...(pop?.caveats ?? [])].map((c) => <li key={c}>{tr(c)}</li>)}</ul>
     </div>
   );
 }

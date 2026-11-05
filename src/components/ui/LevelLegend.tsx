@@ -18,7 +18,7 @@ const ORDER: ComplianceLevel[] = [
 ];
 
 export function LevelLegend({
-  compact, defaultOpen, tone = "dark",
+  compact, defaultOpen, tone = "light",
 }: { compact?: boolean; defaultOpen?: boolean; tone?: "light" | "dark" }) {
   const { tr } = useLang();
   const [open, setOpen] = useState(defaultOpen ?? false);

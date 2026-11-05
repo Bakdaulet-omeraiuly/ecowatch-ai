@@ -11,8 +11,14 @@ describe("priorityGrid", () => {
     expect(cells.length).toBeGreaterThan(900); expect(cells.length).toBeLessThan(1100);
   });
   it("салмақ: тек NDVI → ең аз NDVI ең жоғары; NDVI жоқ → null", () => {
-    const s = scoreCells([cell({ ndvi: 0.1 }), cell({ ndvi: 0.5 }), cell({ ndvi: null })], { ndvi: 100, residential: 0, source: 0 });
+    const s = scoreCells([cell({ ndvi: 0.1 }), cell({ ndvi: 0.5 }), cell({ ndvi: null })], { ndvi: 100, residential: 0, source: 0, population: 0 });
     expect(s[0]).toBeCloseTo(1); expect(s[1]).toBeCloseTo(0); expect(s[2]).toBeNull();
+  });
+  it("халық: көп халықты ұяшық жоғары; дерегі жоқ ұяшықта критерий алынады", () => {
+    const cells = [cell({ id: "a", ndvi: 0.2 }), cell({ id: "b", ndvi: 0.2 }), cell({ id: "c", ndvi: 0.2 })];
+    const pop = new Map<string, number | null>([["a", 5000], ["b", 10], ["c", null]]);
+    const s = scoreCells(cells, { ndvi: 0, residential: 0, source: 0, population: 100 }, pop);
+    expect(s[0]).toBeCloseTo(1); expect(s[1]!).toBeLessThan(0.4); expect(s[2]).toBeNull();
   });
   it("үлес: жарты ұяшық", () => {
     expect(cellFraction([0, 0, 1, 1], toPolys([[[0, 0], [0.5, 0], [0.5, 1], [0, 1]]]))).toBeCloseTo(0.5);

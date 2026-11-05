@@ -53,7 +53,7 @@ interface Props {
  * Толық мәлімет (формула, аспап, норма, шектеу) ⓘ батырмасының астында
  * қалады, ал «бұл сан не?» деген сұраққа жауап жасырылмайды.
  */
-export function IndicatorSummary({ id, className = "", tone = "dark" }: { id: string; className?: string; tone?: "light" | "dark" }) {
+export function IndicatorSummary({ id, className = "", tone = "light" }: { id: string; className?: string; tone?: "light" | "dark" }) {
   const { tr } = useLang();
   const ind = INDICATORS.find((i) => i.id === id);
   const extra = EXTRA[id];
@@ -69,7 +69,7 @@ export function indicatorName(id: string): string | null {
   return INDICATORS.find((i) => i.id === id)?.name ?? EXTRA[id]?.name ?? null;
 }
 
-export function IndicatorHelp({ id, inline, tone = "dark" }: Props) {
+export function IndicatorHelp({ id, inline, tone = "light" }: Props) {
   const { tr } = useLang();
   const [open, setOpen] = useState(false);
   const ind = INDICATORS.find((i) => i.id === id);

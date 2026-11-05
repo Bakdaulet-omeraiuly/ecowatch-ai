@@ -160,7 +160,7 @@ export function ExportPanel() {
             {tr(
               "Дереккөз қолжетімсіз болса файл жасалмайды — бос немесе жалған баған берілмейді."
             )}{" "}
-            <a href="/methodology" className="text-sky-800 underline-offset-2 hover:underline">
+            <a href="/methodology" className="text-sky-800 underline underline-offset-2">
               {tr("Толық әдістеме мен валидация күйі")}
             </a>
           </p>

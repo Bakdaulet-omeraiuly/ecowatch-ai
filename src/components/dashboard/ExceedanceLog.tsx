@@ -234,7 +234,7 @@ export function ExceedanceLog() {
                 {data.records.length > 15 && (
                   <button
                     onClick={() => setShowAll((v) => !v)}
-                    className="mt-2 text-[13px] text-sky-800 underline-offset-2 hover:underline"
+                    className="mt-2 text-[13px] text-sky-800 underline underline-offset-2"
                   >
                     {showAll
                       ? tr("Жинау")

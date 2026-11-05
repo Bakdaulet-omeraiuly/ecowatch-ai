@@ -104,7 +104,7 @@ export default function AuthPage() {
               <p className="break-words">{t("auth.email")}: {session.user.email}</p>
               <p role="status">{t("auth.role")}: {role ? t(roleLabels[role]) : t("auth.noData")}</p>
               {(role === "officer" || role === "admin") && (
-                <Button asChild className="min-h-[44px] w-full bg-[#0b3a6b] text-neutral-900 hover:bg-[#0b3a6b]/90">
+                <Button asChild className="min-h-[44px] w-full bg-[#0b3a6b] text-white hover:bg-[#0b3a6b]/90">
                   <Link href="/moderation" className="min-h-[44px]">{t("auth.toModeration")}</Link>
                 </Button>
               )}
@@ -118,7 +118,7 @@ export default function AuthPage() {
                 {(["signIn", "signUp"] as const).map((value) => (
                   <Button key={value} type="button" aria-pressed={mode === value} disabled={busy}
                     variant={mode === value ? "default" : "outline"}
-                    className={`min-h-[44px] ${mode === value ? "bg-[#0b3a6b] text-neutral-900 hover:bg-[#0b3a6b]/90" : ""}`}
+                    className={`min-h-[44px] ${mode === value ? "bg-[#0b3a6b] text-white hover:bg-[#0b3a6b]/90" : ""}`}
                     onClick={() => { setMode(value); setError(null); setCheckEmail(false); }}>
                     {t(value === "signIn" ? "auth.signIn" : "auth.signUp")}
                   </Button>
@@ -136,7 +136,7 @@ export default function AuthPage() {
                     autoComplete={mode === "signUp" ? "new-password" : "current-password"}
                     value={password} onChange={(event) => setPassword(event.target.value)} className="h-11" />
                 </div>
-                <Button type="submit" disabled={busy} className="min-h-[44px] w-full bg-[#0b3a6b] text-neutral-900 hover:bg-[#0b3a6b]/90">
+                <Button type="submit" disabled={busy} className="min-h-[44px] w-full bg-[#0b3a6b] text-white hover:bg-[#0b3a6b]/90">
                   {t("auth.submit")}
                 </Button>
               </form>

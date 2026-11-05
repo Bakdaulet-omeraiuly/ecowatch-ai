@@ -79,26 +79,36 @@ export function kmBetween(a: [number, number], b: [number, number]) {
   return Math.hypot((a[0] - b[0]) * kx, (a[1] - b[1]) * 111.32);
 }
 
-export interface Weights { ndvi: number; residential: number; source: number }
-export const DEFAULT_WEIGHTS: Weights = { ndvi: 40, residential: 40, source: 20 };
+export interface Weights { ndvi: number; residential: number; source: number; population: number }
+export const DEFAULT_WEIGHTS: Weights = { ndvi: 40, residential: 10, source: 20, population: 30 };
 export const SOURCE_RANGE_KM = 10;
 
-/** Салмақты индекс 0..1 (клиентте). NDVI жоқ ұяшық — null (бағаланбайды). */
-export function scoreCells(cells: PriorityCell[], w: Weights): (number | null)[] {
+/**
+ * Салмақты индекс 0..1 (клиентте). NDVI жоқ ұяшық — null (бағаланбайды).
+ * `population` (WorldPop, адам/ұяшық) берілсе — log(1+p) қала ішіндегі максимумға нормаланады;
+ * берілмесе немесе ұяшықта жоқ болса, сол критерийдің салмағы осы ұяшық үшін алынып тасталады.
+ */
+export function scoreCells(cells: PriorityCell[], w: Weights, population?: Map<string, number | null>): (number | null)[] {
   const nd = cells.map((c) => c.ndvi).filter((x): x is number => x != null);
   const lo = Math.min(...nd), hi = Math.max(...nd);
-  const total = w.ndvi + w.residential + w.source;
+  const pops = population ? [...population.values()].filter((x): x is number => x != null) : [];
+  const pMax = pops.length ? Math.log1p(Math.max(...pops)) : 0;
   return cells.map((c) => {
-    if (c.ndvi == null || !total) return null;
+    if (c.ndvi == null) return null;
     const deficit = hi > lo ? 1 - (c.ndvi - lo) / (hi - lo) : 0;
     const near = 1 - Math.min(c.sourceKm, SOURCE_RANGE_KM) / SOURCE_RANGE_KM;
-    return (w.ndvi * deficit + w.residential * c.residential + w.source * near) / total;
+    const p = population?.get(c.id);
+    const hasPop = p != null && pMax > 0;
+    const total = w.ndvi + w.residential + w.source + (hasPop ? w.population : 0);
+    if (!total) return null;
+    const popTerm = hasPop ? w.population * (Math.log1p(p!) / pMax) : 0;
+    return (w.ndvi * deficit + w.residential * c.residential + w.source * near + popTerm) / total;
   });
 }
 
 export const PRIORITY_CAVEATS = [
   "Басымдық индексі — шешім қабылдауға көмек, «ағаш керек» деген дәлел емес. Салмақтарды сіз таңдайсыз.",
-  "Халық тығыздығының ресми торы жалғанбаған: OSM тұрғын үй үлесі тек ПРОКСИ ретінде қолданылады.",
+  "Халық тығыздығы — WorldPop 2020 (100 м, модельденген тор): ресми қала халқынан төмен, сондықтан тек салыстырмалы (log, қала ішінде нормаланған). OSM тұрғын үй үлесі — бөлек критерий.",
   "NDVI — соңғы жаздың медианасы (Sentinel-2, 50 м); бұлтты пиксельдер шығарылады, жамылғысы 50%-дан аз ұяшық бағаланбайды.",
   "Өнеркәсіп нысандарына қашықтық — тізілімдегі 11 нысан бойынша; жел бағыты ескерілмейді.",
 ];

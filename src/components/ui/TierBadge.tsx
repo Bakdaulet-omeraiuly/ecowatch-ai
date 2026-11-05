@@ -52,7 +52,7 @@ const LIGHT = {
   ai: "border-amber-800 bg-amber-50 text-amber-900",
 };
 
-export function TierBadge({ tier, className = "", tone = "dark" }: { tier: Tier; className?: string; tone?: "light" | "dark" }) {
+export function TierBadge({ tier, className = "", tone = "light" }: { tier: Tier; className?: string; tone?: "light" | "dark" }) {
   const { tr } = useLang();
   const t = TIERS[tier];
   return (
@@ -68,7 +68,7 @@ export function TierBadge({ tier, className = "", tone = "dark" }: { tier: Tier;
 }
 
 /** Үш деңгейді бірден түсіндіретін шартты белгі (легенда). */
-export function TierLegend({ className = "", tone = "dark" }: { className?: string; tone?: "light" | "dark" }) {
+export function TierLegend({ className = "", tone = "light" }: { className?: string; tone?: "light" | "dark" }) {
   const { tr } = useLang();
   return (
     <div className={`flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[12px] ${tone === "light" ? "text-neutral-700" : "text-neutral-400"} ${className}`}>
