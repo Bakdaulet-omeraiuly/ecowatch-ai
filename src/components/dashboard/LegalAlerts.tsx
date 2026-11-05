@@ -166,7 +166,7 @@ export function LegalAlerts() {
                       {tr(LEVEL_KZ[r.worst])}
                     </span>
                     <span className="min-w-0 flex-1 truncate text-[13px] text-neutral-900">
-                      {r.name}
+                      {tr(r.name)}
                     </span>
                     <span className="shrink-0 text-[13px] font-semibold text-neutral-900">
                       {r.value == null ? "—" : r.value}
@@ -278,7 +278,7 @@ export function LegalAlerts() {
                   )}
                 </div>
                 <p className="mb-1.5 text-[12px] leading-relaxed text-neutral-600">
-                  {data.summation.explain}
+                  {tr(data.summation.explain)}
                 </p>
 
                 <div className="space-y-1">
@@ -300,7 +300,7 @@ export function LegalAlerts() {
                         <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[12px] text-neutral-600">
                           {g.components.map((c) => (
                             <span key={c.id}>
-                              {c.name.split(" ")[0]}{" "}
+                              {tr(c.name).split(" ")[0]}{" "}
                               <span className="text-neutral-900">
                                 {c.ratio != null ? c.ratio.toFixed(2) : "—"}
                               </span>
@@ -329,7 +329,7 @@ export function LegalAlerts() {
                 )}
 
                 <p className="mt-1.5 border-t border-neutral-300 pt-1.5 text-[12px] leading-relaxed text-neutral-600">
-                  {data.summation.source.act} · {data.summation.source.amendment} ·{" "}
+                  {tr(data.summation.source.act)} · {tr(data.summation.source.amendment)} ·{" "}
                   <a
                     href={data.summation.source.url}
                     target="_blank"
@@ -349,7 +349,7 @@ export function LegalAlerts() {
             </div>
 
             <p className="mt-3 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
-              {data.results[0]?.disclaimer}
+              {data.results[0]?.disclaimer ? tr(data.results[0].disclaimer) : null}
             </p>
             <a
               href="/legislation"

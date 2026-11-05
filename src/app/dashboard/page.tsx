@@ -358,10 +358,10 @@ export default function DashboardPage() {
                     <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: cat.color }} />
                     {/* Category colour stays on the border; text is dark for WCAG AA on a light tint */}
                     <span className="text-lg font-bold text-neutral-900">
-                      {cat.name}
+                      {tr(cat.name)}
                     </span>
                     <p className="text-[13px] text-neutral-700">
-                      {cat.advice} <span className="text-neutral-600">{cat.sensitiveAdvice}</span>
+                      {tr(cat.advice)} <span className="text-neutral-600">{tr(cat.sensitiveAdvice)}</span>
                     </p>
                   </div>
                 );
@@ -874,7 +874,7 @@ function FireDangerCard({ fire }: { fire: FireData }) {
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <div
             className="flex h-12 w-12 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${fire.dangerColor}22`, border: `1px solid ${fire.dangerColor}55` }}
+            style={{ backgroundColor: "#fff", border: "1px solid #d4d4d4", borderLeft: `4px solid ${fire.dangerColor}` }}
           >
             <Flame className="h-6 w-6" style={{ color: fire.dangerColor }} />
           </div>
@@ -891,7 +891,7 @@ function FireDangerCard({ fire }: { fire: FireData }) {
               {fire.fwi}
             </div>
             <div className="text-xs font-medium text-neutral-800">
-              {fire.dangerLabel}
+              {tr(fire.dangerLabel)}
             </div>
           </div>
         </div>
@@ -928,7 +928,7 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
         <div className="mb-3 flex flex-wrap items-center gap-3">
           <div
             className="flex h-12 w-12 items-center justify-center rounded-xl"
-            style={{ backgroundColor: `${drought.droughtColor}22`, border: `1px solid ${drought.droughtColor}55` }}
+            style={{ backgroundColor: "#fff", border: "1px solid #d4d4d4", borderLeft: `4px solid ${drought.droughtColor}` }}
           >
             <Droplets className="h-6 w-6" style={{ color: drought.droughtColor }} />
           </div>
@@ -945,7 +945,7 @@ function DroughtCard({ drought }: { drought: DroughtData }) {
               {drought.spi > 0 ? "+" : ""}{drought.spi}
             </div>
             <div className="text-xs font-medium text-neutral-800">
-              {drought.droughtLabel}
+              {tr(drought.droughtLabel)}
             </div>
           </div>
         </div>

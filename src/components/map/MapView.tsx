@@ -2091,7 +2091,7 @@ export function MapView() {
                       {droughtData.spi > 0 ? "+" : ""}{droughtData.spi}
                     </div>
                     <div className="text-[13px] font-medium" style={{ color: "var(--color-brand)" }}>
-                      {droughtData.droughtLabel}
+                      {tr(droughtData.droughtLabel)}
                     </div>
                   </div>
                   <div className="text-right text-[12px] text-neutral-600">SPI-3</div>
@@ -3016,7 +3016,7 @@ export function MapView() {
                           {airStats.avg}
                         </div>
                         <div className="text-[13px] font-semibold" style={{ color: "var(--color-brand)" }}>
-                          {cat.name}
+                          {tr(cat.name)}
                         </div>
                         <div className="text-[12px] text-neutral-600">{tr("облыс бойынша орташа EU AQI")}</div>
                       </div>
@@ -3038,9 +3038,9 @@ export function MapView() {
                         <div className="mb-1 font-semibold" style={{ color: "var(--color-brand)" }}>
                           {tr("Денсаулық кеңесі")}
                         </div>
-                        <p>{cat.advice}</p>
+                        <p>{tr(cat.advice)}</p>
                         <p className="mt-1 text-neutral-600">
-                          <b>{tr("Сезімтал топтар:")}</b> {cat.sensitiveAdvice}
+                          <b>{tr("Сезімтал топтар:")}</b> {tr(cat.sensitiveAdvice)}
                         </p>
                       </div>
 
