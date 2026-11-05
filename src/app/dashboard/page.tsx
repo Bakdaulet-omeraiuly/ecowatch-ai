@@ -218,7 +218,7 @@ export default function DashboardPage() {
       { name: tr("Деградация"), value: degrade, color: "#eab308" },
       { name: tr("Тұрған су"), value: water, color: "#a855f7" },
     ];
-  }, [allSites]);
+  }, [allSites, tr]);
 
   // District comparison computed from the platform's own analyses (live store)
   const districtLive = useMemo(() => {

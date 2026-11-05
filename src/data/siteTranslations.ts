@@ -117,4 +117,5 @@ export const SITE_TR: Record<string, { ru: string; en: string }> = {
   "Аса ылғалды": { ru: "Экстремально влажно", en: "Extremely wet" },
   "Қатты ылғалды": { ru: "Очень влажно", en: "Very wet" },
   "Апатты құрғақшылық": { ru: "Катастрофическая засуха", en: "Extreme drought" },
+  "Жинақталу әсері: бірнеше зат бірге әсер еткенде, олардың ШРК-ға қатынастарының қосындысы 1-ден аспауы керек. Әр зат жеке-жеке норма шегінде тұрып, қосындысы норманы бұзуы мүмкін.": { ru: "Эффект суммации: при совместном действии нескольких веществ сумма их отношений к ПДК не должна превышать 1. Каждое вещество может быть в пределах нормы, а их сумма — превышать её.", en: "Summation effect: when several substances act together, the sum of their ratios to the limit values must not exceed 1. Each substance can be within its limit while the sum exceeds it." },
 };
