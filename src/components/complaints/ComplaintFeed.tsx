@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Wind } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { authHeaders } from "@/lib/authClient";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +22,8 @@ interface PrivateComplaint extends PublicComplaint {
   mediaUrl?: string | null;
 }
 type Feed = { complaints: PrivateComplaint[]; groups?: ComplaintGroup[]; fetchedAt?: string };
+
+const AIRBORNE = new Set(["smell", "smoke", "dust"]);
 
 export function ComplaintFeed({ mode }: { mode: "public" | "mine" | "review" }) {
   const { t, tr, lang } = useLang();
@@ -129,6 +132,13 @@ export function ComplaintFeed({ mode }: { mode: "public" | "mine" | "review" }) 
               <div><dt className="inline">{t("complaints.location")}: </dt><dd className="inline">{complaint.lat}, {complaint.lng}</dd></div>
               {complaint.status_changed_at && <div><dt className="inline">{t("complaints.changedAt")}: </dt><dd className="inline">{time(complaint.status_changed_at)}</dd></div>}
             </dl>
+            {/* Иіс/түтін/шаң — сол сағатта ауа қай жақтан келді (кері траектория, модель) */}
+            {AIRBORNE.has(complaint.category) && Date.parse(complaint.event_at) >= Date.UTC(2022, 0, 1) && (
+              <Link href={`/map?tool=trajectory&lat=${complaint.lat}&lng=${complaint.lng}&at=${encodeURIComponent(complaint.event_at)}`}
+                className="inline-flex min-h-[44px] items-center gap-1.5 rounded border border-neutral-300 px-3 text-sm font-medium text-[#0b3a6b] hover:border-[#0b3a6b]">
+                <Wind className="h-4 w-4" aria-hidden />{tr("Ауа қайдан келді (кері траектория)")}
+              </Link>
+            )}
             {mode === "mine" && <>
               <ol aria-label={t("complaints.progress")} className="grid gap-2 border-l-2 border-neutral-200 pl-3 sm:grid-cols-5 sm:border-l-0 sm:border-t-2 sm:pl-0 sm:pt-3">
                 {COMPLAINT_STATUSES.map((status) => <li key={status} aria-current={complaint.status === status ? "step" : undefined}

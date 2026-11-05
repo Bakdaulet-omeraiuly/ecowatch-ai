@@ -85,3 +85,12 @@ test.describe("мобильді", () => {
     await expect(nav.getByRole("link", { name: "Аналитика" })).toBeVisible();
   });
 });
+
+test("API: кері траектория тарихи уақытқа да есептеледі (Open-Meteo мұрағаты)", async ({ request }) => {
+  const r = await request.get("/api/back-trajectory?lat=47.11&lng=51.92&hours=3&at=2025-06-01T12:00:00Z");
+  expect(r.status()).toBe(200);
+  const j = await r.json();
+  expect(j.tier).toBe("model");
+  expect(j.points.length).toBeGreaterThan(1);
+  expect(j.source).toMatch(/Historical/);
+});

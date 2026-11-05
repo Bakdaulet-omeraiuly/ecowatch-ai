@@ -19,7 +19,16 @@ export function TrajectoryTool() {
   const { tr } = useLang();
   const { point, pick, setPick, setPoint, setOverlay } = useMapToolsStore();
   const [hours, setHours] = useState(12);
-  const [ago, setAgo] = useState(0);
+  const [maxLocal] = useState(() => toAtyrauLocal(Date.now()));
+  // Келу уақыты — Атырау жергілікті уақыты (UTC+5), datetime-local пішімінде.
+  // /map?tool=trajectory&lat=..&lng=..&at=ISO сілтемесі нүкте мен уақытты алдын ала толтырады (мыс. шағымнан).
+  const [arrivalLocal, setArrivalLocal] = useState(() => {
+    const sp = new URLSearchParams(window.location.search);
+    const lat = Number(sp.get("lat")), lng = Number(sp.get("lng"));
+    if (Number.isFinite(lat) && Number.isFinite(lng) && sp.get("lat")) useMapToolsStore.setState({ point: [lng, lat] });
+    const at = sp.get("at");
+    return toAtyrauLocal(at && Number.isFinite(Date.parse(at)) ? Date.parse(at) : Date.now());
+  });
   const [busy, setBusy] = useState(false);
   const [resRaw, setRes] = useState<Traj | null>(null);
   const [errRaw, setErr] = useState<{ error: string; reason?: string } | null>(null);
@@ -33,7 +42,8 @@ export function TrajectoryTool() {
   const run = async () => {
     if (!point) return;
     setBusy(true); setErr(null); setRes(null); setForPoint(point.join(","));
-    const at = new Date(Math.floor(Date.now() / 3600_000) * 3600_000 - ago * 3600_000).toISOString();
+    const atMs = Math.min(Date.now(), Math.floor(fromAtyrauLocal(arrivalLocal) / 3600_000) * 3600_000);
+    const at = new Date(atMs).toISOString();
     try {
       const r = await fetch(`/api/back-trajectory?lat=${point[1]}&lng=${point[0]}&hours=${hours}&at=${encodeURIComponent(at)}`);
       const j = await r.json();
@@ -69,10 +79,11 @@ export function TrajectoryTool() {
           </select>
         </label>
         <label className="flex items-center gap-1.5">{tr("Келу уақыты")}:
-          <select value={ago} onChange={(e) => setAgo(+e.target.value)} className="rounded border border-neutral-300 px-2 py-1">
-            {[0, 1, 2, 3, 6, 12, 24, 36, 47].map((h) => <option key={h} value={h}>{h === 0 ? tr("қазір") : `${h} ${tr("сағ бұрын")}`}</option>)}
-          </select>
+          <input type="datetime-local" value={arrivalLocal} min="2022-01-01T00:00" max={maxLocal} step={3600}
+            onChange={(e) => setArrivalLocal(e.target.value)} className="rounded border border-neutral-300 px-2 py-1" />
         </label>
+        <button type="button" onClick={() => setArrivalLocal(toAtyrauLocal(Date.now()))} className="text-sm text-[#0b3a6b] underline underline-offset-2">{tr("қазір")}</button>
+        <span className="w-full text-xs text-neutral-600">{tr("Атырау уақыты (UTC+5). 2022 жылдан бергі кез келген сағат — Open-Meteo мұрағаты.")}</span>
       </div>
       <Button variant="portal" size="portal" onClick={run} disabled={!point || busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}{tr("Есептеу")}
@@ -82,7 +93,7 @@ export function TrajectoryTool() {
         <div className="space-y-2 rounded-lg border border-neutral-200 p-3 text-sm">
           <TierBadge tier="model" tone="light" />
           <p className="text-neutral-800">
-            {tr("Келу")}: {new Date(res.arrival).toLocaleString()} · {res.hours} {tr("сағ кері")}
+            {tr("Келу")}: {toAtyrauLocal(Date.parse(res.arrival)).replace("T", " ")} ({tr("Атырау уақыты")}) · {res.hours} {tr("сағ кері")}
             {res.truncated && <span className="text-amber-800"> · {tr("траектория жел торынан шықты — қысқартылды")}</span>}
           </p>
           <p className="font-medium text-neutral-900">{tr("Маршрутқа жақын нысандар")} (≤ {res.nearKm} км):</p>
@@ -95,4 +106,14 @@ export function TrajectoryTool() {
       )}
     </div>
   );
+}
+
+const ATYRAU_OFFSET_MS = 5 * 3600_000;
+/** UTC мс → "YYYY-MM-DDTHH:00" (Атырау уақыты) */
+function toAtyrauLocal(ms: number): string {
+  return new Date(Math.floor((ms + ATYRAU_OFFSET_MS) / 3600_000) * 3600_000).toISOString().slice(0, 16);
+}
+/** "YYYY-MM-DDTHH:mm" (Атырау уақыты) → UTC мс */
+function fromAtyrauLocal(v: string): number {
+  return Date.parse(`${v}:00Z`) - ATYRAU_OFFSET_MS;
 }

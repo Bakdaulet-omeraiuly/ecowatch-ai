@@ -1,4 +1,4 @@
-// Кері траектория: GET ?lat&lng&hours=1..24&at=ISO (соңғы 48 сағ ішінде).
+// Кері траектория: GET ?lat&lng&hours=1..24&at=ISO (2022-01-01 бастап; ескі уақыт — тарихи мұрағат).
 // Open-Meteo қолжетімсіз → 503. 📊 модель, әдіс: src/lib/backTrajectory.ts.
 
 import { NextResponse } from "next/server";
@@ -10,6 +10,7 @@ export const maxDuration = 30;
 const noStore = { "Cache-Control": "no-store" };
 const fail = (error: string, status: number, reason?: string) => NextResponse.json({ error, ...(reason ? { reason } : {}) }, { status, headers: noStore });
 const NEAR_KM = 5;
+const HISTORY_FROM = Date.UTC(2022, 0, 1);
 
 interface Loc { hourly?: { time?: number[]; wind_speed_10m?: (number | null)[]; wind_direction_10m?: (number | null)[] } }
 
@@ -22,12 +23,18 @@ export async function GET(req: Request) {
   const now = Date.now();
   const atRaw = sp.get("at");
   const arrival = atRaw ? Date.parse(atRaw) : Math.floor(now / 3600_000) * 3600_000;
-  if (!Number.isFinite(arrival) || arrival > now || arrival < now - 48 * 3600_000) return fail("Келу уақыты соңғы 48 сағат ішінде болуы керек", 400);
+  if (!Number.isFinite(arrival) || arrival > now || arrival < HISTORY_FROM) return fail("Келу уақыты 2022-01-01 мен қазіргі сәт аралығында болуы керек", 400);
 
   const { lats, lngs } = gridAxes(lat, lng);
   const pts = lats.flatMap((la) => lngs.map((ln) => [la, ln]));
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${pts.map((p) => p[0]).join(",")}&longitude=${pts.map((p) => p[1]).join(",")}` +
-    `&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=ms&timeformat=unixtime&timezone=GMT&past_days=3&forecast_days=1`;
+  // Соңғы 48 сағат — жедел болжам API (past_days); одан ескі — тарихи болжам мұрағаты
+  // (historical-forecast-api, сол модельдер, 2022 жылдан). Екеуі де Open-Meteo, кілтсіз.
+  const recent = arrival >= now - 48 * 3600_000;
+  const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const base = recent ? "https://api.open-meteo.com/v1/forecast" : "https://historical-forecast-api.open-meteo.com/v1/forecast";
+  const span = recent ? "&past_days=3&forecast_days=1" : `&start_date=${day(arrival - (hours + 1) * 3600_000)}&end_date=${day(arrival)}`;
+  const url = `${base}?latitude=${pts.map((p) => p[0]).join(",")}&longitude=${pts.map((p) => p[1]).join(",")}` +
+    `&hourly=wind_speed_10m,wind_direction_10m&wind_speed_unit=ms&timeformat=unixtime&timezone=GMT${span}`;
   let locs: Loc[];
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(20_000), next: { revalidate: 1800 } });
@@ -66,7 +73,7 @@ export async function GET(req: Request) {
     hours, truncated,
     points: points.map((p) => ({ lat: +p.lat.toFixed(5), lng: +p.lng.toFixed(5), time: new Date(p.t).toISOString(), hoursBack: p.hoursBack })),
     nearFacilities: near, nearKm: NEAR_KM,
-    source: "Open-Meteo Forecast API (10 м жел, best_match модельдер), 9×9 тор ±2°",
+    source: recent ? "Open-Meteo Forecast API (10 м жел, best_match модельдер), 9×9 тор ±2°" : "Open-Meteo Historical Forecast API (10 м жел, мұрағатталған best_match болжамдары), 9×9 тор ±2°",
     caveats: TRAJECTORY_CAVEATS,
     fetchedAt: new Date().toISOString(),
   }, { headers: noStore });
