@@ -32,4 +32,9 @@ describe("UI мәтіндері", () => {
       .map(({ i }) => `${f}:${i + 1}`));
     expect(bad).toEqual([]);
   });
+  it("статикалық көшірмелерде (public/data/layers) эмодзи жоқ", () => {
+    const dir = "public/data/layers";
+    const bad = readdirSync(dir).filter((n) => n.endsWith(".json") && EMOJI.test(readFileSync(join(dir, n), "utf8")));
+    expect(bad).toEqual([]);
+  });
 });
