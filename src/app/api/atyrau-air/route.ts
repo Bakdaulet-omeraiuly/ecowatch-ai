@@ -27,7 +27,8 @@ export async function GET(req: Request) {
     const url =
       `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${region.lat}&longitude=${region.lng}` +
       `&current=${CAMS_FIELDS}&hourly=${CAMS_FIELDS}&past_days=1&forecast_days=1&timezone=auto`;
-    const res = await fetch(url, { next: { revalidate: 900 } });
+    // Жоғарғы көз кешіксе бүкіл бет күтпеуі үшін — уақыт шегі (CI-да 40 с+ кешігу байқалды)
+    const res = await fetch(url, { next: { revalidate: 900 }, signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error(`cams ${res.status}`);
     const j = (await res.json()) as { current?: CamsCurrent; hourly?: CamsHourly };
     camsHourly = j.hourly ?? null;
@@ -51,7 +52,7 @@ export async function GET(req: Request) {
   // осы жерде лақтырады, оны catch ұстап алса «станса қолжетімсіз» деген жалған лог шығады.
   const gUrl = new URL(`/api/ground-stations?region=atyrau`, req.url);
   try {
-    const res = await fetch(gUrl, { cache: "no-store" });
+    const res = await fetch(gUrl, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
     const j = (await res.json()) as {
       available?: boolean;
       stationCount?: number;
