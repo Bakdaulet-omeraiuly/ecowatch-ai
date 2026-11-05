@@ -801,4 +801,4 @@ CDN-нен алады (~0.1 с), жоқ болса тірі API. `.github/workfl
 - **Менің аймақтарым** `/api/watch-areas*` — FIRMS 7 күн сұраныс кезінде есептеледі (cron/хабарлама жоқ).
 - **Басымдық** — `public/data/layers/priority-grid-atyrau.json` (`/api/priority-grid`, snapshot-layers.mjs), 1 км,
   салмақ клиентте; халық тығыздығы жоқ → OSM тұрғын үй ПРОКСИ.
-- Миграция `supabase/migrations/20261105_map_tools.sql` — ҚОЛДАНЫЛМАҒАН; онсыз журнал/растау/жазылу 503 қайтарады.
+- Миграция `supabase/migrations/20261105_map_tools.sql` — prod-қа қолданылды (SQL Editor, 2026-11-05).
