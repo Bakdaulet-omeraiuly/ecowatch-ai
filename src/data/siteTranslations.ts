@@ -118,4 +118,11 @@ export const SITE_TR: Record<string, { ru: string; en: string }> = {
   "Қатты ылғалды": { ru: "Очень влажно", en: "Very wet" },
   "Апатты құрғақшылық": { ru: "Катастрофическая засуха", en: "Extreme drought" },
   "Жинақталу әсері: бірнеше зат бірге әсер еткенде, олардың ШРК-ға қатынастарының қосындысы 1-ден аспауы керек. Әр зат жеке-жеке норма шегінде тұрып, қосындысы норманы бұзуы мүмкін.": { ru: "Эффект суммации: при совместном действии нескольких веществ сумма их отношений к ПДК не должна превышать 1. Каждое вещество может быть в пределах нормы, а их сумма — превышать её.", en: "Summation effect: when several substances act together, the sum of their ratios to the limit values must not exceed 1. Each substance can be within its limit while the sum exceeds it." },
+  "бірақ үстемдік ережесі қолданылады — бұзушылық емес": { ru: "но применяется правило доминирования — не нарушение", en: "but the dominance rule applies — not a violation" },
+  "жинақталу әсері бойынша норма асқан": { ru: "превышение по эффекту суммации", en: "limit exceeded by the summation effect" },
+  "шекке жақын (1-ден аспауы керек)": { ru: "близко к пределу (не должно превышать 1)", en: "close to the limit (must not exceed 1)" },
+  "компонент өлшенбейді": { ru: "компонентов не измеряются", en: "components are not measured" },
+  "Қосынды есептелмеді": { ru: "Сумма не рассчитана", en: "Sum not computed" },
+  "Қосынды": { ru: "Сумма", en: "Sum" },
+  "(ШРК-лары расталмаған — алдын ала белгі)": { ru: "(ПДК не подтверждены — предварительный признак)", en: "(limit values unverified — preliminary flag)" },
 };

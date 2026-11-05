@@ -76,6 +76,21 @@ const ORDER: Record<ComplianceLevel, number> = {
   exceeded: 0, "exceeded-unverified": 1, approaching: 2, ok: 3, "not-comparable": 4, unknown: 5,
 };
 
+// Сервер құрастырған жиынтық сөйлемінің тұрақты бөліктерін аударады, сандар өзгермейді (src/lib/summation.ts)
+const SUMMARY_PHRASES = [
+  "(ШРК-лары расталмаған — алдын ала белгі)",
+  "бірақ үстемдік ережесі қолданылады — бұзушылық емес",
+  "жинақталу әсері бойынша норма асқан",
+  "шекке жақын (1-ден аспауы керек)",
+  "компонент өлшенбейді",
+  "Қосынды есептелмеді",
+  "норма шегінде",
+  "Қосынды",
+];
+function trSummary(text: string, tr: (s: string) => string): string {
+  return SUMMARY_PHRASES.reduce((acc, ph) => acc.split(ph).join(tr(ph)), text);
+}
+
 export function LegalAlerts() {
   const { tr } = useLang();
   const region = useRegion();
@@ -308,7 +323,7 @@ export function LegalAlerts() {
                             </span>
                           ))}
                         </div>
-                        <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-600">{g.summary}</p>
+                        <p className="mt-0.5 text-[12px] leading-relaxed text-neutral-600">{trSummary(g.summary, tr)}</p>
                         {g.dominanceNote && (
                           <p className="mt-0.5 text-[12px] leading-relaxed text-sky-800">
                             ℹ {g.dominanceNote}
