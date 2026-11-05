@@ -812,5 +812,5 @@ CDN-нен алады (~0.1 с), жоқ болса тірі API. `.github/workfl
 - **Жаңа беттер/құралдар:** `/status` (дереккөздер күйі), «Шағымдар картада» құралы, аймақ есебін басып шығару (`printAreaReport.ts`), журнал CSV.
 - **WorldPop 2020** — `public/data/layers/population-grid-atyrau.json` (`scripts/fetch-worldpop-grid.mjs`, API шегі 1000/тәулік, `--retry` бос ұяшықтарды толтырады; апталық CI).
 - **Квоталар:** CDSE (Sentinel Hub) тегін processing units таусылуы мүмкін → `area-report` 6 сағ кэш + нақты «квота бітті» хабары. Тесттерде CDSE шақырылмайды.
-- **Ашық мәселе:** `supabase/exceedances_basis.sql` прод-қа ҚОЛДАНЫЛМАҒАН (2026-11-05 анықталды) → `fixation_runs` жазбасы мен басис бойынша upsert сәтсіз; `/api/fixate` енді қатені `ok:false` + логпен көрсетеді, `/status` «ескірген» дейді. Иесі қолдануы керек.
+- `supabase/exceedances_basis.sql` прод-қа 2026-11-05 қолданылды (SQL Editor); 3–5 қараша аралығында жүгірістер тіркелмеген. `/api/fixate` жазу қатесін енді `ok:false` + логпен көрсетеді.
 - **Ашық мәселе:** Vercel-де `CRON_SECRET` жоқ → `/api/fixate` жария шақырылады.
