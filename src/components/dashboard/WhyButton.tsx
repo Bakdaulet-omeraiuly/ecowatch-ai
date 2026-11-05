@@ -50,7 +50,7 @@ export function WhyButton() {
         {!open ? (
           <button
             onClick={ask}
-            className="flex w-full items-center justify-center gap-2 rounded-lg border border-violet-300 bg-violet-50 px-4 py-3 text-sm font-semibold text-violet-800 transition-colors hover:bg-violet-100"
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-300 bg-white px-4 py-3 text-sm font-semibold text-[#0b3a6b] transition-colors hover:border-[#0b3a6b]"
           >
             <Sparkles className="h-4 w-4" /> {tr("Неге бүгін ауа осындай? — AI түсіндірмесі")}
           </button>

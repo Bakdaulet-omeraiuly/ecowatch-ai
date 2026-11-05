@@ -194,7 +194,7 @@ export default function ComparePage() {
             ))}
           </select>
         </div>
-        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3">
+        <div className="rounded-lg border border-neutral-300 bg-white p-3 border-l-4 border-l-amber-600">
           <div className="mb-1.5 text-xs text-amber-800">{tr("Сол жыл")}</div>
           <select
             value={leftYear}
@@ -206,7 +206,7 @@ export default function ComparePage() {
             ))}
           </select>
         </div>
-        <div className="rounded-lg border border-sky-300 bg-sky-50 p-3">
+        <div className="rounded-lg border border-neutral-300 bg-white p-3 border-l-4 border-l-sky-700">
           <div className="mb-1.5 text-xs text-sky-800">{tr("Оң жыл")}</div>
           <select
             value={rightYear}

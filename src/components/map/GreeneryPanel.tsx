@@ -51,7 +51,7 @@ export function GreeneryPanel({ osm, osmError, change, changeError }: Props) {
           <p>{tr("OSM база уақыты")}: {osmOk.osmBase ?? tr("Дерек жоқ")}</p>
           <p>{tr("Алынған уақыты")}: {osmOk.fetchedAt}</p>
           <p>{tr("Өткізілген ашық контурлар / қатынастар")}: {osmOk.skipped.openRings} / {osmOk.skipped.relations}</p>
-          {osmOk.stale && <p role="status" className="rounded border border-amber-300 bg-amber-50 p-2 text-amber-800">{tr("Ескірген OSM кэші")}: {osmOk.ageHours?.toFixed(1) ?? "—"} {tr("сағат")}</p>}
+          {osmOk.stale && <p role="status" className="rounded border border-neutral-300 bg-white p-2 text-amber-800 border-l-4 border-l-amber-600">{tr("Ескірген OSM кэші")}: {osmOk.ageHours?.toFixed(1) ?? "—"} {tr("сағат")}</p>}
         </div>}
         {OSM_CAVEATS.map((text) => <p key={text} className="mt-2 text-neutral-600">{tr(text)}</p>)}
         <a className="mt-1 inline-flex min-h-11 items-center text-green-800 underline" href={osmOk?.licenseUrl ?? "https://www.openstreetmap.org/copyright"} target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors · ODbL</a>

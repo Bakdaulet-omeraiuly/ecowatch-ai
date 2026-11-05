@@ -24,7 +24,7 @@ export function LocationPicker({
 
   if (!token) {
     return (
-      <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-neutral-600">
+      <p className="rounded-lg border border-neutral-300 bg-white p-3 text-xs text-neutral-600 border-l-4 border-l-amber-600">
         {labels?.unavailable ?? tr("Mapbox токені жоқ — координатты қолмен енгізіңіз.")}
       </p>
     );

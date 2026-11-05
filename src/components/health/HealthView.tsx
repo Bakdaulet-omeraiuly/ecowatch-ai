@@ -38,7 +38,7 @@ export function HealthView({ air }: { air: AirAnnual[] }) {
         <p className="mt-1 max-w-3xl text-neutral-700">{tr("Тек ресми жинақталған статистика. Жеке адамдардың диагнозы, аты немесе мекенжайы жоқ.")}</p>
       </header>
 
-      <p className="border-l-4 border-amber-500 bg-amber-50 p-3 text-sm text-amber-900">
+      <p className="border-l-4 border-amber-500 bg-white p-3 text-sm text-amber-900">
         <strong>{tr("Маңызды")}:</strong> {tr("бұл — өлім-жітім (себебі бойынша), аурушаңдық емес. Денсаулық министрлігінің аурушаңдық кестелері тек PDF жинақ түрінде шығады, ашық машинаоқылатын дерек ретінде жарияланбайды — сондықтан аурушаңдық (ауру жағдайларының саны) «дерек жоқ».")}
       </p>
 

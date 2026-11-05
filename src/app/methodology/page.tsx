@@ -143,9 +143,9 @@ const GREEN_METH = {
 function GreeneryMethodology() {
   const { lang } = useLang();
   const c = GREEN_METH[lang];
-  return <section className="mb-10 rounded-xl border border-white/10 bg-white/[0.03] p-4" aria-labelledby="green-meth-title">
-    <h2 id="green-meth-title" className="mb-2 text-sm font-semibold text-white">{c.title}</h2>
-    <dl className="space-y-3 text-[13px] leading-relaxed">{c.rows.map((row) => <div key={row.k}><dt className="font-semibold text-neutral-100">{row.k}</dt><dd className="text-neutral-400">{row.v}</dd></div>)}</dl>
+  return <section className="mb-10 rounded-xl border border-neutral-300 bg-neutral-50 p-4" aria-labelledby="green-meth-title">
+    <h2 id="green-meth-title" className="mb-2 text-sm font-semibold text-neutral-900">{c.title}</h2>
+    <dl className="space-y-3 text-[13px] leading-relaxed">{c.rows.map((row) => <div key={row.k}><dt className="font-semibold text-neutral-900">{row.k}</dt><dd className="text-neutral-600">{row.v}</dd></div>)}</dl>
   </section>;
 }
 

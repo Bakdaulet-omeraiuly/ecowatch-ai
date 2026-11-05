@@ -1851,7 +1851,7 @@ export function MapView() {
       {/* Hint / loading */}
       <div className={styles.actions}>
         {analyzing ? (
-          <div className="flex items-center gap-2 rounded-full border border-emerald-500/30 bg-white px-4 py-2 text-sm text-emerald-800 ">
+          <div className="flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-emerald-800 ">
             <Loader2 className="h-4 w-4 animate-spin" /> {tr("AI талдап жатыр…")}
           </div>
         ) : aiOn ? (
@@ -2013,7 +2013,7 @@ export function MapView() {
         </Button>
 
         {addOpen && (
-          <div className="w-full rounded-lg border border-emerald-500/30 bg-white p-2.5 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-2.5 ">
             <div className="mb-1.5 text-[12px] uppercase tracking-wide text-neutral-600">
               {tr("Координат бойынша")}
             </div>
@@ -2088,7 +2088,7 @@ export function MapView() {
             {!activeLayer && !sourceMode && <p className="text-sm text-neutral-600">{tr("Деректерді көру үшін қабатты таңдаңыз.")}</p>}
         {/* Өрт қаупі панелі — FWI (Канада жүйесі) */}
         {activeLayer === "fire" && (
-          <div className="w-full rounded-lg border border-red-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold text-brand">
               <Flame className="h-3 w-3" /> {tr("Дала/орман өрті қаупі — тірі")}
             </div>
@@ -2178,7 +2178,7 @@ export function MapView() {
             ) : reed ? (
               <>
                 {fireArchive && !fireArchive.complete && (
-                  <div className="mb-2 rounded-md border border-amber-500/40 bg-amber-50 p-2 text-[12px] leading-snug text-amber-800">
+                  <div className="mb-2 rounded-md border border-neutral-300 bg-white p-2 text-[12px] leading-snug text-amber-800 border-l-4 border-l-amber-600">
                     {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
                   </div>
                 )}
@@ -2239,7 +2239,7 @@ export function MapView() {
 
         {/* Құрғақшылық панелі — SPI-3 (McKee 1993) */}
         {activeLayer === "drought" && (
-          <div className="w-full rounded-lg border border-amber-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-amber-800">
               <Droplets className="h-3 w-3" /> {tr("Құрғақшылық индексі — SPI-3")}
             </div>
@@ -2291,7 +2291,7 @@ export function MapView() {
 
         {/* Жел бағыты панелі */}
         {activeLayer === "wind" && (
-          <div className="w-full rounded-lg border border-sky-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold text-brand">
               <Wind className="h-3 w-3" /> {tr("Жел бағыты — тірі")}
             </div>
@@ -2340,7 +2340,7 @@ export function MapView() {
 
         {/* Ластану көзін анықтау панелі */}
         {sourceMode && (
-          <div className="w-full rounded-lg border border-red-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-red-800">
               <Factory className="h-3 w-3" /> {tr("Ластану көзін анықтау — тірі")}
             </div>
@@ -2617,7 +2617,7 @@ export function MapView() {
 
         {/* Live mosquito-suitability panel */}
         {activeLayer === "mosquito" && (
-          <div className="w-full rounded-lg border border-violet-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-violet-800">
               {!mosMissing && <Radio className="h-3 w-3 " />}
               {tr("Маса қолайлылығы")} {!mosMissing && `— ${tr("тірі")}`}
@@ -2857,7 +2857,7 @@ export function MapView() {
             </div>
 
             {fireArchiveError ? (
-              <div className="rounded-md border border-red-500/40 bg-red-50 p-2 text-[12px] leading-snug text-red-800">
+              <div className="rounded-md border border-neutral-300 bg-white p-2 text-[12px] leading-snug text-red-800 border-l-4 border-l-red-700">
                 <div>{tr("FIRMS архиві қолжетімсіз")}: {tr(fireArchiveError.error)}</div>
                 {fireArchiveError.reason && <div className="mt-1 text-red-800">{tr("Себебі")}: {tr(fireArchiveError.reason)}</div>}
                 <div className="mt-1 text-neutral-600">{tr("Жалған дерек көрсетілмейді.")}</div>
@@ -2867,7 +2867,7 @@ export function MapView() {
             ) : (
               <>
                 {!fireArchive.complete && (
-                  <div className="mb-2 rounded-md border border-amber-500/40 bg-amber-50 p-2 text-[12px] leading-snug text-amber-800">
+                  <div className="mb-2 rounded-md border border-neutral-300 bg-white p-2 text-[12px] leading-snug text-amber-800 border-l-4 border-l-amber-600">
                     {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
                   </div>
                 )}
@@ -2925,7 +2925,7 @@ export function MapView() {
 
         {/* Live gas-flare panel — oil layer */}
         {activeLayer === "oil" && (
-          <div className="w-full rounded-lg border border-orange-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold text-brand">
               <Flame className="h-3 w-3" /> {tr("Жылу аномалиялары — тірі")}
             </div>
@@ -3052,7 +3052,7 @@ export function MapView() {
 
         {/* Live water/flood panel — water layer */}
         {activeLayer === "water" && (
-          <div className="w-full rounded-lg border border-emerald-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-emerald-800">
               {!floodMissing && <Radio className="h-3 w-3 " />}
               {river ? `${tr(river)} — ${tr("тірі ағын")}` : tr("Өзен ағыны")}
@@ -3111,7 +3111,7 @@ export function MapView() {
 
         {/* Live air quality panel — shown while the air layer is active */}
         {activeLayer === "air" && (
-          <div className="w-full rounded-lg border border-sky-500/30 bg-white p-4 ">
+          <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1.5 flex items-center gap-1.5 text-[13px] font-semibold text-sky-800">
               <Radio className="h-3 w-3 " /> {tr("Ауа сапасы · дерек түрлері бөлек")}
             </div>
@@ -3300,7 +3300,7 @@ export function MapView() {
 
                 {/* СПУТНИК БАҒАН тобы: Sentinel-5P (тек спутниктік қабаты бар газ үшін) */}
                 {airElem.s5p && (
-                  <div className="mt-3 rounded-lg border border-violet-500/30 bg-violet-50 p-2">
+                  <div className="mt-3 rounded-lg border border-neutral-300 bg-white p-2 border-l-4 border-l-violet-700">
                     <div className="mb-1 flex items-center justify-between gap-1">
                       <div className="flex items-center gap-1.5">
                         <Badge kind="satellite">{t("air.type.satellite")}</Badge>

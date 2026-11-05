@@ -321,7 +321,7 @@ export function AnalysisDrawer({
             </div>
 
             {/* ML спектрлік талдау (Sentinel-2, нақты есептелген) */}
-            <div className="rounded-lg border border-sky-500/25 bg-sky-50 p-3">
+            <div className="rounded-lg border border-neutral-300 bg-white p-3 border-l-4 border-l-sky-700">
               <h3 className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-sky-800">
                 {tr("ML спектрлік талдау")}
                 <span className="rounded bg-sky-50 px-1 py-px text-[12px] uppercase text-sky-800">{tr("Sentinel-2 · 10м")}</span>
@@ -348,7 +348,7 @@ export function AnalysisDrawer({
             </div>
 
             {/* LLM Vision (GPT-4o) — табиғи тілдегі пайымдау */}
-            <div className="rounded-lg border border-violet-500/25 bg-violet-50 p-3">
+            <div className="rounded-lg border border-neutral-300 bg-white p-3 border-l-4 border-l-violet-700">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-violet-800">
                 {tr("LLM Vision талдауы")}
                 <span className="rounded bg-violet-50 px-1 py-px text-[12px] uppercase text-violet-800">GPT-4o</span>
@@ -357,7 +357,7 @@ export function AnalysisDrawer({
             </div>
 
             {site.analysis.isAgent && site.analysis.agentSources && (
-              <div className="space-y-2 rounded-lg border border-violet-500/25 bg-violet-50 p-3">
+              <div className="space-y-2 rounded-lg border border-neutral-300 bg-white p-3 border-l-4 border-l-violet-700">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-violet-800">
                   <Sparkles className="h-3.5 w-3.5" /> {tr("AI агент — көп дереккөзді талдау")}
                 </h3>
@@ -428,7 +428,7 @@ export function AnalysisDrawer({
               </div>
             )}
 
-            <div className="rounded-lg border border-emerald-500/20 bg-emerald-50 p-3">
+            <div className="rounded-lg border border-neutral-300 bg-white p-3 border-l-4 border-l-emerald-700">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-800">
                 {tr("Деректерге негізделген ұсыныс")}
                 <span className="rounded bg-emerald-50 px-1 py-px text-[12px] uppercase text-emerald-800">

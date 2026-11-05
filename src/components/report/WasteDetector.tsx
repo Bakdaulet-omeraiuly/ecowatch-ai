@@ -107,7 +107,7 @@ export function WasteDetector({ photo }: { photo: string }) {
         </div>
       )}
       {status === "error" && (
-        <p className="rounded-lg border border-red-300 bg-red-50 p-2 text-xs text-red-800">
+        <p className="rounded-lg border border-neutral-300 bg-white p-2 text-xs text-red-800 border-l-4 border-l-red-700">
           {tr("Модель жүктелмеді. Интернетті тексеріп, қайталаңыз.")}
         </p>
       )}

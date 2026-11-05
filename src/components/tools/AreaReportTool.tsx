@@ -114,7 +114,7 @@ export function AreaReportTool() {
       </div>
       {busy && metric !== "overlay" && <p className="text-xs text-neutral-500">{tr("Спутник деректері 10–40 секунд ішінде есептеледі.")}</p>}
       {error && (
-        <div role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-2.5 text-sm text-amber-900">
+        <div role="alert" className="rounded-md border border-neutral-300 bg-white p-2.5 text-sm text-amber-900 border-l-4 border-l-amber-600">
           {tr(error.error)}{error.reason && <div className="text-xs opacity-80">{error.reason}</div>}
         </div>
       )}

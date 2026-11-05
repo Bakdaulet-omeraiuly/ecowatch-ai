@@ -58,7 +58,7 @@ export function AirSourceGroups() {
   }
   if (loaded.state === "error") {
     return (
-      <section className="rounded-md border-l-4 border-red-700 bg-red-50 p-4 text-red-900" role="alert">
+      <section className="rounded-md border-l-4 border-red-700 bg-white p-4 text-red-900" role="alert">
         <p className="font-bold">{t("air.error")}</p>
       </section>
     );

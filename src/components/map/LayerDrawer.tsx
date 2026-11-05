@@ -434,7 +434,7 @@ function AiTab({
         <button
           onClick={onRun}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-sky-400/40 bg-sky-50 px-3 py-2.5 text-[13px] font-medium text-sky-800 transition hover:bg-sky-50 disabled:opacity-60"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-300/40 bg-white px-3 py-2.5 text-[13px] font-medium text-[#0b3a6b] transition hover:border-[#0b3a6b] disabled:opacity-60"
         >
           {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
           {loading ? tr("Талдау жүргізілуде…") : tr("AI талдауын бастау")}

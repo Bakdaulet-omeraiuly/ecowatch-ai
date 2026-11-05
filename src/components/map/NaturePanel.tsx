@@ -35,7 +35,7 @@ export function NaturePanel({ fauna, error }: { fauna: FaunaData | null; error: 
     <div className="w-full space-y-2 rounded-lg border border-neutral-300 bg-white p-3 text-[12px] leading-snug text-neutral-800">
       <div className="font-semibold text-[13px] text-neutral-900">{tr("«Ақжайық» резерваты")}</div>
       <p>{tr("Шекара")}: <a className="underline" href={reserve.url} target="_blank" rel="noreferrer">{reserve.source}</a> (v{reserve.osmVersion}, {reserve.osmTimestamp.slice(0, 10)}) · {OSM_RESERVE_KM2} км²</p>
-      <p className="rounded border border-amber-300 bg-amber-50 p-2 text-amber-900">
+      <p className="rounded border border-neutral-300 bg-white p-2 text-amber-900 border-l-4 border-l-amber-600">
         {tr("OSM контуры WDPA-дағы ресми ауданның")} ({WDPA_REPORTED_KM2} км², Protected Planet 342650) {tr("шамамен")} {share}% {tr("ғана қамтиды. Ресми шекара (Үкімет қаулысы) мен WDPA геометриясы салыстырылмады — WDPA API кілт талап етеді. Картадағы контур толық емес болуы мүмкін.")}
       </p>
 

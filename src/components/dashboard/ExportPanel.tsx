@@ -150,7 +150,7 @@ export function ExportPanel() {
         </div>
 
         {notice && (
-          <p role="status" className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-2 text-[13px] text-amber-900">
+          <p role="status" className="mt-2 rounded-md border border-neutral-300 bg-white p-2 text-[13px] text-amber-900 border-l-4 border-l-amber-600">
             {notice} <a href="/auth" className="font-semibold underline">{tr("Кіру")}</a>
           </p>
         )}

@@ -220,7 +220,7 @@ export default function MriMethodologyClient() {
           <ArrowLeft className="h-3.5 w-3.5" /> {tr("Әдістемеге қайту")}{" "}</Link>
         <a
           href="/JAIYQ-MRI-adistemesi.pdf"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-[13px] text-emerald-800 transition hover:bg-emerald-100"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-[13px] text-[#0b3a6b] transition hover:border-[#0b3a6b]"
         >
           <Download className="h-3.5 w-3.5" /> {tr("PDF жүктеу (11 бет)")}{" "}</a>
         <span className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-[13px] text-neutral-600">

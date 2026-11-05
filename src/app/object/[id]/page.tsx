@@ -130,7 +130,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
         </div>
         <Button variant="portal-outline" size="portal"
           onClick={() => window.print()}
-          className="flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 transition hover:bg-emerald-50 print:hidden"
+          className="flex items-center gap-1.5 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-xs font-medium text-[#0b3a6b] transition hover:border-[#0b3a6b] print:hidden"
         >
           <Printer className="h-3.5 w-3.5" /> {tr("Есеп құру (PDF)")}
         </Button>

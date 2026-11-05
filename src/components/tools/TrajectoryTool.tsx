@@ -77,7 +77,7 @@ export function TrajectoryTool() {
       <Button variant="portal" size="portal" onClick={run} disabled={!point || busy}>
         {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}{tr("Есептеу")}
       </Button>
-      {err && <div role="alert" className="rounded-md border border-amber-300 bg-amber-50 p-2.5 text-sm text-amber-900">{tr(err.error)}{err.reason && <div className="text-xs opacity-80">{err.reason}</div>}</div>}
+      {err && <div role="alert" className="rounded-md border border-neutral-300 bg-white p-2.5 text-sm text-amber-900 border-l-4 border-l-amber-600">{tr(err.error)}{err.reason && <div className="text-xs opacity-80">{err.reason}</div>}</div>}
       {res && (
         <div className="space-y-2 rounded-lg border border-neutral-200 p-3 text-sm">
           <TierBadge tier="model" tone="light" />
