@@ -131,35 +131,33 @@ export function AirSourceGroups() {
 
         {/* Қазгидромет айлық — тірі емес, бөлек жазылған */}
         <h4 className="mt-5 text-sm font-bold text-neutral-900">{tk("air.kzh.title")}</h4>
-        <ul className="mt-2 grid gap-3 sm:grid-cols-2">
-          {KZH_ORDER.map((gas) => {
-            const last = latestKzh(gas);
-            const label = tk(`pol.${gas}`);
-            return (
-              <li key={`k-${gas}`} className="rounded border border-neutral-300 p-3">
-                <p className="font-bold text-neutral-900">{label}</p>
-                {last ? (
-                  <>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-neutral-900">{fmtNum(last.meanUg, "µg/m³")}</p>
-                    <p className="text-xs text-neutral-800">{tk("air.ground.notLive")}</p>
-                    <MetaList
-                      rows={[
-                        { k: t("air.source"), v: <a href={last.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#0b3a6b]">{tr("Қазгидромет")}<span className="sr-only"> ({t("foot.newTab")})</span></a> },
-                        { k: t("air.unit"), v: "µg/m³" },
-                        { k: t("air.month"), v: last.month },
-                        { k: t("air.freq"), v: t("air.freq.kzh") },
-                        { k: t("air.quality"), v: t("air.q.kzh") },
-                        { k: t("air.uncertainty"), v: t("air.u.kzh") },
-                      ]}
-                    />
-                  </>
-                ) : (
-                  <p className="mt-1 text-sm text-neutral-800">{t("air.noData")}</p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        {/* Бір кесте: қайталанатын мәлімет (дереккөз, бірлік, жиілік, сапа) кестенің астында бір рет */}
+        {(() => {
+          const rows = KZH_ORDER.map((gas) => ({ gas, last: latestKzh(gas) }));
+          const any = rows.find((r) => r.last)?.last;
+          return (
+            <div className="mt-2 overflow-x-auto rounded border border-neutral-300">
+              <table className="w-full text-sm">
+                <thead className="bg-neutral-50 text-left text-xs text-neutral-700">
+                  <tr><th className="px-3 py-2 font-semibold">{tr("Зат")}</th><th className="px-3 py-2 text-right font-semibold">µg/m³</th><th className="px-3 py-2 font-semibold">{t("air.month")}</th></tr>
+                </thead>
+                <tbody>
+                  {rows.map(({ gas, last }) => (
+                    <tr key={`k-${gas}`} className="border-t border-neutral-200">
+                      <td className="px-3 py-2">{tk(`pol.${gas}`)}</td>
+                      <td className="px-3 py-2 text-right font-bold tabular-nums">{last ? fmtNum(last.meanUg, "") : t("air.noData")}</td>
+                      <td className="px-3 py-2 tabular-nums text-neutral-700">{last?.month ?? "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="border-t border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+                {tk("air.ground.notLive")} · {t("air.freq")}: {t("air.freq.kzh")} · {t("air.quality")}: {t("air.q.kzh")} · {t("air.uncertainty")}: {t("air.u.kzh")}
+                {any && <> · <a href={any.url} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#0b3a6b]">{tr("Қазгидромет")}<span className="sr-only"> ({t("foot.newTab")})</span></a></>}
+              </div>
+            </div>
+          );
+        })()}
         <p className="mt-2 text-xs text-neutral-800">
           {KZH_PERIOD.from} — {KZH_PERIOD.to} · {Object.keys(KZH_ATYRAU).length} {tk("air.kzh.gases")}
         </p>
@@ -170,37 +168,36 @@ export function AirSourceGroups() {
         <h3 className="flex flex-wrap items-center gap-2 font-bold text-neutral-900">
           <Badge kind="model">{t("air.type.model")}</Badge> {tk("air.group.model")}
         </h3>
-        <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-          {POLLUTANT_ORDER.map((p) => {
-            const m = modelByP.get(p);
-            const has = !!m && m.value != null && m.unit != null;
-            return (
-              <li key={`m-${p}`} className="rounded border border-neutral-300 p-3">
-                <p className="font-bold text-neutral-900">{tk(`pol.${p}`)}</p>
-                {has ? (
-                  <>
-                    <p className="mt-1 text-xl font-bold tabular-nums text-neutral-900">{fmtNum(m!.value!, m!.unit)}</p>
-                    <MetaList
-                      rows={[
-                        { k: t("air.source"), v: m!.sourceName },
-                        { k: t("air.unit"), v: m!.unit ?? "—" },
-                        { k: t("air.time"), v: readingTime(m!.observedAt, true) },
-                        { k: t("air.freq"), v: t("air.freq.hourly") },
-                        { k: t("air.quality"), v: t("air.q.model") },
-                        { k: t("air.uncertainty"), v: t("air.u.notEst") },
-                      ]}
-                    />
-                  </>
-                ) : (
-                  <p className="mt-1 text-sm text-neutral-800">
-                    {t("air.noData")}:{" "}
-                    {m?.missingReason === "no-model-field" ? t("air.noData.noModelField") : t("air.noData.unavailable")}
-                  </p>
-                )}
-              </li>
-            );
-          })}
-        </ul>
+        {(() => {
+          const first = POLLUTANT_ORDER.map((p) => modelByP.get(p)).find((m) => m && m.value != null);
+          return (
+            <div className="mt-3 overflow-x-auto rounded border border-neutral-300">
+              <table className="w-full text-sm">
+                <thead className="bg-neutral-50 text-left text-xs text-neutral-700">
+                  <tr><th className="px-3 py-2 font-semibold">{tr("Зат")}</th><th className="px-3 py-2 text-right font-semibold">{tr("Мәні")}</th><th className="px-3 py-2 font-semibold">{t("air.time")}</th></tr>
+                </thead>
+                <tbody>
+                  {POLLUTANT_ORDER.map((p) => {
+                    const m = modelByP.get(p);
+                    const has = !!m && m.value != null && m.unit != null;
+                    return (
+                      <tr key={`m-${p}`} className="border-t border-neutral-200">
+                        <td className="px-3 py-2">{tk(`pol.${p}`)}</td>
+                        <td className="px-3 py-2 text-right tabular-nums">
+                          {has ? <b>{fmtNum(m!.value!, m!.unit)}</b> : <span className="text-neutral-600">{t("air.noData")}: {m?.missingReason === "no-model-field" ? t("air.noData.noModelField") : t("air.noData.unavailable")}</span>}
+                        </td>
+                        <td className="px-3 py-2 tabular-nums text-neutral-700">{has ? readingTime(m!.observedAt, true) : "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              <div className="border-t border-neutral-200 bg-neutral-50 px-3 py-2 text-xs text-neutral-700">
+                {t("air.source")}: {first?.sourceName ?? "—"} · {t("air.freq")}: {t("air.freq.hourly")} · {t("air.quality")}: {t("air.q.model")} · {t("air.uncertainty")}: {t("air.u.notEst")}
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* 🛰 СПУТНИК БАҒАН (Sentinel-5P) — сан жоқ, тек метадерек */}
