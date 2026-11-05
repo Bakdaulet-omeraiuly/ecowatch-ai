@@ -3072,8 +3072,8 @@ export function MapView() {
                   const aty = flood.find((p) => p.name.includes(region.name)) ?? flood[0];
                   return (
                     <div
-                      className="rounded-lg p-2 text-center"
-                      style={{ backgroundColor: `${aty.color}22`, border: `1px solid ${aty.color}55` }}
+                      className="rounded-lg border border-neutral-300 bg-white p-2 text-center"
+                      style={{ borderLeftColor: aty.color, borderLeftWidth: 4 }}
                     >
                       <div className="text-xl font-bold" style={{ color: "var(--color-brand)" }}>
                         {aty.discharge} <span className="text-xs font-normal">м³/с</span>
@@ -3174,8 +3174,8 @@ export function MapView() {
                     <>
                       {/* Category badge (IQAir-style) */}
                       <div
-                        className="mb-2 rounded-lg p-2 text-center"
-                        style={{ backgroundColor: `${cat.color}22`, border: `1px solid ${cat.color}55` }}
+                        className="mb-2 rounded-lg border border-neutral-300 bg-white p-2 text-center"
+                        style={{ borderLeftColor: cat.color, borderLeftWidth: 4 }}
                       >
                         <div className="text-2xl font-bold" style={{ color: "var(--color-brand)" }}>
                           {airStats.avg}
