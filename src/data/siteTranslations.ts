@@ -91,4 +91,6 @@ export const SITE_TR: Record<string, { ru: string; en: string }> = {
   "гидропериод": { ru: "гидропериод", en: "hydroperiod" },
   "орташа AQI": { ru: "средний AQI", en: "mean AQI" },
   "Карта құралында ашу": { ru: "Открыть в инструментах карты", en: "Open in map tools" },
+  "OpenStreetMap (landuse, greenery көшірмесі)": { ru: "OpenStreetMap (копии landuse, greenery)", en: "OpenStreetMap (landuse, greenery snapshots)" },
+  "Jaiyq нысандар тізілімі": { ru: "Реестр объектов Jaiyq", en: "Jaiyq facility registry" },
 };

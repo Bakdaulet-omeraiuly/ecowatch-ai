@@ -88,7 +88,7 @@ export function PriorityTool() {
           <li key={c.id}>{(s! * 100).toFixed(0)} · NDVI {c.ndvi}{pop?.map.get(c.id) != null && <> · ~{Math.round(pop.map.get(c.id)!).toLocaleString("ru-RU")} {tr("адам")}</>} · {tr("тұрғын")} {(c.residential * 100).toFixed(0)}% · {tr("жасыл (OSM)")} {(c.green * 100).toFixed(0)}% · {c.sourceKm} км</li>
         ))}
       </ol>
-      <p className="text-xs text-neutral-600">{tr("NDVI маусымы")}: {grid.season.year} · {tr("Дереккөз")}: {grid.sources.join("; ")}</p>
+      <p className="text-xs text-neutral-600">{tr("NDVI маусымы")}: {grid.season.year} · {tr("Дереккөз")}: {grid.sources.map(tr).join("; ")}</p>
       {pop && <p className="text-xs text-neutral-600">{tr("Халық")}: {pop.source}</p>}
       <ul className="list-disc space-y-0.5 pl-4 text-xs text-neutral-600">{[...grid.caveats, ...(pop?.caveats ?? [])].map((c) => <li key={c}>{tr(c)}</li>)}</ul>
     </div>

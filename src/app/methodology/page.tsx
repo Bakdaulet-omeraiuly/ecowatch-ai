@@ -230,7 +230,7 @@ export default function MethodologyPage() {
                           : "border-amber-300 bg-amber-50 text-amber-800"
                       }`}
                     >
-                      {it.validated ? "валидацияланған" : "валидацияланбаған"}
+                      {it.validated ? tr("валидацияланған") : tr("валидацияланбаған")}
                     </span>
                   </div>
 
