@@ -10,7 +10,7 @@ const TELEGRAM_BOT = "https://t.me/jaiyq_atyrau_bot";
 // Бүкіл сайттың футері: деректер көздері, әдістеме, байланыс.
 export function Footer() {
   const pathname = usePathname();
-  const { t } = useLang();
+  const { t, tr } = useLang();
   // Карта беті: футер жасырылады, карта экранның қалған толық биіктігін алады
   if (FULL_VIEWPORT_ROUTES.has(pathname)) return null;
 
@@ -28,6 +28,7 @@ export function Footer() {
       items: [
         { href: "/methodology", label: t("nav.methodology"), ext: false },
         { href: "/validation", label: t("foot.validation"), ext: false },
+        { href: "/status", label: tr("Дереккөздер күйі"), ext: false },
         { href: "/eco-passport", label: t("nav.passport"), ext: false },
         { href: "/legislation", label: t("foot.legislation"), ext: false },
         { href: "/caspian", label: t("foot.caspian"), ext: false },

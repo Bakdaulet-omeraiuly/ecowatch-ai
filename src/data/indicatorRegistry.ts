@@ -780,7 +780,7 @@ export const INDICATORS: Indicator[] = [
     ],
     instrument: "Сандық ауа райы моделі (Open-Meteo best_match)",
     spatial: "тор қадамы 0.5°, модель ажыратымдылығы 2–11 км",
-    temporal: "сағаттық",
+    temporal: "сағаттық; 2022-01-01-ден бастап кез келген сағат (Open-Meteo тарихи болжам мұрағаты)",
     latency: "нақты уақыт",
     sources: [DOC.openMeteoWx],
     references: [{ label: "NOAA HYSPLIT — толық 3D модель (салыстыру үшін)", url: "https://www.ready.noaa.gov/HYSPLIT.php" }],

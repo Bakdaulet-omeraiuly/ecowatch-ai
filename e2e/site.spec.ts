@@ -2,7 +2,7 @@ import { test, expect, type Page } from "@playwright/test";
 
 // Эмодзи стикерлері сайтта болмауы керек (кәсіби дизайн ережесі).
 const EMOJI = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2705}\u{274C}\u{2B50}]/u;
-const PAGES = ["/", "/dashboard", "/alerts", "/methodology", "/health", "/validation", "/legislation", "/complaints"];
+const PAGES = ["/", "/dashboard", "/alerts", "/methodology", "/health", "/validation", "/legislation", "/complaints", "/status"];
 
 async function visibleText(page: Page) {
   return page.locator("main, #main, body").first().innerText();
