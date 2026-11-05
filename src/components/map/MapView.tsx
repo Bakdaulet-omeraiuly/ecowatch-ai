@@ -311,7 +311,8 @@ export function MapView() {
   const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia("(min-width: 1024px)").matches, () => false);
   const [panelOpen, setPanelOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
-  const [mobileSheet, setMobileSheet] = useState<"left" | "right" | null>(null);
+  // ?tool= сілтемесімен келсе, телефонда да құрал панелі бірден ашылады
+  const [mobileSheet, setMobileSheet] = useState<"left" | "right" | null>(() => new URLSearchParams(window.location.search).get("tool") ? "right" : null);
   // /map?tool=area|trajectory|journal|review|watch|priority — құралды бірден ашады (ssr:false, window бар)
   const [rightView, setRightView] = useState(() => {
     const tool = new URLSearchParams(window.location.search).get("tool") as ToolKey | null;
