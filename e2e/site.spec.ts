@@ -99,3 +99,20 @@ test("карта: шағымдар құралы ашылады (дерек бо�
   await page.goto("/map?tool=complaints");
   await expect(page.getByText(/топ ·|қолжетімсіз|жария шағым жоқ/).first()).toBeVisible({ timeout: 20_000 });
 });
+
+// Негізгі сценарий нақты картада (Mapbox кілті бар орта керек — продакшн):
+// полигон сызу → «Жер пайдалану мен табиғат» есебі → нәтиже кестесі.
+test("карта: полигон сызу → аймақ есебі (OSM)", async ({ page, isMobile }) => {
+  test.skip(isMobile || !/ecojaiyq\.com/.test(process.env.BASE_URL ?? ""), "тек продакшн, компьютер");
+  await page.goto("/map?tool=area");
+  await page.waitForSelector(".mapboxgl-canvas", { timeout: 30_000 });
+  await page.waitForTimeout(3000);
+  await page.getByRole("button", { name: /Картада сызу/ }).click();
+  const box = (await page.locator(".mapboxgl-canvas").boundingBox())!;
+  const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
+  for (const [dx, dy] of [[-40, -40], [40, -40], [40, 40], [-40, 40]]) await page.mouse.click(cx + dx, cy + dy);
+  await expect(page.getByText(/Төбелер: 4/)).toBeVisible();
+  await page.getByText("Жер пайдалану мен табиғат").click();
+  await page.getByRole("button", { name: /Есеп шығару/ }).click();
+  await expect(page.getByText(/Тор-сынама қадамы|OSM-да белгіленген санат жоқ|облысының ішінде/).first()).toBeVisible({ timeout: 30_000 });
+});

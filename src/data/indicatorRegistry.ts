@@ -803,13 +803,14 @@ export const INDICATORS: Indicator[] = [
     onDemand: true,
     toolLink: "/map?tool=priority",
     what:
-      "1 км ұяшықтар бойынша салмақты индекс: өсімдік тапшылығы, тұрғын үй үлесі, өнеркәсіп нысанына жақындық. " +
+      "1 км ұяшықтар бойынша салмақты индекс: өсімдік тапшылығы, халық тығыздығы (WorldPop 2020), тұрғын үй үлесі, өнеркәсіп нысанына жақындық. " +
       "Салмақты пайдаланушы өзі қояды (i-Tree Landscape / Tree Equity Score үлгісі).",
-    formula: "S = (w₁·(1 − NDVI*) + w₂·R + w₃·(1 − min(d,10)/10)) / (w₁+w₂+w₃); NDVI* — қала ішінде min–max нормаланған",
+    formula: "S = (w₁·(1 − NDVI*) + w₂·R + w₃·(1 − min(d,10)/10) + w₄·ln(1+P)/ln(1+Pmax)) / Σw; NDVI* — қала ішінде min–max нормаланған; P — WorldPop адам/ұяшық (жоқ болса w₄ алынады)",
     steps: [
       "Sentinel-2 соңғы жаздың пиксельдік медианасы (Process API, 50 м)",
       "OSM landuse=residential үлесі — 10×10 сынама нүктесімен",
       "Тізілімдегі 11 нысанға дейінгі ең жақын қашықтық",
+      "WorldPop 2020 (100 м) — ұяшықтағы халық саны, WorldPop stats API (scripts/fetch-worldpop-grid.mjs)",
       "Жамылғысы 50%-дан аз ұяшық бағаланбайды",
     ],
     instrument: "Sentinel-2 MSI L2A + OpenStreetMap",
@@ -817,9 +818,12 @@ export const INDICATORS: Indicator[] = [
     temporal: "жылына бір (апталық көшірме жаңартуы)",
     latency: "көшірме күні жауапта",
     sources: [DOC.cdse],
-    references: [{ label: "Tree Equity Score — әдістеме", url: "https://www.treeequityscore.org/methodology" }],
+    references: [
+      { label: "Tree Equity Score — әдістеме", url: "https://www.treeequityscore.org/methodology" },
+      { label: "WorldPop Global High Resolution Population Denominators (doi:10.5258/SOTON/WP00645)", url: "https://www.worldpop.org/" },
+    ],
     limits: [
-      "Халық тығыздығының ресми торы жоқ — OSM тұрғын үй ПРОКСИ",
+      "WorldPop — модельденген тор, ресми қала халқынан төмен (тек салыстырмалы қолданылады); оңтүстік шеткі 60 ұяшықта әзірге жоқ",
       "Шешімге көмек, «ағаш керек» деген дәлел емес",
     ],
     validated: false,
