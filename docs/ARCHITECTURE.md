@@ -813,4 +813,4 @@ CDN-нен алады (~0.1 с), жоқ болса тірі API. `.github/workfl
 - **WorldPop 2020** — `public/data/layers/population-grid-atyrau.json` (`scripts/fetch-worldpop-grid.mjs`, API шегі 1000/тәулік, `--retry` бос ұяшықтарды толтырады; апталық CI).
 - **Квоталар:** CDSE (Sentinel Hub) тегін processing units таусылуы мүмкін → `area-report` 6 сағ кэш + нақты «квота бітті» хабары. Тесттерде CDSE шақырылмайды.
 - `supabase/exceedances_basis.sql` прод-қа 2026-11-05 қолданылды (SQL Editor); 3–5 қараша аралығында жүгірістер тіркелмеген. `/api/fixate` жазу қатесін енді `ok:false` + логпен көрсетеді.
-- **Ашық мәселе:** Vercel-де `CRON_SECRET` жоқ → `/api/fixate` жария шақырылады.
+- Vercel-де `CRON_SECRET` 2026-11-05 қосылды: `/api/fixate` пен `/api/alerts-push` құпиясыз 401 қайтарады (Vercel cron `Authorization: Bearer` жібереді).
