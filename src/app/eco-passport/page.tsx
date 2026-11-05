@@ -427,7 +427,7 @@ function IndicatorRow({
             </span>
           </div>
           {ind.onDemand ? (
-            <a href={ind.toolLink} className="mt-0.5 block text-[12px] text-[#0b3a6b] underline underline-offset-2 print:no-underline">{tr("аймақ бойынша — карта құралында")}</a>
+            <div className="mt-0.5 text-[12px] text-neutral-600">{tr("аймақ бойынша — карта құралында")}</div>
           ) : value == null ? (
             <div className="mt-0.5 text-[12px] text-neutral-600">{tr("өлшенбеді")}</div>
           ) : breached.length > 0 ? (
@@ -481,6 +481,11 @@ function IndicatorRow({
             <Field label={tr("Жаңару жиілігі")} value={tr(ind.temporal)} />
             <Field label={tr("Кідіріс")} value={tr(ind.latency)} />
             <Field label={tr("Эндпоинт")} value={ind.endpoint} mono />
+            {ind.toolLink && (
+              <a href={ind.toolLink} className="inline-flex min-h-[44px] items-center text-[13px] font-medium text-[#0b3a6b] underline underline-offset-2 print:hidden">
+                {tr("Карта құралында ашу")}
+              </a>
+            )}
             <Field
               label={tr("Өлшенген уақыт")}
               value={meta?.fetchedAt ? meta.fetchedAt.replace("T", " ").slice(0, 16) + " UTC" : "—"}

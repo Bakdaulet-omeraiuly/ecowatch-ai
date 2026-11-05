@@ -90,4 +90,5 @@ export const SITE_TR: Record<string, { ru: string; en: string }> = {
   "ауа сапасы": { ru: "качество воздуха", en: "air quality" },
   "гидропериод": { ru: "гидропериод", en: "hydroperiod" },
   "орташа AQI": { ru: "средний AQI", en: "mean AQI" },
+  "Карта құралында ашу": { ru: "Открыть в инструментах карты", en: "Open in map tools" },
 };
