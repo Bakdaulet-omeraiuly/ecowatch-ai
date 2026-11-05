@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Crosshair, Loader2, Save, Satellite, Trash2 } from "lucide-react";
+import { Crosshair, FileDown, Loader2, Save, Satellite, Trash2 } from "lucide-react";
+import { authHeaders } from "@/lib/authClient";
 import { Button } from "@/components/ui/button";
 import { TierBadge } from "@/components/ui/TierBadge";
 import { useLang } from "@/lib/i18n";
@@ -106,6 +107,15 @@ export function JournalTool() {
     if (!r.ok) { toast.error(tr(r.body?.error ?? "Өшірілмеді")); return; }
     load();
   };
+  const downloadCsv = async () => {
+    const r = await fetch(`/api/field-entries?layer=${layer}&format=csv`, { headers: await authHeaders() });
+    if (!r.ok) { toast.error(tr("CSV жасалмады — дереккөз қолжетімсіз")); return; }
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(await r.blob());
+    a.download = `jaiyq-journal-${layer}.csv`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
   const runVerify = async (e: Entry) => {
     setVerify((v) => ({ ...v, [e.id]: "loading" }));
     const r = await authedJson(`/api/field-entries/${e.id}/verify`);
@@ -185,7 +195,10 @@ export function JournalTool() {
       </Button>
 
       <div className="border-t border-neutral-200 pt-3">
-        <p className="mb-1.5 text-sm font-semibold text-neutral-900">{tr("Жазбалар")}: {tr(LAYER_LABELS[layer])} {entries && `(${entries.length})`}</p>
+        <div className="mb-1.5 flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-neutral-900">{tr("Жазбалар")}: {tr(LAYER_LABELS[layer])} {entries && `(${entries.length})`}</p>
+          {!!entries?.length && <Button variant="portal-outline" size="portal" onClick={downloadCsv}><FileDown className="h-3.5 w-3.5" aria-hidden />CSV</Button>}
+        </div>
         {listErr && <p role="alert" className="text-sm text-amber-800">{tr(listErr)}</p>}
         {entries?.length === 0 && <p className="text-sm text-neutral-600">{tr("Әзірге жазба жоқ.")}</p>}
         <ul className="space-y-2">

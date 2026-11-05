@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { toast } from "sonner";
-import { FileDown, Loader2, Play } from "lucide-react";
+import { FileDown, Loader2, Play, Printer } from "lucide-react";
+import { printAreaReport } from "./printAreaReport";
 import { Button } from "@/components/ui/button";
 import { TierBadge } from "@/components/ui/TierBadge";
 import { useLang } from "@/lib/i18n";
@@ -80,6 +81,29 @@ export function AreaReportTool() {
     URL.revokeObjectURL(a.href);
   };
 
+  const printReport = (r: Result, ring: [number, number][]) => {
+    const m = METRICS.find((x) => x.key === r.metric)!;
+    let header: string[] = [], rows: (string | number | null)[][] = [], summary: string | undefined;
+    if (r.metric === "ndvi" || r.metric === "no2") {
+      header = [tr("Ай"), r.metric === "ndvi" ? "NDVI" : "NO₂, µmol/m²", tr("Жарамды өту"), tr("Пиксель жамылғысы")];
+      rows = r.rows.map((x) => [x.month, x.value == null ? tr("дерек жоқ") : +x.value.toFixed(r.metric === "ndvi" ? 3 : 1), x.n, x.coverage == null ? null : +x.coverage.toFixed(2)]);
+    } else if (r.metric === "fires") {
+      header = [tr("Ай"), tr("алау"), tr("расталмаған")];
+      rows = r.rows.map((x) => [x.month, x.flare, x.unconfirmed]);
+      summary = `${r.points.length} ${tr("жылу нүктесі")}${r.complete ? "" : ` — ${tr("FIRMS терезелерінің бір бөлігі жүктелмеді — сан толық емес.")}`}`;
+    } else if (r.metric === "overlay") {
+      header = [tr("Санат"), tr("Аймақтың %"), tr("Аудан, км²")];
+      rows = r.rows.map((x) => [tr(CATEGORY_KK[x.category] ?? x.category), +(x.fraction * 100).toFixed(1), +x.areaKm2.toFixed(4)]);
+      summary = `${tr("Тор-сынама қадамы")}: ${r.stepM} м`;
+    }
+    const ok = printAreaReport({
+      title: tr("Аймақ есебі"), metricLabel: tr(m.label), tierLabel: tr("Өлшем"), areaKm2: r.areaKm2,
+      window: "window" in r ? r.window : undefined, header, rows, summary, source: r.source, caveats: r.caveats.map(tr), ring,
+      labels: { generated: tr("Жасалған уақыты"), area: tr("Аудан"), period: tr("Кезең"), source: tr("Дереккөз"), caveats: tr("Ескертулер"), polygon: tr("Полигон (ендік, бойлық)"), tier: tr("Сенімділік деңгейі"), note: tr("Jaiyq — тәуелсіз жоба, ресми мемлекеттік дереккөз емес. Ресми шешім үшін жауапты органдарға жүгініңіз.") },
+    });
+    if (!ok) toast.error(tr("Терезе ашылмады — браузерде қалқымалы терезеге рұқсат беріңіз"));
+  };
+
   return (
     <div className="space-y-3">
       <p className="text-xs text-neutral-600">{tr("Аймақ сызыңыз немесе жүктеңіз → нақты спутник және карта деректері бойынша есеп.")}</p>
@@ -109,6 +133,11 @@ export function AreaReportTool() {
         {result && (
           <Button variant="portal-outline" size="portal" onClick={downloadCsv}>
             <FileDown className="h-4 w-4" aria-hidden />CSV
+          </Button>
+        )}
+        {result && valid && (
+          <Button variant="portal-outline" size="portal" onClick={() => printReport(result, valid.ring)}>
+            <Printer className="h-4 w-4" aria-hidden />{tr("Басып шығару / PDF")}
           </Button>
         )}
       </div>
