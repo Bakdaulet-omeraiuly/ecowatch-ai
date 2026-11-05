@@ -30,7 +30,8 @@ const CHECKS: Check[] = [
   { key: "openaq", name: "OpenAQ (жерүсті стансалар)", powers: "Жерүсті өлшемдер", url: "/api/atyrau-air", time: (j) => str(j.fetchedAt), ok: (j) => get(j, "ground.state") !== "unavailable", staleH: 3 },
   { key: "wind", name: "Open-Meteo жел торы", powers: "Таралу анимациясы, жел қабаты, кері траектория", url: "/api/windgrid?region=atyrau", time: (j) => str(j.fetchedAt), staleH: 3 },
   { key: "firms", name: "NASA FIRMS (VIIRS)", powers: "Жылу аномалиялары, растау, аймаққа жазылу", url: "/api/flares?region=atyrau", time: (j) => str(j.fetchedAt), staleH: 6 },
-  { key: "fixate", name: "Норма асуын фиксациялау (Supabase)", powers: "Асу журналы", url: "/api/exceedances?region=atyrau", time: () => null, ok: (j) => j.available !== false, staleH: 9999 },
+  // Соңғы жүгіріс уақыты — fixation_runs; күнделікті cron, 30 сағаттан ескі болса «ескірген»
+  { key: "fixate", name: "Норма асуын фиксациялау (Supabase)", powers: "Асу журналы", url: "/api/exceedances?region=atyrau", time: (j) => str(get(j, "coverage.lastRunAt")), ok: (j) => j.available !== false, staleH: 30 },
   { key: "reviews", name: "Растау кестесі (Supabase)", powers: "Детекцияны растау", url: "/api/detection-reviews?layer=fire", time: () => null, ok: (j) => Array.isArray(j.verdicts), staleH: 9999 },
   { key: "landuse", name: "OSM жер пайдалану (көшірме)", powers: "Жер пайдалану қабаты, аймақ есебі", url: "/data/layers/landuse-atyrau.json", time: (j) => str(j.fetchedAt), staleH: 24 * 10 },
   { key: "greenery", name: "OSM жасыл аймақтар (көшірме)", powers: "Көгалдандыру қабаты", url: "/data/layers/greenery-atyrau.json", time: (j) => str(j.fetchedAt), staleH: 24 * 10 },

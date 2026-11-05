@@ -295,7 +295,9 @@ export async function GET(req: Request) {
   // ⚠️ Жүгірістің ӨЗІН тіркеу — журналдағы бос кезең «асу болмады» ма,
   // әлде «тексеру жүрмеген» бе, соны ажырату үшін. Жеткіліксіз тәуліктер де
   // осында есептеледі: олар «тексерілмеді», «асу жоқ» емес.
-  await db.from("fixation_runs").insert({
+  // Жазу нәтижесі ТЕКСЕРІЛЕДІ: бұрын қате үнсіз жұтылатын (мыс. exceedances_basis.sql
+  // қолданылмаған → insufficient_days бағаны жоқ → жүгіріс тіркелмей, бет «бақылау үзілген» дейтін).
+  const { error: runLogErr } = await db.from("fixation_runs").insert({
     regions: TRACKED.length,
     checked,
     found,
@@ -303,9 +305,13 @@ export async function GET(req: Request) {
     ok: failed.length === 0,
     error: failed.length ? failed.slice(0, 5).join(" · ") : null,
   });
+  if (runLogErr) {
+    console.error("fixate: fixation_runs insert failed:", runLogErr.message);
+    failed.push(`fixation_runs: ${runLogErr.message}`);
+  }
 
   return NextResponse.json({
-    ok: true,
+    ok: failed.length === 0,
     ranAt: new Date().toISOString(),
     regions: TRACKED.length,
     backfillHours: BACKFILL_HOURS,
