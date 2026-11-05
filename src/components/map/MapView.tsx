@@ -1740,7 +1740,7 @@ export function MapView() {
           </div>
         ) : (
           <div className="rounded-full border border-neutral-300 bg-white px-4 py-2 text-xs text-neutral-600 ">
-            {tr("Талдау үшін сол жақтан «AI талдау» қосыңыз")}
+            {tr("Талдау үшін «Қабаттар» панелінде «AI талдау» қосыңыз")}
           </div>
         )}
       </div>
@@ -2956,7 +2956,7 @@ export function MapView() {
             ) : (
               <>
                 {/* Атмосфера элементі таңдағышы — айналдырылатын, категорияға бөлінген */}
-                <div className="mb-2 max-h-28 space-y-1 overflow-y-auto rounded-md bg-neutral-50 p-1.5">
+                <div className="mb-2 space-y-1.5 rounded-md border border-neutral-200 p-2">
                   {ATMOS_CATEGORIES.map((cat) => (
                     <div key={cat}>
                       <div className="mb-0.5 text-[12px] uppercase tracking-wide text-neutral-600">{tr(cat)}</div>
@@ -2966,10 +2966,11 @@ export function MapView() {
                             key={e.key}
                             onClick={() => setAirElem(e)}
                             title={tr(e.label)}
-                            className={`rounded px-1.5 py-0.5 text-[12px] font-semibold transition-colors ${
+                            aria-pressed={airElem.key === e.key}
+                            className={`min-h-[32px] rounded border px-2 py-0.5 text-[12px] font-semibold transition-colors ${
                               airElem.key === e.key
-                                ? "border border-sky-400 bg-sky-50 text-sky-800"
-                                : "border border-transparent bg-neutral-50 text-neutral-800 hover:bg-neutral-50"
+                                ? "border-[#0b3a6b] bg-[#0b3a6b] text-white"
+                                : "border-neutral-300 bg-white text-neutral-800 hover:border-[#0b3a6b]"
                             }`}
                           >
                             {e.short}
@@ -3237,7 +3238,7 @@ export function MapView() {
               </button>
             )}          </TabsContent>
           <TabsContent forceMount value="analysis" aria-label={tr("AI талдау")} hidden={rightView !== "analysis"}>
-            {!selected && <p className="text-sm text-neutral-600">{tr("Талдау үшін сол жақтан «AI талдау» қосыңыз")}</p>}
+            {!selected && <p className="text-sm text-neutral-600">{tr("Талдау үшін «Қабаттар» панелінде «AI талдау» қосыңыз")}</p>}
       <AnalysisDrawer site={selected} onClose={() => setSelected(null)} onUpdate={setSelected} />
 
           </TabsContent>
