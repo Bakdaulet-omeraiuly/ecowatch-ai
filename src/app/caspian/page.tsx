@@ -159,10 +159,10 @@ export default function CaspianPage() {
             <h2 className="mb-2 text-sm font-semibold text-neutral-900">{tr("Шектеулер")}</h2>
             <ul className="space-y-1 text-[13px] leading-relaxed text-neutral-600">
               {d.caveats.map((c, i) => (
-                <li key={i}>⚠ {tr(c)}</li>
+                <li key={i}>{tr(c)}</li>
               ))}
               <li>
-                ⚠{" "}
+                {" "}
                 {tr(
                   "Каспий теңізінің деңгейі мен су сапасы бойынша дереккөз әлі " +
                   "жалғанбаған — жалған дерек көрсетілмейді."

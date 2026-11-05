@@ -346,7 +346,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
         }`}
       >
         {data.compliance.kzViolations > 0
-          ? `⚖ ${data.compliance.kzViolations} ${tr("көрсеткіш бойынша ҚР нормасы асқан")}`
+          ? `${data.compliance.kzViolations} ${tr("көрсеткіш бойынша ҚР нормасы асқан")}`
           : tr("Расталған норма асуы жоқ")}
       </div>
 
@@ -371,7 +371,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
                     <td className="py-1 pr-2 text-neutral-800">
                       {c.act.jurisdiction === "KZ" ? tr("ҚР") : c.act.jurisdiction}
                       {c.norm.status !== "verified" && (
-                        <span className="ml-1 text-amber-800" title={c.norm.statusNote}>⚠</span>
+                        <span className="ml-1 text-amber-800" title={c.norm.statusNote}></span>
                       )}
                     </td>
                     <td className="py-1 pr-2 text-neutral-600">{tr(c.averagingKz)}</td>
@@ -394,7 +394,7 @@ function LegalTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) 
       ))}
 
       <p className="border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
-        ⚖ {items[0] && tr(items[0].disclaimer)}
+        {items[0] && tr(items[0].disclaimer)}
       </p>
       <a href="/legislation" className="block text-[12px] text-sky-800 underline-offset-2 hover:underline">
         {tr("Заңнама және норма тізілімі")} →
@@ -499,7 +499,7 @@ function AiTab({
 
           {meta && (
             <div className="border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
-              ⚠ {tr(meta.disclaimer)}
+              {tr(meta.disclaimer)}
               <div className="mt-1 text-neutral-600">
                 {tr("Жасалған")}: {meta.generatedAt.replace("T", " ").slice(0, 16)} UTC · gpt-4o
               </div>

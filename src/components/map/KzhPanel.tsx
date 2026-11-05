@@ -21,7 +21,7 @@ export function KzhPanel({ elem, regionId }: { elem: AtmosElement; regionId: str
   const { tr, t } = useLang();
   const noModelNote = elem.noModel && (
     <p className="mb-1.5 text-[12px] leading-snug text-amber-800">
-      ⚠ {tr("Бұл затты спутник те, CAMS моделі де ӨЛШЕМЕЙДІ — картада тор жоқ. «Дерек жоқ» ≠ «ауа таза».")}
+      {tr("Бұл затты спутник те, CAMS моделі де ӨЛШЕМЕЙДІ — картада тор жоқ. «Дерек жоқ» ≠ «ауа таза».")}
     </p>
   );
 
@@ -71,7 +71,7 @@ export function KzhPanel({ elem, regionId }: { elem: AtmosElement; regionId: str
       )}
       {v && !v.pass && (
         <p className="mt-1.5 text-[12px] leading-snug text-orange-800">
-          ⚠ {tr("Тексеру")} ({KZH_PERIOD.from}…{KZH_PERIOD.to}, {v.n} {tr("ай")}):{" "}
+          {tr("Тексеру")} ({KZH_PERIOD.from}…{KZH_PERIOD.to}, {v.n} {tr("ай")}):{" "}
           {v.obsOverCams >= 1
             ? `${tr("CAMS Атырауда бұл газды посттардан шамамен")} ${v.obsOverCams}× ${tr("төмен көрсетеді")}`
             : `${tr("CAMS Атырауда бұл газды посттардан шамамен")} ${(1 / v.obsOverCams).toFixed(1)}× ${tr("жоғары көрсетеді")}`}

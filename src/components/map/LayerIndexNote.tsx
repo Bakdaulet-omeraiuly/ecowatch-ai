@@ -195,7 +195,7 @@ export function LayerIndexNote({ layer }: { layer: string }) {
 
       {d.caveat && (
         <p className="mt-1.5 border-t border-neutral-300 pt-1.5 text-[12px] leading-snug text-amber-800">
-          ⚠ {tr(d.caveat)}
+          {tr(d.caveat)}
         </p>
       )}
     </Panel>

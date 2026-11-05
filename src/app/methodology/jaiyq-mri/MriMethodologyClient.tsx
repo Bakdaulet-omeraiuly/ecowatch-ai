@@ -48,7 +48,7 @@ const PARAMS: [string, string, string, string][] = [
   ["μ_A", "0,12 /тәулік", "Ересек өлімі", "Әдебиеттегі типтік шама"],
   ["k_h", "0,6", "Жарылу коэффициенті", "Модель баптауы"],
   ["f", "0,15 /тәулік", "Банктің толығуы", "Модель баптауы"],
-  ["T₀ / Tm", "16,8 / 34,9 °C", "Термиялық шектер", "Mordecai 2019 ✓"],
+  ["T₀ / Tm", "16,8 / 34,9 °C", "Термиялық шектер", "Mordecai 2019 "],
 ];
 
 const COMPARE: { model: string; approach: string; strong: string; why: string }[] = [
@@ -373,7 +373,7 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
             <tr key={a}>
               <td className={`${TD} font-mono`}>{tr(a)}</td><td className={TD}>{tr(b)}</td>
               <td className={TD}>{tr(c)}</td>
-              <td className={`${TD} ${d.includes("✓") ? "text-emerald-800" : ""}`}>{tr(d)}</td>
+              <td className={TD}>{tr(d)}</td>
             </tr>
           ))}
         </tbody>
@@ -402,11 +402,11 @@ dA/dt = (L/τ(T)) · s(hydro)  −  μ_A · A
         <thead><tr><th className={TH}>{tr("Дерек")}</th><th className={TH}>{tr("Дереккөз")}</th><th className={TH}>{tr("Түрі")}</th><th className={TH}>{tr("Кідіріс")}</th></tr></thead>
         <tbody>
           {[
-            ["Су басқан аумақ, гидропериод", "Copernicus Sentinel-1 GRD (VV, GAMMA0)", "🛰 өлшем", "1–6 тәулік"],
-            ["Қамыс мекені", "Copernicus Sentinel-2 L2A (NDVI)", "🛰 өлшем", "1–5 тәулік"],
-            ["Өзен ағыны", "GloFAS (Open-Meteo Flood API)", "📊 модель", "1 тәулік"],
-            ["Температура, ылғал, жауын", "ECMWF (Open-Meteo)", "📊 модель", "1 сағат"],
-            ["Топырақ ылғалы", "ECMWF топырақ моделі", "📊 модель", "1 сағат"],
+            ["Су басқан аумақ, гидропериод", "Copernicus Sentinel-1 GRD (VV, GAMMA0)", "өлшем", "1–6 тәулік"],
+            ["Қамыс мекені", "Copernicus Sentinel-2 L2A (NDVI)", "өлшем", "1–5 тәулік"],
+            ["Өзен ағыны", "GloFAS (Open-Meteo Flood API)", "модель", "1 тәулік"],
+            ["Температура, ылғал, жауын", "ECMWF (Open-Meteo)", "модель", "1 сағат"],
+            ["Топырақ ылғалы", "ECMWF топырақ моделі", "модель", "1 сағат"],
             ["Қала/елді мекен тізілімі", "Жобаның өз тізілімі (8 елді мекен)", "тізілім", "—"],
             ["Есептеу нүктелері", "Атыраудың 65 нүктесі + облыстық 5×5 тор", "тізілім", "—"],
           ].map((r) => (

@@ -94,7 +94,7 @@ function ModerationPageInner() {
         return;
       }
       setReports((prev) => prev.map((r) => r.id === id ? { ...r, verification_status: status } : r));
-      toast.success(status === "confirmed" ? tr("Расталды ✅") : status === "contradicted" ? tr("Өшірілді ❌") : tr("Тексеруге жіберілді 🔍"));
+      toast.success(status === "confirmed" ? tr("Расталды ") : status === "contradicted" ? tr("Өшірілді ") : tr("Тексеруге жіберілді "));
     } catch {
       toast.error(tr("Өзгерту мүмкін болмады"));
     } finally {

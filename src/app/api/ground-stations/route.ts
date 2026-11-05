@@ -228,7 +228,7 @@ export async function GET(req: Request) {
         (picked.length < locations.length
           ? `; соңғы мәндер ең жаңа ${picked.length} стансадан алынды` : "") +
         (beyondCams.length
-          ? `. ⭐ Модельде ЖОҚ, тек жерде өлшенетін заттар: ${beyondCams.join(", ")}.`
+          ? `. Модельде ЖОҚ, тек жерде өлшенетін заттар: ${beyondCams.join(", ")}.`
           : ". Барлық өлшенетін зат модельде де бар."),
       caveat:
         "Станса мәні — НҮКТЕЛІК өлшем, қаланың орташасы емес. Дереккөз бен " +

@@ -62,7 +62,7 @@ export async function GET() {
     {
       env: "OPENAQ_API_KEY",
       set: has("OPENAQ_API_KEY"),
-      what: "⭐ Жердегі стансалардың НАҚТЫ өлшемі (/api/ground-stations)",
+      what: "Жердегі стансалардың НАҚТЫ өлшемі (/api/ground-stations)",
       required: "қосымша",
       where: "explore.openaq.org → тіркелу → Account → API key",
     },
@@ -77,7 +77,7 @@ export async function GET() {
       env: "CDSE_CLIENT_ID",
       set: has("CDSE_CLIENT_ID") && has("CDSE_CLIENT_SECRET"),
       what:
-        "⚠️ Copernicus OAuth. Осыған тәуелді: су басқан аумақ (S1 SAR), " +
+        "Copernicus OAuth. Осыған тәуелді: су басқан аумақ (S1 SAR), " +
         "қамыс мекені (S2 NDVI), мұнай дағын іздеу, ЖӘНЕ Sentinel-5P " +
         "атмосфера қабаттары (NO₂/SO₂/CH₄/CO — олар /api/s5p проксиі арқылы жүреді)",
       required: "қосымша",
@@ -121,7 +121,7 @@ export async function GET() {
     checkedAt: new Date().toISOString(),
     note:
       "Кілттің МӘНІ мұнда ешқашан көрсетілмейді — тек бар-жоғы. " +
-      "⚠️ Кілт қосқаннан КЕЙІН Vercel-де REDEPLOY жасау керек: орта " +
+      "Кілт қосқаннан КЕЙІН Vercel-де REDEPLOY жасау керек: орта " +
       "айнымалылары бұрынғы деплойға кері қолданылмайды.",
     total: keys.length,
     configured: keys.length - missing.length,

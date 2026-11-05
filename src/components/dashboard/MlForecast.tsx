@@ -116,7 +116,7 @@ export function MlForecast() {
                     {aqiMetrics.skill != null ? `+${Math.round(aqiMetrics.skill * 100)}%` : "—"}
                   </p>
                 )}
-                <p className="text-amber-800">⚠ {tr(data.disclaimer)}</p>
+                <p className="text-amber-800">{tr(data.disclaimer)}</p>
                 <p className="text-neutral-600">{data.source}</p>
               </div>
             )}

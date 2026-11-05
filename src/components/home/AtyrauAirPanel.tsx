@@ -34,11 +34,12 @@ const STALE_AFTER_H = 3;
 
 // Барлық түс жұбы WCAG AA-дан өтеді (≥ 4.5:1): *-900 мәтін *-50 фонда ≈ 8.7–10:1.
 // Түс мағынаны жалғыз тасымайды — әр күйде мәтін жазуы бар.
-const RISK_STYLE: Record<RiskLevel, string> = {
-  low: "border-emerald-700 bg-emerald-50 text-emerald-900",
-  elevated: "border-amber-700 bg-amber-50 text-amber-900",
-  high: "border-red-700 bg-red-50 text-red-900",
-  "insufficient-data": "border-neutral-500 bg-neutral-100 text-neutral-900",
+// Ресми стиль: ақ карточка, деңгей түсі тек сол жиек пен белгіде (фон боялмайды).
+const RISK_ACCENT: Record<RiskLevel, { border: string; dot: string; text: string }> = {
+  low: { border: "border-l-emerald-700", dot: "bg-emerald-700", text: "text-emerald-800" },
+  elevated: { border: "border-l-amber-600", dot: "bg-amber-600", text: "text-amber-800" },
+  high: { border: "border-l-red-700", dot: "bg-red-700", text: "text-red-800" },
+  "insufficient-data": { border: "border-l-neutral-500", dot: "bg-neutral-500", text: "text-neutral-700" },
 };
 
 const LOCALE: Record<string, string> = { kk: "kk-KZ", ru: "ru-RU", en: "en-GB" };
@@ -149,6 +150,7 @@ export function AtyrauAirPanel() {
 
   // Ең жоғары үлес — бір сөйлеммен жауап («қазір қалай?»)
   const worst = compared.filter((r) => r.ratio != null).sort((a, b) => b.ratio! - a.ratio!)[0];
+  const accent = RISK_ACCENT[data.risk.partialLow ? "low" : data.risk.level];
   const ratioBar = (ratio: number) => ratio >= 1 ? "bg-red-700" : ratio >= 0.5 ? "bg-amber-600" : "bg-emerald-700";
 
   return (
@@ -156,14 +158,16 @@ export function AtyrauAirPanel() {
       {/* 1. Бір қарағанда: қауіп деңгейі (SPEC §8) */}
       <section
         aria-labelledby="risk-title"
-        className={`rounded-lg border-l-4 p-4 sm:p-5 ${data.risk.partialLow ? "border-emerald-700 bg-emerald-50/60 text-emerald-950" : RISK_STYLE[data.risk.level]}`}
+        className={`rounded-lg border border-neutral-300 border-l-4 bg-white p-4 text-neutral-900 sm:p-5 ${accent.border}`}
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h3 id="risk-title" className="text-xs font-bold uppercase tracking-wide opacity-80">{t("air.riskTitle")}</h3>
-            <p className="mt-1 text-2xl font-bold sm:text-3xl">{riskLabel}</p>
+            <h3 id="risk-title" className="text-xs font-semibold uppercase tracking-wide text-neutral-600">{t("air.riskTitle")}</h3>
+            <p className="mt-1 flex items-center gap-2 text-2xl font-bold sm:text-3xl">
+              <span aria-hidden className={`h-3 w-3 shrink-0 rounded-full ${accent.dot}`} />{riskLabel}
+            </p>
           </div>
-          <div className="text-right text-xs opacity-90">
+          <div className="text-right text-xs text-neutral-600">
             <div>{t("air.fetchedAt")}</div>
             <div className="font-semibold tabular-nums">{fmtTime(data.cams.ok ? data.cams.time : data.fetchedAt, data.cams.ok)}</div>
             {stale && (
@@ -174,7 +178,7 @@ export function AtyrauAirPanel() {
           </div>
         </div>
         {worst && (
-          <p className="mt-2 text-sm">
+          <p className="mt-2 text-sm text-neutral-700">
             {tr("Шекке ең жақыны")}: <strong>{tk(`pol.${worst.pollutant}`)}</strong> — <strong className="tabular-nums">{Math.round(worst.ratio! * 100)}%</strong> {t("air.ofLimit")}
             {" "}({worst.kind === "ground" ? t("air.groundTag") : t("air.modelTag")}).
             {" "}{tr("Салыстырылды")}: {compared.length}/{POLLUTANT_ORDER.length}.

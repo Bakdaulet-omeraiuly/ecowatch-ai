@@ -80,12 +80,12 @@ export function EventFeed({ limit }: { limit?: number }) {
             <span className="flex items-center gap-1.5 text-[12px]">
               {data.bySeverity.critical > 0 && (
                 <span className="rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-red-800">
-                  {data.bySeverity.critical} 🟥
+                  {data.bySeverity.critical} 
                 </span>
               )}
               {data.bySeverity.warning > 0 && (
                 <span className="rounded-full border border-orange-300 bg-orange-50 px-1.5 py-0.5 text-orange-800">
-                  {data.bySeverity.warning} 🟧
+                  {data.bySeverity.warning} 
                 </span>
               )}
             </span>
@@ -187,7 +187,7 @@ export function EventFeed({ limit }: { limit?: number }) {
 
         {data && data.unavailable.length > 0 && (
           <p className="mt-2.5 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
-            ⚠ {tr("Қолжетімсіз дереккөздер")}: {data.unavailable.join(", ")}.{" "}
+            {tr("Қолжетімсіз дереккөздер")}: {data.unavailable.join(", ")}.{" "}
             {tr("Бұл тектегі оқиғалар тізімде жоқ — «бәрі тыныш» дегенді білдірмейді.")}
           </p>
         )}

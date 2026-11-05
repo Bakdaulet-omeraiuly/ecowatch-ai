@@ -32,7 +32,7 @@ const LEVEL_CLS: Record<ComplianceLevelLite, string> = {
   unknown: "text-neutral-600",
 };
 const LEVEL_MARK: Record<ComplianceLevelLite, string> = {
-  ok: "", approaching: "~", exceeded: "⚠", "exceeded-unverified": "⚠?", "not-comparable": "", unknown: "",
+  ok: "", approaching: "~", exceeded: "!", "exceeded-unverified": "!?", "not-comparable": "", unknown: "",
 };
 
 /** "2026-08-14T15:00" → datetime-local қабылдайтын пішін (сол қалпы) */
@@ -253,18 +253,18 @@ export function PollutionTimeline({
               "— сол сағаттағы таралу конусының ішіне түскен елді мекендер. Бұл сол жерде " +
               "ластану ӨЛШЕНДІ дегенді білдірмейді: концентрация қала нүктесінде (CAMS ~40 км тор) алынған."
             )}{" "}
-            <b className="text-neutral-600">⚠</b> {tr("— расталған нормадан асты")},{" "}
-            <b className="text-neutral-600">⚠?</b> {tr("— асты, бірақ норма мәтіні расталмаған")}.{" "}
+            <b className="text-neutral-600">!</b> {tr("— расталған нормадан асты")},{" "}
+            <b className="text-neutral-600">!?</b> {tr("— асты, бірақ норма мәтіні расталмаған")}.{" "}
             <b className="text-neutral-600">{tr("Шаң мен CH₄")}</b>{" "}
             {tr("— гигиеналық нормасы жоқ, тек өлшем. Шаң — PM₁₀ асуы шөл шаңынан ба, әлде кәсіпорыннан ба, соны ажыратуға көмектеседі.")}
           </p>
 
-          {/* ⛔ ӨЛШЕНБЕЙТІНІ — бос баған етіп қосуға БОЛМАЙДЫ.
+          {/* ӨЛШЕНБЕЙТІНІ — бос баған етіп қосуға БОЛМАЙДЫ.
               Бос ұяшық «қаралды, таза екен» деген жалған әсер берер еді.
               Сондықтан кестенің АСТЫНДА ашық жазба ретінде тұрады. */}
           <div className="mt-2 rounded-lg border border-red-400/25 bg-neutral-50 p-2">
             <p className="text-[12px] leading-relaxed text-red-800">
-              <b>⛔ {tr("Бұл кестеде ЖОҚ, себебі мүлдем өлшенбейді")}:</b>{" "}
+              <b>{tr("Бұл кестеде ЖОҚ, себебі мүлдем өлшенбейді")}:</b>{" "}
               H₂S ({tr("күкіртсутек")}), {tr("меркаптандар")}, {tr("бензол")},{" "}
               {tr("формальдегид")}, {tr("бенз(а)пирен")}, {tr("фенол")},{" "}
               {tr("ауыр металдар")} (V, Ni, Pb, Hg, Cd).
@@ -311,7 +311,7 @@ export function PollutionTimeline({
           </a>
         </div>
         <p className="mt-1.5 text-[12px] leading-relaxed text-amber-800">
-          ⚠{" "}
+          {" "}
           {tr(
             "Анықтама ешкімді айыптамайды: спутник/модель дерегі құқық бұзушылық фактісі емес, " +
             "тек ТЕКСЕРУ ЖҮРГІЗУГЕ негіз. Заңдық тұжырым аккредиттелген зертхананың өлшемімен жасалады."

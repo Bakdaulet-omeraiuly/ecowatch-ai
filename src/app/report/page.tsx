@@ -128,7 +128,7 @@ function ReportPageInner() {
       addSite(site);
       toast.success(
         r.analysis?.verificationStatus === "confirmed"
-          ? tr("✅ Хабарлама расталды және бәріне көрінеді!")
+          ? tr("Хабарлама расталды және бәріне көрінеді!")
           : tr("Хабарлама қабылданды — бәріне көрінеді")
       );
       router.push("/map");
@@ -149,7 +149,7 @@ function ReportPageInner() {
       </div>
 
       <Card className="border-neutral-300 bg-neutral-50">
-        <CardHeader><CardTitle className="text-sm text-neutral-900">📸 {tr("Фото")}</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-neutral-900">{tr("Фото")}</CardTitle></CardHeader>
         <CardContent>
           {/* Gallery: no capture attr → opens photo library / file picker */}
           <input
@@ -204,7 +204,7 @@ function ReportPageInner() {
       </Card>
 
       <Card className="border-neutral-300 bg-neutral-50">
-        <CardHeader><CardTitle className="text-sm text-neutral-900">📍 {tr("Орналасу — картадан белгілеңіз")}</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-neutral-900">{tr("Орналасу — картадан белгілеңіз")}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <LocationPicker
             lat={parseFloat(lat) || null}
@@ -232,7 +232,7 @@ function ReportPageInner() {
       </Card>
 
       <Card className="border-neutral-300 bg-neutral-50">
-        <CardHeader><CardTitle className="text-sm text-neutral-900">📝 {tr("Сипаттама (міндетті емес)")}</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-sm text-neutral-900">{tr("Сипаттама (міндетті емес)")}</CardTitle></CardHeader>
         <CardContent>
           <Textarea
             value={desc}
@@ -292,7 +292,6 @@ function Leaderboard() {
     .sort((a, b) => b.confirmed * 2 + b.count - (a.confirmed * 2 + a.count))
     .slice(0, 10);
 
-  const medals = ["🥇", "🥈", "🥉"];
 
   return (
     <Card className="border-neutral-300 bg-amber-50">
@@ -306,7 +305,7 @@ function Leaderboard() {
         <div className="space-y-2">
           {ranked.map((r, i) => (
             <div key={r.name} className="flex items-center gap-2 rounded-lg bg-neutral-50 px-3 py-2">
-              <span className="text-base">{medals[i] ?? `${i + 1}.`}</span>
+              <span className="text-base">{`${i + 1}.`}</span>
               <div className="flex-1 truncate">
                 <div className="truncate text-sm text-neutral-900">{r.name.slice(0, 50)}</div>
                 <div className="text-[13px] text-neutral-600">

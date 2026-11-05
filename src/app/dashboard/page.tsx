@@ -306,17 +306,27 @@ export default function DashboardPage() {
   }, [forecast]);
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:py-10">
       <div>
         <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Аймақтық аналитика")}</h1>
         <p className="text-sm text-neutral-600">{region.name} — {tr("экологиялық жағдай нақты уақытта")}</p>
       </div>
 
+      {/* Бет мазмұны — ұзын бетте керекті бөлімге бірден өту */}
+      <nav aria-label={tr("Бет мазмұны")} className="-mx-1 flex flex-wrap gap-1.5">
+        {[
+          ["live", "Тірі мониторинг"], ["sources", "Ауа: дерек түрлері"], ["legal", "Заңнамалық сәйкестік"],
+          ["log", "Асу журналы"], ["events", "Оқиғалар"], ["flood", "Су басу"], ["export", "CSV экспорт"], ["forecast", "Болжам"],
+        ].map(([id, label]) => (
+          <a key={id} href={`#${id}`} className="inline-flex min-h-[36px] items-center rounded-full border border-neutral-300 bg-white px-3 text-sm text-neutral-800 hover:border-[#0b3a6b] hover:text-[#0b3a6b]">{tr(label)}</a>
+        ))}
+      </nav>
+
       {/* LIVE environmental data — Open-Meteo / Copernicus CAMS */}
-      <Card className="border-neutral-300 bg-neutral-50">
+      <Card id="live" className="scroll-mt-32 border-neutral-300 bg-neutral-50">
         <CardHeader className="pb-2">
           <CardTitle className="flex flex-wrap items-center gap-2 text-sm text-neutral-900">
-            <Radio className="h-4 w-4 animate-pulse text-emerald-800" />
+            <Radio className="h-4 w-4 text-emerald-800" aria-hidden />
             {tr("Тірі мониторинг — Атырау қ.")}
             <span className="text-[12px] font-normal text-neutral-600">
               {tr("Дереккөз: Open-Meteo + Copernicus CAMS (ЕО ресми атмосфера қызметі) · сағат сайын жаңарады")}
@@ -342,15 +352,16 @@ export default function DashboardPage() {
                 const cat = aqiCategory(env.current.europeanAqi);
                 return (
                   <div
-                    className="mt-2 flex items-center gap-3 rounded-lg p-2.5"
-                    style={{ backgroundColor: `${cat.color}18`, border: `1px solid ${cat.color}`, borderLeftWidth: 6 }}
+                    className="mt-2 flex items-center gap-3 rounded-lg border border-neutral-300 bg-white p-2.5"
+                    style={{ borderLeftColor: cat.color, borderLeftWidth: 4 }}
                   >
+                    <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: cat.color }} />
                     {/* Category colour stays on the border; text is dark for WCAG AA on a light tint */}
                     <span className="text-lg font-bold text-neutral-900">
                       {cat.name}
                     </span>
                     <p className="text-[13px] text-neutral-700">
-                      🩺 {cat.advice} <span className="text-neutral-600">{cat.sensitiveAdvice}</span>
+                      {cat.advice} <span className="text-neutral-600">{cat.sensitiveAdvice}</span>
                     </p>
                   </div>
                 );
@@ -394,20 +405,20 @@ export default function DashboardPage() {
       </Card>
 
       {/* Ауа көрсеткіштері үш топқа бөлек: жерүсті станса / модель (CAMS) / спутник баған */}
-      <AirSourceGroups />
+      <div id="sources" className="scroll-mt-32"><AirSourceGroups /></div>
 
       {/* Бұл қалада ҚАНДАЙ модуль жоқ — алдын ала ашық жазылады, сонда
           төмендегі бос блоктар «бәрі тыныш» деп оқылмайды */}
       <MissingModulesNote region={region} modules={missingModules(region)} />
 
       {/* Заңнамалық сәйкестік — ҚР/WHO/EU нормаларынан асу (ең жоғарыда) */}
-      <LegalAlerts />
+      <div id="legal" className="scroll-mt-32"><LegalAlerts /></div>
 
       {/* Асу журналы — уақытымен тіркелген оқиғалар (кэш өткен соң жоғалмайды) */}
-      <ExceedanceLog />
+      <div id="log" className="scroll-mt-32"><ExceedanceLog /></div>
 
       {/* Оқиғалар таспасы — нақты дерек нүктелері, уақыт бойынша */}
-      <EventFeed limit={12} />
+      <div id="events" className="scroll-mt-32"><EventFeed limit={12} /></div>
 
       {/* AI «Неге?» — бүгінгі ауаны тірі деректермен түсіндіру */}
       <WhyButton />
@@ -416,16 +427,16 @@ export default function DashboardPage() {
       <SourceComparison />
 
       {/* Су басқан аумақ — Sentinel-1 радарымен ӨЛШЕНГЕН км² */}
-      <FloodExtent />
+      <div id="flood" className="scroll-mt-32"><FloodExtent /></div>
 
       {/* Эколог есебі үшін CSV экспорт + сенімділік деңгейлерінің легендасы */}
-      <ExportPanel />
+      <div id="export" className="scroll-mt-32"><ExportPanel /></div>
 
       {/* Су деңгейінің өзгерісі — Жайық өзені 2020→қазір (GloFAS) */}
       <WaterTrend />
 
       {/* JAIYQ-ML — CAMS шегінен әрі созылған 11 күндік ауа болжамы */}
-      <MlForecast />
+      <div id="forecast" className="scroll-mt-32"><MlForecast /></div>
 
       {/* KPI cards */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -646,7 +657,7 @@ export default function DashboardPage() {
                   <CardContent className="pt-4">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="text-sm font-semibold text-violet-800">
-                        🦟 {tr("Күтілетін массалық шығу")}:
+                        {tr("Күтілетін массалық шығу")}:
                       </span>
                       <span className="text-lg font-bold text-neutral-900">
                         {mosMeta.dyn.emergencePeak.date}
@@ -716,7 +727,7 @@ export default function DashboardPage() {
               <Card className="border-neutral-300 bg-violet-50">
                 <CardContent className="pt-4">
                   <p className="text-sm leading-relaxed text-neutral-700">
-                    🦟 <b className="text-violet-800">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
+                    <b className="text-violet-800">{tr("Бұл график — картадағы дәл сол модель.")}</b>{" "}
                     {mosMeta?.points ?? 0} {tr("есептелген нүктенің тәуліктік орташасы.")}{" "}
                     {tr("Мамыр–шілде — Жайық тасқыны кезеңі: су басу жұмыртқа банкін жарады, сондықтан индекс сол кезде шыңға шығады.")}
                   </p>
@@ -805,7 +816,7 @@ export default function DashboardPage() {
               <Card className="border-neutral-300 bg-amber-50">
                 <CardContent className="pt-4">
                   <p className="text-sm text-neutral-700">
-                    💧 <b className="text-amber-800">{tr("Қорытынды:")}</b> {tr("CMIP6 моделі бойынша Атырау 2050 жылға қарай")}{" "}
+                    <b className="text-amber-800">{tr("Қорытынды:")}</b> {tr("CMIP6 моделі бойынша Атырау 2050 жылға қарай")}{" "}
                     <b className="text-orange-800">+{climate?.tempDelta ?? "—"}°C</b> {tr("жылынады, ал жер су қоры соңғы онжылдықтарда")}{" "}<b className="text-amber-800">{water.slopePerDecadePct}{tr("%/онжылдық")}</b> {tr("азайып келеді (")}{water.trend === "drying" ? tr("құрғау трендісі") : tr("тұрақты")}{tr("). Бұл — өрт, құрғақшылық пен шөлейттену тәуекелін арттыратын фактор.")}{" "}</p>
                 </CardContent>
               </Card>

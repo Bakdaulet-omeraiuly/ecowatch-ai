@@ -51,7 +51,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "air",
     name: "Ауа",
-    emoji: "🌫",
+    emoji: "",
     accent: "sky",
     what: "Атмосфералық ластаушылардың концентрациясы және ауа сапасы индексі",
     currentEndpoint: "/api/environment",
@@ -73,7 +73,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "wind",
     name: "Жел",
-    emoji: "🌬",
+    emoji: "",
     accent: "cyan",
     what: "Жел жылдамдығы, бағыты және екпіні — ластанудың таралуын анықтайды",
     currentEndpoint: "/api/environment",
@@ -91,7 +91,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "soil",
     name: "Топырақ",
-    emoji: "🌱",
+    emoji: "",
     accent: "amber",
     what: "Топырақ ылғалдылығы мен температурасы — деградация мен эрозия қаупі",
     currentEndpoint: "/api/soilgrid",
@@ -108,11 +108,11 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "water",
     name: "Су",
-    emoji: "💧",
+    emoji: "",
     accent: "teal",
     what:
       "Өзен ағыны және Sentinel-1 радарымен өлшенген су беті. " +
-      "⚠️ Екеуі де аймақтық тізілімді талап етеді (арна нүктелері мен " +
+      "Екеуі де аймақтық тізілімді талап етеді (арна нүктелері мен " +
       "бақылау терезелері) — тізілімі жоқ қалада «жоқ» деп көрсетіледі.",
     currentEndpoint: "/api/flood-extent",
     seriesApi: "flood",
@@ -127,7 +127,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "fire",
     name: "Өрт",
-    emoji: "🔥",
+    emoji: "",
     accent: "red",
     what: "Өрт ауа райы индексі және спутник тіркеген жылу аномалиялары",
     currentEndpoint: "/api/fire",
@@ -146,7 +146,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "oil",
     name: "Мұнай",
-    emoji: "🛢",
+    emoji: "",
     accent: "neutral",
     what: "Жылу аномалиялары (газ факелдері) және SAR арқылы дақ іздеу",
     currentEndpoint: "/api/flares",
@@ -164,7 +164,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "drought",
     name: "Құрғақшылық",
-    emoji: "🌾",
+    emoji: "",
     accent: "orange",
     what: "Стандартталған жауын индексі — ұзақ мерзімді ылғал тапшылығы",
     currentEndpoint: "/api/drought",
@@ -181,7 +181,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "mosquito",
     name: "Маса",
-    emoji: "🦟",
+    emoji: "",
     accent: "purple",
     what: "Климаттық қолайлылық индексі — маса көбеюіне жағдай қаншалық қолайлы",
     currentEndpoint: "/api/mosquitogrid",
@@ -199,7 +199,7 @@ export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "source",
     name: "Ластану көзі",
-    emoji: "📍",
+    emoji: "",
     accent: "rose",
     what:
       "Жел бағыты бойынша кері траектория — ластанудың ЫҚТИМАЛ өнеркәсіптік көзі. " +

@@ -151,7 +151,7 @@ export function AnalysisDrawer({
       });
       if (!res.ok) throw new Error();
       setSent(true);
-      toast.success(tr("✅ Тиісті органға (модераторға) жіберілді"));
+      toast.success(tr("Тиісті органға (модераторға) жіберілді"));
     } catch {
       toast.error(tr("Жіберу мүмкін болмады (Telegram бапталмаған болуы мүмкін)"));
     } finally {
@@ -303,10 +303,10 @@ export function AnalysisDrawer({
 
           <div className="space-y-3 p-4">
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <Indicator on={site.analysis.oilPollution} label={tr("🛢 Мұнай ластануы")} />
-              <Indicator on={site.analysis.illegalDumping} label={tr("🗑 Заңсыз қоқыс")} />
-              <Indicator on={site.analysis.landDegradation} label={tr("🏜 Жер деградациясы")} />
-              <Indicator on={site.analysis.standingWater} label={tr("💧 Тұрған су")} />
+              <Indicator on={site.analysis.oilPollution} label={tr("Мұнай ластануы")} />
+              <Indicator on={site.analysis.illegalDumping} label={tr("Заңсыз қоқыс")} />
+              <Indicator on={site.analysis.landDegradation} label={tr("Жер деградациясы")} />
+              <Indicator on={site.analysis.standingWater} label={tr("Тұрған су")} />
             </div>
 
             <div>
@@ -347,10 +347,10 @@ export function AnalysisDrawer({
               )}
             </div>
 
-            {/* 🤖 LLM Vision (GPT-4o) — табиғи тілдегі пайымдау */}
+            {/* LLM Vision (GPT-4o) — табиғи тілдегі пайымдау */}
             <div className="rounded-lg border border-violet-500/25 bg-violet-50 p-3">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-violet-800">
-                🤖 {tr("LLM Vision талдауы")}
+                {tr("LLM Vision талдауы")}
                 <span className="rounded bg-violet-50 px-1 py-px text-[12px] uppercase text-violet-800">GPT-4o</span>
               </h3>
               <p className="text-xs text-neutral-800">{tx?.summary ?? site.analysis.summary}</p>
@@ -376,7 +376,7 @@ export function AnalysisDrawer({
             {site.analysis.science && (
               <div className="space-y-3 rounded-lg bg-neutral-50 p-3">
                 <h3 className="flex items-center gap-1.5 text-xs font-semibold text-neutral-800">
-                  🔬 {tr("Ғылыми сараптама")}
+                  {tr("Ғылыми сараптама")}
                   <span className="rounded bg-violet-50 px-1.5 py-0.5 text-[12px] font-normal text-violet-800">
                     {tr("GPT-4o пайымдауы")}
                   </span>
@@ -412,7 +412,7 @@ export function AnalysisDrawer({
                     {site.analysis.science.evidence.map((e, i) => (
                       <div key={i} className="rounded-md border border-neutral-300 bg-white p-2.5 text-[13px]">
                         <div className="flex items-center justify-between">
-                          <b className="text-neutral-900">⚠ {e.sign}</b>
+                          <b className="text-neutral-900">{e.sign}</b>
                           <span className="text-neutral-600">{tr("сенімділік")} {e.confidence}%</span>
                         </div>
                         <div className="mt-1 text-neutral-800">
@@ -430,7 +430,7 @@ export function AnalysisDrawer({
 
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-50 p-3">
               <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-emerald-800">
-                🎯 {tr("Деректерге негізделген ұсыныс")}
+                {tr("Деректерге негізделген ұсыныс")}
                 <span className="rounded bg-emerald-50 px-1 py-px text-[12px] uppercase text-emerald-800">
                   ML + AI
                 </span>
@@ -469,7 +469,7 @@ export function AnalysisDrawer({
                 disabled={sending || sent}
               >
                 <Send className="mr-1.5 h-3.5 w-3.5" />
-                {sent ? tr("Жіберілді ✓") : sending ? tr("Жіберілуде…") : tr("Тиісті органға жіберу")}
+                {sent ? tr("Жіберілді ") : sending ? tr("Жіберілуде…") : tr("Тиісті органға жіберу")}
               </Button>
 
               <div className="grid grid-cols-2 gap-2">

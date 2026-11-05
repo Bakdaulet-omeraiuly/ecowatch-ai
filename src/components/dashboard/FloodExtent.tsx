@@ -117,7 +117,7 @@ export function FloodExtent() {
                 <p className="text-neutral-600">{data.source}</p>
                 <ul className="mt-2 space-y-1 border-t border-neutral-300 pt-2 text-amber-800">
                   {data.caveats.map((c, i) => (
-                    <li key={i}>⚠ {c}</li>
+                    <li key={i}>{c}</li>
                   ))}
                 </ul>
               </div>

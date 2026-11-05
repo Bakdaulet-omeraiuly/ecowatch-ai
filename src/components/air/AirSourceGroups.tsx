@@ -85,7 +85,7 @@ export function AirSourceGroups() {
       <h2 id="air-groups-title" className="text-lg font-bold text-neutral-900">{tk("air.groups.title")}</h2>
       <p className="mt-1 text-sm text-neutral-800">{tk("air.groups.intro")}</p>
 
-      {/* 🛰 ЖЕРҮСТІ СТАНСА */}
+      {/* ЖЕРҮСТІ СТАНСА */}
       <div className="mt-5 border-t border-neutral-300 pt-4">
         <h3 className="flex flex-wrap items-center gap-2 font-bold text-neutral-900">
           <Badge kind="ground">{t("air.type.ground")}</Badge> {tk("air.group.ground")}
@@ -163,7 +163,7 @@ export function AirSourceGroups() {
         </p>
       </div>
 
-      {/* 📊 МОДЕЛЬ (CAMS) */}
+      {/* МОДЕЛЬ (CAMS) */}
       <div className="mt-5 border-t border-neutral-300 pt-4">
         <h3 className="flex flex-wrap items-center gap-2 font-bold text-neutral-900">
           <Badge kind="model">{t("air.type.model")}</Badge> {tk("air.group.model")}
@@ -200,7 +200,7 @@ export function AirSourceGroups() {
         })()}
       </div>
 
-      {/* 🛰 СПУТНИК БАҒАН (Sentinel-5P) — сан жоқ, тек метадерек */}
+      {/* СПУТНИК БАҒАН (Sentinel-5P) — сан жоқ, тек метадерек */}
       <div className="mt-5 border-t border-neutral-300 pt-4">
         <h3 className="flex flex-wrap items-center gap-2 font-bold text-neutral-900">
           <Badge kind="satellite">{t("air.type.satellite")}</Badge> {tk("air.group.sat")}

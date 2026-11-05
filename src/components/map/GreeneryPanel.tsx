@@ -37,7 +37,7 @@ export function GreeneryPanel({ osm, osmError, change, changeError }: Props) {
   return (
     <div className="w-full space-y-2">
       <section className={panelCls} aria-label={tr("OSM картографиясы")}>
-        <span className="text-[13px] font-semibold text-green-800">🗺 {tr("OSM картографиясы")}</span>
+        <span className="text-[13px] font-semibold text-green-800">{tr("OSM картографиясы")}</span>
         <p className="my-2 text-neutral-600">OpenStreetMap · Overpass API · {tr("толықтығы тексерілмеген")}</p>
         {osmError && <SourceErrorBox title={tr("OSM деректері қолжетімсіз")} err={osmError} tr={tr} />}
         {!osm && !osmError && <p role="status">{tr("Жүктелуде…")}</p>}
@@ -84,7 +84,7 @@ export function GreeneryPanel({ osm, osmError, change, changeError }: Props) {
             {open && <div id={`green-advice-${cell.id}`} className="space-y-2 p-2 pt-0">
               <dl className="space-y-2">{advice.inputs.map((input) => <div key={input.key}>
                 <dt className="text-neutral-600">{tr(input.label)}</dt>
-                <dd className="flex flex-wrap items-center gap-1"><span>{input.value == null ? tr("Дерек жоқ") : tr(input.value)}</span><Badge variant="outline" title={input.source} className="border-neutral-700 text-[11px] text-neutral-600">{input.kind === "satellite" ? "🛰 Sentinel-2" : input.kind === "osm" ? "🗺 OSM" : "—"}</Badge></dd>
+                <dd className="flex flex-wrap items-center gap-1"><span>{input.value == null ? tr("Дерек жоқ") : tr(input.value)}</span><Badge variant="outline" title={input.source} className="border-neutral-700 text-[11px] text-neutral-600">{input.kind === "satellite" ? "Sentinel-2" : input.kind === "osm" ? "OSM" : "—"}</Badge></dd>
               </div>)}</dl>
               {cell.recent && <p className="text-neutral-600">{tr("Жарамды апталар / қамту")}: {cell.recent.usableWeeks} / {(cell.recent.coverage * 100).toFixed(0)}% · {cell.recent.firstDate} – {cell.recent.lastDate}</p>}
               <ul className="list-disc space-y-2 pl-4">{advice.codes.map((code) => <li key={code}>{tr(ADVICE_TEXT[code])}</li>)}</ul>

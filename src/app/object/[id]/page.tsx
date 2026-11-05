@@ -178,7 +178,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
                           {c.ratio == null ? tr(LEVEL_KZ["not-comparable"]) : `${Math.round(c.ratio * 100)}%`}
                         </span>
                         {c.norm.status !== "verified" && (
-                          <span className="ml-0.5 text-amber-800" title={c.norm.statusNote}>⚠</span>
+                          <span className="ml-0.5 text-amber-800" title={c.norm.statusNote}></span>
                         )}
                       </span>
                     ))}
@@ -188,7 +188,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
             ))}
           </div>
         )}
-        <p className="mt-2 text-[12px] leading-relaxed text-amber-800">⚖ {tr(d.disclaimer)}</p>
+        <p className="mt-2 text-[12px] leading-relaxed text-amber-800">{tr(d.disclaimer)}</p>
       </Section>
 
       {/* 2. Спутник суреттері — Timeline */}
@@ -267,7 +267,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
             </table>
           </div>
           <p className="mt-1.5 text-[12px] text-amber-800">
-            ⚠ {tr("VIIRS газ факелін дала өртінен ажыратпайды — жердегі тексеру қажет.")}
+            {tr("VIIRS газ факелін дала өртінен ажыратпайды — жердегі тексеру қажет.")}
           </p>
           {d.flareAttribution?.validation && (
             <p className="mt-1 text-[12px] text-neutral-600">{tr(d.flareAttribution.validation)}</p>
@@ -291,7 +291,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
               <div className="mt-1 text-[12px] text-neutral-600">
                 {tr("Аспап")}: {tr(e.instrument)} · {tr("ажыратымдылық")}: {tr(e.resolution)}
               </div>
-              <div className="mt-0.5 text-[12px] text-amber-800">⚠ {tr(e.note)}</div>
+              <div className="mt-0.5 text-[12px] text-amber-800">{tr(e.note)}</div>
             </div>
           ))}
         </div>
@@ -334,7 +334,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
             ))}
           </div>
           <p className="mt-1.5 text-[12px] leading-relaxed text-amber-800">
-            ⚠ {tr(d.general.profileNote)}
+            {tr(d.general.profileNote)}
           </p>
         </div>
       </Section>

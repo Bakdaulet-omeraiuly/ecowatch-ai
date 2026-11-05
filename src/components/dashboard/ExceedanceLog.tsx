@@ -110,14 +110,14 @@ export function ExceedanceLog() {
           </div>
         ) : err ? (
           <div className="space-y-1.5 rounded-lg border border-amber-300 bg-neutral-50 p-3">
-            <p className="text-[13px] text-amber-800">⚠ {err.error}</p>
+            <p className="text-[13px] text-amber-800">{err.error}</p>
             {err.reason && (
               <p className="text-[13px] leading-relaxed text-neutral-600">{err.reason}</p>
             )}
           </div>
         ) : data ? (
           <>
-            {/* ⚠️ БАҚЫЛАУ ҚАМТУЫ — бос журналды дұрыс оқу үшін ЕҢ МАҢЫЗДЫ блок */}
+            {/* БАҚЫЛАУ ҚАМТУЫ — бос журналды дұрыс оқу үшін ЕҢ МАҢЫЗДЫ блок */}
             <div
               className={`mb-3 flex flex-wrap items-center gap-2 rounded-lg border p-2.5 ${
                 data.coverage.interrupted
@@ -219,7 +219,7 @@ export function ExceedanceLog() {
                             {r.act_jurisdiction === "KZ" ? "ҚР" : r.act_jurisdiction ?? "—"}{" "}
                             {r.act_number ?? ""}
                             {r.level === "exceeded-unverified" && (
-                              <span className="ml-1 text-amber-800">⚠</span>
+                              <span className="ml-1 text-amber-800"></span>
                             )}
                           </td>
                           <td className="whitespace-nowrap px-2 py-1.5 font-mono text-neutral-600">
@@ -248,7 +248,7 @@ export function ExceedanceLog() {
               <b className="text-neutral-600">{tr("Оқиға уақыты")}</b> —{" "}
               {tr("деректің өз сағаты (CAMS сағат сайын жаңарады).")}{" "}
               <b className="text-neutral-600">{tr("Тіркелген")}</b> —{" "}
-              {tr("жүйе жазып алған сәт. ⚠ белгісі — норма мәтіні расталмаған, заңдық тұжырым емес.")}
+              {tr("жүйе жазып алған сәт. белгісі — норма мәтіні расталмаған, заңдық тұжырым емес.")}
             </p>
           </>
         ) : null}

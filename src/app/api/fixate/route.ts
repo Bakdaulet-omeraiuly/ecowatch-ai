@@ -126,7 +126,7 @@ export async function GET(req: Request) {
         detail:
           `Табылмағаны: ${missing.join("; ")}. ` +
           "Vercel → Settings → Environment Variables ішіне қосыңыз. " +
-          "⚠️ ЕКІ ЖИІ ҚАТЕ: (1) қосқаннан КЕЙІН REDEPLOY жасалмаған — орта " +
+          "ЕКІ ЖИІ ҚАТЕ: (1) қосқаннан КЕЙІН REDEPLOY жасалмаған — орта " +
           "айнымалылары бұрынғы деплойға кері қолданылмайды; (2) айнымалы тек " +
           "Preview/Development ортасына белгіленген, Production-ға емес. " +
           "Anon кілтіне RLS жазуға рұқсат бермейді, сондықтан жазу тек " +

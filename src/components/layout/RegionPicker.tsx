@@ -63,7 +63,7 @@ export function RegionPicker({ compact }: { compact?: boolean }) {
             href="/caspian"
             className="block border-t border-white/10 px-3 py-2 text-[13px] text-sky-300 transition hover:bg-white/5"
           >
-            🌊 {tr("Каспий теңізі бетін ашу")} →
+            {tr("Каспий теңізі бетін ашу")} →
           </a>
         </div>
       )}

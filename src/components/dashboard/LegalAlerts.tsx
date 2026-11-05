@@ -217,7 +217,7 @@ export function LegalAlerts() {
                                 </span>
                                 {c.norm.status !== "verified" && (
                                   <span className="ml-1 text-amber-800" title={c.norm.statusNote}>
-                                    ⚠
+                                    
                                   </span>
                                 )}
                               </td>
@@ -304,7 +304,7 @@ export function LegalAlerts() {
                               <span className="text-neutral-900">
                                 {c.ratio != null ? c.ratio.toFixed(2) : "—"}
                               </span>
-                              {!c.normVerified && <span className="text-amber-800"> ⚠</span>}
+                              {!c.normVerified && <span className="text-amber-800"> ?</span>}
                             </span>
                           ))}
                         </div>
@@ -349,7 +349,7 @@ export function LegalAlerts() {
             </div>
 
             <p className="mt-3 border-t border-neutral-300 pt-2 text-[12px] leading-relaxed text-amber-800">
-              ⚖ {data.results[0]?.disclaimer}
+              {data.results[0]?.disclaimer}
             </p>
             <a
               href="/legislation"

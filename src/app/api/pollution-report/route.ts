@@ -66,7 +66,7 @@ const esc = (s: unknown): string =>
   );
 
 const LEVEL_MARK: Record<string, string> = {
-  ok: "", approaching: "~", exceeded: "⚠", "exceeded-unverified": "⚠?", unknown: "—",
+  ok: "", approaching: "~", exceeded: "!", "exceeded-unverified": "!?", unknown: "—",
 };
 
 export async function GET(req: Request) {
@@ -149,7 +149,7 @@ export async function GET(req: Request) {
         caveats: [
           "«Жел бағытындағы елді мекендер» — дисперсия конусының ішіне түскен нүктелер. Бұл сол жерде ластану ӨЛШЕНДІ дегенді БІЛДІРМЕЙДІ.",
           "Концентрация ҚАЛА нүктесінде (CAMS ~40 км тор), әр елді мекенде емес.",
-          "⛔ ӨЛШЕНБЕЙТІН ЗАТТАР: " + NOT_MEASURABLE.join(", ") + ". Бұлар спутниктен де, модельден де анықталмайды — кестедегі сандар олар бойынша ЕШНӘРСЕ айтпайды.",
+          "ӨЛШЕНБЕЙТІН ЗАТТАР: " + NOT_MEASURABLE.join(", ") + ". Бұлар спутниктен де, модельден де анықталмайды — кестедегі сандар олар бойынша ЕШНӘРСЕ айтпайды.",
           "Шаң мен CH₄ бағандарының гигиеналық нормасы ЖОҚ: біріншісі PM₁₀ арқылы реттеледі, екіншісі ағу көрсеткіші.",
           LEGAL_DISCLAIMER,
         ],
@@ -193,7 +193,7 @@ export async function GET(req: Request) {
 </style></head><body>
 
 <div class="noprint" style="text-align:right;margin-bottom:10px">
-  <button onclick="window.print()" style="padding:7px 14px;font-size:11pt;cursor:pointer">🖨 Басып шығару / PDF сақтау</button>
+  <button onclick="window.print()" style="padding:7px 14px;font-size:11pt;cursor:pointer">Басып шығару / PDF сақтау</button>
 </div>
 
 <h1>Атмосфералық ауаның ластануы туралы<br>ақпараттық анықтама</h1>
@@ -271,7 +271,7 @@ ${d.archiveNote ? `<div class="note">${esc(d.archiveNote)}</div>` : ""}
   </tbody>
 </table>
 <div class="warn">
-  <b>⛔ БҰЛ КЕСТЕДЕ ЖОҚ ЗАТТАР — олар мүлдем өлшенбейді.</b><br>
+  <b>БҰЛ КЕСТЕДЕ ЖОҚ ЗАТТАР — олар мүлдем өлшенбейді.</b><br>
   ${esc(NOT_MEASURABLE.join(", "))}.
   <br><br>
   Бұл заттар спутниктен де, атмосфералық модельден де анықталмайды — тек
@@ -285,7 +285,7 @@ ${d.archiveNote ? `<div class="note">${esc(d.archiveNote)}</div>` : ""}
 <p class="small">* Шаң мен CH₄ бағандарының гигиеналық нормасы ЖОҚ: шаң PM₁₀ арқылы реттеледі
 (бұл баған PM₁₀ асуының табиғи шаңнан ба, әлде кәсіпорыннан ба екенін ажыратуға көмектеседі),
 ал CH₄ — уыттылық емес, мұнай-газ инфрақұрылымының ағу көрсеткіші.</p>
-<p class="small">Белгілер: <b>⚠</b> — расталған нормадан асты · <b>⚠?</b> — асты, бірақ норма мәтіні расталмаған · <b>~</b> — нормаға жақындады (≥80%) · қызыл жол — ҚР расталған нормасы асқан сағат.</p>
+<p class="small">Белгілер: <b></b> — расталған нормадан асты · <b>?</b> — асты, бірақ норма мәтіні расталмаған · <b>~</b> — нормаға жақындады (≥80%) · қызыл жол — ҚР расталған нормасы асқан сағат.</p>
 
 <h2>4. Нормативтік салыстыру</h2>
 ${checks

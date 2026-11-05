@@ -2,6 +2,7 @@
 
 import { useLang } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
+import { BarChart3, Bot, Satellite, type LucideIcon } from "lucide-react";
 
 // Сенімділік деңгейінің белгісі.
 //
@@ -20,15 +21,15 @@ import { Badge } from "@/components/ui/badge";
 
 export type Tier = "measurement" | "model" | "ai";
 
-const TIERS: Record<Tier, { icon: string; label: string; title: string; cls: string }> = {
+const TIERS: Record<Tier, { icon: LucideIcon; label: string; title: string; cls: string }> = {
   measurement: {
-    icon: "🛰",
+    icon: Satellite,
     label: "Өлшем",
     title: "Аспап тікелей өлшеген шама. Ең жоғары сенімділік — есепке қоюға жарайды.",
     cls: "border-emerald-400/30 bg-emerald-500/10 text-emerald-200",
   },
   model: {
-    icon: "📊",
+    icon: BarChart3,
     label: "Модель",
     title:
       "Физикалық немесе статистикалық модель есептеген шама. Тікелей өлшем емес, " +
@@ -36,7 +37,7 @@ const TIERS: Record<Tier, { icon: string; label: string; title: string; cls: str
     cls: "border-sky-400/30 bg-sky-500/10 text-sky-200",
   },
   ai: {
-    icon: "🤖",
+    icon: Bot,
     label: "AI бағалауы",
     title:
       "Тіл моделінің бағалауы. Валидацияланбаған — ресми есепке негіз бола алмайды, " +
@@ -60,7 +61,7 @@ export function TierBadge({ tier, className = "", tone = "dark" }: { tier: Tier;
       title={tr(t.title)}
       className={`leading-snug ${tone === "light" ? LIGHT[tier] : t.cls} ${className}`}
     >
-      <span aria-hidden>{t.icon}</span>
+      <t.icon className="h-3 w-3" aria-hidden />
       {tr(t.label)}
     </Badge>
   );

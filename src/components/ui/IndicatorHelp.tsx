@@ -98,7 +98,7 @@ export function IndicatorHelp({ id, inline, tone = "dark" }: Props) {
       )}
       {ind.limits.length > 0 && (
         <p className="text-[12px] leading-relaxed text-amber-200/70">
-          ⚠ {tr(ind.limits[0])}
+          {tr(ind.limits[0])}
         </p>
       )}
       {!ind.validated && (

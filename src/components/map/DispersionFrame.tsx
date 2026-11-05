@@ -19,7 +19,7 @@ export function ModelBadge() {
       data-testid="model-badge"
       className="rounded bg-sky-50 px-1.5 py-0.5 font-semibold text-sky-800"
     >
-      <span aria-hidden>📊</span> {tr("Модель нәтижесі")}
+      <span aria-hidden></span> {tr("Модель нәтижесі")}
     </Badge>
   );
 }

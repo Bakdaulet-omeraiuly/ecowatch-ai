@@ -44,7 +44,7 @@ export function FacilityBar({ facility, name, no2, share, wind, air, airError, f
             no2.status === "not-detected" ? tr("Анықталмауы шығарынды жоқ дегенді білдірмейді — шағын көз спутник сезімталдығынан төмен болуы мүмкін.") : null,
           ].filter(Boolean).join("\n")}
         >
-          🛰 NO₂{" "}
+          NO₂{" "}
           {no2.status === "detected" ? <>{tr("ығында")} <strong className="tabular-nums">+{no2.relativePct}%</strong>{no2.clusterKey ? " *" : ""}</>
             : no2.status === "not-detected" ? tr("сигнал анықталмады")
             : tr("әлі тексерілмеген")}
@@ -52,7 +52,7 @@ export function FacilityBar({ facility, name, no2, share, wind, air, airError, f
 
         {share != null && (<>{sep}
           <span title={tr("Тізілімдегі нысандар арасындағы бөлінген үлес (жел + CAMS). Салмақтары тексерілмеген — бұл ықтималдық немесе кінә дәлелі ЕМЕС.")}>
-            {tr("Үлес")} <strong className="tabular-nums">{share}%</strong> 📊
+            {tr("Үлес")} <strong className="tabular-nums">{share}%</strong> 
           </span>
         </>)}
 
@@ -66,20 +66,20 @@ export function FacilityBar({ facility, name, no2, share, wind, air, airError, f
 
         {sep}
         <span className="tabular-nums" title={tr("Copernicus CAMS · ~11 км торкөз орташасы, өлшем емес")}>
-          {airError ? tr("Ауа: дерек жоқ") : !air ? tr("Ауа…") : <>SO₂ {fmt(air.so2)} · NO₂ {fmt(air.no2)} <span className="text-neutral-600">µg/m³</span> 📊</>}
+          {airError ? tr("Ауа: дерек жоқ") : !air ? tr("Ауа…") : <>SO₂ {fmt(air.so2)} · NO₂ {fmt(air.no2)} <span className="text-neutral-600">µg/m³</span> </>}
         </span>
 
         {facility?.footprint && (<>{sep}
           <span className="flex items-center gap-1" title={tr("NASA FIRMS VIIRS · нысан контуры +375 м")}>
             <Flame className="h-3.5 w-3.5 text-red-800" aria-hidden />
-            {flaresError ? tr("дерек жоқ") : !flares ? "…" : <><strong className="tabular-nums">{flares.count}</strong> {tr("жылу нүктесі")} / {flares.days} {tr("күн")}</>} 🛰
+            {flaresError ? tr("дерек жоқ") : !flares ? "…" : <><strong className="tabular-nums">{flares.count}</strong> {tr("жылу нүктесі")} / {flares.days} {tr("күн")}</>} 
           </span>
         </>)}
 
         <span className="ml-auto flex items-center gap-1">
           <button type="button" onClick={onToggle} aria-pressed={animating}
             className="flex h-8 items-center gap-1 rounded-md border border-neutral-400/70 bg-white/60 px-2 font-medium hover:bg-white"
-            title={animating ? tr("Таралу анимациясынан алып тастау") : tr("Таралу анимациясына қосу (📊 модель)")}>
+            title={animating ? tr("Таралу анимациясынан алып тастау") : tr("Таралу анимациясына қосу (модель)")}>
             {animating ? <Pause className="h-3.5 w-3.5" aria-hidden /> : <Play className="h-3.5 w-3.5" aria-hidden />}
             <span className="hidden sm:inline">{tr("Таралу")}</span>
           </button>

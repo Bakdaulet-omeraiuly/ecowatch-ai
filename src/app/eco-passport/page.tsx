@@ -215,7 +215,7 @@ export default function EcoPassportPage() {
             <TierLegend tone="light" />
           </div>
           <p className="mt-3 text-[13px] leading-relaxed text-amber-800 print:text-amber-900">
-            ⚠{" "}
+            {" "}
             {tr(
               "Бұл құжатта жалпы «эко-балл» ЖОҚ. Түрлі бірліктегі және түрлі сенімділік " +
               "деңгейіндегі көрсеткіштерді бір санға қосу ғылыми негізсіз болар еді — " +
@@ -430,7 +430,7 @@ function IndicatorRow({
             <div className="mt-0.5 text-[12px] text-neutral-600">{tr("өлшенбеді")}</div>
           ) : breached.length > 0 ? (
             <div className="mt-0.5 text-[12px] text-amber-800 print:text-amber-800">
-              ⚠ {tr("норма асқан")}
+              {tr("норма асқан")}
             </div>
           ) : ind.norms?.length ? (
             <div className="mt-0.5 text-[12px] text-emerald-800 print:text-emerald-700">
@@ -495,7 +495,7 @@ function IndicatorRow({
                   return (
                     <li key={i} className="flex flex-wrap items-center gap-1.5">
                       <span className={bad ? "text-amber-800 print:text-amber-800" : "text-neutral-700 print:text-gray-800"}>
-                        {bad ? "⚠" : "✓"} {tr(n.label)}: {n.comparison === "max" ? "≤" : "≥"} {n.value}{" "}
+                        {bad ? "✗" : "✓"} {tr(n.label)}: {n.comparison === "max" ? "≤" : "≥"} {n.value}{" "}
                         {tr(ind.unit)}
                       </span>
                       <Doc doc={n.source} />
@@ -551,7 +551,7 @@ function IndicatorRow({
             <Label>{tr("Шектеулері")}</Label>
             <ul className="mt-1 space-y-0.5 text-neutral-600 print:text-gray-700">
               {ind.limits.map((l, i) => (
-                <li key={i}>⚠ {tr(l)}</li>
+                <li key={i}>{tr(l)}</li>
               ))}
             </ul>
           </div>

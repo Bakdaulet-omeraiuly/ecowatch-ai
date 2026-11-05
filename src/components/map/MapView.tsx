@@ -1034,7 +1034,7 @@ export function MapView() {
           // AI agent: zoom the map to the point itself, then synthesise
           // satellite imagery + live official data (CAMS, weather)
           mapRef.current?.flyTo({ center: [lng, lat], zoom: 14, duration: 1400 });
-          toast.info(tr("🤖 AI агент картаны жақындатып, спутник + тірі ресми деректерді талдап жатыр…"));
+          toast.info(tr("AI агент картаны жақындатып, спутник + тірі ресми деректерді талдап жатыр…"));
           const res = await fetch("/api/agent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -1106,7 +1106,7 @@ export function MapView() {
           setSelected(site); openRightView("analysis");
           toast.success(tr("AI талдауы дайын!"));
           if (data.analysis.riskScore >= 55) {
-            toast.warning(tr("Жоғары тәуекел (🤖 AI бағасы) — «Ескертулер» тізіміне қосылды"), {
+            toast.warning(tr("Жоғары тәуекел (AI бағасы) — «Ескертулер» тізіміне қосылды"), {
               description: tr("Органға автоматты жіберілмейді. Жіберу — талдау панеліндегі батырма арқылы."),
             });
           }
@@ -1543,7 +1543,7 @@ export function MapView() {
             <Layer id="reed-zones-outline" type="line" paint={{ "line-color": "#22c55e", "line-width": 1.5, "line-opacity": 0.7 }} />
           </Source>
         )}
-        {/* Түтін конусы — 📊 модель нәтижесі (тек соңғы 2 тәулік) */}
+        {/* Түтін конусы — модель нәтижесі (тек соңғы 2 тәулік) */}
         {activeLayer === "fire" && reedConeGeo.features.length > 0 && (
           <Source id="reed-smoke-cones" type="geojson" data={reedConeGeo}>
             <Layer id="reed-smoke-cones-fill" type="fill" paint={{ "fill-color": "#7dd3fc", "fill-opacity": 0.15 }} />
@@ -1620,7 +1620,7 @@ export function MapView() {
                 style={{ backgroundColor: RISK_COLORS[s.analysis.riskLevel] }}
                 title={s.name}
               >
-                {s.analysis.verificationStatus === "confirmed" ? "✓" : ""}
+                {s.analysis.verificationStatus === "confirmed" ? "✓" : "✗"}
               </div>
             </Marker>
           ))}
@@ -1790,7 +1790,7 @@ export function MapView() {
                     }`}
                   >
                     <Factory className="h-3 w-3" /> {c.short}{c.approx ? "~" : ""}
-                    {isTop && <span className="ml-0.5" title={tr("Салыстырмалы үлес — 📊 модель, ықтималдық емес")}>{c.confidence}% 📊</span>}
+                    {isTop && <span className="ml-0.5" title={tr("Салыстырмалы үлес — модель, ықтималдық емес")}>{c.confidence}% </span>}
                   </div>}
                 </div>
               </Marker>
@@ -2145,7 +2145,7 @@ export function MapView() {
         {activeLayer === "landuse" && <LandusePanel data={landuse} error={landuseError} />}
         {activeLayer === "green" && <GreeneryPanel osm={osm} osmError={osmError} change={greenChange} changeError={greenChangeError} />}
 
-        {/* Қамыс өрті — түтін бағыты (P4.5) — 📊 модель */}
+        {/* Қамыс өрті — түтін бағыты (P4.5) — модель */}
         {activeLayer === "fire" && (
           <div className="w-full rounded-lg border border-neutral-300 bg-white p-4 ">
             <div className="mb-1 flex items-center justify-between gap-2">
@@ -2179,7 +2179,7 @@ export function MapView() {
               <>
                 {fireArchive && !fireArchive.complete && (
                   <div className="mb-2 rounded-md border border-amber-500/40 bg-amber-50 p-2 text-[12px] leading-snug text-amber-800">
-                    ⚠️ {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
+                    {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
                   </div>
                 )}
                 {/* Әр тақта ӨЗ дереккөзіне тәуелді: дереккөз сәтсіз болса — «—»,
@@ -2348,7 +2348,7 @@ export function MapView() {
               <ModuleMissing tone="light" module="pollutionSource" region={region} compact />
             ) : sourceError ? (
               <div className="space-y-1.5">
-                <p className="text-[13px] text-amber-800">⚠ {tr(sourceError.error)}</p>
+                <p className="text-[13px] text-amber-800">{tr(sourceError.error)}</p>
                 {sourceError.detail && (
                   <p className="text-[12px] leading-relaxed text-neutral-600">{tr(sourceError.detail)}</p>
                 )}
@@ -2450,7 +2450,7 @@ export function MapView() {
                     {/* Анимация — траектория ЕМЕС. Әр кадр сол сағаттағы
                         желмен есептелген тұрақты күй конусы. */}
                     <p className="text-[12px] leading-snug text-neutral-600">
-                      ⚠ {tr("Әр кадр — сол сағаттағы желмен есептелген конус, бұлттың жүрген жолы ЕМЕС.")}
+                      {tr("Әр кадр — сол сағаттағы желмен есептелген конус, бұлттың жүрген жолы ЕМЕС.")}
                     </p>
                   </div>
                 )}
@@ -2508,7 +2508,7 @@ export function MapView() {
                         <>
                           <br />
                           <span className="text-amber-800">
-                            ⚠ {tr("Сызбада көрнекілік үшін 3° етіп салынған — нақты бұрыш жоғарыда.")}
+                            {tr("Сызбада көрнекілік үшін 3° етіп салынған — нақты бұрыш жоғарыда.")}
                           </span>
                         </>
                       )}
@@ -2519,7 +2519,7 @@ export function MapView() {
                 {/* ЖЕЛ ӨРІСІ — тор бойынша бір нүктелік пе, әлде жергілікті ме */}
                 {source.windField && (
                   <p className="mt-1 rounded bg-neutral-50 p-1.5 text-[12px] leading-snug text-neutral-600">
-                    🌬 {tr(source.windField.note)}
+                    {tr(source.windField.note)}
                   </p>
                 )}
 
@@ -2836,7 +2836,7 @@ export function MapView() {
                 )}
 
                 <p className="mt-1.5 text-[12px] leading-snug text-neutral-600">
-                  {tr("🦟 иконкалар индекс бойынша шоғырланады. Слайдермен 7 күндік болжамды көріңіз. Басты фактор —")}{" "}
+                  {tr("иконкалар индекс бойынша шоғырланады. Слайдермен 7 күндік болжамды көріңіз. Басты фактор —")}{" "}
                   <b className="text-violet-800">{tr("Жайық жайылмасы мен атырауы")}</b>{" "}
                   {tr("(қамыс, тұрған су) + температура + жаңбыр + қала. Әдістеме: Mordecai 2017 (WHO/ECDC) + гидрология. Дереккөз: Open-Meteo.")}
                 </p>
@@ -2868,7 +2868,7 @@ export function MapView() {
               <>
                 {!fireArchive.complete && (
                   <div className="mb-2 rounded-md border border-amber-500/40 bg-amber-50 p-2 text-[12px] leading-snug text-amber-800">
-                    ⚠️ {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
+                    {tr("Архив толық емес")}: {fireArchive.failedWindows.length} {tr("терезе сәтсіз аяқталды — кейбір күндер көрсетілмеген.")}
                   </div>
                 )}
 
@@ -2949,7 +2949,7 @@ export function MapView() {
                   {tr(flaresAdvice(flares.length))}
                 </div>
                 <p className="mt-1.5 text-[12px] leading-snug text-neutral-600">
-                  {tr("🔥 иконка өлшемі — жылу қуатына (FRP) сай. Жылу аномалиясы — спутниктің жылу сигналы, расталған өрт емес: өндірістік факел, далалық өрт немесе жалын болуы мүмкін. Дереккөз: NASA FIRMS (VIIRS 375м).")}
+                  {tr("иконка өлшемі — жылу қуатына (FRP) сай. Жылу аномалиясы — спутниктің жылу сигналы, расталған өрт емес: өндірістік факел, далалық өрт немесе жалын болуы мүмкін. Дереккөз: NASA FIRMS (VIIRS 375м).")}
                 </p>
               </>
             )}
@@ -3201,7 +3201,7 @@ export function MapView() {
                       {/* Health advice */}
                       <div className="rounded-lg bg-neutral-50 p-2 text-[12px] leading-snug text-neutral-800">
                         <div className="mb-1 font-semibold" style={{ color: "var(--color-brand)" }}>
-                          {tr("🩺 Денсаулық кеңесі")}
+                          {tr("Денсаулық кеңесі")}
                         </div>
                         <p>{cat.advice}</p>
                         <p className="mt-1 text-neutral-600">
@@ -3497,7 +3497,7 @@ export function MapView() {
               </div>
               {oilScan.data.description && <p className="text-[13px] text-neutral-800">{oilScan.data.description}</p>}
               {oilScan.data.caveat && (
-                <p className="mt-1 rounded bg-amber-50 p-1.5 text-[12px] text-amber-800">⚠️ {tr(oilScan.data.caveat)}</p>
+                <p className="mt-1 rounded bg-amber-50 p-1.5 text-[12px] text-amber-800">{tr(oilScan.data.caveat)}</p>
               )}
               <p className="mt-1 text-[12px] text-neutral-600">Sentinel-1 SAR · GPT-4o vision · {tr("расталған детекция емес")}</p>
             </>

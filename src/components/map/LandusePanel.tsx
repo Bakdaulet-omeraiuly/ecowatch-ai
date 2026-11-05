@@ -23,7 +23,7 @@ export function LandusePanel({ data, error }: { data: LanduseData | null; error:
     <div className="w-full rounded-lg border border-neutral-300 bg-white p-3 text-[12px] leading-snug text-neutral-800">
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="text-[13px] font-semibold text-neutral-900">{tr("Жер пайдалану")}</span>
-        <span className="rounded border border-neutral-400 px-1.5 py-0.5 text-[12px] text-neutral-800">🗺 {tr("OSM картографиясы")}</span>
+        <span className="rounded border border-neutral-400 px-1.5 py-0.5 text-[12px] text-neutral-800">{tr("OSM картографиясы")}</span>
       </div>
       {error ? <SourceErrorBox title={tr("Жер пайдалану")} err={error} tr={tr} />
         : !data ? <p role="status">{tr("Жүктелуде…")}</p>

@@ -184,18 +184,18 @@ export async function fetchFloodPulse(origin: string, regionId: string): Promise
   if (hasSar) {
     const hd = byZone.map((z) => z.hydroDays).filter((d): d is number => d != null);
     parts.push(
-      `🛰 Sentinel-1: ${byZone.length} бақылау терезесінде су өлшенді, ` +
+      `Sentinel-1: ${byZone.length} бақылау терезесінде су өлшенді, ` +
         `ең жоғарысы аймақ ауданының ${sarPct!.toFixed(1)}%-ы` +
         (hd.length ? `; су кемінде ${Math.max(...hd)} күн тұр` : "")
     );
   }
   if (hasGlofas) {
-    parts.push(`📊 GloFAS: өзен ағыны өз терезесінің ${Math.round(glofasRatio! * 100)}%-ында`);
+    parts.push(`GloFAS: өзен ағыны өз терезесінің ${Math.round(glofasRatio! * 100)}%-ында`);
   }
   if (habitat.length) {
     const best = Math.max(...habitat.map((h) => h.reed ?? 0));
     parts.push(
-      `🛰 Sentinel-2: қамыс мекені ${habitat.length} терезеде өлшенді, ` +
+      `Sentinel-2: қамыс мекені ${habitat.length} терезеде өлшенді, ` +
         `ең тығызы ${Math.round(best * 100)}%`
     );
   }

@@ -55,9 +55,9 @@ const FIRE_METH = {
     rows: [
       { k: "Жылу аномалиясы", v: "NASA FIRMS (VIIRS, 375 м) спутниктің жылу датчигі тіркеген сигнал. Бұл — өлшем. Расталған өрт емес: факел, далалық өрт, күйдірілген алқап немесе жалын болуы мүмкін." },
       { k: "Өрт", v: "Жер бетінде расталған жану оқиғасы. FIRMS оны өзі растамайды — растау үшін жердегі немесе әкімшілік тексеру қажет." },
-      { k: "Өндірістік факел", v: "Нысан контурының (және шағын буферінің) ішінде тіркелген аномалия «өндірістік алау» деп жіктеледі. Бұл — модельдің жіктеуі (📊), растау емес: контур дәл болмауы мүмкін." },
+      { k: "Өндірістік факел", v: "Нысан контурының (және шағын буферінің) ішінде тіркелген аномалия «өндірістік алау» деп жіктеледі. Бұл — модельдің жіктеуі, растау емес: контур дәл болмауы мүмкін." },
       { k: "Контурдан тыс аномалия", v: "«Расталмаған» деп белгіленеді. Оның өндірістік емес екені дәлелденбеген — сондықтан «өрт» деп те, «факел емес» деп те айтуға болмайды." },
-      { k: "Қамыс өрті — түтін бағыты (📊 модель)", v: "Қамыс аймағы — Sentinel-2 NDVI > 0.4 тығыз өсімдік табылған бақылау терезесі (прокси, қамыс картасы емес). Осы терезелер ішіндегі FIRMS аномалиялары алынады; «өндірістік алау» ЕШҚАШАН саналмайды. Конус тек соңғы 2 тәуліктегі аномалияға: ең жақын Open-Meteo жел нүктесі, түтін бағыты = желдің келетін бағыты + 180°, ені — Pasquill D класы (бейтарап, болжам) + жел бағытының соңғы 12 сағаттағы ауытқуы. Конус ұзындығы мен нақты бұрышы ішіндегі облыс елді мекендері тізіледі. Жел дерегі жоқ болса конус сызылмайды — «жел деректері жоқ — бағыт есептелмеді». Концентрация (µg/m³) берілмейді." },
+      { k: "Қамыс өрті — түтін бағыты (модель)", v: "Қамыс аймағы — Sentinel-2 NDVI > 0.4 тығыз өсімдік табылған бақылау терезесі (прокси, қамыс картасы емес). Осы терезелер ішіндегі FIRMS аномалиялары алынады; «өндірістік алау» ЕШҚАШАН саналмайды. Конус тек соңғы 2 тәуліктегі аномалияға: ең жақын Open-Meteo жел нүктесі, түтін бағыты = желдің келетін бағыты + 180°, ені — Pasquill D класы (бейтарап, болжам) + жел бағытының соңғы 12 сағаттағы ауытқуы. Конус ұзындығы мен нақты бұрышы ішіндегі облыс елді мекендері тізіледі. Жел дерегі жоқ болса конус сызылмайды — «жел деректері жоқ — бағыт есептелмеді». Концентрация (µg/m³) берілмейді." },
     ],
     note: "Шектеу: 375 м пиксельді спутник тек өткен сәтте (тәулігіне бірнеше рет) түсіреді; бұлт пен түтін сигналды жасыруы мүмкін. Уақыт сүзгісі — аномалия күні (acq_date) бойынша.",
   },
@@ -66,9 +66,9 @@ const FIRE_METH = {
     rows: [
       { k: "Тепловая аномалия", v: "Сигнал теплового датчика спутника NASA FIRMS (VIIRS, 375 м). Это измерение. Не подтверждённый пожар: может быть факел, полевой пожар, выжженный участок или пламя." },
       { k: "Пожар", v: "Подтверждённое горение на земле. FIRMS сам его не подтверждает — для подтверждения нужна проверка на месте или административная." },
-      { k: "Промышленный факел", v: "Аномалия внутри контура объекта (и малого буфера) относится к категории «промышленный факел». Это классификация модели (📊), а не подтверждение: контур может быть неточным." },
+      { k: "Промышленный факел", v: "Аномалия внутри контура объекта (и малого буфера) относится к категории «промышленный факел». Это классификация модели, а не подтверждение: контур может быть неточным." },
       { k: "Аномалия вне контура", v: "Помечается как «не подтверждённая». Что она не промышленная, не доказано — поэтому её нельзя называть ни пожаром, ни «не факелом»." },
-      { k: "Пожар в тростнике — направление дыма (📊 модель)", v: "Зона тростника — окно наблюдения, где Sentinel-2 NDVI > 0.4 показал густую растительность (прокси, а не карта тростника). Берутся аномалии FIRMS внутри этих окон; «промышленный факел» НИКОГДА не учитывается. Конус — только для аномалий за последние 2 суток: ближайшая точка ветра Open-Meteo, направление дыма = направление, откуда дует ветер, + 180°, ширина — класс Pasquill D (нейтральный, допущение) + разброс направления ветра за последние 12 часов. Перечисляются населённые пункты области в пределах длины и фактического угла конуса. Если данных о ветре нет, конус не строится — «нет данных о ветре — направление не рассчитано». Концентрация (µg/m³) не выдаётся." },
+      { k: "Пожар в тростнике — направление дыма (модель)", v: "Зона тростника — окно наблюдения, где Sentinel-2 NDVI > 0.4 показал густую растительность (прокси, а не карта тростника). Берутся аномалии FIRMS внутри этих окон; «промышленный факел» НИКОГДА не учитывается. Конус — только для аномалий за последние 2 суток: ближайшая точка ветра Open-Meteo, направление дыма = направление, откуда дует ветер, + 180°, ширина — класс Pasquill D (нейтральный, допущение) + разброс направления ветра за последние 12 часов. Перечисляются населённые пункты области в пределах длины и фактического угла конуса. Если данных о ветре нет, конус не строится — «нет данных о ветре — направление не рассчитано». Концентрация (µg/m³) не выдаётся." },
     ],
     note: "Ограничение: пиксель 375 м снимается только во время пролёта спутника (несколько раз в сутки); облака и дым могут скрывать сигнал. Фильтр периода — по дате аномалии (acq_date).",
   },
@@ -77,9 +77,9 @@ const FIRE_METH = {
     rows: [
       { k: "Thermal anomaly", v: "A signal recorded by the satellite thermal sensor (NASA FIRMS, VIIRS, 375 m). This is a measurement. It is not a confirmed fire: it may be a flare, a field fire, a burned area or flames." },
       { k: "Fire", v: "A confirmed burning event on the ground. FIRMS does not confirm it by itself — on-site or administrative verification is required." },
-      { k: "Industrial flare", v: "An anomaly inside a facility footprint (plus a small buffer) is classified as an industrial flare. This is a model classification (📊), not a confirmation: the footprint may be imprecise." },
+      { k: "Industrial flare", v: "An anomaly inside a facility footprint (plus a small buffer) is classified as an industrial flare. This is a model classification, not a confirmation: the footprint may be imprecise." },
       { k: "Anomaly outside the footprint", v: "Labelled as unconfirmed. It has not been shown to be non-industrial, so it cannot be called either a fire or 'not a flare'." },
-      { k: "Reed fire — smoke direction (📊 model)", v: "A reed zone is a monitoring window where Sentinel-2 NDVI > 0.4 found dense vegetation (a proxy, not a reed map). FIRMS anomalies inside these windows are taken; industrial flares are NEVER counted. A cone is drawn only for anomalies from the last 2 days: nearest Open-Meteo wind point, smoke direction = wind-from direction + 180°, width = Pasquill class D (neutral, an assumption) + wind-direction spread over the last 12 hours. Oblast settlements within the cone length and its actual angle are listed. Without wind data no cone is drawn — 'no wind data — direction not calculated'. No concentration (µg/m³) is given." },
+      { k: "Reed fire — smoke direction (model)", v: "A reed zone is a monitoring window where Sentinel-2 NDVI > 0.4 found dense vegetation (a proxy, not a reed map). FIRMS anomalies inside these windows are taken; industrial flares are NEVER counted. A cone is drawn only for anomalies from the last 2 days: nearest Open-Meteo wind point, smoke direction = wind-from direction + 180°, width = Pasquill class D (neutral, an assumption) + wind-direction spread over the last 12 hours. Oblast settlements within the cone length and its actual angle are listed. Without wind data no cone is drawn — 'no wind data — direction not calculated'. No concentration (µg/m³) is given." },
     ],
     note: "Limitation: each 375 m pixel is imaged only during a satellite overpass (several times a day); clouds and smoke can hide the signal. The period filter uses the anomaly date (acq_date).",
   },
@@ -164,22 +164,22 @@ export default function MethodologyPage() {
       <div className="mb-8 flex flex-wrap gap-2 text-[13px]">
         <Link
           href="/eco-passport"
-          className="rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-2 text-emerald-800 transition hover:bg-emerald-100"
+          className="rounded border border-neutral-300 bg-white px-3 py-2 font-medium text-[#0b3a6b] transition hover:border-[#0b3a6b]"
         >
           {tr("Толық эко-паспортты ашу (формулалармен) →")}{" "}</Link>
         <Link
           href="/methodology/jaiyq-mri"
-          className="rounded-lg border border-violet-300 bg-violet-50 px-3 py-2 text-violet-800 transition hover:bg-violet-100"
+          className="rounded border border-neutral-300 bg-white px-3 py-2 font-medium text-[#0b3a6b] transition hover:border-[#0b3a6b]"
         >
-          {tr("🦟 JAIYQ-MRI маса моделінің толық әдістемесі →")}{" "}</Link>
+          {tr("JAIYQ-MRI маса моделінің толық әдістемесі →")}{" "}</Link>
         <a
           href="/JAIYQ-MRI-adistemesi.pdf"
-          className="rounded-lg border border-neutral-300 bg-neutral-50 px-3 py-2 text-neutral-700 transition hover:bg-neutral-100"
+          className="rounded border border-neutral-300 bg-white px-3 py-2 font-medium text-[#0b3a6b] transition hover:border-[#0b3a6b]"
         >
           {tr("PDF (11 бет)")}{" "}</a>
         <Link
           href="/validation"
-          className="rounded-lg border border-sky-300 bg-sky-50 px-3 py-2 text-sky-800 transition hover:bg-sky-100"
+          className="rounded border border-neutral-300 bg-white px-3 py-2 font-medium text-[#0b3a6b] transition hover:border-[#0b3a6b]"
         >
           {t("val.link.validationHub")}
         </Link>
@@ -190,7 +190,7 @@ export default function MethodologyPage() {
           салыстыруы және не жетіспейтіні толық жазылған. */}
       <div className="mb-8 rounded-xl border border-neutral-300 bg-neutral-50 p-4">
         <h2 className="mb-1 text-sm font-semibold text-violet-800">
-          {tr("🦟 JAIYQ-MRI — жобаның өз моделі")}{" "}</h2>
+          {tr("JAIYQ-MRI — жобаның өз моделі")}{" "}</h2>
         <p className="text-[13px] leading-relaxed text-neutral-700">
           {tr("Маса тәуекел индексі — сырттан алынған модель емес, осы жоба үшін жасалған тасқын-импульсті жұмыртқа банкі моделі. Толық әдістемесінде формулалар, дереккөздер, жеті әлемдік модельмен салыстыру, «шынымен жаңа ма» деген шыншыл баға және не жетіспейтіні (шешу жолымен қоса) жазылған.")}{" "}</p>
         <Link
@@ -291,7 +291,7 @@ export default function MethodologyPage() {
 
                   <ul className="mt-2 space-y-0.5 border-t border-neutral-300 pt-2 text-[13px] text-amber-800">
                     {it.limits.map((l, i) => (
-                      <li key={i}>⚠ {tr(l)}</li>
+                      <li key={i}>{tr(l)}</li>
                     ))}
                   </ul>
                 </div>
