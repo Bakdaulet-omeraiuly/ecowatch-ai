@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, Bell, ClipboardList, Grid3x3, ShieldCheck, Wind } from "lucide-react";
+import { BarChart3, Bell, ClipboardList, Grid3x3, MessageSquareWarning, ShieldCheck, Wind } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { useMapToolsStore, type ToolKey } from "@/store/useMapToolsStore";
 import { AreaReportTool } from "./AreaReportTool";
@@ -9,12 +9,14 @@ import { JournalTool } from "./JournalTool";
 import { ReviewTool } from "./ReviewTool";
 import { WatchTool } from "./WatchTool";
 import { PriorityTool } from "./PriorityTool";
+import { ComplaintsTool } from "./ComplaintsTool";
 
 const TOOLS: { key: ToolKey; label: string; who: string; icon: typeof BarChart3 }[] = [
   { key: "area", label: "Аймақ есебі", who: "ғалым · қызметкер", icon: BarChart3 },
   { key: "trajectory", label: "Ауа қайдан келді", who: "инспектор · ғалым", icon: Wind },
   { key: "journal", label: "Далалық журнал", who: "қызметкер · ғалым", icon: ClipboardList },
   { key: "review", label: "Детекцияны растау", who: "инспектор", icon: ShieldCheck },
+  { key: "complaints", label: "Шағымдар картада", who: "инспектор · барлығы", icon: MessageSquareWarning },
   { key: "watch", label: "Менің аймақтарым", who: "барлығы", icon: Bell },
   { key: "priority", label: "Көгалдандыру басымдығы", who: "әкімдік", icon: Grid3x3 },
 ];
@@ -43,6 +45,7 @@ export function ToolsPanel() {
         {tool === "trajectory" && <TrajectoryTool />}
         {tool === "journal" && <JournalTool />}
         {tool === "review" && <ReviewTool />}
+        {tool === "complaints" && <ComplaintsTool />}
         {tool === "watch" && <WatchTool />}
         {tool === "priority" && <PriorityTool />}
       </div>

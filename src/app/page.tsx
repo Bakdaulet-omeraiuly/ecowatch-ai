@@ -29,6 +29,7 @@ export default function HomePage() {
         { href: "/map?tool=journal", label: "Далалық журнал", icon: ClipboardList },
         { href: "/map?tool=review", label: "Детекцияны растау", icon: ShieldCheck },
         { href: "/map?tool=priority", label: "Көгалдандыру басымдығы", icon: Grid3x3 },
+        { href: "/map?tool=complaints", label: "Шағымдар картада", icon: MessageSquareWarning },
         { href: "/complaints/review", label: "Шағымдарды қарау", icon: MessageSquareWarning },
       ],
     },

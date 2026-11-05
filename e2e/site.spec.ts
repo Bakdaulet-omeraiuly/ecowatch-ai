@@ -94,3 +94,8 @@ test("API: кері траектория тарихи уақытқа да есе
   expect(j.points.length).toBeGreaterThan(1);
   expect(j.source).toMatch(/Historical/);
 });
+
+test("карта: шағымдар құралы ашылады (дерек болмаса — шынайы хабар)", async ({ page }) => {
+  await page.goto("/map?tool=complaints");
+  await expect(page.getByText(/топ ·|қолжетімсіз|жария шағым жоқ/).first()).toBeVisible({ timeout: 20_000 });
+});

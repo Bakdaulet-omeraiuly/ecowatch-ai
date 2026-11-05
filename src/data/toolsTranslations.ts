@@ -291,4 +291,11 @@ export const TOOLS_TR: Record<string, { ru: string; en: string }> = {
   "Өлшем": { ru: "Измерение", en: "Measurement" },
   "Jaiyq — тәуелсіз жоба, ресми мемлекеттік дереккөз емес. Ресми шешім үшін жауапты органдарға жүгініңіз.": { ru: "Jaiyq — независимый проект, не официальный государственный источник. Для официальных решений обращайтесь в ответственные органы.", en: "Jaiyq is an independent project, not an official government source. For official decisions, contact the responsible authorities." },
   "Терезе ашылмады — браузерде қалқымалы терезеге рұқсат беріңіз": { ru: "Окно не открылось — разрешите всплывающие окна в браузере", en: "Window did not open — allow pop-ups in your browser" },
+  "Шағымдар картада": { ru: "Жалобы на карте", en: "Complaints on map" },
+  "инспектор · барлығы": { ru: "инспектор · все", en: "inspector · everyone" },
+  "Тұрғындар шағымдары: координаты ~100 м-ге дөңгелектелген, бір жердегі 2 сағат ішіндегі қайталанған шағымдар бір топ. Шағым — өлшем емес, бірақ тексеруге белгі.": { ru: "Жалобы жителей: координаты округлены до ~100 м, повторы в одном месте в пределах 2 часов объединены. Жалоба — не измерение, но сигнал для проверки.", en: "Resident complaints: coordinates rounded to ~100 m, repeats at one place within 2 hours are grouped. A complaint is not a measurement, but a signal to inspect." },
+  "топ": { ru: "групп", en: "groups" },
+  "шағым": { ru: "жалоб", en: "complaints" },
+  "Бұл кезеңде жария шағым жоқ.": { ru: "За этот период публичных жалоб нет.", en: "No public complaints in this period." },
+  "Шағымдар дерекқоры қолжетімсіз — дерек жоқ": { ru: "База жалоб недоступна — данных нет", en: "Complaints database unavailable — no data" },
 };
