@@ -42,6 +42,10 @@ jobs:
           SENTINELHUB_CLIENT_SECRET: ${{ secrets.SENTINELHUB_CLIENT_SECRET }}
         run: node --no-warnings --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/snapshot-layers.mjs green-change priority-grid
 
+      - name: WorldPop — тек бос ұяшықтарды толтыру (API шегі 1000/тәулік)
+        continue-on-error: true
+        run: node --no-warnings --experimental-strip-types --import ./scripts/lib/register-alias.mjs scripts/fetch-worldpop-grid.mjs --retry
+
       - name: Коммит (өзгеріс болса)
         if: ${{ always() }}
         run: |
