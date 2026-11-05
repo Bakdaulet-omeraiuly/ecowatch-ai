@@ -52,3 +52,7 @@ eo-service/venv/
 # Бастапқы көздер — design/*.dc.html пен canvas.json — сақталады.
 design/*.html
 !design/*.dc.html
+
+# Playwright
+/test-results/
+/playwright-report/

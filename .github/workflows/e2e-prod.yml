@@ -1,0 +1,27 @@
+name: E2E (продакшн, тек оқу)
+
+# Күн сайын және қолмен: ecojaiyq.com-ның негізгі беттері мен ережелерін тексереді
+# (тақырып бар, эмодзи жоқ, ескертулер шынайы, құралдар ашылады, API мок бермейді).
+on:
+  schedule:
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      # ubuntu-latest-те Google Chrome алдын ала орнатылған (channel: "chrome")
+      - run: npx playwright test
+        env:
+          BASE_URL: https://www.ecojaiyq.com
