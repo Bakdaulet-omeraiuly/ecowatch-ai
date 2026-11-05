@@ -802,3 +802,15 @@ CDN-нен алады (~0.1 с), жоқ болса тірі API. `.github/workfl
 - **Басымдық** — `public/data/layers/priority-grid-atyrau.json` (`/api/priority-grid`, snapshot-layers.mjs), 1 км,
   салмақ клиентте; халық тығыздығы жоқ → OSM тұрғын үй ПРОКСИ.
 - Миграция `supabase/migrations/20261105_map_tools.sql` — prod-қа қолданылды (SQL Editor, 2026-11-05).
+
+### 2026-11-05 — Түнгі жұмыс: дизайн, сенімділік, тесттер
+
+- **Дизайн ережелері:** эмодзи жоқ (`src/lib/trCoverage.test.ts` TSX пен `public/data/layers/*.json`-ды тексереді); күй карточкалары — ақ фон, деңгей түсі тек сол жиек/белгі; компоненттердің әдепкі `tone` — `light`.
+- **Аударма:** әр `tr("…")` литералының ru/en аудармасы болуы керек (тест). Сервер құрастыратын сөйлемдер (мыс. `summation.ts`) клиентте тұрақты бөліктері бойынша аударылады (`LegalAlerts` → `trSummary`).
+- **E2E:** `e2e/` (Playwright, жүйедегі Chrome). `npm run e2e:prod` — продакшн; `.github/workflows/e2e-prod.yml` күн сайын. `e2e/a11y.spec.ts` — axe WCAG 2.1 AA, 15 бет.
+- **Кері траектория:** 48 сағаттан ескі уақыт — `historical-forecast-api.open-meteo.com` (2022-01-01-ден). Шағымдардан (иіс/түтін/шаң) `/map?tool=trajectory&lat&lng&at` сілтемесі.
+- **Жаңа беттер/құралдар:** `/status` (дереккөздер күйі), «Шағымдар картада» құралы, аймақ есебін басып шығару (`printAreaReport.ts`), журнал CSV.
+- **WorldPop 2020** — `public/data/layers/population-grid-atyrau.json` (`scripts/fetch-worldpop-grid.mjs`, API шегі 1000/тәулік, `--retry` бос ұяшықтарды толтырады; апталық CI).
+- **Квоталар:** CDSE (Sentinel Hub) тегін processing units таусылуы мүмкін → `area-report` 6 сағ кэш + нақты «квота бітті» хабары. Тесттерде CDSE шақырылмайды.
+- **Ашық мәселе:** `supabase/exceedances_basis.sql` прод-қа ҚОЛДАНЫЛМАҒАН (2026-11-05 анықталды) → `fixation_runs` жазбасы мен басис бойынша upsert сәтсіз; `/api/fixate` енді қатені `ok:false` + логпен көрсетеді, `/status` «ескірген» дейді. Иесі қолдануы керек.
+- **Ашық мәселе:** Vercel-де `CRON_SECRET` жоқ → `/api/fixate` жария шақырылады.
