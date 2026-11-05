@@ -9,7 +9,7 @@ export function FeatureUnavailable({ title }: { title: string }) {
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-3 px-4 py-24 text-center">
       <Construction className="h-10 w-10 text-amber-800" />
-      <h1 className="text-xl font-bold text-neutral-900">{tr(title)}</h1>
+      <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr(title)}</h1>
       <p className="text-sm leading-relaxed text-neutral-600">
         {tr(
           "Бұл бөлім уақытша қолжетімсіз. Жүйе жүктемесін реттеу мақсатында азаматтық хабарлау кейінге қалдырылды — жақында қайта қосылады."

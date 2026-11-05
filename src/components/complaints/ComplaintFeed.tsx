@@ -85,7 +85,7 @@ export function ComplaintFeed({ mode }: { mode: "public" | "mine" | "review" }) 
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-4 py-8 text-neutral-900 sm:py-12">
-      <h1 className="text-2xl font-semibold">{t(mode === "public" ? "complaints.title" : mode === "mine" ? "complaints.mine" : "complaints.review")}</h1>
+      <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{t(mode === "public" ? "complaints.title" : mode === "mine" ? "complaints.mine" : "complaints.review")}</h1>
       <p className="border-l-4 border-brand bg-neutral-50 p-4 text-sm leading-relaxed">{t("complaints.explanation")}</p>
       <nav className="flex flex-wrap gap-2">
         <Button asChild className="min-h-[44px] bg-brand text-white hover:bg-brand/90"><Link className="min-h-[44px]" href="/complaints/new">{t("complaints.new")}</Link></Button>

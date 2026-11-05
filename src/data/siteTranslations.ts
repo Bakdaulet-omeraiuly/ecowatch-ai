@@ -25,4 +25,6 @@ export const SITE_TR: Record<string, { ru: string; en: string }> = {
   "Ұсынылатын жауапты орган": { ru: "Рекомендуемый ответственный орган", en: "Suggested responsible authority" },
   "Жоғары тәуекел (🤖 AI бағасы) — «Ескертулер» тізіміне қосылды": { ru: "Высокий риск (🤖 оценка AI) — добавлено в «Предупреждения»", en: "High risk (🤖 AI estimate) — added to Alerts" },
   "Органға автоматты жіберілмейді. Жіберу — талдау панеліндегі батырма арқылы.": { ru: "Автоматически не отправляется. Отправить можно кнопкой в панели анализа.", en: "Not sent automatically. Use the button in the analysis panel to send." },
+  "Тәуелсіз жоба, ресми дереккөз емес.": { ru: "Независимый проект, не официальный источник.", en: "Independent project, not an official source." },
+  "Толығырақ": { ru: "Подробнее", en: "Details" },
 };

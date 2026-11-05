@@ -76,3 +76,10 @@
   .workspace[data-left="false"] .left, .workspace[data-right="false"] .right { display: none; }
   .toolbar { padding: 12px 16px; }
 }
+
+/* Кең экранда деректер/құралдар панеліне көбірек орын (графиктер, формалар) */
+@media (min-width: 1280px) {
+  .workspace { --left-width: 18rem; --right-width: 25rem; }
+  .workspace[data-left="false"] { --left-width: 0px; }
+  .workspace[data-right="false"] { --right-width: 0px; }
+}

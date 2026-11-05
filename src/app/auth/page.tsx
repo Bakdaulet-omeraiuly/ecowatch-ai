@@ -94,7 +94,7 @@ export default function AuthPage() {
 
   return (
     <main className="mx-auto max-w-md px-4 py-8 text-neutral-900 sm:py-12">
-      <h1 className="mb-6 text-2xl font-bold">{t("auth.title")}</h1>
+      <h1 className="mb-6 text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{t("auth.title")}</h1>
       <Card className="border-neutral-300 bg-neutral-50 text-neutral-900">
         <CardContent className="space-y-5 p-5">
           {!supabase ? <p role="status">{t("auth.unavailable")}</p> : session === undefined ? (

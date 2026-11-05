@@ -231,7 +231,7 @@ export default function MriMethodologyClient() {
       <header className="border-b-2 border-emerald-300 pb-5 print:border-gray-400">
         <div className="text-[12px] font-semibold uppercase tracking-[0.18em] text-emerald-800 print:text-emerald-800">
           {tr("Ғылыми-техникалық әдістеме · Jaiyq экологиялық мониторинг платформасы")}{" "}</div>
-        <h1 className="mt-2 text-4xl font-bold tracking-tight text-neutral-900 print:text-black">
+        <h1 className="mt-2 print:text-black text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">
           JAIYQ-MRI
         </h1>
         <p className="mt-2 text-[15px] leading-relaxed text-neutral-700 print:text-gray-700">

@@ -308,7 +308,7 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">{tr("Аймақтық аналитика")}</h1>
+        <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Аймақтық аналитика")}</h1>
         <p className="text-sm text-neutral-600">{region.name} — {tr("экологиялық жағдай нақты уақытта")}</p>
       </div>
 

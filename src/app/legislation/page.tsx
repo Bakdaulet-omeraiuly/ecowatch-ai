@@ -3,7 +3,7 @@ import { useLang } from "@/lib/i18n";
 
 
 import Link from "next/link";
-import { ExternalLink, Scale, AlertTriangle } from "lucide-react";
+import { ExternalLink, AlertTriangle } from "lucide-react";
 import { ACTS, AVERAGING_KZ, LEGAL_DISCLAIMER, NORMS } from "@/data/legalNorms";
 import {
   SUBSTANCES as HARMFUL, STATUS_KZ, SUBSTANCES_DISCLAIMER,
@@ -40,8 +40,8 @@ export default function LegislationPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-12 text-neutral-900">
-      <h1 className="mb-2 flex items-center gap-2 text-3xl font-bold text-emerald-800">
-        <Scale className="h-7 w-7" /> {tr("Заңнама")}{" "}</h1>
+      <h1 className="mb-2 flex items-center gap-2 text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">
+        {tr("Заңнама")}{" "}</h1>
       <p className="mb-6 max-w-2xl text-sm leading-relaxed text-neutral-600">
         {tr("Сайттағы әр көрсеткіш қай заңға сүйеніп бағаланатыны, сол шектің бастапқы актіден расталған-расталмағаны және заңдық мәртебесі.")}{" "}</p>
 

@@ -123,7 +123,7 @@ export default function EcoPassportPage() {
       {/* Басқару жолағы — басып шығаруда жасырылады */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
-          <h1 className="text-2xl font-bold text-neutral-900">{tr("Экологиялық паспорт")}</h1>
+          <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Экологиялық паспорт")}</h1>
           <p className="text-sm text-neutral-600">
             {tr("Әр көрсеткіштің дереккөзі, формуласы және шектеулері көрсетілген")}
           </p>

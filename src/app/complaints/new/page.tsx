@@ -104,7 +104,7 @@ export default function Page() {
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 text-neutral-900 sm:py-12">
       <Link className="inline-flex min-h-[44px] items-center text-brand underline" href="/complaints">{t("complaints.back")}</Link>
-      <h1 className="text-2xl font-semibold">{t("complaints.new")}</h1>
+      <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{t("complaints.new")}</h1>
       <ComplaintBadge />
       <p className="text-sm text-neutral-600">{t("complaints.privacy")}</p>
       {error !== null && <p role="alert">{error ? tr(error) : t("complaints.noData")}</p>}

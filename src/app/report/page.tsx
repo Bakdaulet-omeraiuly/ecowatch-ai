@@ -142,7 +142,7 @@ function ReportPageInner() {
   return (
     <div className="mx-auto max-w-xl space-y-4 p-4 sm:p-6">
       <div>
-        <h1 className="text-2xl font-bold text-neutral-900">{tr("Экологиялық мәселе туралы хабарлау")}</h1>
+        <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Экологиялық мәселе туралы хабарлау")}</h1>
         <p className="text-sm text-neutral-600">
           {tr("Фото түсіріңіз — AI оны талдап, сол нүктенің спутник суретімен салыстырып растайды")}
         </p>

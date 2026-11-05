@@ -111,7 +111,7 @@ export default function ObjectPage({ params }: { params: Promise<{ id: string }>
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Factory className="h-5 w-5 text-neutral-800" />
-            <h1 className="text-2xl font-bold text-neutral-900">{d.name}</h1>
+            <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{d.name}</h1>
             {d.compliance.kzViolations > 0 ? (
               <span className="rounded-full border border-red-400/40 bg-red-50 px-2 py-0.5 text-[12px] font-semibold text-red-800">
                 {tr("НОРМА АСҚАН")} — {d.compliance.kzViolations}

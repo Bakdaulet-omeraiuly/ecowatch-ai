@@ -156,7 +156,7 @@ export default function MethodologyPage() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-12 text-neutral-900">
-      <h1 className="mb-2 text-3xl font-bold text-emerald-800">{tr("Әдістеме және валидация")}</h1>
+      <h1 className="mb-2 text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Әдістеме және валидация")}</h1>
       <p className="mb-6 max-w-2xl text-sm leading-relaxed text-neutral-600">
         {tr("Бұл бетте сайттағы әр көрсеткіштің қайдан келетіні, қалай есептелетіні және")}{" "}
         <span className="text-neutral-900">{tr("не тексерілмегені")}</span> {tr("жазылған. Валидация бағаны көбіне «жоқ» деп тұр — себебі Атырауда жердегі бақылау деректері бізде жоқ. Оны жасыру жалған сенімділік беру болар еді.")}{" "}</p>

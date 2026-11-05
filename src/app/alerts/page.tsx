@@ -26,7 +26,7 @@ export default function AlertsPage() {
   return (
     <div className="mx-auto max-w-4xl space-y-5 px-4 py-6 sm:py-10">
       <header>
-        <h1 className="text-2xl font-bold text-[#0b3a6b] sm:text-3xl">{tr("Тәуекел ескертулері")}</h1>
+        <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Тәуекел ескертулері")}</h1>
         <p className="mt-2 max-w-3xl text-sm text-neutral-700">
           {tr("Осы браузерде AI талдауы тәуекелі жоғары (55+) деп бағалаған нүктелер. Ешбір органға автоматты жіберілмейді — органға жіберу үшін картадағы талдау панелінде «Тиісті органға жіберу» батырмасын басыңыз.")}
         </p>

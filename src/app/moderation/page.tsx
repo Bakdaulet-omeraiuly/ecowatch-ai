@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Shield, CheckCircle2, XCircle, Clock, Trash2, MapPin, RefreshCw, Filter } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Trash2, MapPin, RefreshCw, Filter } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLang } from "@/lib/i18n";
@@ -144,8 +144,7 @@ function ModerationPageInner() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
-            <Shield className="h-6 w-6 text-violet-800" />
+          <h1 className="flex items-center gap-2 text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">
             {tr("Модерация панелі")}
           </h1>
           <p className="text-sm text-neutral-600">{tr("Азаматтардың фото-хабарламаларын қарап, растаңыз немесе өшіріңіз")}</p>

@@ -34,7 +34,7 @@ export function HealthView({ air }: { air: AirAnnual[] }) {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
       <header>
-        <h1 className="text-2xl font-bold text-brand">{tr("Халық денсаулығы")}</h1>
+        <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Халық денсаулығы")}</h1>
         <p className="mt-1 max-w-3xl text-neutral-700">{tr("Тек ресми жинақталған статистика. Жеке адамдардың диагнозы, аты немесе мекенжайы жоқ.")}</p>
       </header>
 

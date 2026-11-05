@@ -6,7 +6,7 @@ export default function PrivacyPage() {
   const { tr } = useLang();
   return (
     <main className="mx-auto max-w-3xl px-4 py-16 text-neutral-900">
-      <h1 className="mb-2 text-3xl font-bold text-emerald-800">{tr("Құпиялық саясаты")}</h1>
+      <h1 className="mb-2 text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tr("Құпиялық саясаты")}</h1>
       <p className="mb-8 text-sm text-neutral-600">{tr("Соңғы жаңарту: 2026 жыл")}</p>
 
       <section className="mb-8">

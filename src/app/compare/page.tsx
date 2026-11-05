@@ -172,8 +172,8 @@ export default function ComparePage() {
   return (
     <div className="mx-auto max-w-5xl space-y-5 p-4 sm:p-6">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold text-neutral-900">
-          <ArrowLeftRight className="h-6 w-6 text-amber-800" /> {tr("Жыл салыстыру")}
+        <h1 className="flex items-center gap-2 text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">
+          {tr("Жыл салыстыру")}
         </h1>
         <p className="text-sm text-neutral-600">
           {tr("Нақты спутник суреттері: Sentinel-2 (2016–2025) · NASA MODIS (2002–2015) · NASA Landsat WELD (1984–2001)")}

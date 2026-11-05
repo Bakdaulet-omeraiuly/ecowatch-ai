@@ -189,7 +189,7 @@ export function ValidationView({ checks }: { checks: ValidationCheck[] }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 text-neutral-900 sm:py-10">
       <header className="max-w-3xl">
-        <h1 className="text-3xl font-bold leading-tight text-[#0b3a6b] sm:text-4xl">{tk("val.title")}</h1>
+        <h1 className="text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">{tk("val.title")}</h1>
         <p className="mt-3 text-base text-neutral-700 sm:text-lg">{tk("val.intro")}</p>
         <p className="mt-4 text-sm font-bold text-neutral-900">
           {tk("val.sum.label")}: {s.total} — {s.passed} {tk("val.sum.passed")} · {s.failed} {tk("val.sum.failed")} ·{" "}

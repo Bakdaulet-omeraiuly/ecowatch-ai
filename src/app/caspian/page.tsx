@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Waves, Loader2, Printer, ExternalLink, AlertTriangle } from "lucide-react";
+import { Loader2, Printer, ExternalLink, AlertTriangle } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { TierBadge } from "@/components/ui/TierBadge";
 import { COUNTRY_FLAG, CASPIAN_FACTS, type CountryCode } from "@/data/regions";
@@ -67,8 +67,8 @@ export default function CaspianPage() {
     <main className="mx-auto max-w-5xl px-4 py-10 print:max-w-none print:py-0">
       <header className="mb-6 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-3xl font-bold text-sky-800">
-            <Waves className="h-7 w-7" /> {tr("Каспий жағалауы")}
+          <h1 className="flex items-center gap-2 text-2xl font-bold leading-tight text-[#0b3a6b] sm:text-3xl">
+            {tr("Каспий жағалауы")}
           </h1>
           <p className="mt-1 max-w-2xl text-sm leading-relaxed text-neutral-600">
             {tr(

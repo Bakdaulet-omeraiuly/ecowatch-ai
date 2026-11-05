@@ -2071,13 +2071,14 @@ export function MapView() {
       <Panel id="map-data" aria-label={tr("Экологиялық деректер")} className={styles.right} data-mobile-visible={mobileSheet === "right"}>
         <PanelHeader title={tr("Экологиялық деректер")} actions={<Button variant="portal-outline" size="portal-icon" aria-label={tr("Жасыру")} onClick={() => { setRightOpen(false); setMobileSheet(null); rightToggleRef.current?.focus(); }}><X className="h-4 w-4" /></Button>} />
         <Tabs value={rightView} onValueChange={setRightView} className="min-h-0 flex-1 gap-0">
-          <TabsList variant="portal" className="grid grid-cols-3" aria-label={tr("Деректер көрінісі")}>
-            <TabsTrigger value="eco">{tr("Эко қабаттар")}</TabsTrigger>
-            <TabsTrigger value="satellite">{tr("Спутник")}</TabsTrigger>
-            <TabsTrigger value="analysis">{tr("AI талдау")}</TabsTrigger>
-            <TabsTrigger value="history">{tr("Тарих")}</TabsTrigger>
-            <TabsTrigger value="sar">SAR</TabsTrigger>
-            <TabsTrigger value="tools">{tr("Құралдар")}</TabsTrigger>
+          {/* Бір қатар, көлденең айналады; белгіше + қысқа атау */}
+          <TabsList variant="portal" className="flex! flex-nowrap! overflow-x-auto [scrollbar-width:none]" aria-label={tr("Деректер көрінісі")}>
+            <TabsTrigger value="eco" className="flex-none! shrink-0 gap-1.5 whitespace-nowrap! px-3 text-[13px]"><Layers className="h-3.5 w-3.5" aria-hidden />{tr("Эко қабаттар")}</TabsTrigger>
+            <TabsTrigger value="tools" className="flex-none! shrink-0 gap-1.5 whitespace-nowrap! px-3 text-[13px]"><Wrench className="h-3.5 w-3.5" aria-hidden />{tr("Құралдар")}</TabsTrigger>
+            <TabsTrigger value="satellite" className="flex-none! shrink-0 gap-1.5 whitespace-nowrap! px-3 text-[13px]"><Satellite className="h-3.5 w-3.5" aria-hidden />{tr("Спутник")}</TabsTrigger>
+            <TabsTrigger value="analysis" className="flex-none! shrink-0 gap-1.5 whitespace-nowrap! px-3 text-[13px]"><Sparkles className="h-3.5 w-3.5" aria-hidden />{tr("AI талдау")}</TabsTrigger>
+            <TabsTrigger value="history" className="flex-none! shrink-0 gap-1.5 whitespace-nowrap! px-3 text-[13px]"><History className="h-3.5 w-3.5" aria-hidden />{tr("Тарих")}</TabsTrigger>
+            <TabsTrigger value="sar" className="flex-none! shrink-0 gap-1.5 whitespace-nowrap! px-3 text-[13px]"><Radio className="h-3.5 w-3.5" aria-hidden />{"SAR"}</TabsTrigger>
           </TabsList>
         <div className={styles.scroll}>
           <TabsContent value="tools" aria-label={tr("Құралдар")} hidden={rightView !== "tools"}>
