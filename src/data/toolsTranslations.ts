@@ -298,4 +298,6 @@ export const TOOLS_TR: Record<string, { ru: string; en: string }> = {
   "шағым": { ru: "жалоб", en: "complaints" },
   "Бұл кезеңде жария шағым жоқ.": { ru: "За этот период публичных жалоб нет.", en: "No public complaints in this period." },
   "Шағымдар дерекқоры қолжетімсіз — дерек жоқ": { ru: "База жалоб недоступна — данных нет", en: "Complaints database unavailable — no data" },
+  "тұрғын шағымы 7 күнде": { ru: "жалоб жителей за 7 дней", en: "resident complaints in 7 days" },
+  "Аймақ сызып, бақылауға алыңыз: соңғы 7 күндегі жаңа жылу аномалиялары мен тұрғын шағымдары осында көрсетіледі (ең көбі 10 аймақ).": { ru: "Нарисуйте участок и поставьте на наблюдение: здесь будут новые тепловые аномалии и жалобы жителей за 7 дней (до 10 участков).", en: "Draw an area and watch it: new thermal anomalies and resident complaints from the last 7 days appear here (up to 10 areas)." },
 };

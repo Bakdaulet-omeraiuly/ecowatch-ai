@@ -8,6 +8,8 @@ import { loadFireArchive } from "@/lib/firmsArchive";
 import { classifyAnomaly } from "@/lib/fireClassify";
 import { fireKey } from "@/lib/detectionReview";
 import { getRegion } from "@/data/regions";
+import { supabase } from "@/lib/supabase";
+import { PUBLIC_COMPLAINT_FIELDS, toPublicComplaint, type PublicComplaint } from "@/lib/complaints";
 
 export const maxDuration = 30;
 const noStore = { "Cache-Control": "no-store" };
@@ -35,6 +37,15 @@ export async function GET(req: Request) {
       }
     }
   }
+  // Жария шағымдар (соңғы 7 күн) — аймақ ішіндегілер; көз қолжетімсіз болса available:false
+  let complaints: { available: boolean; rows: PublicComplaint[] } = { available: false, rows: [] };
+  if (supabase) {
+    try {
+      const since = new Date(Date.now() - 7 * 86400_000).toISOString();
+      const { data, error: cErr } = await supabase.from("complaints_public").select(PUBLIC_COMPLAINT_FIELDS).gte("event_at", since).limit(1000);
+      if (!cErr && data) complaints = { available: true, rows: (data as PublicComplaint[]).map(toPublicComplaint) };
+    } catch { /* available:false */ }
+  }
   const out = areas.map((a) => {
     const ring = a.ring as LngLat[];
     const seen = a.last_seen_at.slice(0, 10);
@@ -44,7 +55,13 @@ export async function GET(req: Request) {
           return { key: fireKey(d), lat: d.lat, lng: d.lng, acqDate: d.acqDate, frp: d.frp, category: c.category, facility: c.facilityName, isNew: d.acqDate >= seen };
         })
       : [];
-    return { ...a, fire: { available: fires.available, reason: fires.reason, last7d: inArea.length, newSinceSeen: inArea.filter((x) => x.isNew).length, detections: inArea } };
+    const cIn = complaints.rows.filter((c) => pointInRing(c.lng, c.lat, ring));
+    return {
+      ...a,
+      fire: { available: fires.available, reason: fires.reason, last7d: inArea.length, newSinceSeen: inArea.filter((x) => x.isNew).length, detections: inArea },
+      complaints: { available: complaints.available, last7d: cIn.length, newSinceSeen: cIn.filter((c) => c.event_at >= a.last_seen_at).length,
+        items: cIn.map((c) => ({ category: c.category, event_at: c.event_at, lat: c.lat, lng: c.lng })) },
+    };
   });
   return NextResponse.json({ areas: out }, { headers: noStore });
 }

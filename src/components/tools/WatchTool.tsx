@@ -14,6 +14,7 @@ import { authedJson, useMyRole } from "./useMyRole";
 interface Area {
   id: string; name: string; ring: LngLat[]; area_km2: number; layers: string[]; last_seen_at: string;
   fire: { available: boolean; reason?: string; last7d: number; newSinceSeen: number; detections: { key: string; lat: number; lng: number; acqDate: string; frp: number; category: string; isNew: boolean }[] };
+  complaints?: { available: boolean; last7d: number; newSinceSeen: number; items: { category: string; event_at: string; lat: number; lng: number }[] };
 }
 
 // Аймаққа жазылу (Global Forest Watch «Subscribe» үлгісі): сайтқа кірген сайын
@@ -44,6 +45,7 @@ export function WatchTool() {
         features: list.flatMap((a) => [
           { ...ringToFeature(a.ring, { kind: "polygon", color: "#0ea5e9", label: a.name }) },
           ...a.fire.detections.map((d) => ({ type: "Feature" as const, properties: { kind: "point", color: d.isNew ? "#dc2626" : "#f59e0b", label: `${d.acqDate} · FRP ${d.frp}` }, geometry: { type: "Point" as const, coordinates: [d.lng, d.lat] } })),
+          ...(a.complaints?.items ?? []).map((c) => ({ type: "Feature" as const, properties: { kind: "point", color: "#7c3aed", label: c.event_at.slice(0, 10) }, geometry: { type: "Point" as const, coordinates: [c.lng, c.lat] } })),
         ]),
       });
     });
@@ -70,7 +72,7 @@ export function WatchTool() {
 
   return (
     <div className="space-y-3">
-      <p className="text-xs text-neutral-600">{tr("Аймақ сызып, бақылауға алыңыз: соңғы 7 күндегі жаңа жылу аномалиялары осында көрсетіледі (ең көбі 10 аймақ).")}</p>
+      <p className="text-xs text-neutral-600">{tr("Аймақ сызып, бақылауға алыңыз: соңғы 7 күндегі жаңа жылу аномалиялары мен тұрғын шағымдары осында көрсетіледі (ең көбі 10 аймақ).")}</p>
       <AreaPicker />
       <div className="flex gap-2">
         <input value={name} onChange={(e) => setName(e.target.value)} maxLength={100} placeholder={tr("Аймақ атауы")} className="min-w-0 flex-1 rounded border border-neutral-300 px-2 py-1 text-sm" />
@@ -90,6 +92,11 @@ export function WatchTool() {
               : <p className={a.fire.newSinceSeen ? "font-medium text-red-700" : "text-neutral-700"}>
                   {a.fire.newSinceSeen} {tr("жаңа")} · {a.fire.last7d} {tr("жылу нүктесі 7 күнде")}
                 </p>}
+            {a.complaints?.available && (
+              <p className={a.complaints.newSinceSeen ? "font-medium text-[#5b21b6]" : "text-neutral-700"}>
+                {a.complaints.newSinceSeen} {tr("жаңа")} · {a.complaints.last7d} {tr("тұрғын шағымы 7 күнде")}
+              </p>
+            )}
             <div className="mt-1 flex gap-1.5">
               <Button variant="portal-outline" size="portal" onClick={() => seen(a)}><Eye className="h-3.5 w-3.5" />{tr("Қарадым")}</Button>
               <Button variant="portal-outline" size="portal" onClick={() => remove(a)} aria-label={tr("Өшіру")}><Trash2 className="h-3.5 w-3.5" /></Button>
