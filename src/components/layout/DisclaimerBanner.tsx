@@ -9,9 +9,11 @@ import { useLang } from "@/lib/i18n";
 // Бір рет жабуға болады (localStorage).
 export function DisclaimerBanner() {
   const { tr, t } = useLang();
-  const [show, setShow] = useState(false);
+  // Әдепкі — КӨРІНЕДІ (серверде де): кейін пайда болып мазмұнды итермеуі үшін (CLS).
+  // Жабылған болса, бірінші кадрдан кейін жасырылады.
+  const [show, setShow] = useState(true);
   useEffect(() => {
-    setShow(localStorage.getItem("jaiyq-disclaimer") !== "1");
+    if (localStorage.getItem("jaiyq-disclaimer") === "1") setShow(false); // eslint-disable-line react-hooks/set-state-in-effect
   }, []);
   if (!show) return null;
   return (

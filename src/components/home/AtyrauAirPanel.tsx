@@ -97,10 +97,16 @@ export function AtyrauAirPanel() {
   const avgLabel = (a: string) => tk(AVG_KEY[a] ?? "air.avg.unknown");
 
   if (!loaded) {
+    // Нақты блоктармен бірдей өлшемді қаңқа — жүктелгенде бет секірмейді (CLS)
     return (
-      <p role="status" aria-live="polite" className="text-neutral-700">
-        {t("air.loading")}
-      </p>
+      <div role="status" aria-live="polite" className="space-y-5">
+        <span className="sr-only">{t("air.loading")}</span>
+        <div className="h-[118px] animate-pulse rounded-lg border border-neutral-200 bg-neutral-100 sm:h-[134px]" />
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4" aria-hidden>
+          {POLLUTANT_ORDER.map((p) => <li key={p} className="h-[104px] animate-pulse rounded-lg border border-neutral-200 bg-neutral-100" />)}
+        </ul>
+        <div className="h-11 rounded-lg border border-neutral-200" aria-hidden />
+      </div>
     );
   }
 
