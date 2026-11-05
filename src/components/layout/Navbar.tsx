@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JaiyqLogo } from "@/components/layout/JaiyqLogo";
 import { useLang } from "@/lib/i18n";
@@ -10,7 +12,9 @@ import { useLang } from "@/lib/i18n";
 // Ойын-сауық элементтері жоқ: атау, логотип, навигация, тіл ауыстырғыш.
 export function Navbar() {
   const pathname = usePathname();
-  const { lang, setLang, t } = useLang();
+  const { lang, setLang, t, tr } = useLang();
+  const [open, setOpen] = useState(false);
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   const links = [
     { href: "/map", label: t("nav.map") },
@@ -33,7 +37,7 @@ export function Navbar() {
             <span className="hidden text-sm font-normal text-blue-100 sm:inline">· {t("site.subtitle")}</span>
           </Link>
 
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
             <Link href="/auth" className="inline-flex min-h-[44px] items-center px-2 text-sm text-white hover:underline">
               {t("auth.nav")}
             </Link>
@@ -54,24 +58,36 @@ export function Navbar() {
                 </button>
               ))}
             </div>
+            <button
+              type="button"
+              onClick={() => setOpen((v) => !v)}
+              aria-expanded={open}
+              aria-controls="site-nav"
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded border border-blue-300 text-white hover:bg-white/10 lg:hidden"
+            >
+              {open ? <X className="h-5 w-5" aria-hidden /> : <Menu className="h-5 w-5" aria-hidden />}
+              <span className="sr-only">{tr("Мәзір")}</span>
+            </button>
           </div>
         </div>
       </div>
 
-      <nav aria-label={t("site.navMain")} className="mx-auto max-w-6xl px-2">
-        <ul className="flex snap-x gap-1 overflow-x-auto [scrollbar-width:thin]">
+      <nav id="site-nav" aria-label={t("site.navMain")} className={cn("mx-auto max-w-6xl px-2", open ? "block" : "hidden lg:block")}>
+        <ul className="flex flex-col py-1 lg:flex-row lg:gap-1 lg:py-0">
           {links.map((l) => {
-            const active = pathname === l.href;
+            const active = isActive(l.href);
             return (
-              <li key={l.href} className="shrink-0 snap-start">
+              <li key={l.href}>
                 <Link
                   href={l.href}
+                  onClick={() => setOpen(false)}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-h-[44px] items-center whitespace-nowrap border-b-4 px-3 text-sm font-medium",
+                    "flex min-h-[44px] items-center whitespace-nowrap px-3 text-sm font-medium",
+                    "border-l-4 lg:border-l-0 lg:border-b-4",
                     active
-                      ? "border-[#0b3a6b] text-[#0b3a6b]"
-                      : "border-transparent text-neutral-800 hover:text-[#0b3a6b]"
+                      ? "border-[#0b3a6b] bg-[#0b3a6b]/5 text-[#0b3a6b] lg:bg-transparent"
+                      : "border-transparent text-neutral-800 hover:bg-neutral-50 hover:text-[#0b3a6b] lg:hover:bg-transparent"
                   )}
                 >
                   {l.label}

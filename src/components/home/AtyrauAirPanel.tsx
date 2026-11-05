@@ -53,7 +53,7 @@ const AVG_KEY: Record<string, string> = {
 };
 
 export function AtyrauAirPanel() {
-  const { t, lang } = useLang();
+  const { t, tr, lang } = useLang();
   const tk = (k: string) => t(k as never);
   const [loaded, setLoaded] = useState<Loaded | null>(null);
 
@@ -147,22 +147,85 @@ export function AtyrauAirPanel() {
     return t("air.noData.unavailable");
   }
 
+  // Ең жоғары үлес — бір сөйлеммен жауап («қазір қалай?»)
+  const worst = compared.filter((r) => r.ratio != null).sort((a, b) => b.ratio! - a.ratio!)[0];
+  const ratioBar = (ratio: number) => ratio >= 1 ? "bg-red-700" : ratio >= 0.5 ? "bg-amber-600" : "bg-emerald-700";
+
   return (
-    <div className="space-y-6">
-      {/* Жалпы қауіп деңгейі (SPEC §8) */}
+    <div className="space-y-5">
+      {/* 1. Бір қарағанда: қауіп деңгейі (SPEC §8) */}
       <section
         aria-labelledby="risk-title"
-        className={`rounded-md border-l-4 p-4 ${data.risk.partialLow ? "border-emerald-700 bg-emerald-50/60 text-emerald-950" : RISK_STYLE[data.risk.level]}`}
+        className={`rounded-lg border-l-4 p-4 sm:p-5 ${data.risk.partialLow ? "border-emerald-700 bg-emerald-50/60 text-emerald-950" : RISK_STYLE[data.risk.level]}`}
       >
-        <h3 id="risk-title" className="text-sm font-bold uppercase tracking-wide">
-          {t("air.riskTitle")}
-        </h3>
-        <p className="mt-1 text-xl font-bold">{riskLabel}</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 id="risk-title" className="text-xs font-bold uppercase tracking-wide opacity-80">{t("air.riskTitle")}</h3>
+            <p className="mt-1 text-2xl font-bold sm:text-3xl">{riskLabel}</p>
+          </div>
+          <div className="text-right text-xs opacity-90">
+            <div>{t("air.fetchedAt")}</div>
+            <div className="font-semibold tabular-nums">{fmtTime(data.cams.ok ? data.cams.time : data.fetchedAt, data.cams.ok)}</div>
+            {stale && (
+              <span className="mt-1 inline-block rounded border border-amber-800 bg-amber-50 px-1.5 py-0.5 font-bold text-amber-900">
+                {t("air.stale")}{ageH != null ? ` · ${Math.round(ageH)} ${t("air.hoursAgo")}` : ""}
+              </span>
+            )}
+          </div>
+        </div>
+        {worst && (
+          <p className="mt-2 text-sm">
+            {tr("Шекке ең жақыны")}: <strong>{tk(`pol.${worst.pollutant}`)}</strong> — <strong className="tabular-nums">{Math.round(worst.ratio! * 100)}%</strong> {t("air.ofLimit")}
+            {" "}({worst.kind === "ground" ? t("air.groundTag") : t("air.modelTag")}).
+            {" "}{tr("Салыстырылды")}: {compared.length}/{POLLUTANT_ORDER.length}.
+          </p>
+        )}
         {data.risk.level === "insufficient-data" && <p className="mt-1 text-sm font-bold">{data.risk.partialLow ? t("air.partialNote") : t("air.notSafe")}</p>}
+      </section>
 
-        <p className="mt-3 text-sm font-bold">{t("air.riskNormsUsed")}:</p>
+      {/* 2. Жеті зат — ықшам плиткалар; толық мәлімет «Толығырақ» ішінде */}
+      <section aria-labelledby="ind-title">
+        <h3 id="ind-title" className="sr-only">{t("air.indicators")}</h3>
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+          {POLLUTANT_ORDER.map((p) => {
+            const r = byP.get(p);
+            const rr = riskRow.get(p);
+            const has = !!r && r.kind !== "none" && r.value != null && r.unit != null;
+            const kind: keyof typeof BADGE = !has ? "none" : r!.kind === "ground" ? "ground" : "model";
+            const ratio = rr?.status === "compared" && rr.ratio != null ? rr.ratio : null;
+            return (
+              <li key={p} className="rounded-lg border border-neutral-300 bg-white p-3">
+                <div className="truncate text-xs text-neutral-600" title={tk(`pol.${p}`)}><span className="font-bold text-neutral-900">{tk(`pol.${p}`).split(" — ")[0]}</span>{tk(`pol.${p}`).includes(" — ") ? ` · ${tk(`pol.${p}`).split(" — ")[1]}` : ""}</div>
+                {has ? (
+                  <p className="mt-0.5 text-xl font-bold tabular-nums text-neutral-900">
+                    {r!.value!.toLocaleString(LOCALE[lang] ?? "kk-KZ", { maximumFractionDigits: 1 })}
+                    <span className="ml-1 text-xs font-normal text-neutral-700">{r!.unit}</span>
+                  </p>
+                ) : <p className="mt-0.5 text-base font-bold text-neutral-500">{t("air.noData")}</p>}
+                {ratio != null ? (
+                  <div className="mt-1.5" aria-label={`${Math.round(ratio * 100)}% ${t("air.ofLimit")}`}>
+                    <div className="h-1.5 rounded bg-neutral-200"><div className={`h-1.5 rounded ${ratioBar(ratio)}`} style={{ width: `${Math.min(100, ratio * 100)}%` }} /></div>
+                    <div className="mt-0.5 text-[11px] tabular-nums text-neutral-600">{Math.round(ratio * 100)}% {t("air.ofLimit")}</div>
+                  </div>
+                ) : <div className="mt-1.5 text-[11px] text-neutral-500">{has ? t("air.noNorm") : "\u00a0"}</div>}
+                <div className="mt-1"><Badge kind={kind}>{kind === "none" ? t("air.type.none") : kind === "ground" ? t("air.type.ground") : t("air.type.model")}</Badge></div>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      {/* 3. Толығырақ: нормалар, әдіс, дереккөздер, аңыз, әр зат бойынша мәлімет */}
+      <details className="group rounded-lg border border-neutral-300 bg-white">
+        <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between px-4 font-semibold text-[#0b3a6b]">
+          {tr("Толығырақ: нормалар, әдіс және дереккөздер")}
+          <span aria-hidden className="transition-transform group-open:rotate-180">▾</span>
+        </summary>
+        <div className="space-y-5 border-t border-neutral-200 p-4">
+      <section aria-label={t("air.riskNormsUsed")} className="text-sm text-neutral-800">
+        <p className="font-bold">{t("air.riskNormsUsed")}:</p>
         {compared.length > 0 ? (
-          <ul className="mt-1 list-disc space-y-1 pl-5 text-sm">
+          <ul className="mt-1 list-disc space-y-1 pl-5">
             {compared.map((r) => (
               <li key={r.pollutant}>
                 {tk(`pol.${r.pollutant}`)}
@@ -178,12 +241,11 @@ export function AtyrauAirPanel() {
             ))}
           </ul>
         ) : (
-          <p className="mt-1 text-sm">{t("air.riskNoneCompared")}</p>
+          <p className="mt-1">{t("air.riskNoneCompared")}</p>
         )}
-
-        <p className="mt-3 text-sm">{t("air.riskMethod")}</p>
+        <p className="mt-3">{t("air.riskMethod")}</p>
         {data.risk.missing.length > 0 && (
-          <p className="mt-2 text-sm">
+          <p className="mt-2">
             <span className="font-bold">{t("air.riskMissing")}:</span>{" "}
             {data.risk.missing.map((p) => tk(`pol.${p}`)).join("; ")}
           </p>
@@ -207,12 +269,6 @@ export function AtyrauAirPanel() {
         </p>
         <p>
           <span className="font-bold">{t("air.fetchedAt")}:</span> {fmtTime(data.fetchedAt, false)}
-          {stale && (
-            <span className="ml-2 inline-block rounded border border-amber-800 bg-amber-50 px-1.5 py-0.5 font-bold text-amber-900">
-              {t("air.stale")}
-              {ageH != null ? ` · ${Math.round(ageH)} ${t("air.hoursAgo")}` : ""}
-            </span>
-          )}
         </p>
       </section>
 
@@ -234,9 +290,9 @@ export function AtyrauAirPanel() {
         </ul>
       </section>
 
-      {/* 7 көрсеткіш */}
-      <section aria-labelledby="ind-title">
-        <h3 id="ind-title" className="text-lg font-bold text-neutral-900">
+      {/* Әр зат бойынша толық мәлімет */}
+      <section aria-labelledby="ind-detail-title">
+        <h3 id="ind-detail-title" className="text-base font-bold text-neutral-900">
           {t("air.indicators")}
         </h3>
         <ul className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -337,6 +393,8 @@ export function AtyrauAirPanel() {
       </section>
 
       <p className="text-sm text-neutral-700">{t("air.satNote")}</p>
+        </div>
+      </details>
     </div>
   );
 }

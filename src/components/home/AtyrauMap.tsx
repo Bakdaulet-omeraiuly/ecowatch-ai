@@ -34,7 +34,7 @@ export function AtyrauMap() {
         alt={t("home.mapAlt")}
         width={800}
         height={480}
-        className="h-auto w-full rounded-md border border-neutral-300 bg-neutral-100"
+        className="aspect-[5/3] h-auto w-full rounded-md border border-neutral-300 bg-neutral-100 object-cover"
       />
       <figcaption className="mt-2 text-sm text-neutral-600">{t("home.mapLegend")}</figcaption>
     </figure>

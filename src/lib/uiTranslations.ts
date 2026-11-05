@@ -3,9 +3,11 @@
 // kk әдепкі (картадағы түпнұсқа), сондықтан тек ru/en беріледі.
 
 import { TOOLS_TR } from "@/data/toolsTranslations";
+import { SITE_TR } from "@/data/siteTranslations";
 
 export const UI_TR: Record<string, { ru: string; en: string }> = {
   ...TOOLS_TR,
+  ...SITE_TR,
   // facility popup
   "координата расталған": { ru: "координата подтверждена", en: "coordinates verified" },
   "Салыстырмалы үлес": { ru: "Относительная доля", en: "Relative share" },

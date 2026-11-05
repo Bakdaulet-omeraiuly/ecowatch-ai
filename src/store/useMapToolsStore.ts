@@ -8,7 +8,8 @@ import type { LngLat } from "@/lib/areaGeo";
 // арасындағы жалғыз байланыс. Карта басуды `pick` бойынша осында жазады,
 // құралдар нәтижесін `overlay` арқылы картаға салады.
 
-export type ToolKey = "area" | "trajectory" | "journal" | "review" | "watch" | "priority";
+export const TOOL_KEYS = ["area", "trajectory", "journal", "review", "watch", "priority"] as const;
+export type ToolKey = typeof TOOL_KEYS[number];
 export type PickMode = "none" | "polygon" | "point";
 
 interface MapToolsState {

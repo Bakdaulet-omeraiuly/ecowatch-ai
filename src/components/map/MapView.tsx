@@ -9,6 +9,7 @@ import {
   Bug, Wind, Mountain, Fuel, Trash2, Waves, Radio, Camera, Sparkles, Play, Pause, Flame, Droplets,
   Factory, AlertTriangle, Navigation, BarChart3, FileText, Scale, BookOpen, Trees,
   Map as MapIcon, Bird,
+  Wrench,
 } from "lucide-react";
 import { useSitesStore } from "@/store/useSitesStore";
 import { RISK_COLORS } from "@/lib/risk";
@@ -34,7 +35,7 @@ import { useLang } from "@/lib/i18n";
 import { MapSearch } from "./MapSearch";
 import { ToolsPanel } from "@/components/tools/ToolsPanel";
 import { ToolsMapLayers } from "@/components/tools/ToolsMapLayers";
-import { useMapToolsStore } from "@/store/useMapToolsStore";
+import { useMapToolsStore, TOOL_KEYS, type ToolKey } from "@/store/useMapToolsStore";
 
 // Real yearly satellite mosaics. All imagery is real, no simulation:
 //  • 1984–2001 → Landsat WELD Annual TrueColor (NASA GIBS, 30 м)
@@ -311,7 +312,12 @@ export function MapView() {
   const [panelOpen, setPanelOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
   const [mobileSheet, setMobileSheet] = useState<"left" | "right" | null>(null);
-  const [rightView, setRightView] = useState("eco");
+  // /map?tool=area|trajectory|journal|review|watch|priority — құралды бірден ашады (ssr:false, window бар)
+  const [rightView, setRightView] = useState(() => {
+    const tool = new URLSearchParams(window.location.search).get("tool") as ToolKey | null;
+    if (tool && TOOL_KEYS.includes(tool)) { useMapToolsStore.setState({ tool }); return "tools"; }
+    return "eco";
+  });
   const openRightView = useCallback((view: string) => {
     setRightView(view);
     setRightOpen(true);
@@ -1099,8 +1105,8 @@ export function MapView() {
           setSelected(site); openRightView("analysis");
           toast.success(tr("AI талдауы дайын!"));
           if (data.analysis.riskScore >= 55) {
-            toast.warning(tr("⚠️ Жоғары тәуекел! Жауапты органға хабарлама автоматты жіберілді"), {
-              description: tr("Толығырақ: «Ескертулер» бөлімінде"),
+            toast.warning(tr("Жоғары тәуекел (🤖 AI бағасы) — «Ескертулер» тізіміне қосылды"), {
+              description: tr("Органға автоматты жіберілмейді. Жіберу — талдау панеліндегі батырма арқылы."),
             });
           }
         }
@@ -1213,6 +1219,9 @@ export function MapView() {
 </div>
         <Button variant="portal-outline" size="portal" ref={rightToggleRef} aria-controls="map-data" aria-expanded={desktop ? rightOpen : mobileSheet === "right"} onClick={() => { if (desktop) setRightOpen((v) => !v); else setMobileSheet((v) => v === "right" ? null : "right"); }}>
           <Wind className="h-4 w-4" aria-hidden /><span className="sr-only sm:not-sr-only">{tr("Деректер")}</span>
+        </Button>
+        <Button variant="portal-outline" size="portal" aria-pressed={rightView === "tools" && (desktop ? rightOpen : mobileSheet === "right")} onClick={() => openRightView("tools")}>
+          <Wrench className="h-4 w-4" aria-hidden /><span className="sr-only sm:not-sr-only">{tr("Құралдар")}</span>
         </Button>
       </div>
       <div className={styles.canvas}>

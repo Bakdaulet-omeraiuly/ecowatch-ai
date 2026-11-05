@@ -44,17 +44,15 @@ export function buildAlert(site: Site): Alert | null {
   };
 }
 
-// Demo: status progresses with elapsed time since creation
+// Мәртебе тек пайдаланушының өз әрекетінен: «ашық» немесе «шешілді».
+// Бұрын уақыт өткен сайын «қабылданды/тексеруде» деп өзі ауысатын —
+// бұл ойдан шығарылған күй еді (ешбір орган қабылдамаған), алынып тасталды.
 export function liveStatus(alert: Alert): AlertStatus {
-  if (alert.status === "resolved") return "resolved";
-  const ageMin = (Date.now() - new Date(alert.createdAt).getTime()) / 60000;
-  if (ageMin < 2) return "sent";
-  if (ageMin < 10) return "acknowledged";
-  return "inspecting";
+  return alert.status === "resolved" ? "resolved" : "sent";
 }
 
 export const STATUS_UI: Record<AlertStatus, { label: string; cls: string }> = {
-  sent: { label: "Жіберілді", cls: "bg-sky-50 text-sky-800" },
+  sent: { label: "Ашық", cls: "bg-amber-50 text-amber-900" },
   acknowledged: { label: "Қабылданды", cls: "bg-amber-50 text-amber-800" },
   inspecting: { label: "Тексеруде", cls: "bg-orange-50 text-orange-800" },
   resolved: { label: "Шешілді", cls: "bg-emerald-50 text-emerald-800" },

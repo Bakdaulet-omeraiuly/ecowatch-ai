@@ -76,6 +76,10 @@ export function AirSourceGroups() {
     return `${fmtAtyrau(iso, lang)} (${t("air.tz.atyrau")})`;
   };
 
+  const groundHas = (p: Pollutant) => { const g = groundByP.get(p); return !!g && g.value != null && g.unit != null; };
+  const groundPresent = POLLUTANT_ORDER.filter(groundHas);
+  const groundMissing = POLLUTANT_ORDER.filter((p) => !groundHas(p));
+
   return (
     <section aria-labelledby="air-groups-title" className="rounded-md border border-neutral-300 bg-white p-4 text-neutral-900">
       <h2 id="air-groups-title" className="text-lg font-bold text-neutral-900">{tk("air.groups.title")}</h2>
@@ -86,8 +90,16 @@ export function AirSourceGroups() {
         <h3 className="flex flex-wrap items-center gap-2 font-bold text-neutral-900">
           <Badge kind="ground">{t("air.type.ground")}</Badge> {tk("air.group.ground")}
         </h3>
+        {/* Дерегі жоқ заттар бос карточка болып қайталанбайды — бір жолға жиналады */}
+        {groundMissing.length > 0 && (
+          <p className="mt-3 rounded border border-dashed border-neutral-400 bg-neutral-50 p-3 text-sm text-neutral-800">
+            <span className="font-bold">{t("air.noData")}</span>
+            {" "}({groundMissing.length}/{POLLUTANT_ORDER.length}): {groundMissing.map((p) => tk(`pol.${p}`).split(" — ")[0]).join(", ")}.
+            {" "}{data.ground.state === "unavailable" ? t("air.ground.fail") : t("air.noData.noStation")}
+          </p>
+        )}
         <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-          {POLLUTANT_ORDER.map((p) => {
+          {groundPresent.map((p) => {
             const g = groundByP.get(p);
             const has = !!g && g.value != null && g.unit != null;
             return (
