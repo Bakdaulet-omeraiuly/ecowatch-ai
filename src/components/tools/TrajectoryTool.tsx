@@ -89,7 +89,7 @@ export function TrajectoryTool() {
           {res.nearFacilities.length === 0
             ? <p className="text-neutral-600">{tr("Тізілімдегі нысандардың ешқайсысы маршрутқа жақын емес.")}</p>
             : <ul className="space-y-0.5">{res.nearFacilities.map((f) => <li key={f.id}>{f.name} — {f.km} км, ~{f.hoursBack} {tr("сағ бұрын")}</li>)}</ul>}
-          <p className="text-xs text-neutral-500">{tr("Дереккөз")}: {res.source}</p>
+          <p className="text-xs text-neutral-600">{tr("Дереккөз")}: {res.source}</p>
           <ul className="list-disc space-y-0.5 pl-4 text-xs text-neutral-600">{res.caveats.map((c) => <li key={c}>{tr(c)}</li>)}</ul>
         </div>
       )}

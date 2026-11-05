@@ -78,10 +78,10 @@ export function ReviewTool() {
         </label>
         <label className="flex items-center gap-1.5"><input type="checkbox" checked={onlyUnconfirmed} onChange={(e) => setOnlyUnconfirmed(e.target.checked)} />{tr("Алауларды жасыру")}</label>
       </div>
-      {!staff && role !== "loading" && <p className="text-xs text-neutral-500">{tr("Шешімді тек қызметкер (officer) қоя алады; сіз нәтижені көресіз.")}</p>}
+      {!staff && role !== "loading" && <p className="text-xs text-neutral-600">{tr("Шешімді тек қызметкер (officer) қоя алады; сіз нәтижені көресіз.")}</p>}
       {!verdictsOk && <p className="text-xs text-amber-800">{tr("Растау кестесі әлі қосылмаған — шешімдер көрсетілмейді.")}</p>}
       {err && <p role="alert" className="text-sm text-amber-800">{tr(err)}</p>}
-      {!items && !err && <p className="text-sm text-neutral-500"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}</p>}
+      {!items && !err && <p className="text-sm text-neutral-600"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}</p>}
       {items && <p className="text-sm text-neutral-800">{shown.length} {tr("детекция")} · {reviewed} {tr("тексерілді")}</p>}
       <ul className="max-h-[50vh] space-y-1.5 overflow-auto">
         {shown.slice(0, 200).map((a) => {
@@ -96,7 +96,7 @@ export function ReviewTool() {
                 </button>
                 <span className="text-xs" style={{ color: VERDICT_COLOR[v?.verdict ?? "none"] }}>{tr(v ? VERDICT_LABEL[v.verdict] : "тексерілмеген")}</span>
               </div>
-              {a.facilityName && <div className="text-xs text-neutral-500">{tr("алау")}: {a.facilityName}</div>}
+              {a.facilityName && <div className="text-xs text-neutral-600">{tr("алау")}: {a.facilityName}</div>}
               {staff && (
                 <div className="mt-1.5 flex flex-wrap items-center gap-1">
                   <input value={notes[key] ?? ""} onChange={(e) => setNotes({ ...notes, [key]: e.target.value })} maxLength={1000} placeholder={tr("Ескерту")} className="min-w-0 flex-1 rounded border border-neutral-300 px-2 py-0.5 text-xs" />

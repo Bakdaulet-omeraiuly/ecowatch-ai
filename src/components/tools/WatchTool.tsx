@@ -65,7 +65,7 @@ export function WatchTool() {
     if (!r.ok) toast.error(tr(r.body?.error ?? "Өшірілмеді")); else load();
   };
 
-  if (role === "loading") return <p className="text-sm text-neutral-500"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Рөл тексерілуде…")}</p>;
+  if (role === "loading") return <p className="text-sm text-neutral-600"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Рөл тексерілуде…")}</p>;
   if (!role) return <p className="text-sm text-neutral-700">{tr("Аймақты бақылау үшін кіріңіз.")} <Link href="/auth" className="text-brand underline">{tr("Кіру")}</Link></p>;
 
   return (
@@ -83,7 +83,7 @@ export function WatchTool() {
           <li key={a.id} className="rounded-md border border-neutral-200 p-2 text-sm">
             <div className="flex items-center justify-between gap-2">
               <button type="button" className="text-left font-medium" onClick={() => focusOn({ bbox: ringBbox(a.ring) })}>{a.name}</button>
-              <span className="text-xs text-neutral-500">{a.area_km2.toFixed(2)} км²</span>
+              <span className="text-xs text-neutral-600">{a.area_km2.toFixed(2)} км²</span>
             </div>
             {!a.fire.available
               ? <p className="text-xs text-amber-800">{tr("FIRMS қолжетімсіз — жалған дерек көрсетілмейді.")} {a.fire.reason}</p>

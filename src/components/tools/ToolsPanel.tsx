@@ -33,7 +33,7 @@ export function ToolsPanel() {
             <button key={t.key} type="button" role="tab" aria-selected={tool === t.key} onClick={() => setTool(t.key)}
               className={`flex items-start gap-1.5 rounded-md border px-2 py-1.5 text-left text-sm ${tool === t.key ? "border-brand bg-brand/5" : "border-neutral-200 hover:bg-neutral-50"}`}>
               <Icon className="mt-0.5 h-4 w-4 shrink-0 text-brand" aria-hidden />
-              <span><span className="font-medium text-neutral-900">{tr(t.label)}</span><br /><span className="text-[11px] text-neutral-500">{tr(t.who)}</span></span>
+              <span><span className="font-medium text-neutral-900">{tr(t.label)}</span><br /><span className="text-[11px] text-neutral-600">{tr(t.who)}</span></span>
             </button>
           );
         })}

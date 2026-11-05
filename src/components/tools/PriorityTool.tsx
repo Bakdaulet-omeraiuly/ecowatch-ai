@@ -70,14 +70,14 @@ export function PriorityTool() {
   );
 
   if (err) return <p role="alert" className="text-sm text-amber-800">{tr(err)}</p>;
-  if (!grid) return <p className="text-sm text-neutral-500"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}</p>;
+  if (!grid) return <p className="text-sm text-neutral-600"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Жүктелуде…")}</p>;
 
   return (
     <div className="space-y-3">
       <p className="text-xs text-neutral-600">{tr("Көгалдандыру басымдығы: қай ұяшыққа (1 км) ағаш бірінші керек. Критерий салмағын өзіңіз қойыңыз.")}</p>
       <TierBadge tier="model" tone="light" />
       {slider("ndvi", "Өсімдік тапшылығы (Sentinel-2 NDVI)")}
-      {pop ? slider("population", "Халық тығыздығы (WorldPop 2020)") : <p className="text-xs text-neutral-500">{tr("WorldPop торы жүктелмеді — халық критерийі есептелмейді.")}</p>}
+      {pop ? slider("population", "Халық тығыздығы (WorldPop 2020)") : <p className="text-xs text-neutral-600">{tr("WorldPop торы жүктелмеді — халық критерийі есептелмейді.")}</p>}
       {slider("residential", "Тұрғын үй үлесі (OSM)")}
       {slider("source", "Өнеркәсіп нысанына жақындық")}
       <label className="flex items-center gap-1.5 text-sm"><input type="checkbox" checked={onlyResidential} onChange={(e) => setOnlyResidential(e.target.checked)} />{tr("Тек тұрғын ұяшықтар (≥ 20%)")}</label>
@@ -88,8 +88,8 @@ export function PriorityTool() {
           <li key={c.id}>{(s! * 100).toFixed(0)} · NDVI {c.ndvi}{pop?.map.get(c.id) != null && <> · ~{Math.round(pop.map.get(c.id)!).toLocaleString("ru-RU")} {tr("адам")}</>} · {tr("тұрғын")} {(c.residential * 100).toFixed(0)}% · {tr("жасыл (OSM)")} {(c.green * 100).toFixed(0)}% · {c.sourceKm} км</li>
         ))}
       </ol>
-      <p className="text-xs text-neutral-500">{tr("NDVI маусымы")}: {grid.season.year} · {tr("Дереккөз")}: {grid.sources.join("; ")}</p>
-      {pop && <p className="text-xs text-neutral-500">{tr("Халық")}: {pop.source}</p>}
+      <p className="text-xs text-neutral-600">{tr("NDVI маусымы")}: {grid.season.year} · {tr("Дереккөз")}: {grid.sources.join("; ")}</p>
+      {pop && <p className="text-xs text-neutral-600">{tr("Халық")}: {pop.source}</p>}
       <ul className="list-disc space-y-0.5 pl-4 text-xs text-neutral-600">{[...grid.caveats, ...(pop?.caveats ?? [])].map((c) => <li key={c}>{tr(c)}</li>)}</ul>
     </div>
   );

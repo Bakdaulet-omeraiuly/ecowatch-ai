@@ -2,7 +2,7 @@ import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 // WCAG 2.1 AA: ауыр (serious/critical) бұзушылықтар болмауы керек.
-const PAGES = ["/", "/dashboard", "/alerts", "/methodology", "/health", "/validation", "/legislation", "/complaints", "/auth"];
+const PAGES = ["/", "/dashboard", "/alerts", "/methodology", "/health", "/validation", "/legislation", "/complaints", "/auth", "/object/anpz", "/map", "/map?tool=area", "/eco-passport", "/report", "/complaints/new"];
 
 for (const path of PAGES) {
   test(`a11y ${path}`, async ({ page }, info) => {

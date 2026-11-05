@@ -89,7 +89,7 @@ export function AreaReportTool() {
         {METRICS.map((m) => (
           <label key={m.key} className={`flex cursor-pointer items-start gap-2 rounded-md border px-2.5 py-1.5 text-sm ${metric === m.key ? "border-brand bg-brand/5" : "border-neutral-200"}`}>
             <input type="radio" name="area-metric" className="mt-1" checked={metric === m.key} onChange={() => { setMetric(m.key); setResult(null); setError(null); }} />
-            <span><span className="font-medium text-neutral-900">{tr(m.label)}</span><br /><span className="text-xs text-neutral-500">{tr(m.hint)}</span></span>
+            <span><span className="font-medium text-neutral-900">{tr(m.label)}</span><br /><span className="text-xs text-neutral-600">{tr(m.hint)}</span></span>
           </label>
         ))}
       </fieldset>
@@ -112,7 +112,7 @@ export function AreaReportTool() {
           </Button>
         )}
       </div>
-      {busy && metric !== "overlay" && <p className="text-xs text-neutral-500">{tr("Спутник деректері 10–40 секунд ішінде есептеледі.")}</p>}
+      {busy && metric !== "overlay" && <p className="text-xs text-neutral-600">{tr("Спутник деректері 10–40 секунд ішінде есептеледі.")}</p>}
       {error && (
         <div role="alert" className="rounded-md border border-neutral-300 bg-white p-2.5 text-sm text-amber-900 border-l-4 border-l-amber-600">
           {tr(error.error)}{error.reason && <div className="text-xs opacity-80">{error.reason}</div>}
@@ -129,7 +129,7 @@ function ResultView({ r }: { r: Result }) {
     <div className="space-y-2 rounded-lg border border-neutral-200 p-3">
       <div className="flex items-center justify-between gap-2">
         <TierBadge tier="measurement" tone="light" />
-        <span className="text-xs text-neutral-500">{r.areaKm2.toFixed(2)} км²</span>
+        <span className="text-xs text-neutral-600">{r.areaKm2.toFixed(2)} км²</span>
       </div>
       {(r.metric === "ndvi" || r.metric === "no2") && <SeriesView r={r} />}
       {r.metric === "fires" && <FiresView r={r} />}
@@ -142,10 +142,10 @@ function ResultView({ r }: { r: Result }) {
               <div className="h-1.5 rounded bg-neutral-100"><div className="h-1.5 rounded bg-brand" style={{ width: `${Math.min(100, x.fraction * 100)}%` }} /></div>
             </li>
           ))}
-          <li className="pt-1 text-xs text-neutral-500">{tr("Тор-сынама қадамы")}: {r.stepM} м · {r.samples} {tr("нүкте")}</li>
+          <li className="pt-1 text-xs text-neutral-600">{tr("Тор-сынама қадамы")}: {r.stepM} м · {r.samples} {tr("нүкте")}</li>
         </ul>
       )}
-      <p className="text-xs text-neutral-500">{tr("Дереккөз")}: {r.source}</p>
+      <p className="text-xs text-neutral-600">{tr("Дереккөз")}: {r.source}</p>
       <ul className="list-disc space-y-0.5 pl-4 text-xs text-neutral-600">
         {r.caveats.map((c) => <li key={c}>{tr(c)}</li>)}
       </ul>

@@ -112,7 +112,7 @@ export function JournalTool() {
     setVerify((v) => ({ ...v, [e.id]: r.ok ? (r.body as unknown as Verify) : { error: r.body?.error ?? "Тексерілмеді" } }));
   };
 
-  if (role === "loading") return <p className="text-sm text-neutral-500"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Рөл тексерілуде…")}</p>;
+  if (role === "loading") return <p className="text-sm text-neutral-600"><Loader2 className="inline h-4 w-4 animate-spin" /> {tr("Рөл тексерілуде…")}</p>;
   if (!canUse) return (
     <div className="rounded-md border border-neutral-200 p-3 text-sm text-neutral-700">
       {tr("Далалық журнал тек ғалым мен қызметкерге арналған. Рөлді сайт иесі береді.")}{" "}
@@ -199,7 +199,7 @@ export function JournalTool() {
                     <span className="font-medium">{tr(s?.label ?? e.kind)}</span> · {e.event_date}
                     {e.area_km2 != null && <> · {(e.area_km2 * 100).toFixed(2)} {tr("га")}</>}
                     <div className="text-xs text-neutral-600">{Object.entries(e.fields).map(([k, val]) => `${tr(s?.fields.find((f) => f.key === k)?.label ?? k)}: ${tr(String(val))}`).join(" · ")}</div>
-                    {e.note && <div className="text-xs text-neutral-500">{e.note}</div>}
+                    {e.note && <div className="text-xs text-neutral-600">{e.note}</div>}
                   </div>
                   <select value={e.status} onChange={(ev) => changeStatus(e, ev.target.value as JournalStatus)} className="rounded border border-neutral-300 px-1 py-0.5 text-xs" style={{ color: STATUS_COLOR[e.status] }}>
                     {(s?.statuses ?? [e.status]).map((st) => <option key={st} value={st}>{tr(s?.statusLabels[st] ?? st)}</option>)}
