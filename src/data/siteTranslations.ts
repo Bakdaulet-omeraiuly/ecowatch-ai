@@ -36,4 +36,6 @@ export const SITE_TR: Record<string, { ru: string; en: string }> = {
   "Су басу": { ru: "Затопление", en: "Flooding" },
   "CSV экспорт": { ru: "Экспорт CSV", en: "CSV export" },
   "Болжам": { ru: "Прогноз", en: "Forecast" },
+  "аймақ бойынша — карта құралында": { ru: "по участку — в инструментах карты", en: "per area — in the map tools" },
+  "Карта құралдары": { ru: "Инструменты карты", en: "Map tools" },
 };

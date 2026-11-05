@@ -53,6 +53,10 @@ export interface Indicator {
   limits: string[];
   validated: boolean;
   validationNote: string;
+  /** Мән пайдаланушы таңдаған аймақ/нүкте бойынша ғана есептеледі (паспорт оны сұрамайды) */
+  onDemand?: boolean;
+  /** Есептейтін карта құралына сілтеме, мыс. "/map?tool=area" */
+  toolLink?: string;
 }
 
 // --- Жиі қайталанатын құжат сілтемелері -----------------------------------
@@ -682,6 +686,145 @@ export const INDICATORS: Indicator[] = [
     validated: false,
     validationNote: "Модельдер IPCC аясында бағаланған; жергілікті бейімдеу жасалмаған",
   },
+
+  // ======================= КАРТА ҚҰРАЛДАРЫ (аймақ/нүкте бойынша) =======================
+  {
+    id: "areaNdvi",
+    section: "Карта құралдары",
+    name: "Аймақ бойынша NDVI (айлық медиана)",
+    unit: "NDVI",
+    tier: "measurement",
+    endpoint: "/api/area-report",
+    path: "rows",
+    digits: 3,
+    onDemand: true,
+    toolLink: "/map?tool=area",
+    what:
+      "Пайдаланушы сызған немесе жүктеген полигон ішіндегі өсімдік индексі. Әр Sentinel-2 өтуі " +
+      "бөлек бағаланады, бұлт/көлеңке/қар пиксельдері алынады, айдағы жарамды өтулердің медианасы беріледі.",
+    formula: "NDVI = (B08 − B04) / (B08 + B04); ай мәні = median(өтулер, жарамды пиксель ≥ 60%)",
+    steps: [
+      "Полигон тексеріледі: ≤ 2000 км², ≤ 500 төбе, Атырау облысы ішінде, өзін-өзі қимайды",
+      "Sentinel Hub Statistical API — P1D интервал (айлық интервал орташа емес, бір мозаика береді)",
+      "SCL 0,1,3,8–11 маскаланады; жарамды пиксель үлесі 60%-дан аз өту алынбайды",
+      "Айдағы өтулердің медианасы; өту жоқ ай — null (нөл емес)",
+    ],
+    instrument: "Sentinel-2 MSI L2A (B04, B08, SCL)",
+    spatial: "10 м (үлкен аймақта есептеу қадамы ірілейді, жауапта көрсетіледі)",
+    temporal: "2–5 күнде бір өту; айлық жиынтық",
+    latency: "≈ 1 тәулік",
+    sources: [DOC.cdse, DOC.shStats],
+    references: [{ label: "Sentinel-2 L2A Scene Classification (SCL)", url: "https://sentiwiki.copernicus.eu/web/s2-processing" }],
+    limits: [
+      "NDVI — спутник индексі, жердегі шындық емес",
+      "Қыс айларында жарамды өту аз немесе жоқ",
+      "Жеке ағашты емес, 10 м пиксельдің орташасын көрсетеді",
+    ],
+    validated: false,
+    validationNote: "Индекс ESA өнімінен; Атырауда жердегі өсімдік жамылғысымен салыстыру жасалмаған",
+  },
+  {
+    id: "areaNo2",
+    section: "Карта құралдары",
+    name: "Аймақ бойынша тропосфералық NO₂ бағаны (айлық орташа)",
+    unit: "µmol/m²",
+    tier: "measurement",
+    endpoint: "/api/area-report",
+    path: "rows",
+    digits: 1,
+    onDemand: true,
+    toolLink: "/map?tool=area",
+    what:
+      "Полигон ішіндегі Sentinel-5P TROPOMI тропосфералық NO₂ бағаны. Бұл — атмосфераның тік бағанындағы " +
+      "молекулалар саны, жер бетіндегі концентрация ЕМЕС; ШРК-мен салыстырылмайды.",
+    formula: "ай мәні = mean(күндік полигон орташасы), qa_value ≥ 0.75, жарамды пиксель ≥ 50%",
+    steps: [
+      "Statistical API — P1D интервал, айлық бөліктер параллель сұралады",
+      "qa_value ≥ 0.75 (ESA ұсынысы) сүзгісі",
+      "mol/m² → µmol/m² (×10⁶)",
+      "Айдағы жарамды күндердің арифметикалық орташасы",
+    ],
+    instrument: "Sentinel-5P TROPOMI L2 NO₂",
+    spatial: "~5.5 × 3.5 км пиксель",
+    temporal: "күніне бір өту (~13:30 жергілікті)",
+    latency: "≈ 1 тәулік",
+    sources: [DOC.cdse, DOC.shStats],
+    references: [{ label: "TROPOMI NO₂ Product User Manual (qa_value ≥ 0.75)", url: "https://sentiwiki.copernicus.eu/web/s5p-products" }],
+    limits: [
+      "Бағана, жер бетіндегі концентрация емес",
+      "Кіші аймақ бір-екі пиксельдің ішінде қалады — жеке кәсіпорынды ажыратпайды",
+      "Бұлтты күндер шығады",
+    ],
+    validated: true,
+    validationNote: "АМӨЗ ығындағы +70% сигнал алдын ала тіркелген протокол бойынша расталды (validation/s5p/PROTOCOL.md); Қазгидромет бекеттерімен сәйкестік төмен",
+  },
+  {
+    id: "backTrajectory",
+    section: "Карта құралдары",
+    name: "Кері траектория (ауа қайдан келді)",
+    unit: "км",
+    tier: "model",
+    endpoint: "/api/back-trajectory",
+    path: "points.length",
+    onDemand: true,
+    toolLink: "/map?tool=trajectory",
+    what:
+      "Таңдалған нүктеге келген ауа массасының соңғы 1–24 сағаттағы көлденең жолы. Маршрутқа 5 км-ден жақын " +
+      "тізілімдегі нысандар тексеруге басымдық ретінде көрсетіледі — кінә дәлелі емес.",
+    formula: "x(t−Δt) = x(t) − V(x*, t−Δt/2)·Δt, Δt = 15 мин (RK2, орта нүкте)",
+    steps: [
+      "Open-Meteo-дан 9×9 тор (±2°) бойынша сағаттық 10 м жел (u, v) алынады",
+      "Жел кеңістікте билинеар, уақытта сызықтық интерполяцияланады",
+      "Келу нүктесінен кері интеграл; тордан шықса траектория қысқартылады",
+      "Нысанның сынық сызыққа дейінгі ең жақын қашықтығы есептеледі",
+    ],
+    instrument: "Сандық ауа райы моделі (Open-Meteo best_match)",
+    spatial: "тор қадамы 0.5°, модель ажыратымдылығы 2–11 км",
+    temporal: "сағаттық",
+    latency: "нақты уақыт",
+    sources: [DOC.openMeteoWx],
+    references: [{ label: "NOAA HYSPLIT — толық 3D модель (салыстыру үшін)", url: "https://www.ready.noaa.gov/HYSPLIT.php" }],
+    limits: [
+      "2D: тік қозғалыс, турбуленттілік, шекаралық қабат ескерілмейді",
+      "Қателік уақыт өткен сайын өседі",
+      "Ластану көзін дәлелдемейді",
+    ],
+    validated: false,
+    validationNote: "Тұрақты жел өрісінде аналитикалық шешіммен тексерілді (тест); нақты траекториялармен салыстыру жасалмаған",
+  },
+  {
+    id: "priorityIndex",
+    section: "Карта құралдары",
+    name: "Көгалдандыру басымдық индексі",
+    unit: "0–1",
+    tier: "model",
+    endpoint: "/api/priority-grid",
+    path: "cells.length",
+    onDemand: true,
+    toolLink: "/map?tool=priority",
+    what:
+      "1 км ұяшықтар бойынша салмақты индекс: өсімдік тапшылығы, тұрғын үй үлесі, өнеркәсіп нысанына жақындық. " +
+      "Салмақты пайдаланушы өзі қояды (i-Tree Landscape / Tree Equity Score үлгісі).",
+    formula: "S = (w₁·(1 − NDVI*) + w₂·R + w₃·(1 − min(d,10)/10)) / (w₁+w₂+w₃); NDVI* — қала ішінде min–max нормаланған",
+    steps: [
+      "Sentinel-2 соңғы жаздың пиксельдік медианасы (Process API, 50 м)",
+      "OSM landuse=residential үлесі — 10×10 сынама нүктесімен",
+      "Тізілімдегі 11 нысанға дейінгі ең жақын қашықтық",
+      "Жамылғысы 50%-дан аз ұяшық бағаланбайды",
+    ],
+    instrument: "Sentinel-2 MSI L2A + OpenStreetMap",
+    spatial: "1 км ұяшық",
+    temporal: "жылына бір (апталық көшірме жаңартуы)",
+    latency: "көшірме күні жауапта",
+    sources: [DOC.cdse],
+    references: [{ label: "Tree Equity Score — әдістеме", url: "https://www.treeequityscore.org/methodology" }],
+    limits: [
+      "Халық тығыздығының ресми торы жоқ — OSM тұрғын үй ПРОКСИ",
+      "Шешімге көмек, «ағаш керек» деген дәлел емес",
+    ],
+    validated: false,
+    validationNote: "Валидацияланбаған; салмақтар — пайдаланушы таңдауы",
+  },
 ];
 
 export const SECTIONS = [
@@ -691,6 +834,7 @@ export const SECTIONS = [
   "Құрғақшылық",
   "Биологиялық қауіп",
   "Климат",
+  "Карта құралдары",
 ] as const;
 
 /** Жауап нысанынан "a.b.c" жолы бойынша мән алу. `.length` да қолдау табады. */
@@ -707,5 +851,5 @@ export function resolvePath(obj: unknown, path: string): number | null {
 
 /** Паспорт үшін керекті бірегей эндпоинттер тізімі. */
 export function requiredEndpoints(): string[] {
-  return [...new Set(INDICATORS.map((i) => i.endpoint))];
+  return [...new Set(INDICATORS.filter((i) => !i.onDemand).map((i) => i.endpoint))];
 }

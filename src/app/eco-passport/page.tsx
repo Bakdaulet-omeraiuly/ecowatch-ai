@@ -105,7 +105,7 @@ export default function EcoPassportPage() {
 
   const stats = useMemo(() => {
     const total = INDICATORS.length;
-    const measured = INDICATORS.filter((i) => values[i.id] != null).length;
+    const measured = INDICATORS.filter((i) => !i.onDemand && values[i.id] != null).length;
     const validated = INDICATORS.filter((i) => i.validated).length;
     const byTier = {
       measurement: INDICATORS.filter((i) => i.tier === "measurement").length,
@@ -426,7 +426,9 @@ function IndicatorRow({
               {tr(ind.unit)}
             </span>
           </div>
-          {value == null ? (
+          {ind.onDemand ? (
+            <a href={ind.toolLink} className="mt-0.5 block text-[12px] text-[#0b3a6b] underline underline-offset-2 print:no-underline">{tr("аймақ бойынша — карта құралында")}</a>
+          ) : value == null ? (
             <div className="mt-0.5 text-[12px] text-neutral-600">{tr("өлшенбеді")}</div>
           ) : breached.length > 0 ? (
             <div className="mt-0.5 text-[12px] text-amber-800 print:text-amber-800">
