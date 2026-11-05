@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, BarChart3, ClipboardList, FileWarning, FlaskConical, Grid3x3, HeartPulse, Map as MapIcon, MessageSquareWarning, ShieldCheck, Wind } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, ClipboardList, FileWarning, FlaskConical, Grid3x3, HeartPulse, Map as MapIcon, MessageSquareWarning, ShieldCheck, Wind } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { AtyrauMap } from "@/components/home/AtyrauMap";
 import { AtyrauAirPanel } from "@/components/home/AtyrauAirPanel";
@@ -40,6 +40,7 @@ export default function HomePage() {
         { href: "/map?tool=trajectory", label: "Ауа қайдан келді", icon: Wind },
         { href: "/validation", label: "Спутник валидациясы", icon: FlaskConical },
         { href: "/methodology", label: t("nav.methodology"), icon: FileWarning },
+        { href: "/status", label: "Дереккөздер күйі", icon: Activity },
       ],
     },
   ];
