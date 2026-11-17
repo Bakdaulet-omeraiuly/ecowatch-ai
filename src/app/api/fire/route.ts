@@ -9,16 +9,19 @@ import {
 } from "@/lib/fwi";
 
 // Атырау бойынша нақты Fire Weather Index (Канада FWI жүйесі, EFFIS әдістемесі).
-// Дереккөз: Open-Meteo (тегін, кілтсіз) — соңғы ~21 күннің түскі ауа райы.
+// Дереккөз: Open-Meteo (тегін, кілтсіз) — соңғы 92 күннің түскі ауа райы.
 // Жалған дерек жоқ: API қолжетімсіз болса, қате қайтарылады.
 
 export const revalidate = 3600;
 
 
-// Spin-up үшін 21 күн тарих + түскі (12:00) мәндерді алу
+// Spin-up: 92 күн тарих (Open-Meteo forecast API-ының шегі) + түскі (12:00) мәндер.
+// Неге 21 емес: құрғақшылық коды (DC) өте баяу өзгереді (уақыт тұрақтысы
+// ~52 күн). 21 күндік жүгірісте DC бастапқы шартты мәннен (15) алыстап
+// үлгермейді, сондықтан ұзақ құрғақ жазда BUI мен FWI кем бағаланатын.
 const SRC_URL = (LAT: number, LNG: number) => `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}` +
   `&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m,precipitation` +
-  `&past_days=21&forecast_days=1&timezone=auto`;
+  `&past_days=92&forecast_days=1&timezone=auto`;
 
 const cache = new Map<string, { at: number; data: unknown }>();
 
@@ -36,9 +39,9 @@ export async function GET(req: Request) {
     const j = await res.json();
 
     const time: string[] = j.hourly?.time ?? [];
-    const temp: number[] = j.hourly?.temperature_2m ?? [];
-    const rh: number[] = j.hourly?.relative_humidity_2m ?? [];
-    const wind: number[] = j.hourly?.wind_speed_10m ?? [];
+    const temp: (number | null)[] = j.hourly?.temperature_2m ?? [];
+    const rh: (number | null)[] = j.hourly?.relative_humidity_2m ?? [];
+    const wind: (number | null)[] = j.hourly?.wind_speed_10m ?? [];
     const precip: number[] = j.hourly?.precipitation ?? [];
     if (!time.length) throw new Error("деректер бос");
 
@@ -54,12 +57,16 @@ export async function GET(req: Request) {
     });
 
     const days: DayWeather[] = [];
+    let skippedDays = 0;
     for (const [, b] of byDay) {
       if (b.noon == null) continue; // түскі мән жоқ күнді өткіземіз
+      const t = temp[b.noon], h = rh[b.noon], w = wind[b.noon];
+      // Мәні жоқ күнге «орташа» ауа райы ойдан қойылмайды — күн өткізіледі.
+      if (t == null || h == null || w == null) { skippedDays += 1; continue; }
       days.push({
-        temp: temp[b.noon] ?? 15,
-        rh: Math.min(100, Math.max(1, rh[b.noon] ?? 50)),
-        wind: wind[b.noon] ?? 5,
+        temp: t,
+        rh: Math.min(100, Math.max(1, h)),
+        wind: w,
         rain: +b.rainSum.toFixed(1),
         month: b.month,
       });
@@ -75,6 +82,7 @@ export async function GET(req: Request) {
       lat: LAT,
       lng: LNG,
       spinupDays: days.length,
+      skippedDays,
       fwi: +result.fwi.toFixed(1),
       isi: +result.isi.toFixed(1),
       bui: +result.bui.toFixed(1),
