@@ -7,7 +7,7 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JaiyqLogo } from "@/components/layout/JaiyqLogo";
 import { useLang } from "@/lib/i18n";
-import { REPORTS_ENABLED } from "@/lib/features";
+import { REPORTS_ENABLED, SHOW_LOGIN_LINK } from "@/lib/features";
 
 // Бүкіл сайттың бірыңғай тақырыбы (layout.tsx арқылы барлық бетте).
 // Ойын-сауық элементтері жоқ: атау, логотип, навигация, тіл ауыстырғыш.
@@ -41,9 +41,11 @@ export function Navbar() {
           </Link>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <Link href="/auth" className="inline-flex min-h-[44px] items-center px-2 text-sm text-white hover:underline">
-              {t("auth.nav")}
-            </Link>
+            {SHOW_LOGIN_LINK && (
+              <Link href="/auth" className="inline-flex min-h-[44px] items-center px-2 text-sm text-white hover:underline">
+                {t("auth.nav")}
+              </Link>
+            )}
             {/* Тіл ауыстырғыш — KZ | RU (EN сақталған, бірақ басты түймеде көрсетілмейді) */}
             <div role="group" aria-label={t("site.lang")} className="flex shrink-0 overflow-hidden rounded border border-blue-300">
               {(["kk", "ru"] as const).map((l) => (

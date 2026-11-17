@@ -3,6 +3,7 @@
 // CSV тек EXPORT_ROLES (scientist/officer/admin) — /api/export сияқты.
 // Көз қолжетімсіз → 503 + себебі. Жоқ ай → null. Мок жоқ.
 
+import { ANALYSIS_LOGIN_REQUIRED } from "@/lib/features";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { validateRing } from "@/lib/areaGeo";
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
   if (!check.ok) return fail(check.error, 400);
   const { ring, areaKm2 } = check;
 
-  if (format === "csv") {
+  if (format === "csv" && ANALYSIS_LOGIN_REQUIRED) {
     const auth = await requireRole(req, EXPORT_ROLES);
     if (!auth.ok) return auth.response;
   }

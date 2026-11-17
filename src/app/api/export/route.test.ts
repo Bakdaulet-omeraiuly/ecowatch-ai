@@ -3,6 +3,9 @@ import { GET } from "./route";
 import { setupAuthMock } from "@/lib/test/authMock";
 
 vi.mock("@supabase/supabase-js", () => ({ createClient: vi.fn() }));
+// Рөл тексерісінің өзі сақталған (features.ts жалаушасы артында) — мұнда
+// жалауша қосулы күйде сыналады; ашық күй бөлек файлда: route.open.test.ts.
+vi.mock("@/lib/features", async (orig) => ({ ...(await orig<typeof import("@/lib/features")>()), ANALYSIS_LOGIN_REQUIRED: true }));
 let mock: ReturnType<typeof setupAuthMock>;
 beforeEach(() => { mock = setupAuthMock(); });
 afterEach(() => { vi.unstubAllEnvs(); vi.restoreAllMocks(); });
