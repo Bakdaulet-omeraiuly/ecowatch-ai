@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { getRegion } from "@/data/regions";
 
-// Таңдалған аймақ бойынша жер су қорының трендісі (GRACE баламасы).
-// GRACE-тің тегін нүктелік API-ы жоқ, сондықтан ERA5 топырақ су қоры
+// Таңдалған аймақ бойынша топырақ ылғал қорының трендісі.
+// ⚠️ Бұл GRACE емес: GRACE жер асты суын қоса БАРЛЫҚ су қорын өлшейді, ал
+// мұнда тек жоғарғы 1 м топырақ ылғалы (ERA5 моделі). Жер асты суының
+// азаюын бұл қатар көрсетпейді. ERA5 топырақ су қоры
 // (0–100 см, көп жылдық) қолданылады — нақты, нүктелік, жер су қорының
 // ұзақмерзімді азаю/көбею динамикасын көрсетеді. Жалған дерек жоқ.
 //
@@ -48,6 +50,9 @@ export async function GET(req: Request) {
         sm: +(arr.reduce((a, c) => a + c, 0) / (arr.length || 1)).toFixed(3),
       }))
       .filter((y) => y.sm > 0)
+      // Аяқталмаған жыл (қаңтар–бүгін) жылдық орташа емес: маусымдық
+      // ауытқу трендке жалған еңіс қосады — трендке тек толық жылдар кіреді.
+      .filter((y) => y.year < new Date().getUTCFullYear())
       .sort((a, b) => a.year - b.year);
     if (years.length < 5) throw new Error("жеткіліксіз жыл");
 
@@ -68,7 +73,7 @@ export async function GET(req: Request) {
     const data = {
       available: true as const,
       fetchedAt: new Date().toISOString(),
-      source: "ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві · GRACE баламасы",
+      source: "ERA5 топырақ ылғалы (0–100 см, модель) · Open-Meteo архиві · толық жылдар",
       region: { id: region.id, name: region.name },
       years,
       slopePerDecadePct: +pctPerDecade.toFixed(1),

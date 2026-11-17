@@ -80,6 +80,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
       name: layer.name,
       emoji: layer.emoji,
       what: layer.what,
+      tier: layer.tier,
+      caveat: layer.caveat,
       fetchedAt: new Date().toISOString(),
       location: { lat: LAT, lng: LNG, name: region.name, country: region.country, regionId: region.id },
 
@@ -115,7 +117,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
       aiIncluded: false,
       note:
         "Бұл жауапта жасанды интеллект қолданылмаған. Барлық сан — өлшем немесе " +
-        "ресми атмосфералық/гидрологиялық модель шығысы.",
+        "ресми атмосфералық/гидрологиялық модель шығысы (қайсысы екені — tier өрісінде).",
     };
 
     cache.set(cacheKey, { at: Date.now(), data });

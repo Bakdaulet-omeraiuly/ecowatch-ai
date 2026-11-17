@@ -45,11 +45,21 @@ export interface EcoLayer {
   /** AI талдауына берілетін контекст сипаттамасы */
   aiContext: string;
   sources: string[];
+  /**
+   * Қабаттағы сандардың сипаты (TierBadge): аспап өлшемі ме, модель ме.
+   * «mixed» — екеуі де бар (қайсысы қайсы екені `caveat`-та жазылады).
+   */
+  tier: "measurement" | "model" | "mixed";
+  /** Шектеу — деректер қойындысында әрқашан көрініп тұрады */
+  caveat: string;
 }
 
 export const ECO_LAYERS: EcoLayer[] = [
   {
     key: "air",
+    tier: "model",
+    caveat:
+      "Бұл — CAMS жаһандық моделінің есебі (торы ~40 км), жердегі аспап өлшемі емес: қала ішіндегі айырманы көрсетпейді. Тексерісте модель PM₂.₅-ті жүйелі кем бағалады, сондықтан «норма шегінде» деген нәтиже ауаның таза екенін дәлелдемейді. Толығы — «Валидация» бетінде.",
     name: "Ауа",
     emoji: "",
     accent: "sky",
@@ -72,6 +82,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "wind",
+    tier: "model",
+    caveat:
+      "ECMWF ауа райы моделінің есебі (10 м биіктік), метеостанция өлшемі емес. Қала ішіндегі ғимараттар әсері ескерілмейді.",
     name: "Жел",
     emoji: "",
     accent: "cyan",
@@ -90,6 +103,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "soil",
+    tier: "model",
+    caveat:
+      "ECMWF жер беті моделінің есебі, далалық өлшем емес. Топырақтың тұздануы мен ластануын көрсетпейді — тек ылғал мен температура.",
     name: "Топырақ",
     emoji: "",
     accent: "amber",
@@ -107,6 +123,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "water",
+    tier: "mixed",
+    caveat:
+      "Су беті — Sentinel-1 радарының өлшемі (спутник өткен күндері ғана). Өзен ағыны — GloFAS гидрологиялық моделінің есебі, гидропост өлшемі емес. Су сапасы (химиясы) бұл қабатта жоқ.",
     name: "Су",
     emoji: "",
     accent: "teal",
@@ -126,6 +145,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "fire",
+    tier: "mixed",
+    caveat:
+      "Өрт қаупі индексі (FWI) — ауа райы моделінен есептеледі: бұл қауіп, өрттің бар-жоғы емес. Жылу аномалиялары — VIIRS спутник өлшемі, бірақ расталған өрт емес.",
     name: "Өрт",
     emoji: "",
     accent: "red",
@@ -145,6 +167,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "oil",
+    tier: "measurement",
+    caveat:
+      "VIIRS жылу сигналын өлшейді: газ алауын дала өртінен ажыратпайды, бұлт астын көрмейді. Жылу қуаты (FRP) шығарынды мөлшері емес. Детекция жоқ болуы алаудың жанбағанын дәлелдемейді.",
     name: "Мұнай",
     emoji: "",
     accent: "neutral",
@@ -163,6 +188,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "drought",
+    tier: "model",
+    caveat:
+      "SPI тек жауын-шашынға сүйенеді (ERA5 реанализі): булануды, өзен суын және суаруды ескермейді. Шөлейт аймақта жауын аз айларда индекс тұрақсыз болуы мүмкін.",
     name: "Құрғақшылық",
     emoji: "",
     accent: "orange",
@@ -180,6 +208,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "mosquito",
+    tier: "model",
+    caveat:
+      "JAIYQ-MRI — климаттық қолайлылық моделі: маса санын өлшемейді, тұзақ деректерімен әлі тексерілмеген.",
     name: "Маса",
     emoji: "",
     accent: "purple",
@@ -198,6 +229,9 @@ export const ECO_LAYERS: EcoLayer[] = [
   },
   {
     key: "source",
+    tier: "model",
+    caveat:
+      "Ықтимал көз — жел мен таралу моделінен шыққан болжам, дәлел емес. Нақты көзді тек жердегі өлшем мен тексеру растайды.",
     name: "Ластану көзі",
     emoji: "",
     accent: "rose",

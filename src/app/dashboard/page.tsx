@@ -792,7 +792,7 @@ export default function DashboardPage() {
                   <div className="flex flex-wrap items-center gap-3">
                     <Droplets className={`h-7 w-7 ${water.trend === "drying" ? "text-amber-800" : "text-sky-800"}`} />
                     <div className="flex-1">
-                      <h3 className="text-sm font-semibold text-neutral-900">{tr("Жер су қоры трендісі (GRACE баламасы)")}</h3>
+                      <h3 className="text-sm font-semibold text-neutral-900">{tr("Топырақ ылғал қорының трендісі (ERA5, 0–100 см)")}</h3>
                       <p className="text-[13px] text-neutral-600">{tr("ERA5 топырақ су қоры (0–100 см) · Open-Meteo архиві")}</p>
                     </div>
                     <div className="text-right">

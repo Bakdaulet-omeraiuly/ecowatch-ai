@@ -45,6 +45,9 @@ interface ComplianceItem {
 
 interface LayerData {
   key: string; name: string; emoji: string; what: string;
+  /** Ескі кэштелген жауапта болмауы мүмкін */
+  tier?: "measurement" | "model" | "mixed";
+  caveat?: string;
   fetchedAt: string;
   current: Record<string, unknown> | null;
   currentError: string | null;
@@ -182,9 +185,20 @@ function DataTab({ data, tr }: { data: LayerData; tr: (s: string) => string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <TierBadge tone="light" tier="measurement" />
+        {/* Қабаттың нақты сипаты: модель есебін «өлшем» деп көрсетпейміз */}
+        {(data.tier === "measurement" || data.tier === "mixed") && <TierBadge tone="light" tier="measurement" />}
+        {(data.tier === "model" || data.tier === "mixed") && <TierBadge tone="light" tier="model" />}
         <span className="text-[12px] text-neutral-600">{tr("AI қолданылмаған")}</span>
       </div>
+
+      {data.caveat && (
+        <div className="rounded-lg border border-amber-700/40 bg-amber-50 p-2.5">
+          <div className="mb-1 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wide text-amber-900">
+            <AlertTriangle className="h-3 w-3" /> {tr("Шектеуі")}
+          </div>
+          <p className="text-[13px] leading-relaxed text-neutral-800">{tr(data.caveat)}</p>
+        </div>
+      )}
 
       {/* ҚАБАТ НЕНІ БІЛДІРЕДІ — тақырыптағы жазу екі жолға қиылады,
           сондықтан толық мәтін осында тұрады */}
