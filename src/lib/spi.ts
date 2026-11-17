@@ -118,6 +118,20 @@ export function computeSPI(history: number[], current: number): number | null {
   return +inverseNormalCDF(Hc).toFixed(2);
 }
 
+/**
+ * Дерек `endIso` күнімен (YYYY-MM-DD) аяқталғанда соңғы ТОЛЫҚ айдың кілті
+ * (YYYY-MM). Аяқталмаған айдың жиынтығын толық айлар климатологиясымен
+ * салыстыру SPI-ді жасанды түрде «құрғақ» жаққа ығыстырады: мысалы айдың
+ * 10-ы күні сол айдың жауыны әлі үштен бірі ғана жиналған.
+ */
+export function lastCompleteMonth(endIso: string): string {
+  const [y, m, d] = endIso.split("-").map(Number);
+  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  if (d >= daysInMonth) return endIso.slice(0, 7);
+  const prev = new Date(Date.UTC(y, m - 2, 1));
+  return `${prev.getUTCFullYear()}-${String(prev.getUTCMonth() + 1).padStart(2, "0")}`;
+}
+
 // ── SPI сыныптары (McKee 1993) ──────────────────────────────────────────
 export type DroughtClass =
   | "extreme_wet" | "severe_wet" | "moderate_wet" | "normal"

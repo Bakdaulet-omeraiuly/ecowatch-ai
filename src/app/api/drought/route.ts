@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getRegion } from "@/data/regions";
-import { computeSPI, droughtClass, DROUGHT_KZ, DROUGHT_COLOR } from "@/lib/spi";
+import { computeSPI, droughtClass, DROUGHT_KZ, DROUGHT_COLOR, lastCompleteMonth } from "@/lib/spi";
 
 // Атырау бойынша нақты 3-айлық SPI (Standardized Precipitation Index, McKee 1993).
 // Дереккөз: Open-Meteo архиві (ERA5, 1991-ден бері) — тегін, кілтсіз.
@@ -46,7 +46,11 @@ export async function GET(req: Request) {
       const ym = t.slice(0, 7);
       monthly.set(ym, (monthly.get(ym) ?? 0) + (precip[i] ?? 0));
     });
-    const keys = [...monthly.keys()].sort();
+    // Тек ТОЛЫҚ айлар: архив `end` күнімен үзіледі, сондықтан соңғы ай
+    // әдетте аяқталмаған. Оны қалдырсақ, жартылай айдың жауыны толық айлар
+    // климатологиясымен салыстырылып, жалған құрғақшылық шығады.
+    const lastFull = lastCompleteMonth(time[time.length - 1]);
+    const keys = [...monthly.keys()].sort().filter((k) => k <= lastFull);
 
     // 3-айлық жылжымалы жиынтық
     const roll3 = new Map<string, number>();
@@ -58,7 +62,7 @@ export async function GET(req: Request) {
       roll3.set(keys[i], sum);
     }
 
-    // Соңғы толық ай = тізбектегі соңғы кілт
+    // Соңғы толық ай = сүзілген тізбектегі соңғы кілт
     const latestKey = keys[keys.length - 1];
     const latestMonth = Number(latestKey.slice(5, 7)); // 1–12
     const current = roll3.get(latestKey);
@@ -80,6 +84,9 @@ export async function GET(req: Request) {
       lat: LAT,
       lng: LNG,
       period: latestKey,
+      // SPI-3 қамтитын үш толық ай (бірінші және соңғы)
+      periodFrom: keys[keys.length - 3],
+      periodTo: latestKey,
       timescaleMonths: 3,
       yearsOfRecord: history.length,
       spi,
