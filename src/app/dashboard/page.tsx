@@ -1,5 +1,6 @@
 "use client";
 
+import { SourceAnalytics } from "@/components/dashboard/SourceAnalytics";
 import { useEffect, useMemo, useState } from "react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -316,7 +317,7 @@ export default function DashboardPage() {
       <nav aria-label={tr("Бет мазмұны")} className="-mx-1 flex flex-wrap gap-1.5">
         {[
           ["live", "Тірі мониторинг"], ["sources", "Ауа: дерек түрлері"], ["legal", "Заңнамалық сәйкестік"],
-          ["log", "Асу журналы"], ["events", "Оқиғалар"], ["flood", "Су басу"], ["export", "CSV экспорт"], ["forecast", "Болжам"],
+          ["log", "Асу журналы"], ["source", "Ластану көзі"], ["events", "Оқиғалар"], ["flood", "Су басу"], ["export", "CSV экспорт"], ["forecast", "Болжам"],
         ].map(([id, label]) => (
           <a key={id} href={`#${id}`} className="inline-flex min-h-[36px] items-center rounded-full border border-neutral-300 bg-white px-3 text-sm text-neutral-800 hover:border-[#0b3a6b] hover:text-[#0b3a6b]">{tr(label)}</a>
         ))}
@@ -418,6 +419,9 @@ export default function DashboardPage() {
       <div id="log" className="scroll-mt-32"><ExceedanceLog /></div>
 
       {/* Оқиғалар таспасы — нақты дерек нүктелері, уақыт бойынша */}
+      {/* Ластану көзі аналитикасы: кезең (жыл/ай/тәулік/сағат) бойынша концентрация мен жел румбы */}
+      {region.id === "atyrau" && <div id="source" className="scroll-mt-32"><SourceAnalytics /></div>}
+
       <div id="events" className="scroll-mt-32"><EventFeed limit={12} /></div>
 
       {/* AI «Неге?» — бүгінгі ауаны тірі деректермен түсіндіру */}
