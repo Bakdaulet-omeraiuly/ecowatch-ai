@@ -74,8 +74,10 @@ export async function GET() {
       where: "aqicn.org/data-platform/token — email жеткілікті, бірден беріледі",
     },
     {
-      env: "CDSE_CLIENT_ID",
-      set: has("CDSE_CLIENT_ID") && has("CDSE_CLIENT_SECRET"),
+      // Код осы екі атауды оқиды (src/lib/cdse.ts); бұрын мұнда қате атау
+      // (CDSE_CLIENT_ID) тексеріліп, кілт бар болса да «жоқ» көрсетілетін.
+      env: "SENTINELHUB_CLIENT_ID",
+      set: has("SENTINELHUB_CLIENT_ID") && has("SENTINELHUB_CLIENT_SECRET"),
       what:
         "Copernicus OAuth. Осыған тәуелді: су басқан аумақ (S1 SAR), " +
         "қамыс мекені (S2 NDVI), мұнай дағын іздеу, ЖӘНЕ Sentinel-5P " +

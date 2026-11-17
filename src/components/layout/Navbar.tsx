@@ -7,6 +7,7 @@ import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JaiyqLogo } from "@/components/layout/JaiyqLogo";
 import { useLang } from "@/lib/i18n";
+import { REPORTS_ENABLED } from "@/lib/features";
 
 // Бүкіл сайттың бірыңғай тақырыбы (layout.tsx арқылы барлық бетте).
 // Ойын-сауық элементтері жоқ: атау, логотип, навигация, тіл ауыстырғыш.
@@ -19,7 +20,9 @@ export function Navbar() {
   const links = [
     { href: "/map", label: t("nav.map") },
     { href: "/dashboard", label: t("nav.dashboard") },
-    { href: "/report", label: t("nav.report") },
+    // Фото-хабарлау өшірулі кезде сілтеме «қолжетімсіз» бетіне апарады —
+    // мәзірде тұрмайды; сол міндетті «Шағымдар» атқарады.
+    ...(REPORTS_ENABLED ? [{ href: "/report", label: t("nav.report") }] : []),
     { href: "/complaints", label: t("nav.complaints") },
     { href: "/health", label: t("nav.health") },
     { href: "/alerts", label: t("nav.alerts") },
