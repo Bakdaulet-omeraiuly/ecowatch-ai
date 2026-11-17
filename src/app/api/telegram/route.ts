@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { supabase } from "@/lib/supabase";
+import { serviceClient } from "@/lib/supabaseAdmin";
+import { escapeHtml, trailingCitizenId, webhookTrust } from "@/lib/telegramGuard";
 
 // Jaiyq Telegram Bot webhook.
 // Moderator flow:
@@ -81,11 +83,11 @@ export async function notifyModerator(opts: {
     `📍 <a href="https://maps.google.com/?q=${lat},${lng}">Картада ашу</a> · ${lat.toFixed(4)}°, ${lng.toFixed(4)}°\n` +
     `📊 Тәуекел деңгейі: <b>${riskScore}/100</b>\n` +
     `🛰 AI талдауы: ${aiStatus}\n` +
-    (features.length ? `⚠️ Анықталған: ${features.slice(0, 3).join(", ")}\n` : "") +
-    (description ? `\n💬 Азамат жазғаны: <i>${description.slice(0, 250)}</i>\n` : "") +
-    `\n📋 Ұсыным: ${recommendation}\n` +
+    (features.length ? `⚠️ Анықталған: ${escapeHtml(features.slice(0, 3).join(", "))}\n` : "") +
+    (description ? `\n💬 Азамат жазғаны: <i>${escapeHtml(description.slice(0, 250))}</i>\n` : "") +
+    `\n📋 Ұсыным: ${escapeHtml(recommendation)}\n` +
     `🌐 <a href="https://ecojaiyq.com/moderation">Веб-панельде ашу</a>\n` +
-    `\n🆔 <code>${reportId}</code>`;
+    `\n🆔 <code>${escapeHtml(reportId)}</code>`;
 
   const reply_markup = {
     inline_keyboard: [[
@@ -173,9 +175,9 @@ async function forwardToModerator(citizenChatId: number, fromUsername: string, q
 
   const text =
     `💬 <b>Азамат сұрақ қойды</b>\n` +
-    `👤 ${fromUsername ? `@${fromUsername}` : "аты белгісіз"}\n\n` +
-    `❓ <i>${question.slice(0, 300)}</i>\n\n` +
-    `🤖 Бот берген жауап:\n${answer.slice(0, 500)}\n\n` +
+    `👤 ${fromUsername ? `@${escapeHtml(fromUsername)}` : "аты белгісіз"}\n\n` +
+    `❓ <i>${escapeHtml(question.slice(0, 300))}</i>\n\n` +
+    `🤖 Бот берген жауап:\n${escapeHtml(answer.slice(0, 500))}\n\n` +
     `<i>Жауапқа Reply жасасаңыз — хабарыңыз азаматқа тікелей жетеді.</i>\n` +
     `[uid:${citizenChatId}]`;
 
@@ -253,12 +255,26 @@ interface TelegramUpdate {
 export async function POST(req: Request) {
   if (!BOT) return NextResponse.json({ ok: false });
 
+  // Сұраныс Telegram-нан келгенін тек secret_token дәлелдейді. Құпия
+  // бапталған болса — қате токен мүлде қабылданбайды. Бапталмаған болса —
+  // жария командалар жұмыс істей береді, бірақ модератор әрекеттері
+  // (төменде) жабық: жалған денеде chat.id-ді кез келген адам жаза алады.
+  const trust = webhookTrust(req);
+  if (trust === "rejected") return NextResponse.json({ ok: false }, { status: 401 });
+  const modChatId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
+  // Жазылушылар кестесі RLS-пен жабылғанда да жұмыс істеуі үшін — service
+  // role; кілт жоқ ортада бұрынғыдай anon клиентке түседі.
+  const subsDb = serviceClient() ?? supabase;
+
   let update: TelegramUpdate;
   try { update = await req.json(); } catch { return NextResponse.json({ ok: false }); }
 
   // ── Moderator button tap (confirm / inspect / reject) ──
   if (update.callback_query) {
     const cq = update.callback_query;
+    if (trust !== "verified" || !modChatId || String(cq.message?.chat?.id) !== String(modChatId)) {
+      return NextResponse.json({ ok: false }, { status: 403 });
+    }
     const [action, reportId] = (cq.data ?? "").split(":");
     if (!reportId) { await answerCallback(cq.id, "Қате: ID табылмады"); return NextResponse.json({ ok: true }); }
 
@@ -275,11 +291,13 @@ export async function POST(req: Request) {
     let dbOk = false;
     if (supabase) {
       if (action === "reject") {
-        const { error } = await supabase.from("reports").delete().eq("id", reportId);
-        dbOk = !error;
+        // RLS бұғаттаған өшіру қате бермейді, тек 0 жол қайтарады —
+        // сондықтан нақты өзгерген жол санын тексереміз.
+        const { data, error } = await supabase.from("reports").delete().eq("id", reportId).select("id");
+        dbOk = !error && (data?.length ?? 0) > 0;
       } else {
-        const { error } = await supabase.from("reports").update({ verification_status: newStatus }).eq("id", reportId);
-        dbOk = !error;
+        const { data, error } = await supabase.from("reports").update({ verification_status: newStatus }).eq("id", reportId).select("id");
+        dbOk = !error && (data?.length ?? 0) > 0;
       }
     }
 
@@ -287,7 +305,7 @@ export async function POST(req: Request) {
     await removeButtons(cq.message.chat.id, cq.message.message_id);
     await sendMessage(
       cq.message.chat.id,
-      `${labelMap[action]}\n🆔 <code>${reportId}</code>\n` +
+      `${labelMap[action]}\n🆔 <code>${escapeHtml(reportId)}</code>\n` +
       (dbOk ? "✅ Дерекқор жаңартылды" : "⚠️ Дерекқор жаңартылмады")
     );
     return NextResponse.json({ ok: true });
@@ -301,15 +319,13 @@ export async function POST(req: Request) {
   const username = msg.from?.username ?? "";
   const rawText  = msg.text.trim();
   const text     = rawText.toLowerCase();
-  const modChatId = process.env.TELEGRAM_MODERATOR_CHAT_ID;
 
   // ── Moderator replies to a forwarded citizen message ──
-  if (msg.reply_to_message && modChatId && String(chatId) === String(modChatId)) {
+  if (trust === "verified" && msg.reply_to_message && modChatId && String(chatId) === String(modChatId)) {
     const original = msg.reply_to_message.text ?? msg.reply_to_message.caption ?? "";
-    const match = original.match(/\[uid:(\d+)\]/);
-    if (match) {
-      const citizenId = Number(match[1]);
-      await sendMessage(citizenId, `👨‍💼 <b>Маман жауабы:</b>\n\n${rawText}`);
+    const citizenId = trailingCitizenId(original);
+    if (citizenId != null) {
+      await sendMessage(citizenId, `👨‍💼 <b>Маман жауабы:</b>\n\n${escapeHtml(rawText)}`);
       await sendMessage(chatId, "✅ Жауабыңыз азаматқа жіберілді.");
       return NextResponse.json({ ok: true });
     }
@@ -333,8 +349,8 @@ export async function POST(req: Request) {
 
   // ── /жазыл (subscribe) ──
   if (text === "/жазыл" || text === "/subscribe") {
-    if (supabase) {
-      const { error } = await supabase
+    if (subsDb) {
+      const { error } = await subsDb
         .from("telegram_subscribers")
         .upsert({ chat_id: chatId, username: username || null, subscribed_at: new Date().toISOString() }, { onConflict: "chat_id" });
       if (!error) {
@@ -354,8 +370,8 @@ export async function POST(req: Request) {
 
   // ── /болдырма (unsubscribe) ──
   if (text === "/болдырма" || text === "/unsubscribe") {
-    if (supabase) {
-      await supabase.from("telegram_subscribers").delete().eq("chat_id", chatId);
+    if (subsDb) {
+      await subsDb.from("telegram_subscribers").delete().eq("chat_id", chatId);
       await sendMessage(chatId,
         `👋 Жазылудан шықтыңыз.\n\n` +
         `Қайта жазылу үшін: /жазыл`
@@ -431,7 +447,7 @@ export async function POST(req: Request) {
   // ── Free text → ecology expert ──
   const liveCtx = await fetchLiveContext();
   const answer  = await expertReply(rawText, liveCtx);
-  await sendMessage(chatId, answer);
+  await sendMessage(chatId, escapeHtml(answer));
   forwardToModerator(chatId, username, rawText, answer);
 
   return NextResponse.json({ ok: true });
@@ -454,6 +470,8 @@ export async function GET() {
   return NextResponse.json({
     configured: true,
     moderatorConfigured: !!modId,
+    // false болса модератор батырмалары мен жауаптары өшірулі (қолдан жасалған сұраныстан қорғаныс).
+    webhookSecretConfigured: !!process.env.TELEGRAM_WEBHOOK_SECRET,
     status: modId ? "Дайын. Азаматтық хабарламалар модераторға автоматты жіберіледі." : "Бот жұмыс істейді, бірақ TELEGRAM_MODERATOR_CHAT_ID орнатылмаған.",
   });
 }

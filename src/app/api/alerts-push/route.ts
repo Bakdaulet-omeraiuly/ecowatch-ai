@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { serviceClient } from "@/lib/supabaseAdmin";
 
 // Hourly Vercel cron job: check thresholds → notify Telegram subscribers.
 // Thresholds:
@@ -20,8 +21,9 @@ async function sendMessage(chatId: number | string, text: string) {
 }
 
 async function getSubscribers(): Promise<{ chat_id: number; username: string | null }[]> {
-  if (!supabase) return [];
-  const { data } = await supabase.from("telegram_subscribers").select("chat_id, username");
+  const db = serviceClient() ?? supabase;
+  if (!db) return [];
+  const { data } = await db.from("telegram_subscribers").select("chat_id, username");
   return data ?? [];
 }
 

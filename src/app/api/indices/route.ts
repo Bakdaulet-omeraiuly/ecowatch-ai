@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { computeIndices } from "@/lib/sentinelStats";
+import { allow } from "@/lib/ratelimit";
 
 // Нақты спектрлік индекстер (Sentinel-2, Sentinel Hub Statistical API) +
 // автоматты қазақша интерпретация. «ML» нәтижесі (GPT-4o Vision-ға қосымша).
@@ -43,6 +44,11 @@ function interpret(ndvi: number, ndwi: number, ndmi: number, ndbi: number, lang:
 }
 
 export async function POST(req: Request) {
+  // Әр сұраныс Sentinel Hub өңдеу бірліктерін жұмсайды (тегін квота
+  // 2026-11-05 таусылған) — AI шегінен бөлек шелек.
+  if (!(await allow(req, "indices"))) {
+    return NextResponse.json({ error: "Тым көп сұраныс. Сәл кейін қайталаңыз." }, { status: 429 });
+  }
   let lat: number, lng: number, areaKm2: number | undefined, lang: Lang = "kk";
   try {
     const b = await req.json();

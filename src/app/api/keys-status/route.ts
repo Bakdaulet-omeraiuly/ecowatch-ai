@@ -113,6 +113,20 @@ export async function GET() {
       required: "қосымша",
       where: "Кез келген ұзын кездейсоқ жол",
     },
+    {
+      env: "UPSTASH_REDIS_REST_URL",
+      set: has("UPSTASH_REDIS_REST_URL") && has("UPSTASH_REDIS_REST_TOKEN"),
+      what: "Сұраныс шегі (rate limit). Жоқ болса AI және спутник эндпоинттері ШЕКСІЗ ашық",
+      required: "қосымша",
+      where: "upstash.com → Redis → REST API (URL + TOKEN екеуі де керек)",
+    },
+    {
+      env: "TELEGRAM_WEBHOOK_SECRET",
+      set: has("TELEGRAM_WEBHOOK_SECRET"),
+      what: "Telegram webhook-тың түпнұсқалығы. Жоқ болса модератор батырмалары мен жауаптары өшірулі",
+      required: "қосымша",
+      where: "Кездейсоқ жол (A-Z a-z 0-9 _ -), setWebhook?secret_token=… арқылы да беріледі",
+    },
   ];
 
   const missing = keys.filter((k) => !k.set);
