@@ -29,3 +29,19 @@ describe("archiveWindows", () => {
     expect(ws[ws.length - 1].source).toBe("VIIRS_SNPP_NRT");
   });
 });
+
+describe("FIRMS acq_time", () => {
+  it("formats HHMM values with or without leading zeros", async () => {
+    const { formatAcqTime, parseFirmsCsv } = await import("./firms");
+    expect(formatAcqTime("931")).toBe("09:31");
+    expect(formatAcqTime("5")).toBe("00:05");
+    expect(formatAcqTime("2245")).toBe("22:45");
+    expect(formatAcqTime("2460")).toBe("");
+    expect(formatAcqTime(undefined)).toBe("");
+    const rows = parseFirmsCsv(
+      "latitude,longitude,bright_ti5,frp,confidence,acq_date,acq_time,daynight\n46.2,53.4,300,12.5,n,2026-11-16,2214,N"
+    );
+    expect(rows[0].acqTime).toBe("22:14");
+    expect(parseFirmsCsv("latitude,longitude\n46.2,53.4")[0].acqTime).toBe("");
+  });
+});

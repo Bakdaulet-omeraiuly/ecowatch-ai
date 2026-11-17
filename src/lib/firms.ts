@@ -33,7 +33,25 @@ export interface FirmsDetection {
   frp: number;
   confidence: string;
   acqDate: string;
+  /** Өту уақыты, UTC «HH:MM» (FIRMS acq_time); бағаны жоқ болса — бос */
+  acqTime: string;
   dayNight: string;
+}
+
+/** NRT VIIRS аспаптары: үш спутник — тәулігіне ~6 өту (бір спутникте ~2). */
+export const VIIRS_NRT_SOURCES = [
+  { id: "VIIRS_SNPP_NRT", satellite: "Suomi-NPP" },
+  { id: "VIIRS_NOAA20_NRT", satellite: "NOAA-20" },
+  { id: "VIIRS_NOAA21_NRT", satellite: "NOAA-21" },
+] as const;
+
+/** FIRMS acq_time («5», «0931», «2245») → «HH:MM» UTC */
+export function formatAcqTime(raw: string | undefined): string {
+  const t = (raw ?? "").trim();
+  if (!/^\d{1,4}$/.test(t)) return "";
+  const p = t.padStart(4, "0");
+  const h = Number(p.slice(0, 2)), m = Number(p.slice(2));
+  return h < 24 && m < 60 ? `${p.slice(0, 2)}:${p.slice(2)}` : "";
 }
 
 /** Жарамсыз кілт немесе сұраныс қатесі — FIRMS мәтіндік жауап қайтарады */
@@ -55,6 +73,7 @@ export function parseFirmsCsv(csv: string): FirmsDetection[] {
   const iLat = col("latitude"), iLng = col("longitude");
   const iBright = col("bright_ti5"), iFrp = col("frp");
   const iConf = col("confidence"), iDate = col("acq_date"), iDN = col("daynight");
+  const iTime = col("acq_time");
   if (iLat < 0 || iLng < 0) throw new Error("FIRMS CSV тақырыбы күтпеген");
 
   return lines.slice(1).map((line): FirmsDetection => {
@@ -66,6 +85,7 @@ export function parseFirmsCsv(csv: string): FirmsDetection[] {
       frp: parseFloat(c[iFrp]) || 0,
       confidence: c[iConf] ?? "",
       acqDate: c[iDate] ?? "",
+      acqTime: iTime < 0 ? "" : formatAcqTime(c[iTime]),
       dayNight: c[iDN] ?? "",
     };
   }).filter((f) => !isNaN(f.lat) && !isNaN(f.lng));
