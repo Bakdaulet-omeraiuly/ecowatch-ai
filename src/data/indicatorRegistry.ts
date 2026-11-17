@@ -536,7 +536,7 @@ export const INDICATORS: Indicator[] = [
       "FRP (жылу сәулелену қуаты) есептеледі",
       "Таңдалған аймақтың шекарасына (bbox) сүзгіленеді",
     ],
-    instrument: "VIIRS (Suomi-NPP) — 375 м ажыратымдылық, NRT ағыны",
+    instrument: "VIIRS (Suomi-NPP, NOAA-20, NOAA-21) — 375 м ажыратымдылық, NRT ағыны",
     spatial: "375 м",
     temporal: "тәулігіне бірнеше өту",
     latency: "≈3 сағат (NRT)",

@@ -135,7 +135,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
     // Дәлелге ТЕК нысан аумағындағы детекция кіреді
     onSite.length > 0 && {
       kind: "Жылу аномалиясы (нысан аумағында)",
-      instrument: "NASA VIIRS (Suomi-NPP), 375 м",
+      instrument: "NASA VIIRS (Suomi-NPP, NOAA-20, NOAA-21), 375 м",
       resolution: "375 м",
       time: onSite[0].acqDate,
       values: `${onSite.length} детекция аумақ контурында · FRP ${Math.round(onSite[0].frp)} МВт`,

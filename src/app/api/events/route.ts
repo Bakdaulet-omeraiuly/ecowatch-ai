@@ -147,7 +147,7 @@ export async function GET(req: Request) {
           `Координата ${f.lat.toFixed(4)}, ${f.lng.toFixed(4)} · сенімділік: ${f.confidence} · ` +
           `${f.dayNight === "N" ? "түнгі" : "күндізгі"} өту. ` +
           "Газ факелі мен дала өртін VIIRS ажыратпайды — жердегі тексеру қажет.",
-        source: "NASA FIRMS · VIIRS SNPP",
+        source: "NASA FIRMS · VIIRS NRT (Suomi-NPP, NOAA-20, NOAA-21)",
         coords: [f.lat, f.lng],
       });
     }

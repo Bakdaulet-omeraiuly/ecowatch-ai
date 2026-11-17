@@ -193,7 +193,7 @@ export async function GET(req: Request) {
           {
             dataset: `Жылу аномалиялары (газ факелдері / өрт) — ${region.name}`,
             tier: "Өлшем",
-            source: "NASA FIRMS · VIIRS SNPP NRT",
+            source: "NASA FIRMS · VIIRS NRT (Suomi-NPP, NOAA-20, NOAA-21)",
             fetchedAt: new Date().toISOString(),
             method: "Спутниктің инфрақызыл арнасындағы жылу аномалиясының тікелей детекциясы.",
             caveats: [

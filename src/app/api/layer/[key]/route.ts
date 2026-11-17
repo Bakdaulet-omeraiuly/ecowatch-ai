@@ -117,7 +117,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ key: string
       aiIncluded: false,
       note:
         "Бұл жауапта жасанды интеллект қолданылмаған. Барлық сан — өлшем немесе " +
-        "ресми атмосфералық/гидрологиялық модель шығысы (қайсысы екені — tier өрісінде).",
+        "ресми атмосфералық/гидрологиялық модель шығысы.",
     };
 
     cache.set(cacheKey, { at: Date.now(), data });
